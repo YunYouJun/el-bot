@@ -1,0 +1,44 @@
+{
+  "name": "el-bot-js",
+  "version": "0.0.1",
+  "description": "A quick qq bot for mirai.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "start:console": "node scripts/start-el-bot.js",
+    "install:mirai": "node scripts/install.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elpsycn/el-bot-js.git"
+  },
+  "keywords": [
+    "elpsy",
+    "bot",
+    "mirai",
+    "qq"
+  ],
+  "author": "YunYouJun",
+  "contributors": [
+    "@YunYouJun",
+    "@ADD-SP"
+  ],
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/elpsycn/el-bot-js/issues"
+  },
+  "homepage": "https://github.com/elpsycn/el-bot-js#readme",
+  "dependencies": {
+    "chalk": "^4.0.0",
+    "dotenv": "^8.2.0",
+    "follow-redirects": "^1.11.0",
+    "glob": "^7.1.6",
+    "js-yaml": "^3.14.0",
+    "node-mirai-sdk": "^0.1.26"
+  },
+  "devDependencies": {
+    "eslint": "^7.2.0",
+    "eslint-plugin-node": "^11.1.0"
+  }
+}
