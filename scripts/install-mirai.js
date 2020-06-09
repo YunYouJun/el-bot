@@ -1,4 +1,4 @@
-const Repo = require("../lib/Repo");
+const Repo = require("../lib/repo");
 
 miraiConsoleWrapper = new Repo("mamoe", "mirai-console-wrapper");
 miraiConsoleWrapper.getLatestVersion().then(() => {

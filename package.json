@@ -4,9 +4,10 @@
   "description": "A quick qq bot for mirai.",
   "main": "index.js",
   "scripts": {
+    "dev": "nodemon index.js",
     "start": "node index.js",
     "start:console": "node scripts/start-el-bot.js",
-    "install:mirai": "node scripts/install.js",
+    "install:mirai": "node scripts/install-mirai.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -28,9 +29,10 @@
   "bugs": {
     "url": "https://github.com/elpsycn/el-bot-js/issues"
   },
-  "homepage": "https://github.com/elpsycn/el-bot-js#readme",
+  "homepage": "https://github.com/elpsycn/el-bot-js",
   "dependencies": {
     "chalk": "^4.0.0",
+    "commander": "^5.1.0",
     "dotenv": "^8.2.0",
     "follow-redirects": "^1.11.0",
     "glob": "^7.1.6",
@@ -39,6 +41,7 @@
   },
   "devDependencies": {
     "eslint": "^7.2.0",
-    "eslint-plugin-node": "^11.1.0"
+    "eslint-plugin-node": "^11.1.0",
+    "nodemon": "^2.0.4"
   }
 }

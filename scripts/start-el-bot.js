@@ -9,10 +9,12 @@ glob("./mirai-console-wrapper-*.jar", {}, (err, files) => {
   });
   // pipe console cmd
   process.stdin.pipe(miraiConsole.stdin);
-  setTimeout(() => {
-    log.info("自动登录 QQ");
-    const loginCmd = `login ${process.env.BOT_QQ} ${process.env.BOT_PASSWORD}\n`;
-    console.log(loginCmd);
-    miraiConsole.stdin.write(loginCmd);
-  }, 5000);
+  if (process.env.BOT_QQ && process.env.BOT_PASSWORD) {
+    setTimeout(() => {
+      log.info("自动登录 QQ");
+      const loginCmd = `login ${process.env.BOT_QQ} ${process.env.BOT_PASSWORD}\n`;
+      console.log(loginCmd);
+      miraiConsole.stdin.write(loginCmd);
+    }, 5000);
+  }
 });

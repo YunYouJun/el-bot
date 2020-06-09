@@ -1,1 +1,13 @@
 name: el-bot-js
+
+echo:
+  enable: true
+
+forward:
+  - listen:
+      friend:
+        - 910426929
+    target:
+      group:
+        # Elpsy Congroo
+        - 1072803190

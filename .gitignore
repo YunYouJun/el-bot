@@ -6,6 +6,7 @@ mirai-console-wrapper-*.jar
 mirai-api-http-*.jar
 content/
 device.json
+plugins/MiraiAPIHTTP/setting.yml
 
 .DS_Store
 yarn.lock
