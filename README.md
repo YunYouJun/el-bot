@@ -9,6 +9,8 @@ el-bot 的 js（~~女子小学生~~） 版本。开发中...
 
 一个基于 mirai 实现的配置型 QQ 机器人。
 
+文档：[el-bot-js | el bot docs](https://docs.bot.elpsy.cn/js/)
+
 ## 快速开始
 
 ### 配置
@@ -26,7 +28,7 @@ BOT_PASSWORD=******
 
 复制 `plugins/MiraiAPIHTTP/setting.example.yml` 文件为 `plugins/MiraiAPIHTTP/setting.yml`。
 
-自定义你的 `authKey`，这很重要，否则你的机器人将很可能被 NTR。
+自定义你的 `authKey`，这很重要，否则你的机器人将很可能被 [NTR](https://zh.moegirl.org/zh-hans/NTR)。
 
 ```yaml
 authKey: el-bot-js
@@ -55,6 +57,14 @@ yarn start
 此时，你的 QQ 机器人就已经成功运行起来了。并将附带一些默认的功能。
 
 然后？然后参照 [文档](https://docs.bot.elpsy.cn/js/) 编写你的自定义配置文件 `config/custom/index.yml` 即可。
+
+### 开发
+
+```sh
+# 开发模式 el-bot-js
+yarn dev
+# npm run dev
+```
 
 ## Thanks
 

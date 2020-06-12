@@ -3,15 +3,3 @@ name: el-bot-js
 # el -h
 cli:
   enable: true
-
-forward:
-  - listen:
-      friend:
-        - 910426929
-    target:
-      friend:
-        - 910426929
-      group:
-        # Elpsy Congroo
-        - 1072803190
-        - 707408530
