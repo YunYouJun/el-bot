@@ -1,8 +1,6 @@
 const Mirai = require("node-mirai-sdk");
 const log = require("../lib/chalk");
 const messageHandler = require("./messageHandler");
-const Cli = require("./cli");
-const { getPlain } = require("../utils/index");
 
 module.exports = class ElBot {
   constructor(el) {
@@ -26,26 +24,15 @@ module.exports = class ElBot {
 
   auth() {
     this.mirai.onSignal("authed", () => {
-      log.success("Link Start!");
-      log.success(`Session Key(${this.el.qq}): ${this.mirai.sessionKey}`);
+      log.success(`Link Start! (${this.el.qq})`);
+      // log.success(`Session Key(${this.el.qq}): ${this.mirai.sessionKey}`);
       this.mirai.verify();
     });
   }
 
   onMessage() {
     this.mirai.onMessage((res) => {
-      // command for message
-      const cmd = getPlain(res.messageChain)
-        .split(" ")
-        .filter((item) => {
-          return item !== "";
-        });
-      if (cmd[0] === "el") {
-        // js auto gc
-        this.cli = new Cli(res);
-        this.cli.parse(cmd);
-      }
-
+      console.log(res);
       // handle message
       messageHandler(res);
     });

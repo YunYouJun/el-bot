@@ -1,18 +1,34 @@
-const { getPlain } = require("../../utils/index");
-
 function forward(res, config) {
-  const msg = getPlain(res.messageChain);
+  const mirai = global.bot.mirai;
 
-  if (config.listen.friend) {
-    config.listen.friend.forEach(() => {
-      res.reply(msg);
-    });
+  let canForward = false;
+  if (res.sender.group) {
+    // 群
+    if (
+      config.listen.group &&
+      config.listen.group.includes(res.sender.group.id)
+    ) {
+      canForward = true;
+    }
+  } else {
+    // 私聊
+    if (config.listen.friend && config.listen.friend.includes(res.sender.id)) {
+      canForward = true;
+    }
   }
 
-  if (config.listen.group) {
-    config.listen.group.forEach(() => {
-      res.reply(msg);
-    });
+  if (canForward) {
+    if (config.target.friend) {
+      config.target.friend.forEach((qq) => {
+        mirai.sendFriendMessage(res.messageChain, qq);
+      });
+    }
+
+    if (config.target.group) {
+      config.target.group.forEach((qq) => {
+        mirai.sendGroupMessage(res.messageChain, qq);
+      });
+    }
   }
 }
 

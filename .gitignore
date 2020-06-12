@@ -7,6 +7,7 @@ mirai-api-http-*.jar
 content/
 device.json
 plugins/MiraiAPIHTTP/setting.yml
+libraries/
 
 .DS_Store
 yarn.lock

@@ -1,5 +1,5 @@
-const log = require("../lib/chalk");
-const pkg = require("../package.json");
+const log = require("../../lib/chalk");
+const pkg = require("../../package.json");
 const { Command } = require("commander");
 
 module.exports = class cli {
@@ -21,7 +21,7 @@ module.exports = class cli {
 
     program
       .name("el")
-      .command("version [cur]")
+      .command("version")
       .description("当前版本")
       .action(() => {
         reply("v" + pkg.version);
