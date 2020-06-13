@@ -8,7 +8,7 @@ module.exports = class ElBot {
   }
 
   init() {
-    const el = this.el;
+    const el = global.el;
     this.mirai = new Mirai({
       host: `http://${el.setting.host || "localhost"}:${
         el.setting.port || 8080
@@ -17,9 +17,7 @@ module.exports = class ElBot {
       qq: el.qq,
       enableWebsocket: el.setting.enableWebsocket || false,
     });
-
     this.auth();
-    this.onMessage();
   }
 
   auth() {
@@ -31,14 +29,15 @@ module.exports = class ElBot {
   }
 
   onMessage() {
-    this.mirai.onMessage((res) => {
-      console.log(res);
+    this.mirai.onMessage((msg) => {
+      // console.log(msg);
       // handle message
-      messageHandler(res);
+      messageHandler(msg);
     });
   }
 
   listen() {
+    this.onMessage();
     this.mirai.listen("all");
     process.on("exit", () => {
       this.mirai.release();

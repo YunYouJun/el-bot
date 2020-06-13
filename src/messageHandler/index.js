@@ -1,22 +1,23 @@
 const Cli = require("./cli");
+const rss = require("./rss");
 const { forward } = require("./forward");
 const { getPlain } = require("../../utils/index");
 
-function messageHandler(res) {
+function messageHandler(msg) {
   const config = global.el.config;
-  res.plain = getPlain(res.messageChain);
+  msg.plain = getPlain(msg.messageChain);
 
   // cli
   if (this.el.config.cli.enable) {
     // command for message
-    const cmd = getPlain(res.messageChain)
+    const cmd = getPlain(msg.messageChain)
       .split(" ")
       .filter((item) => {
         return item !== "";
       });
     if (cmd[0] === "el") {
       // js auto gc
-      this.cli = new Cli(res);
+      this.cli = new Cli(msg);
       this.cli.parse(cmd);
     }
   }
@@ -24,8 +25,14 @@ function messageHandler(res) {
   // forward
   if (config.forward) {
     config.forward.forEach((item) => {
-      forward(res, item);
+      console.log(item);
+      forward(msg, item);
     });
+  }
+
+  // rss
+  if (config.rss) {
+    rss(msg);
   }
 }
 

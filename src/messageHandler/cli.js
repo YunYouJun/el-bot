@@ -2,11 +2,11 @@ const log = require("../../lib/chalk");
 const pkg = require("../../package.json");
 const { Command } = require("commander");
 
-module.exports = class cli {
-  constructor(res) {
+module.exports = class Cli {
+  constructor(msg) {
     const program = new Command();
     this.program = program;
-    const reply = res.reply;
+    const reply = msg.reply;
     this.reply = reply;
 
     // 避免打印版本退出

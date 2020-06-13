@@ -4,7 +4,7 @@
   "description": "A quick qq bot for mirai.",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js",
+    "dev": "export NODE_ENV=dev && nodemon index.js",
     "start": "node index.js",
     "start:console": "node scripts/start-el-bot.js",
     "install:mirai": "node scripts/install-mirai.js",
@@ -33,11 +33,15 @@
   "dependencies": {
     "chalk": "^4.0.0",
     "commander": "^5.1.0",
+    "dayjs": "^1.8.28",
     "dotenv": "^8.2.0",
+    "feedparser": "^2.2.10",
     "follow-redirects": "^1.11.0",
     "glob": "^7.1.6",
+    "html-to-text": "^5.1.1",
     "js-yaml": "^3.14.0",
-    "node-mirai-sdk": "^0.1.26"
+    "node-mirai-sdk": "^0.1.26",
+    "rss-parser": "^3.8.0"
   },
   "devDependencies": {
     "eslint": "^7.2.0",
