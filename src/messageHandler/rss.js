@@ -1,11 +1,12 @@
 const dayjs = require("dayjs");
 const htmlToText = require("html-to-text");
+const fs = require("fs");
+const schedule = require("node-schedule");
 
-const log = require("../../lib/chalk");
 const Parser = require("rss-parser");
 
+const log = require("../../lib/chalk");
 const { sendMessageByConfig } = require("../../lib/message");
-const { parse } = require("commander");
 
 class Rss {
   constructor(rssConfig) {
@@ -17,12 +18,38 @@ class Rss {
 
   async parse() {
     let feed = await this.parser.parseURL(this.config.url);
-    console.log(feed.title);
-    // feed.items.forEach((item) => {
-    //   format(item, rss.content);
-    // });
-    let content = feed.title + format(feed.items[0], this.config.content);
-    sendMessageByConfig(content, this.config.target);
+
+    if (this.save(feed)) {
+      // only semd first
+      let content = feed.title + format(feed.items[0], this.config.content);
+      sendMessageByConfig(content, this.config.target);
+    }
+  }
+
+  save(feed) {
+    const tmpDir = "tmp/rss/";
+    const path = tmpDir + this.config.name + ".json";
+
+    let cache = "";
+    if (fs.existsSync(path)) {
+      const data = fs.readFileSync(path);
+      cache = data.toString();
+    } else {
+      fs.mkdirSync(tmpDir, { recursive: true });
+    }
+
+    const feedString = JSON.stringify(feed);
+    if (feedString === cache) {
+      log.info("RSS 未更新");
+      return false;
+    } else {
+      log.info("RSS 已更新");
+      fs.writeFile(path, JSON.stringify(feed), (err) => {
+        if (err) log.error(err);
+        log.success(`已在本地记录 ${feed.title} 新的 RSS 信息`);
+      });
+      return true;
+    }
   }
 }
 
@@ -43,12 +70,18 @@ function format(item, content) {
 
 function rss(msg) {
   if (msg.plain !== "rss") return;
-  const mirai = global.bot.mirai;
   const config = global.el.config;
 
   config.rss.forEach((rssConfig) => {
     const rss = new Rss(rssConfig);
-    rss.parse();
+
+    if (!rssConfig.cron) {
+      rssConfig.cron = "*/15 * * * *";
+    }
+
+    schedule.scheduleJob(rssConfig.cron, () => {
+      rss.parse();
+    });
   });
 }
 
