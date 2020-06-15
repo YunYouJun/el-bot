@@ -1,4 +1,5 @@
 const Cli = require("./cli");
+const answer = require("./answer");
 const rss = require("./rss");
 const { forward } = require("./forward");
 const { getPlain } = require("../../utils/index");
@@ -22,10 +23,14 @@ function messageHandler(msg) {
     }
   }
 
+  // reply
+  if (config.answer) {
+    answer(msg);
+  }
+
   // forward
   if (config.forward) {
     config.forward.forEach((item) => {
-      console.log(item);
       forward(msg, item);
     });
   }
