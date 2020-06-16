@@ -1,6 +1,7 @@
 const Mirai = require("node-mirai-sdk");
 const log = require("../lib/chalk");
 const messageHandler = require("./messageHandler");
+const rss = require("./messageHandler/rss");
 
 module.exports = class ElBot {
   constructor(el) {
@@ -39,6 +40,13 @@ module.exports = class ElBot {
   listen() {
     this.onMessage();
     this.mirai.listen("all");
+
+    // no need msg
+    // rss
+    if (this.el.config.rss) {
+      rss();
+    }
+
     process.on("exit", () => {
       this.mirai.release();
     });

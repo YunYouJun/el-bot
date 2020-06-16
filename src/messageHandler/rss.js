@@ -68,8 +68,7 @@ function format(item, content) {
   return Function("item", "return `" + template + "`")(item);
 }
 
-function rss(msg) {
-  if (msg.plain !== "rss") return;
+function rss() {
   const config = global.el.config;
 
   config.rss.forEach((rssConfig) => {
