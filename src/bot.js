@@ -30,7 +30,7 @@ module.exports = class ElBot {
 
   onMessage() {
     this.mirai.onMessage((msg) => {
-      // console.log(msg);
+      console.log(msg);
       // handle message
       messageHandler(msg);
     });

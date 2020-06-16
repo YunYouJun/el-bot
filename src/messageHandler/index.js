@@ -9,7 +9,7 @@ function messageHandler(msg) {
   msg.plain = getPlain(msg.messageChain);
 
   // cli
-  if (this.el.config.cli.enable) {
+  if (config.cli.enable) {
     // command for message
     const cmd = getPlain(msg.messageChain)
       .split(" ")
@@ -30,9 +30,7 @@ function messageHandler(msg) {
 
   // forward
   if (config.forward) {
-    config.forward.forEach((item) => {
-      forward(msg, item);
-    });
+    forward(msg);
   }
 
   // rss

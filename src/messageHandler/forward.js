@@ -1,11 +1,15 @@
 const { isListening, sendMessageByConfig } = require("../../lib/message");
 
-function forward(msg, config) {
-  let canForward = isListening(msg.sender, config.listen);
+function forward(msg) {
+  const config = global.el.config;
 
-  if (canForward) {
-    sendMessageByConfig(msg.messageChain, config.target);
-  }
+  config.forward.forEach((item) => {
+    let canForward = isListening(msg.sender, item.listen);
+
+    if (canForward) {
+      sendMessageByConfig(msg.messageChain, item.target);
+    }
+  });
 }
 
 module.exports = {

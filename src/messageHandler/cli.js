@@ -47,7 +47,9 @@ module.exports = class Cli {
       // 我也不知道为什么 commander 为何从第二个参数才开始解析
       cmd.unshift("");
       this.program.parse(cmd);
-    } catch (err) {}
+    } catch (err) {
+      console.log(err);
+    }
 
     this.handle();
   }
