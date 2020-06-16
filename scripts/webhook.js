@@ -1,3 +1,4 @@
+require("dotenv").config();
 const http = require("http");
 const createHandler = require("github-webhook-handler");
 const handler = createHandler({

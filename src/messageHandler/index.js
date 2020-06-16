@@ -36,7 +36,6 @@ function messageHandler(msg) {
   // reply
   if (config.answer) {
     answer(msg);
-    return;
   }
 
   // forward
