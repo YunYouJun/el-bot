@@ -1,6 +1,9 @@
 const http = require("http");
 const createHandler = require("github-webhook-handler");
-const handler = createHandler({ path: "", secret: "" });
+const handler = createHandler({
+  path: "/webhook",
+  secret: process.env.WEBHOOK_SECRET || "el-bot-js",
+});
 
 const shell = require("shelljs");
 

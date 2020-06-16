@@ -1,3 +1,4 @@
+require("dotenv").config();
 const Bot = require("./src/bot");
 const el = require("./src/el");
 global.el = el;
