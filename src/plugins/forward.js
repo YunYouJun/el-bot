@@ -1,6 +1,6 @@
 const { isListening, sendMessageByConfig } = require("../../lib/message");
 
-function forward(msg) {
+function onMessage(msg) {
   const config = global.el.config;
 
   config.forward.forEach((item) => {
@@ -13,5 +13,5 @@ function forward(msg) {
 }
 
 module.exports = {
-  forward,
+  onMessage,
 };

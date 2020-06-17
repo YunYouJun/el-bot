@@ -1,6 +1,6 @@
 const { isListening } = require("../../lib/message");
 
-function answer(msg) {
+function onMessage(msg) {
   const config = global.el.config;
   config.answer.forEach((ans) => {
     // 默认监听群
@@ -12,4 +12,6 @@ function answer(msg) {
   });
 }
 
-module.exports = answer;
+module.exports = {
+  onMessage,
+};
