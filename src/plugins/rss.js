@@ -11,15 +11,15 @@ const { sendMessageByConfig } = require("../../lib/message");
 class Rss {
   constructor(rssConfig) {
     this.config = rssConfig;
-    const options = {
-      customFields: {
-        item: ["updated"],
-      },
-    };
-    if (rssConfig.customFields) {
-      options.customFields = rssConfig.customFields;
-    }
-    this.parser = new Parser(options);
+    this.parser = new Parser({
+      customFields: rssConfig.customFields,
+    });
+  }
+
+  init() {
+    schedule.scheduleJob(this.config.cron, () => {
+      this.parse();
+    });
   }
 
   async parse() {
@@ -87,15 +87,21 @@ function on() {
   const config = global.el.config;
 
   config.rss.forEach((rssConfig) => {
+    const defaultConfig = {
+      cron: "*/15 * * * *",
+      customFields: {
+        item: ["updated"],
+      },
+      content: [
+        "标题：${item.title}",
+        "链接：${item.link}",
+        "时间：${item.updated}",
+      ],
+    };
+    rssConfig = Object.assign(defaultConfig, rssConfig);
+
     const rss = new Rss(rssConfig);
-
-    if (!rssConfig.cron) {
-      rssConfig.cron = "*/15 * * * *";
-    }
-
-    schedule.scheduleJob(rssConfig.cron, () => {
-      rss.parse();
-    });
+    rss.init();
   });
 }
 

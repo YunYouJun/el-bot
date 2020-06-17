@@ -8,7 +8,7 @@ let reply = {};
 const yargs = require("yargs")
   .scriptName("el")
   .usage("Usage: $0 <command> [options]")
-  .command("echo <message>", "回声测试", {}, (argv) => {
+  .command("echo <message>", "回声", {}, (argv) => {
     reply(argv.message);
   })
   .command("sleep", "休眠", () => {

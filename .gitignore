@@ -9,6 +9,7 @@ content/
 device.json
 plugins/MiraiAPIHTTP/setting.yml
 libraries/
+bot.yml
 
 .DS_Store
 yarn.lock
