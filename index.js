@@ -5,7 +5,7 @@ global.el = el;
 
 // init
 const bot = new Bot(el);
+global.bot = bot;
+
 bot.init();
 bot.listen();
-
-global.bot = bot;

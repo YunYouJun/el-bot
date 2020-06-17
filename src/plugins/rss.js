@@ -40,10 +40,10 @@ class Rss {
 
     const feedString = JSON.stringify(feed);
     if (feedString === cache) {
-      log.info("RSS 未更新");
+      log.info(`RSS: ${feed.title} 未更新`);
       return false;
     } else {
-      log.info("RSS 已更新");
+      log.info(`RSS: ${feed.title} 已更新`);
       fs.writeFile(path, JSON.stringify(feed), (err) => {
         if (err) log.error(err);
         log.success(`已在本地记录 ${feed.title} 新的 RSS 信息`);
@@ -68,7 +68,7 @@ function format(item, content) {
   return Function("item", "return `" + template + "`")(item);
 }
 
-function rss() {
+function on() {
   const config = global.el.config;
 
   config.rss.forEach((rssConfig) => {
@@ -84,4 +84,19 @@ function rss() {
   });
 }
 
-module.exports = rss;
+function onMessage(msg) {
+  const config = global.el.config;
+
+  if (msg.plain === "rss") {
+    let content = "您当前订阅的 RSS 源：";
+    config.rss.forEach((item) => {
+      content += `\n${item.name}: ${item.url}`;
+    });
+    msg.reply(content);
+  }
+}
+
+module.exports = {
+  onMessage,
+  on,
+};

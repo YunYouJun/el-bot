@@ -1,7 +1,6 @@
 const Mirai = require("node-mirai-sdk");
 const log = require("../lib/chalk");
 const messageHandler = require("./messageHandler");
-const rss = require("./messageHandler/rss");
 
 module.exports = class ElBot {
   constructor(el) {
@@ -31,20 +30,35 @@ module.exports = class ElBot {
 
   onMessage() {
     this.mirai.onMessage((msg) => {
-      console.log(msg);
       // handle message
       messageHandler(msg);
     });
   }
 
   listen() {
+    const config = global.el.config;
+
     this.onMessage();
     this.mirai.listen("all");
 
-    // no need msg
-    // rss
-    if (this.el.config.rss) {
-      rss();
+    // load default plugins on
+    if (config.plugins.default) {
+      config.plugins.default.forEach((name) => {
+        const plugin = require(`./plugins/${name}`);
+        if (plugin.on) {
+          plugin.on(this.mirai);
+        }
+      });
+    }
+
+    // load custom plugins on
+    if (config.plugins.custom) {
+      config.plugins.custom.forEach((name) => {
+        const plugin = require(`../config/custom/plugins/${name}`);
+        if (plugin.on) {
+          plugin.on(this.mirai);
+        }
+      });
     }
 
     process.on("exit", () => {

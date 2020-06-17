@@ -2,7 +2,7 @@ const log = require("../../lib/chalk");
 const pkg = require("../../package.json");
 const { Command } = require("commander");
 
-module.exports = class Cli {
+class Cli {
   constructor(msg) {
     const program = new Command();
     this.program = program;
@@ -75,4 +75,22 @@ module.exports = class Cli {
     this.program.debug = undefined;
     this.program.about = undefined;
   }
+}
+
+function onMessage(msg) {
+  // command for message
+  const cmd = msg.plain.split(" ").filter((item) => {
+    return item !== "";
+  });
+
+  if (cmd[0] === "el") {
+    // js auto gc
+    this.cli = new Cli(msg);
+    this.cli.parse(cmd);
+    return;
+  }
+}
+
+module.exports = {
+  onMessage,
 };

@@ -1,5 +1,8 @@
 name: el-bot-js
 
-# el -h
-cli:
-  enable: true
+plugins:
+  default:
+    - answer
+    - cli
+    - forward
+    - rss
