@@ -11,8 +11,14 @@ const { sendMessageByConfig } = require("../../lib/message");
 class Rss {
   constructor(rssConfig) {
     this.config = rssConfig;
-    const options = {};
-    options.customFields = rssConfig.customFields;
+    const options = {
+      customFields: {
+        item: ["updated"],
+      },
+    };
+    if (rssConfig.customFields) {
+      options.customFields = rssConfig.customFields;
+    }
     this.parser = new Parser(options);
   }
 
@@ -60,6 +66,15 @@ function format(item, content) {
   }
 
   let template = "";
+
+  // default template
+  if (!content) {
+    content = [
+      "标题：${item.title}",
+      "链接：${item.link}",
+      "时间：${item.updated}",
+    ];
+  }
   content.forEach((line) => {
     template += "\n" + line;
   });

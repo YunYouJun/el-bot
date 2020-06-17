@@ -41,24 +41,26 @@ module.exports = class ElBot {
     this.onMessage();
     this.mirai.listen("all");
 
-    // load default plugins on
-    if (config.plugins.default) {
-      config.plugins.default.forEach((name) => {
-        const plugin = require(`./plugins/${name}`);
-        if (plugin.on) {
-          plugin.on(this.mirai);
-        }
-      });
-    }
+    if (this.el.active) {
+      // load default plugins on
+      if (config.plugins.default) {
+        config.plugins.default.forEach((name) => {
+          const plugin = require(`./plugins/${name}`);
+          if (plugin.on) {
+            plugin.on(this.mirai);
+          }
+        });
+      }
 
-    // load custom plugins on
-    if (config.plugins.custom) {
-      config.plugins.custom.forEach((name) => {
-        const plugin = require(`../config/custom/plugins/${name}`);
-        if (plugin.on) {
-          plugin.on(this.mirai);
-        }
-      });
+      // load custom plugins on
+      if (config.plugins.custom) {
+        config.plugins.custom.forEach((name) => {
+          const plugin = require(`../config/custom/plugins/${name}`);
+          if (plugin.on) {
+            plugin.on(this.mirai);
+          }
+        });
+      }
     }
 
     process.on("exit", () => {

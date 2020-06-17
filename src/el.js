@@ -21,5 +21,6 @@ if (process.env.NODE_ENV === "dev") {
 
 config.merge(defaultConfig, customConfig);
 el.config = defaultConfig;
+el.active = true;
 
 module.exports = el;
