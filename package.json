@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "export NODE_ENV=dev && nodemon index.js",
     "start": "nodemon index.js",
-    "start:console": "node scripts/start-el-bot.js",
+    "start:console": "node scripts/start-mirai.js",
     "start:webhook": "nodemon scripts/webhook.js",
     "install:mirai": "node scripts/install-mirai.js",
     "test": "echo \"Error: no test specified\" && exit 1"

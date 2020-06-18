@@ -86,29 +86,31 @@ function format(item, content) {
 function on() {
   const config = global.el.config;
 
-  config.rss.forEach((rssConfig) => {
-    const defaultConfig = {
-      cron: "*/15 * * * *",
-      customFields: {
-        item: ["updated"],
-      },
-      content: [
-        "标题：${item.title}",
-        "链接：${item.link}",
-        "时间：${item.updated}",
-      ],
-    };
-    rssConfig = Object.assign(defaultConfig, rssConfig);
+  if (config.rss) {
+    config.rss.forEach((rssConfig) => {
+      const defaultConfig = {
+        cron: "*/15 * * * *",
+        customFields: {
+          item: ["updated"],
+        },
+        content: [
+          "标题：${item.title}",
+          "链接：${item.link}",
+          "时间：${item.updated}",
+        ],
+      };
+      rssConfig = Object.assign(defaultConfig, rssConfig);
 
-    const rss = new Rss(rssConfig);
-    rss.init();
-  });
+      const rss = new Rss(rssConfig);
+      rss.init();
+    });
+  }
 }
 
 function onMessage(msg) {
   const config = global.el.config;
 
-  if (msg.plain === "rss") {
+  if (msg.plain === "rss" && config.rss) {
     let content = "您当前订阅的 RSS 源：";
     config.rss.forEach((item) => {
       content += `\n${item.name}: ${item.url}`;
