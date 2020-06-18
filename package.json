@@ -9,6 +9,7 @@
     "start:console": "node scripts/start-mirai.js",
     "start:webhook": "nodemon scripts/webhook.js",
     "install:mirai": "node scripts/install-mirai.js",
+    "update:config": "cd config/custom && git add -A && git commit -m ':wrench: update config' && git push",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
