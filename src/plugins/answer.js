@@ -6,12 +6,13 @@ function onMessage(msg) {
   if (config.answer) {
     config.answer.forEach((ans) => {
       // 默认监听所有
-      if (
-        isListening(msg.sender, ans.listen || "all") &&
-        !isListening(msg.sender, ans.except || "none")
-      ) {
+      if (isListening(msg.sender, ans.listen || "all")) {
         if (msg.plain === ans.is || msg.plain.includes(ans.includes)) {
-          msg.reply(ans.reply);
+          if (ans.reply) msg.reply(ans.reply);
+        }
+      } else {
+        if (msg.plain === ans.is || msg.plain.includes(ans.includes)) {
+          if (ans.else) msg.reply(ans.else);
         }
       }
     });

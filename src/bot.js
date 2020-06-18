@@ -64,6 +64,7 @@ module.exports = class ElBot {
     }
 
     process.on("exit", () => {
+      log.info("主人再见");
       this.mirai.release();
     });
   }

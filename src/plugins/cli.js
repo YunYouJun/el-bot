@@ -15,9 +15,34 @@ const yargs = require("yargs")
     global.el.active = false;
     reply("进入休眠状态");
   })
-  .command("restart", "重启", () => {
-    reply("触发重启操作");
+  .command("restart", "重启机器人", () => {
+    reply("重启 el-bot-js");
     shell.exec("touch index.js");
+  })
+  .command("restart:console", "重启 mirai-console", async () => {
+    await reply("重启 mirai-console");
+
+    const consolePid = shell.exec(
+      "pgrep -f java -jar ./mirai-console-wrapper",
+      {
+        silent: true,
+      }
+    ).stdout;
+    const scriptPid = shell.exec("pgrep -f start:console", {
+      silent: true,
+    }).stdout;
+    process.kill(consolePid);
+    process.kill(scriptPid);
+
+    shell.exec("npm run start:console", (code, stdout, stderr) => {
+      console.log("Exit code:", code);
+      console.log("Program output:", stdout);
+      console.log("Program stderr:", stderr);
+    });
+
+    setTimeout(() => {
+      shell.exec("touch index.js");
+    }, 5000);
   })
   .option("about", {
     alias: "a",
@@ -42,6 +67,14 @@ function parse(cmd) {
 }
 
 function onMessage(msg) {
+  const config = global.el.config;
+  if (
+    !config.master.includes(msg.sender.id) &&
+    !config.admin.includes(msg.sender.id)
+  ) {
+    return;
+  }
+
   reply = msg.reply;
 
   // command for message

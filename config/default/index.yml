@@ -6,3 +6,9 @@ plugins:
     - cli
     - forward
     - rss
+
+master:
+  - 910426929
+
+admin:
+  - 910426929
