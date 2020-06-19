@@ -4,7 +4,7 @@ function messageHandler(msg) {
   const config = global.el.config;
   msg.plain = getPlain(msg.messageChain);
 
-  if (this.el.active) {
+  if (global.el.active) {
     // load default plugins
     if (config.plugins.default) {
       config.plugins.default.forEach((name) => {

@@ -1,22 +1,39 @@
-const Mirai = require("node-mirai-sdk");
-const log = require("../lib/chalk");
-const messageHandler = require("./messageHandler");
+import Mirai from "node-mirai-sdk";
+import log from "../lib/chalk";
+import messageHandler from "./messageHandler";
 
-module.exports = class ElBot {
-  constructor(el) {
+interface Setting {
+  authKey: string,
+  enableWebsocket: boolean,
+  host: string,
+  port: number;
+}
+
+interface El {
+  pkg: object,
+  qq: number,
+  setting: Setting,
+  config: any,
+  active: boolean;
+}
+
+export default class ElBot {
+  public el: El;
+  public mirai: Mirai;
+
+  constructor(el: El) {
     this.el = el;
-  }
-
-  init() {
-    const el = global.el;
     this.mirai = new Mirai({
       host: `http://${el.setting.host || "localhost"}:${
         el.setting.port || 8080
-      }`,
+        }`,
       authKey: el.setting.authKey || "el-bot-js",
       qq: el.qq,
       enableWebsocket: el.setting.enableWebsocket || false,
     });
+  }
+
+  init() {
     this.auth();
   }
 
@@ -29,14 +46,14 @@ module.exports = class ElBot {
   }
 
   onMessage() {
-    this.mirai.onMessage((msg) => {
+    this.mirai.onMessage((msg: object) => {
       // handle message
       messageHandler(msg);
     });
   }
 
   listen() {
-    const config = global.el.config;
+    const config = this.el.config;
 
     this.onMessage();
     this.mirai.listen("all");
@@ -44,7 +61,7 @@ module.exports = class ElBot {
     if (this.el.active) {
       // load default plugins on
       if (config.plugins.default) {
-        config.plugins.default.forEach((name) => {
+        config.plugins.default.forEach((name: string) => {
           const plugin = require(`./plugins/${name}`);
           if (plugin.on) {
             plugin.on(this.mirai);
@@ -54,7 +71,7 @@ module.exports = class ElBot {
 
       // load custom plugins on
       if (config.plugins.custom) {
-        config.plugins.custom.forEach((name) => {
+        config.plugins.custom.forEach((name: string) => {
           const plugin = require(`../config/custom/plugins/${name}`);
           if (plugin.on) {
             plugin.on(this.mirai);

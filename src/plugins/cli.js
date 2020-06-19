@@ -15,8 +15,8 @@ const yargs = require("yargs")
     global.el.active = false;
     reply("进入休眠状态");
   })
-  .command("restart", "重启机器人", () => {
-    reply("重启 el-bot-js");
+  .command("restart", "重启机器人", async () => {
+    await reply("重启 el-bot-js");
     shell.exec("touch index.js");
   })
   .command("restart:console", "重启 mirai-console", async () => {

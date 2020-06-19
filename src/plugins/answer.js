@@ -11,6 +11,7 @@ function is(str, keywords) {
   }
   return test;
 }
+
 function includes(str, keywords) {
   let test = true;
   if (!Array.isArray(keywords)) {
@@ -32,6 +33,14 @@ function match(str, ans) {
   if (ans.includes) return includes(str, ans.includes);
 }
 
+function reply(msg, content, quote) {
+  if (quote) {
+    msg.quoteReply(content);
+  } else {
+    msg.reply(content);
+  }
+}
+
 function onMessage(msg) {
   const config = global.el.config;
 
@@ -40,14 +49,16 @@ function onMessage(msg) {
       // 默认监听所有
 
       if (isListening(msg.sender, ans.listen || "all")) {
-        if (match(msg.plain, ans)) {
-          if (ans.reply) msg.reply(ans.reply);
-          return false;
+        if (ans.reply) {
+          if (match(msg.plain, ans)) {
+            reply(msg, ans.reply, ans.quote);
+            return false;
+          }
         }
       } else {
         if (ans.else) {
           if (match(msg.plain, ans)) {
-            msg.reply(ans.else);
+            reply(msg, ans.else, ans.quote);
             return false;
           }
         }
@@ -59,5 +70,8 @@ function onMessage(msg) {
 }
 
 module.exports = {
+  is,
+  includes,
+  match,
   onMessage,
 };
