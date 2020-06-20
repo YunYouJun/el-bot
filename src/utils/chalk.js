@@ -9,7 +9,7 @@ const success = (msg) => {
 };
 
 const warning = (msg) => {
-  console.log(chalk.orange(msg));
+  console.log(chalk.yellow(msg));
 };
 
 const error = (msg) => {

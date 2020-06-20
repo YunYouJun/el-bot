@@ -1,4 +1,4 @@
-const log = require("../../lib/chalk");
+import log from "../utils/chalk";
 const pkg = require("../../package.json");
 const shell = require("shelljs");
 

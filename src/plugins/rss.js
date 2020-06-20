@@ -5,7 +5,7 @@ const schedule = require("node-schedule");
 
 const Parser = require("rss-parser");
 
-const log = require("../../lib/chalk");
+const log = require("../utils/chalk");
 const { sendMessageByConfig } = require("../../lib/message");
 
 class Rss {

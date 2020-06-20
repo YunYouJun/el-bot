@@ -1,4 +1,4 @@
-const { getPlain } = require("../../utils/index");
+const { getPlain } = require("../utils/index");
 
 function messageHandler(msg) {
   const config = global.el.config;

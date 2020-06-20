@@ -1,21 +1,7 @@
 import Mirai from "node-mirai-sdk";
-import log from "../lib/chalk";
+import log from "./utils/chalk";
 import messageHandler from "./messageHandler";
-
-interface Setting {
-  authKey: string,
-  enableWebsocket: boolean,
-  host: string,
-  port: number;
-}
-
-interface El {
-  pkg: object,
-  qq: number,
-  setting: Setting,
-  config: any,
-  active: boolean;
-}
+import { El } from "el-bot";
 
 export default class ElBot {
   public el: El;

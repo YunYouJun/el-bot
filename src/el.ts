@@ -1,20 +1,6 @@
+import { El } from "el-bot";
 import pkg from "../package.json";
 const config = require("../lib/config");
-
-interface Setting {
-  authKey: string,
-  enableWebsocket: boolean,
-  host: string,
-  port: number;
-}
-
-interface El {
-  pkg: object,
-  qq: number,
-  setting: Setting,
-  config: any,
-  active: boolean;
-}
 
 // merge config
 const defaultConfig = config.parse("./config/default/index.yml");
