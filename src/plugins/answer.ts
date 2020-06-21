@@ -79,7 +79,7 @@ function onMessage(msg: MessageType.Message) {
   }
 }
 
-module.exports = {
+export {
   is,
   includes,
   match,

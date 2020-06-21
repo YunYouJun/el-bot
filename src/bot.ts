@@ -21,7 +21,7 @@ export default class ElBot {
   }
 
   async init() {
-    log.success("Link Start! " + this.el.qq);
+    log.info("Link Start! " + this.el.qq);
     await this.mirai.login(this.el.qq);
   }
 

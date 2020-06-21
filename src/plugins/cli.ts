@@ -1,15 +1,18 @@
 import log from "../utils/chalk";
-import { el, bot } from "../..";
-const pkg = require("../../package.json");
-const shell = require("shelljs");
+import el from "../el";
+import pkg from "../../package.json";
+import shell from "shelljs";
+import { MessageType } from "mirai-ts";
 
 // change it in onMessage
-let reply = {};
+let reply: Function = (msg: string | MessageType.MessageChain) => {
+  console.log(msg);
+};
 
 const yargs = require("yargs")
   .scriptName("el")
   .usage("Usage: $0 <command> [options]")
-  .command("echo <message>", "回声", {}, (argv) => {
+  .command("echo <message>", "回声", {}, (argv: any) => {
     reply(argv.message);
   })
   .command("sleep", "休眠", () => {
@@ -23,15 +26,15 @@ const yargs = require("yargs")
   .command("restart:console", "重启 mirai-console", async () => {
     await reply("重启 mirai-console");
 
-    const consolePid = shell.exec(
+    const consolePid: number = parseInt(shell.exec(
       "pgrep -f java -jar ./mirai-console-wrapper",
       {
         silent: true,
       }
-    ).stdout;
-    const scriptPid = shell.exec("pgrep -f start:console", {
+    ).stdout);
+    const scriptPid: number = parseInt(shell.exec("pgrep -f start:console", {
       silent: true,
-    }).stdout;
+    }).stdout);
     process.kill(consolePid);
     process.kill(scriptPid);
 
@@ -54,8 +57,8 @@ const yargs = require("yargs")
   .alias("help", "h")
   .locale("zh_CN");
 
-function parse(cmd) {
-  yargs.parse(cmd, (err, argv, output) => {
+function parse(cmd: string[]) {
+  yargs.parse(cmd, (err: any, argv: any, output: string) => {
     if (err) log.error(err);
 
     if (output) reply(output);
@@ -67,7 +70,7 @@ function parse(cmd) {
   });
 }
 
-function onMessage(msg) {
+function onMessage(msg: MessageType.Message) {
   const config = el.config;
   if (
     !config.master.includes(msg.sender.id) &&
@@ -79,7 +82,7 @@ function onMessage(msg) {
   reply = msg.reply;
 
   // command for message
-  const cmd = msg.plain.split(" ").filter((item) => {
+  const cmd: string[] = msg.plain.split(" ").filter((item) => {
     return item !== "";
   });
 
@@ -89,6 +92,6 @@ function onMessage(msg) {
   }
 }
 
-module.exports = {
+export {
   onMessage,
 };

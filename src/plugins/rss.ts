@@ -109,7 +109,6 @@ function format(item: Parser.Item, content: string[]) {
 }
 
 function on() {
-  el;
   const config = el.config;
 
   if (config.rss) {
@@ -132,7 +131,7 @@ function onMessage(msg: MessageType.Message) {
   }
 }
 
-module.exports = {
+export {
   onMessage,
   on,
 };

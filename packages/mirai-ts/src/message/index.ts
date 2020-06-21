@@ -31,7 +31,7 @@ function Face(faceId: number, name: string = ''): MessageType.Face {
 
 function Plain(text: string): MessageType.Plain {
   return {
-    type: "plain",
+    type: "Plain",
     text
   };
 }

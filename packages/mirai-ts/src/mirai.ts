@@ -8,6 +8,11 @@ import Message from "./message";
 declare module ".." {
   namespace MessageType {
     interface Message {
+      /**
+       * 回复消息
+       * @param msg 消息内容
+       * @param quote 是否引用
+       */
       reply(msg: MessageType.MessageChain | string, quote?: boolean): void;
     }
   }
@@ -68,32 +73,37 @@ export default class Mirai {
   async login(qq: number) {
     this.qq = qq;
     // Todo
-    await this.auth();
+    const { session } = await this.auth();
+    this.sessionKey = session;
     await this.vertify();
   }
 
-  async auth() {
-    await this.api.auth();
+  auth() {
+    return this.api.auth();
   }
 
-  async vertify() {
-    await this.api.verify(this.qq);
+  vertify() {
+    return this.api.verify(this.qq);
   }
 
-  async release() {
-    await this.api.release();
+  release() {
+    return this.api.release();
   }
 
   on(name: string, callback: Function) {
     if (name === 'message') return this.onMessage(callback);
   }
 
+  /**
+   * 监听消息
+   * @param callback 回调函数
+   */
   onMessage(callback: Function) {
     setInterval(async () => {
       const { data } = await this.api.fetchMessage();
       if (data && data.length) {
-        data.forEach((msg: MessageType.Message) => {
-          msg.reply = (msgChain: MessageType.MessageChain, quote: boolean = false) => this.reply(msgChain, msg, quote);
+        data.forEach(async (msg: MessageType.Message) => {
+          msg.reply = async (msgChain: string | MessageType.MessageChain, quote: boolean = false) => this.reply(msgChain, msg, quote);
           callback(msg);
         });
       }
@@ -106,7 +116,7 @@ export default class Mirai {
    * @param srcMsg 回复哪条消息
    * @param quote 是否引用回复
    */
-  reply(msg: MessageType.MessageChain | string, srcMsg: MessageType.Message, quote: boolean = false) {
+  reply(msg: string | MessageType.MessageChain, srcMsg: MessageType.Message, quote: boolean = false) {
     let messageId = 0;
 
     if (quote && srcMsg.messageChain[0].type === 'Source') {

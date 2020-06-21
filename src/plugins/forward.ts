@@ -22,6 +22,6 @@ function onMessage(msg: MessageType.Message) {
   }
 }
 
-module.exports = {
+export {
   onMessage,
 };
