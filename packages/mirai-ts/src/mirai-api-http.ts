@@ -1,6 +1,6 @@
 import log from "./utils/chalk";
 import { AxiosStatic, AxiosResponse } from "axios";
-import * as MessageType from "../types/message-type";
+import { MessageType } from "..";
 
 /**
  * Mirai Api Http 的相关配置
@@ -212,12 +212,22 @@ export default class MiraiApiHttp {
    * @return { code: 0, msg: "success", messageId: 123456 } messageId 一个Int类型属性，标识本条消息，用于撤回和引用回复
    */
   async sendGroupMessage(target: number, messageChain: MessageType.MessageChain, quote?: number): Promise<object> {
-    const { data } = await this.axios.post('/sendGroupMessage', {
-      sessionKey: this.sessionKey,
-      target,
-      quote,
-      messageChain
-    });
+    let payload = {};
+    if (quote) {
+      payload = {
+        sessionKey: this.sessionKey,
+        target,
+        quote,
+        messageChain
+      };
+    } else {
+      payload = {
+        sessionKey: this.sessionKey,
+        target,
+        messageChain
+      };
+    }
+    const { data } = await this.axios.post('/sendGroupMessage', payload);
     return data;
   }
 }

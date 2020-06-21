@@ -2,8 +2,17 @@ import axios from "./axios";
 import { AxiosStatic } from "axios";
 import MiraiApiHttp from "./mirai-api-http";
 import { MiraiApiHttpConfig } from "./mirai-api-http";
+import { MessageType } from "..";
 import Message from "./message";
-import * as MessageType from "../types/message-type";
+
+declare module ".." {
+  namespace MessageType {
+    interface Message {
+      reply(msg: MessageType.MessageChain | string, quote?: boolean): void;
+    }
+  }
+}
+
 
 /**
  * Mirai SDK 初始化类
@@ -12,7 +21,7 @@ export default class Mirai {
   /**
    * 封装 mirai-api-http 的固有方法
    */
-  mah: MiraiApiHttp;
+  api: MiraiApiHttp;
   mahConfig: MiraiApiHttpConfig;
   /**
    * 请求工具
@@ -44,7 +53,7 @@ export default class Mirai {
     // ws todo
 
     this.axios = axios.init(this.mahConfig.host + ':' + this.mahConfig.port);
-    this.mah = new MiraiApiHttp(this.mahConfig, this.axios);
+    this.api = new MiraiApiHttp(this.mahConfig, this.axios);
 
     // default
     this.sessionKey = '';
@@ -64,15 +73,15 @@ export default class Mirai {
   }
 
   async auth() {
-    await this.mah.auth();
+    await this.api.auth();
   }
 
   async vertify() {
-    await this.mah.verify(this.qq);
+    await this.api.verify(this.qq);
   }
 
-  release() {
-    this.mah.release();
+  async release() {
+    await this.api.release();
   }
 
   on(name: string, callback: Function) {
@@ -81,13 +90,36 @@ export default class Mirai {
 
   onMessage(callback: Function) {
     setInterval(async () => {
-      const { data } = await this.mah.fetchMessage();
+      const { data } = await this.api.fetchMessage();
       if (data && data.length) {
-        data.forEach((message: MessageType.Message) => {
-          const msg = new Message(message, this.mah);
+        data.forEach((msg: MessageType.Message) => {
+          msg.reply = (msgChain: MessageType.MessageChain, quote: boolean = false) => this.reply(msgChain, msg, quote);
           callback(msg);
         });
       }
     }, this.interval);
+  }
+
+  /**
+   * 快速回复
+   * @param msg 发送内容
+   * @param srcMsg 回复哪条消息
+   * @param quote 是否引用回复
+   */
+  reply(msg: MessageType.MessageChain | string, srcMsg: MessageType.Message, quote: boolean = false) {
+    let messageId = 0;
+
+    if (quote && srcMsg.messageChain[0].type === 'Source') {
+      messageId = (srcMsg.messageChain[0] as MessageType.Source).id;
+    }
+
+    const msgChain: MessageType.MessageChain = typeof msg === 'string' ? [Message.Plain(msg)] : msg;
+    if (srcMsg.type === 'FriendMessage') {
+      const target = srcMsg.sender.id;
+      return this.api.sendFriendMessage(target, msgChain, messageId);
+    } else if (srcMsg.type === 'GroupMessage') {
+      const target = srcMsg.sender.group.id;
+      return this.api.sendGroupMessage(target, msgChain, messageId);
+    }
   }
 }

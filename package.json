@@ -40,7 +40,6 @@
   },
   "homepage": "https://github.com/elpsycn/el-bot-js",
   "dependencies": {
-    "@types/js-yaml": "^3.12.4",
     "axios": "^0.19.2",
     "chalk": "^4.0.0",
     "dayjs": "^1.8.28",
@@ -51,14 +50,16 @@
     "glob": "^7.1.6",
     "html-to-text": "^5.1.1",
     "js-yaml": "^3.14.0",
-    "node-mirai-sdk": "^0.1.26",
     "node-schedule": "^1.3.2",
     "rss-parser": "^3.8.0",
     "shelljs": "^0.8.4",
     "yargs": "^15.3.1"
   },
   "devDependencies": {
+    "@types/html-to-text": "^5.1.1",
+    "@types/js-yaml": "^3.12.4",
     "@types/node": "^14.0.13",
+    "@types/node-schedule": "^1.3.0",
     "@typescript-eslint/eslint-plugin": "^3.3.0",
     "@typescript-eslint/parser": "^3.3.0",
     "eslint": "^7.2.0",

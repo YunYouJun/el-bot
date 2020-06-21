@@ -1,15 +1,40 @@
-const dayjs = require("dayjs");
-const htmlToText = require("html-to-text");
-const fs = require("fs");
-const schedule = require("node-schedule");
+import dayjs from "dayjs";
+import fs from "fs";
+import htmlToText from "html-to-text";
+import schedule from "node-schedule";
+import Parser from "rss-parser";
 
-const Parser = require("rss-parser");
+import log from "../utils/chalk";
+import { sendMessageByConfig } from "../../lib/message";
+import el from "../el";
+import { MessageType } from "mirai-ts";
 
-const log = require("../utils/chalk");
-const { sendMessageByConfig } = require("../../lib/message");
+interface RssConfig {
+  name: string;
+  url: string;
+  cron: string;
+  customFields: object;
+  content: string[];
+  target: object;
+}
 
 class Rss {
-  constructor(rssConfig) {
+  config: RssConfig;
+  parser: Parser;
+  constructor(rssConfig: RssConfig) {
+    const defaultConfig = {
+      cron: "*/15 * * * *",
+      customFields: {
+        item: ["updated"],
+      },
+      content: [
+        "标题：${item.title}",
+        "链接：${item.link}",
+        "时间：${item.updated}",
+      ],
+    };
+    rssConfig = Object.assign(defaultConfig, rssConfig);
+
     this.config = rssConfig;
     this.parser = new Parser({
       customFields: rssConfig.customFields,
@@ -23,16 +48,16 @@ class Rss {
   }
 
   async parse() {
-    let feed = await this.parser.parseURL(this.config.url);
+    let feed: Parser.Output = await this.parser.parseURL(this.config.url);
 
-    if (this.save(feed)) {
+    if (feed.items && this.save(feed)) {
       // only semd first
       let content = feed.title + format(feed.items[0], this.config.content);
       sendMessageByConfig(content, this.config.target);
     }
   }
 
-  save(feed) {
+  save(feed: Parser.Output) {
     const tmpDir = "tmp/rss/";
     const path = tmpDir + this.config.name + ".json";
 
@@ -59,7 +84,7 @@ class Rss {
   }
 }
 
-function format(item, content) {
+function format(item: Parser.Item, content: string[]) {
   item.updated = dayjs(item.updated).format("YYYY-MM-DD HH:mm:ss");
   if (item.summary) {
     item.summary = htmlToText.fromString(item.summary);
@@ -84,35 +109,23 @@ function format(item, content) {
 }
 
 function on() {
-  const config = global.el.config;
+  el;
+  const config = el.config;
 
   if (config.rss) {
-    config.rss.forEach((rssConfig) => {
-      const defaultConfig = {
-        cron: "*/15 * * * *",
-        customFields: {
-          item: ["updated"],
-        },
-        content: [
-          "标题：${item.title}",
-          "链接：${item.link}",
-          "时间：${item.updated}",
-        ],
-      };
-      rssConfig = Object.assign(defaultConfig, rssConfig);
-
+    config.rss.forEach((rssConfig: RssConfig) => {
       const rss = new Rss(rssConfig);
       rss.init();
     });
   }
 }
 
-function onMessage(msg) {
-  const config = global.el.config;
+function onMessage(msg: MessageType.Message) {
+  const config = el.config;
 
   if (msg.plain === "rss" && config.rss) {
     let content = "您当前订阅的 RSS 源：";
-    config.rss.forEach((item) => {
+    config.rss.forEach((item: RssConfig) => {
       content += `\n${item.name}: ${item.url}`;
     });
     msg.reply(content);

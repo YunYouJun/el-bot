@@ -1,10 +1,10 @@
 import Mirai from "../packages/mirai-ts/src";
-// import Mirai from "node-mirai-sdk";
 import log from "./utils/chalk";
 import messageHandler from "./messageHandler";
 import { El } from "el-bot";
 import { MiraiApiHttpConfig } from "packages/mirai-ts/src/mirai-api-http";
 import { MessageType } from "mirai-ts";
+
 export default class ElBot {
   public el: El;
   public mirai: Mirai;

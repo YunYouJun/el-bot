@@ -1,9 +1,13 @@
+import { MessageType } from "mirai-ts";
+import { el, bot } from "../index";
+import { Config } from "..";
+
 /**
  * 是否监听发送者
  * @param {Object} sender
  */
-function isListening(sender, listen) {
-  const config = global.el.config;
+function isListening(sender: MessageType.Sender, listen: Config.Listen) {
+  const config = el.config;
 
   if (listen === "all") {
     return true;
@@ -40,30 +44,30 @@ function isListening(sender, listen) {
   }
 
   return false;
-}
+};
 
 /**
  * 通过配置发送消息
  * @param {MessageChain} messageChain
  * @param {object} target
  */
-function sendMessageByConfig(messageChain, target) {
-  const mirai = global.bot.mirai;
+function sendMessageByConfig(messageChain: MessageType.MessageChain, target: Config.Target) {
+  const mirai = bot.mirai;
 
   if (target.friend) {
     target.friend.forEach((qq) => {
-      mirai.sendFriendMessage(messageChain, qq);
+      mirai.api.sendFriendMessage(qq, messageChain);
     });
   }
 
   if (target.group) {
     target.group.forEach((qq) => {
-      mirai.sendGroupMessage(messageChain, qq);
+      mirai.api.sendGroupMessage(qq, messageChain);
     });
   }
 }
 
-module.exports = {
+export {
   isListening,
   sendMessageByConfig,
 };

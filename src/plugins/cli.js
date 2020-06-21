@@ -1,4 +1,5 @@
 import log from "../utils/chalk";
+import { el, bot } from "../..";
 const pkg = require("../../package.json");
 const shell = require("shelljs");
 
@@ -12,7 +13,7 @@ const yargs = require("yargs")
     reply(argv.message);
   })
   .command("sleep", "休眠", () => {
-    global.el.active = false;
+    el.active = false;
     reply("进入休眠状态");
   })
   .command("restart", "重启机器人", async () => {
@@ -67,7 +68,7 @@ function parse(cmd) {
 }
 
 function onMessage(msg) {
-  const config = global.el.config;
+  const config = el.config;
   if (
     !config.master.includes(msg.sender.id) &&
     !config.admin.includes(msg.sender.id)
