@@ -1,38 +1,32 @@
-import Mirai from "node-mirai-sdk";
+import Mirai from "../packages/mirai-ts/src";
+// import Mirai from "node-mirai-sdk";
 import log from "./utils/chalk";
 import messageHandler from "./messageHandler";
 import { El } from "el-bot";
-
+import { MiraiApiHttpConfig } from "packages/mirai-ts/src/mirai-api-http";
+import { MessageType } from "mirai-ts";
 export default class ElBot {
   public el: El;
   public mirai: Mirai;
 
   constructor(el: El) {
-    this.el = el;
-    this.mirai = new Mirai({
-      host: `http://${el.setting.host || "localhost"}:${
-        el.setting.port || 8080
-        }`,
+    const mahConfig: MiraiApiHttpConfig = {
+      host: `http://${el.setting.host || "localhost"}`,
+      port: el.setting.port || 8080,
       authKey: el.setting.authKey || "el-bot-js",
-      qq: el.qq,
       enableWebsocket: el.setting.enableWebsocket || false,
-    });
+    };
+    this.el = el;
+    this.mirai = new Mirai(mahConfig);
   }
 
-  init() {
-    this.auth();
-  }
-
-  auth() {
-    this.mirai.onSignal("authed", () => {
-      log.success(`Link Start! (${this.el.qq})`);
-      // log.success(`Session Key(${this.el.qq}): ${this.mirai.sessionKey}`);
-      this.mirai.verify();
-    });
+  async init() {
+    log.success("Link Start! " + this.el.qq);
+    await this.mirai.login(this.el.qq);
   }
 
   onMessage() {
-    this.mirai.onMessage((msg: object) => {
+    this.mirai.onMessage((msg: MessageType.Message) => {
       // handle message
       messageHandler(msg);
     });
@@ -40,9 +34,7 @@ export default class ElBot {
 
   listen() {
     const config = this.el.config;
-
     this.onMessage();
-    this.mirai.listen("all");
 
     if (this.el.active) {
       // load default plugins on

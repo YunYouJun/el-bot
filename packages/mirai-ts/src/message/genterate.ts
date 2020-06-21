@@ -1,3 +1,5 @@
+import { MessageType } from "../../types/message-type";
+
 function Quote(messageId: number): MessageType.Quote {
   return {
     type: 'quote',
