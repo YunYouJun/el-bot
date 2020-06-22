@@ -32,4 +32,4 @@ el-bot 的 js（~~女子小学生~~）版本。适合于认为 JavaScript 是世
 - [mirai-console](https://github.com/mamoe/mirai-console)
 - [mirai-console-wrapper](https://github.com/mamoe/mirai-console-wrapper)
 - [mirai-api-http](https://github.com/mamoe/mirai-api-http)
-- [node-mirai](https://github.com/RedBeanN/node-mirai)
+- [mirai-ts](https://github.com/ElpsyCN/el-bot-js/tree/dev/packages/mirai-ts)

@@ -9,6 +9,7 @@ import { Config } from "..";
 function isListening(sender: MessageType.Sender, listen: Config.Listen) {
   const config = el.config;
 
+  // 监听所有
   if (listen === "all") {
     return true;
   }
@@ -37,7 +38,7 @@ function isListening(sender: MessageType.Sender, listen: Config.Listen) {
       return true;
     }
   } else {
-    // 私聊
+    // 私聊时，判断是否监听 friend（其余在上方指定 QQ 时已判断过）
     if (listen === "friend") {
       return true;
     }

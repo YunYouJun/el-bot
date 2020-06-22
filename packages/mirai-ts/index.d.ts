@@ -226,4 +226,23 @@ export namespace MessageType {
   }
 }
 
+export namespace Api {
+  interface SendMessage {
+    sessionKey: string;
+    target: number;
+    messageChain: MessageType.MessageChain;
+  }
+
+  /**
+   * 发送好友消息的请求格式
+   */
+  interface SendFriendMessage extends SendMessage {
+    quote?: number;
+  }
+
+  interface SendGroupMessage extends SendMessage {
+    quote?: number;
+  }
+}
+
 declare const Mirai: Mirai;

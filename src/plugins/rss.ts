@@ -50,9 +50,7 @@ class Rss {
   async parse() {
     let feed: Parser.Output = await this.parser.parseURL(this.config.url);
 
-
     if (feed.items && this.save(feed)) {
-      console.log(feed.items[0]);
       // only semd first
       let content = feed.title + format(feed.items[0], this.config.content);
       sendMessageByConfig(content, this.config.target);

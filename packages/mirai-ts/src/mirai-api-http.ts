@@ -1,6 +1,6 @@
 import log from "./utils/chalk";
 import { AxiosStatic, AxiosResponse } from "axios";
-import { MessageType } from "..";
+import { MessageType, Api } from "..";
 import Message from "./message";
 
 /**
@@ -188,6 +188,7 @@ export default class MiraiApiHttp {
     return data;
   }
 
+
   /**
    * 使用此方法向指定好友发送消息
    * @param target 发送消息目标好友的 QQ 号
@@ -199,12 +200,15 @@ export default class MiraiApiHttp {
     if (typeof messageChain === 'string') {
       messageChain = [Message.Plain(messageChain)];
     }
-    const { data } = await this.axios.post('/sendFriendMessage', {
+    let payload: Api.SendFriendMessage = {
       sessionKey: this.sessionKey,
       target,
-      quote,
       messageChain
-    });
+    };
+    if (quote) {
+      payload.quote = quote;
+    }
+    const { data } = await this.axios.post('/sendFriendMessage', payload);
     return data;
   }
 
@@ -219,20 +223,13 @@ export default class MiraiApiHttp {
     if (typeof messageChain === 'string') {
       messageChain = [Message.Plain(messageChain)];
     }
-    let payload = {};
+    let payload: Api.SendGroupMessage = {
+      sessionKey: this.sessionKey,
+      target,
+      messageChain
+    };
     if (quote) {
-      payload = {
-        sessionKey: this.sessionKey,
-        target,
-        quote,
-        messageChain
-      };
-    } else {
-      payload = {
-        sessionKey: this.sessionKey,
-        target,
-        messageChain
-      };
+      payload.quote = quote;
     }
     const { data } = await this.axios.post('/sendGroupMessage', payload);
     return data;
