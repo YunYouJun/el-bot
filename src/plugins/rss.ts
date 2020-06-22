@@ -88,8 +88,12 @@ class Rss {
 
 function format(item: Parser.Item, content: string[]) {
   item.updated = dayjs(item.updated).format("YYYY-MM-DD HH:mm:ss");
+
   if (item.summary) {
     item.summary = htmlToText.fromString(item.summary);
+  }
+  if (item.content) {
+    item.content = htmlToText.fromString(item.content);
   }
 
   let template = "";
@@ -125,7 +129,7 @@ function onMessage(msg: MessageType.Message) {
   const config = el.config;
 
   if (msg.plain === "rss" && config.rss) {
-    log.info("立即触发 RSS 录取");
+    log.success("立即触发 RSS 抓取");
     let content = "您当前订阅的 RSS 源：";
     config.rss.forEach((rssConfig: RssConfig) => {
       content += `\n${rssConfig.name}: ${rssConfig.url}`;
