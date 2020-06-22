@@ -1,6 +1,7 @@
 import log from "./utils/chalk";
 import { AxiosStatic, AxiosResponse } from "axios";
 import { MessageType } from "..";
+import Message from "./message";
 
 /**
  * Mirai Api Http 的相关配置
@@ -194,7 +195,10 @@ export default class MiraiApiHttp {
    * @param quote 引用一条消息的messageId进行回复
    * @returns { code: 0, msg: "success", messageId: 123456 } messageId 一个Int类型属性，标识本条消息，用于撤回和引用回复
    */
-  async sendFriendMessage(target: number, messageChain: MessageType.MessageChain, quote?: number): Promise<object> {
+  async sendFriendMessage(target: number, messageChain: string | MessageType.MessageChain, quote?: number): Promise<object> {
+    if (typeof messageChain === 'string') {
+      messageChain = [Message.Plain(messageChain)];
+    }
     const { data } = await this.axios.post('/sendFriendMessage', {
       sessionKey: this.sessionKey,
       target,
@@ -211,7 +215,10 @@ export default class MiraiApiHttp {
    * @param quote 引用一条消息的messageId进行回复
    * @return { code: 0, msg: "success", messageId: 123456 } messageId 一个Int类型属性，标识本条消息，用于撤回和引用回复
    */
-  async sendGroupMessage(target: number, messageChain: MessageType.MessageChain, quote?: number): Promise<object> {
+  async sendGroupMessage(target: number, messageChain: string | MessageType.MessageChain, quote?: number): Promise<object> {
+    if (typeof messageChain === 'string') {
+      messageChain = [Message.Plain(messageChain)];
+    }
     let payload = {};
     if (quote) {
       payload = {

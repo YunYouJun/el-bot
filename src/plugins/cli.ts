@@ -71,10 +71,13 @@ function parse(cmd: string[]) {
 }
 
 function onMessage(msg: MessageType.Message) {
+  if (!msg.sender) return;
+
   const config = el.config;
+  const qq = msg.sender.id;
   if (
-    !config.master.includes(msg.sender.id) &&
-    !config.admin.includes(msg.sender.id)
+    !config.master.includes(qq) &&
+    !config.admin.includes(qq)
   ) {
     return;
   }

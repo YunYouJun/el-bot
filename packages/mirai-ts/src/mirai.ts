@@ -3,7 +3,6 @@ import { AxiosStatic } from "axios";
 import MiraiApiHttp from "./mirai-api-http";
 import { MiraiApiHttpConfig } from "./mirai-api-http";
 import { MessageType } from "..";
-import Message from "./message";
 
 declare module ".." {
   namespace MessageType {
@@ -112,23 +111,22 @@ export default class Mirai {
 
   /**
    * 快速回复
-   * @param msg 发送内容
+   * @param msg 发送内容（消息链/纯文本皆可）
    * @param srcMsg 回复哪条消息
    * @param quote 是否引用回复
    */
-  reply(msg: string | MessageType.MessageChain, srcMsg: MessageType.Message, quote: boolean = false) {
+  reply(msgChain: string | MessageType.MessageChain, srcMsg: MessageType.Message, quote: boolean = false) {
     let messageId = 0;
 
     if (quote && srcMsg.messageChain[0].type === 'Source') {
       messageId = (srcMsg.messageChain[0] as MessageType.Source).id;
     }
 
-    const msgChain: MessageType.MessageChain = typeof msg === 'string' ? [Message.Plain(msg)] : msg;
     if (srcMsg.type === 'FriendMessage') {
-      const target = srcMsg.sender.id;
+      const target = (srcMsg.sender as MessageType.FriendSender).id;
       return this.api.sendFriendMessage(target, msgChain, messageId);
     } else if (srcMsg.type === 'GroupMessage') {
-      const target = srcMsg.sender.group.id;
+      const target = (srcMsg.sender as MessageType.GroupSender).group.id;
       return this.api.sendGroupMessage(target, msgChain, messageId);
     }
   }

@@ -51,7 +51,7 @@ function isListening(sender: MessageType.Sender, listen: Config.Listen) {
  * @param {MessageChain} messageChain
  * @param {object} target
  */
-function sendMessageByConfig(messageChain: MessageType.MessageChain, target: Config.Target) {
+function sendMessageByConfig(messageChain: string | MessageType.MessageChain, target: Config.Target) {
   const mirai = bot.mirai;
 
   if (target.friend) {

@@ -1,10 +1,10 @@
 import Mirai from "./src";
 
-declare namespace MessageType {
+export namespace MessageType {
   /**
    * 群的信息
    */
-  export interface Group {
+  interface Group {
     /**
      * 群号
      */
@@ -21,11 +21,32 @@ declare namespace MessageType {
   /**
    * 发送者信息
    */
-  export interface Sender {
+  interface Sender {
     /**
      * QQ 号
      */
     id: number;
+    [propName: string]: any;
+  }
+
+  /**
+   * 
+   */
+  interface FriendSender extends Sender {
+    /**
+     * 发送者的昵称
+     */
+    nickname: string;
+    /**
+     * 发送者的备注
+     */
+    remark: string;
+  }
+
+  /**
+   * 消息发送群的信息
+   */
+  interface GroupSender extends Sender {
     /**
      * 群名片
      */
@@ -38,16 +59,16 @@ declare namespace MessageType {
   }
 
   /**
-* 消息链
-*/
-  export interface MessageChain {
+    * 消息链
+    */
+  interface MessageChain {
     [index: number]: SingleMessage;
   }
 
   /**
    * fetchMessage 获取的消息或事件
    */
-  export interface Message {
+  interface Message {
     type: string;
     messageChain: MessageChain;
     sender: Sender;
@@ -56,11 +77,11 @@ declare namespace MessageType {
   /**
    * 单条消息 此处命名与 mamoe/mirai-core 保持一致
    */
-  export interface SingleMessage {
+  interface SingleMessage {
     type: string;
   }
 
-  export interface Source extends SingleMessage {
+  interface Source extends SingleMessage {
     /**
      * 	消息的识别号，用于引用回复（Source 类型永远为 chain 的第一个元素）
      */
@@ -71,7 +92,7 @@ declare namespace MessageType {
     time: number;
   }
 
-  export interface Quote extends SingleMessage {
+  interface Quote extends SingleMessage {
     /**
      * 	被引用回复的原消息的messageId
      */
@@ -97,7 +118,7 @@ declare namespace MessageType {
   /**
    * 艾特某人
    */
-  export interface At extends SingleMessage {
+  interface At extends SingleMessage {
     /**
      * 群员QQ号
      */
@@ -111,12 +132,12 @@ declare namespace MessageType {
   /**
    * 艾特全体成员
    */
-  export interface AtAll extends SingleMessage { }
+  interface AtAll extends SingleMessage { }
 
   /**
    * 原生表情
    */
-  export interface Face extends SingleMessage {
+  interface Face extends SingleMessage {
     /**
      * QQ表情编号，可选，优先高于name
      */
@@ -130,7 +151,7 @@ declare namespace MessageType {
   /**
    * 文本
    */
-  export interface Plain extends SingleMessage {
+  interface Plain extends SingleMessage {
     /**
      * 	文字消息
      */
@@ -140,7 +161,7 @@ declare namespace MessageType {
   /**
    * 图片
    */
-  export interface Image extends SingleMessage {
+  interface Image extends SingleMessage {
     /**
      * 图片的imageId，群图片与好友图片格式不同。不为空时将忽略url属性
      */
@@ -158,19 +179,19 @@ declare namespace MessageType {
   /**
    * 闪照
    */
-  export interface FlashImage extends Image { }
+  interface FlashImage extends Image { }
 
   /**
    * 富文本消息（譬如合并转发）
    */
-  export interface Xml extends SingleMessage {
+  interface Xml extends SingleMessage {
     /**
      * XML文本
      */
     xml: string;
   }
 
-  export interface Json extends SingleMessage {
+  interface Json extends SingleMessage {
     /**
      * Json文本
      */
@@ -180,7 +201,7 @@ declare namespace MessageType {
   /**
    * 小程序
    */
-  export interface App extends SingleMessage {
+  interface App extends SingleMessage {
     /**
      * 内容
      */
@@ -197,7 +218,7 @@ declare namespace MessageType {
    */
   enum Pokes { Poke, ShowLove, Like, Heartbroken, SixSixSix, FangDaZhao }
 
-  export interface Poke extends SingleMessage {
+  interface Poke extends SingleMessage {
     /**
      * 	戳一戳的类型
      */

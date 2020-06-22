@@ -9,6 +9,8 @@ interface ForwardConfig {
 }
 
 function onMessage(msg: MessageType.Message) {
+  if (!msg.sender) return;
+
   const config = el.config;
 
   if (config.forward) {

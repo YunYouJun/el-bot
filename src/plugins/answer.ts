@@ -18,37 +18,52 @@ interface AnswerConfig {
   else?: string | MessageType.MessageChain;
 }
 
-function is(str: string, keywords: string | string[]) {
-  let test = false;
-  if (!Array.isArray(keywords)) {
-    test = str === keywords;
-  } else {
-    keywords.forEach((keyword) => {
-      test = test || str === keyword;
+/**
+ * 匹配是否相同，当 keywords 为数组时，代表或，有一个相同即可
+ * @param str 字符串
+ * @param keywords 关键字
+ */
+function is(str: string, keywords: string | string[]): boolean {
+  if (Array.isArray(keywords)) {
+    return keywords.some((keyword) => {
+      return str === keyword;
     });
+  } else {
+    return str === keywords;
   }
-  return test;
 }
 
-function includes(str: string, keywords: string | string[]) {
-  let test = true;
-  if (!Array.isArray(keywords)) {
-    test = str.includes(keywords);
-  } else {
-    keywords.forEach((keyword) => {
-      test = test && str.includes(keyword);
+/**
+ * 匹配是否包含，当 keywords 为数组时，代表同时包含
+ * @param str 字符串
+ * @param keywords  关键字 
+ */
+function includes(str: string, keywords: string | string[]): boolean {
+  if (Array.isArray(keywords)) {
+    return keywords.every((keyword) => {
+      /**
+       * 有 false 时跳出循环
+       */
+      return str.includes(keyword);
     });
+  } else {
+    return str.includes(keywords);
   }
-  return test;
 }
 
-function match(str: string, ans: AnswerConfig) {
+/**
+ * 是否匹配
+ * @param str 字符串
+ * @param ans 回答的语法配置
+ */
+function match(str: string, ans: AnswerConfig): boolean {
   if (ans.re) {
     let re = new RegExp(ans.re.pattern, ans.re.flags || "i");
     return re.test(str);
   }
   if (ans.is) return is(str, ans.is);
   if (ans.includes) return includes(str, ans.includes);
+  return false;
 }
 
 function onMessage(msg: MessageType.Message) {
@@ -58,18 +73,20 @@ function onMessage(msg: MessageType.Message) {
     config.answer.every((ans: AnswerConfig) => {
       // 默认监听所有
 
-      if (isListening(msg.sender, ans.listen || "all")) {
-        if (ans.reply) {
-          if (match(msg.plain, ans)) {
-            msg.reply(ans.reply, ans.quote);
-            return false;
+      if (msg.plain) {
+        if (isListening(msg.sender, ans.listen || "all")) {
+          if (ans.reply) {
+            if (match(msg.plain, ans)) {
+              msg.reply(ans.reply, ans.quote);
+              return false;
+            }
           }
-        }
-      } else {
-        if (ans.else) {
-          if (match(msg.plain, ans)) {
-            msg.reply(ans.else, ans.quote);
-            return false;
+        } else {
+          if (ans.else) {
+            if (match(msg.plain, ans)) {
+              msg.reply(ans.else, ans.quote);
+              return false;
+            }
           }
         }
       }

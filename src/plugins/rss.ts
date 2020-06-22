@@ -50,7 +50,9 @@ class Rss {
   async parse() {
     let feed: Parser.Output = await this.parser.parseURL(this.config.url);
 
+
     if (feed.items && this.save(feed)) {
+      console.log(feed.items[0]);
       // only semd first
       let content = feed.title + format(feed.items[0], this.config.content);
       sendMessageByConfig(content, this.config.target);
@@ -123,9 +125,12 @@ function onMessage(msg: MessageType.Message) {
   const config = el.config;
 
   if (msg.plain === "rss" && config.rss) {
+    log.info("立即触发 RSS 录取");
     let content = "您当前订阅的 RSS 源：";
-    config.rss.forEach((item: RssConfig) => {
-      content += `\n${item.name}: ${item.url}`;
+    config.rss.forEach((rssConfig: RssConfig) => {
+      content += `\n${rssConfig.name}: ${rssConfig.url}`;
+      const rss = new Rss(rssConfig);
+      rss.parse();
     });
     msg.reply(content);
   }
