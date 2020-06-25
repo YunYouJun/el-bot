@@ -2,7 +2,8 @@ import axios from "./axios";
 import { AxiosStatic } from "axios";
 import MiraiApiHttp from "./mirai-api-http";
 import { MiraiApiHttpConfig } from "./mirai-api-http";
-import { MessageType } from "..";
+import { MessageType, MiraiInstance } from "..";
+import Message from "./message";
 
 declare module ".." {
   namespace MessageType {
@@ -16,7 +17,6 @@ declare module ".." {
     }
   }
 }
-
 
 /**
  * Mirai SDK 初始化类
@@ -36,34 +36,37 @@ export default class Mirai {
    * sessionKey 在未进行校验的情况下，一定时间后将会被自动释放。
    */
   sessionKey: string;
-  /**
-   * 拉起消息时间间隔，默认 200 ms
-   */
-  interval: number;
   qq: number;
   /**
    * 是否验证成功
    */
   verified: boolean;
-  constructor(mahConfig: MiraiApiHttpConfig = {
-    host: '0.0.0.0',
-    port: 8080,
-    authKey: 'el-bot-js',
-    cacheSize: 4096,
-    enableWebsocket: false,
-    cors: ['*']
-  }) {
+  /**
+   * 监听者（回调函数）
+   */
+  listener: MiraiInstance.Listener;
+  constructor(
+    mahConfig: MiraiApiHttpConfig = {
+      host: "0.0.0.0",
+      port: 8080,
+      authKey: "el-bot-js",
+      cacheSize: 4096,
+      enableWebsocket: false,
+      cors: ["*"],
+    }
+  ) {
     this.mahConfig = mahConfig;
     // ws todo
 
-    this.axios = axios.init(this.mahConfig.host + ':' + this.mahConfig.port);
+    this.axios = axios.init(this.mahConfig.host + ":" + this.mahConfig.port);
     this.api = new MiraiApiHttp(this.mahConfig, this.axios);
 
     // default
-    this.sessionKey = '';
-    this.interval = 200;
+    this.sessionKey = "";
     this.qq = 0;
     this.verified = false;
+
+    this.listener = {};
   }
 
   /**
@@ -89,24 +92,35 @@ export default class Mirai {
     return this.api.release();
   }
 
-  on(name: string, callback: Function) {
-    if (name === 'message') return this.onMessage(callback);
+  /**
+   * Message: FriendMessage | GroupMessage | TempMessage
+   * Mirai-api-http事件类型一览 https://github.com/project-mirai/mirai-api-http/blob/master/EventType.md
+   * mirai.on('MemberMuteEvent')
+   * @param type
+   * @param callback
+   */
+  on(type: string, callback: Function) {
+    // 说明监听所有
+    if (type === 'message') {
+      this.addListener('FriendMessage', callback);
+      this.addListener('GroupMessage', callback);
+      this.addListener('TempMessage', callback);
+    } else {
+      this.addListener(type, callback);
+    }
   }
 
   /**
-   * 监听消息
-   * @param callback 回调函数
+   * 添加监听者
+   * @param type 
+   * @param callback 
    */
-  onMessage(callback: Function) {
-    setInterval(async () => {
-      const { data } = await this.api.fetchMessage();
-      if (data && data.length) {
-        data.forEach(async (msg: MessageType.Message) => {
-          msg.reply = async (msgChain: string | MessageType.MessageChain, quote: boolean = false) => this.reply(msgChain, msg, quote);
-          callback(msg);
-        });
-      }
-    }, this.interval);
+  addListener(type: string, callback: Function) {
+    if (this.listener[type]) {
+      this.listener[type].push(callback);
+    } else {
+      this.listener[type] = [callback];
+    }
   }
 
   /**
@@ -115,19 +129,57 @@ export default class Mirai {
    * @param srcMsg 回复哪条消息
    * @param quote 是否引用回复
    */
-  reply(msgChain: string | MessageType.MessageChain, srcMsg: MessageType.Message, quote: boolean = false) {
+  reply(
+    msgChain: string | MessageType.MessageChain,
+    srcMsg: MessageType.Message,
+    quote = false
+  ) {
     let messageId = 0;
 
-    if (quote && srcMsg.messageChain[0].type === 'Source') {
+    if (quote && srcMsg.messageChain[0].type === "Source") {
       messageId = (srcMsg.messageChain[0] as MessageType.Source).id;
     }
 
-    if (srcMsg.type === 'FriendMessage') {
+    if (srcMsg.type === "FriendMessage") {
       const target = (srcMsg.sender as MessageType.FriendSender).id;
-      return this.api.sendFriendMessage(target, msgChain, messageId);
-    } else if (srcMsg.type === 'GroupMessage') {
+      return this.api.sendFriendMessage(msgChain, target, messageId);
+    } else if (srcMsg.type === "GroupMessage") {
       const target = (srcMsg.sender as MessageType.GroupSender).group.id;
-      return this.api.sendGroupMessage(target, msgChain, messageId);
+      return this.api.sendGroupMessage(msgChain, target, messageId);
     }
+  }
+
+  /**
+   * 监听消息和事件
+   * @param interval 拉起消息时间间隔，默认 200 ms
+   */
+  listen(interval: number = 200) {
+    setInterval(async () => {
+      const { data } = await this.api.fetchMessage();
+      if (data && data.length) {
+        data.forEach(async (msg) => {
+          if (this.listener[msg.type]) {
+            this.listener[msg.type].forEach(callback => {
+              // 为消息类型挂载辅助函数
+              if (
+                msg.type === "FriendMessage" ||
+                msg.type === "GroupMessage" ||
+                msg.type === "TempMessage"
+              ) {
+                msg.reply = async (
+                  msgChain: string | MessageType.MessageChain,
+                  quote = false
+                ) => {
+                  this.reply(msgChain, msg as MessageType.Message, quote);
+                };
+
+                msg.plain = Message.getPlain(msg.messageChain);
+              }
+              callback(msg);
+            });
+          }
+        });
+      }
+    }, interval);
   }
 }

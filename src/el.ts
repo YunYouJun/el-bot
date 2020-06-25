@@ -17,10 +17,9 @@ config.merge(defaultConfig, customConfig);
 
 const el: El = {
   pkg,
-  qq: parseInt(process.env.BOT_QQ || '0'),
+  qq: parseInt(process.env.BOT_QQ || "0"),
   setting: config.parse("./plugins/MiraiAPIHTTP/setting.yml"),
   config: defaultConfig,
-  active: true,
 };
 
 export default el;

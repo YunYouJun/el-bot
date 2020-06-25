@@ -8,12 +8,12 @@ import fs from "fs";
  */
 function parse(path: string): object {
   // return yaml.safeLoad(fs.readFileSync(file));
-  return yaml.load(fs.readFileSync(path, 'utf8'));
+  return yaml.load(fs.readFileSync(path, "utf8"));
 }
 
 /**
  * 单纯 typeof [] 会返回 object
- * @param item 
+ * @param item
  */
 function isObject(item: any) {
   return typeof item === "object" && !Array.isArray(item);
@@ -35,7 +35,4 @@ function merge(target: any, source: any): any {
   return target;
 }
 
-export {
-  parse,
-  merge
-};
+export { parse, merge };

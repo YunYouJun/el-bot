@@ -1,8 +1,9 @@
 import log from "../utils/chalk";
-import el from "../el";
 import pkg from "../../package.json";
 import shell from "shelljs";
 import { MessageType } from "mirai-ts";
+import ElBot from "src/bot";
+import { bot } from "../../index";
 
 // change it in onMessage
 let reply: Function = (msg: string | MessageType.MessageChain) => {
@@ -16,7 +17,8 @@ const yargs = require("yargs")
     reply(argv.message);
   })
   .command("sleep", "休眠", () => {
-    el.active = false;
+    // todo
+    bot.active = false;
     reply("进入休眠状态");
   })
   .command("restart", "重启机器人", async () => {
@@ -26,15 +28,16 @@ const yargs = require("yargs")
   .command("restart:console", "重启 mirai-console", async () => {
     await reply("重启 mirai-console");
 
-    const consolePid: number = parseInt(shell.exec(
-      "pgrep -f java -jar ./mirai-console-wrapper",
-      {
+    const consolePid: number = parseInt(
+      shell.exec("pgrep -f java -jar ./mirai-console-wrapper", {
         silent: true,
-      }
-    ).stdout);
-    const scriptPid: number = parseInt(shell.exec("pgrep -f start:console", {
-      silent: true,
-    }).stdout);
+      }).stdout
+    );
+    const scriptPid: number = parseInt(
+      shell.exec("pgrep -f start:console", {
+        silent: true,
+      }).stdout
+    );
     process.kill(consolePid);
     process.kill(scriptPid);
 
@@ -70,31 +73,26 @@ function parse(cmd: string[]) {
   });
 }
 
-function onMessage(msg: MessageType.Message) {
-  if (!msg.sender) return;
+export default function (ctx: ElBot) {
+  const config = ctx.el.config;
+  const mirai = ctx.mirai;
 
-  const config = el.config;
-  const qq = msg.sender.id;
-  if (
-    !config.master.includes(qq) &&
-    !config.admin.includes(qq)
-  ) {
-    return;
-  }
+  mirai.on('message', (msg: MessageType.Message) => {
+    if (!msg.sender) return;
+    const qq = msg.sender.id;
+    if (!config.master.includes(qq) && !config.admin.includes(qq)) {
+      return;
+    }
 
-  reply = msg.reply;
+    reply = msg.reply;
 
-  // command for message
-  const cmd: string[] = msg.plain.split(" ").filter((item) => {
-    return item !== "";
+    // command for message
+    if (msg.plain.slice(0, 2) === "el") {
+      const cmd: string[] = msg.plain.split(" ").filter((item: string) => {
+        return item !== "";
+      });
+      // remve "el"
+      parse(cmd.slice(1));
+    }
   });
-
-  if (cmd[0] === "el") {
-    // remve "el"
-    parse(cmd.slice(1));
-  }
-}
-
-export {
-  onMessage,
 };

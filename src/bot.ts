@@ -1,13 +1,13 @@
 import Mirai from "../packages/mirai-ts/src";
 import log from "./utils/chalk";
-import messageHandler from "./messageHandler";
 import { El } from "el-bot";
 import { MiraiApiHttpConfig } from "packages/mirai-ts/src/mirai-api-http";
-import { MessageType } from "mirai-ts";
 
 export default class ElBot {
-  public el: El;
-  public mirai: Mirai;
+  el: El;
+  mirai: Mirai;
+  // 激活
+  active: boolean;
 
   constructor(el: El) {
     const mahConfig: MiraiApiHttpConfig = {
@@ -18,6 +18,7 @@ export default class ElBot {
     };
     this.el = el;
     this.mirai = new Mirai(mahConfig);
+    this.active = true;
   }
 
   async init() {
@@ -25,39 +26,45 @@ export default class ElBot {
     await this.mirai.login(this.el.qq);
   }
 
-  onMessage() {
-    this.mirai.onMessage((msg: MessageType.Message) => {
-      // handle message
-      messageHandler(msg);
-    });
+  /**
+   * 加载所有的插件
+   */
+  loadPlugins() {
+    const config = this.el.config;
+
+    // load default plugins on
+    if (config.plugins.default) {
+      config.plugins.default.forEach((name: string) => {
+        const plugin = require(`./plugins/${name}`).default;
+        this.use(plugin);
+      });
+    }
+
+    // load custom plugins on
+    if (config.plugins.custom) {
+      config.plugins.custom.forEach((name: string) => {
+        const plugin = require(`../config/custom/plugins/${name}`).default;
+        this.use(plugin);
+      });
+    }
+
+    log.info('插件加载完毕');
   }
 
+  /**
+   * 使用插件
+   * @param plugin 
+   */
+  use(plugin: Function) {
+    plugin(this);
+  }
+
+  /**
+   * 开始监听，并加载插件
+   */
   listen() {
-    const config = this.el.config;
-    this.onMessage();
-
-    console.log(config.plugins.default);
-    if (this.el.active) {
-      // load default plugins on
-      if (config.plugins.default) {
-        config.plugins.default.forEach((name: string) => {
-          const plugin = require(`./plugins/${name}`);
-          if (plugin.on) {
-            plugin.on(this.mirai);
-          }
-        });
-      }
-
-      // load custom plugins on
-      if (config.plugins.custom) {
-        config.plugins.custom.forEach((name: string) => {
-          const plugin = require(`../config/custom/plugins/${name}`);
-          if (plugin.on) {
-            plugin.on(this.mirai);
-          }
-        });
-      }
-    }
+    this.loadPlugins();
+    this.mirai.listen();
 
     process.on("exit", () => {
       log.info("主人再见");

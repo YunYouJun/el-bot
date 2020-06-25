@@ -1,7 +1,5 @@
 declare class Mirai {
-  constructor(parameters) {
-
-  }
+  constructor(parameters) {}
   [propName: string]: any;
 }
 

@@ -7,5 +7,5 @@ function init(baseURL: string): AxiosStatic {
 }
 
 export default {
-  init
+  init,
 };

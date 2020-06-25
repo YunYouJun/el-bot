@@ -45,30 +45,30 @@ function isListening(sender: MessageType.Sender, listen: Config.Listen) {
   }
 
   return false;
-};
+}
 
 /**
  * 通过配置发送消息
  * @param {MessageChain} messageChain
  * @param {object} target
  */
-function sendMessageByConfig(messageChain: string | MessageType.MessageChain, target: Config.Target) {
+function sendMessageByConfig(
+  messageChain: string | MessageType.MessageChain,
+  target: Config.Target
+) {
   const mirai = bot.mirai;
 
   if (target.friend) {
     target.friend.forEach((qq) => {
-      mirai.api.sendFriendMessage(qq, messageChain);
+      mirai.api.sendFriendMessage(messageChain, qq);
     });
   }
 
   if (target.group) {
     target.group.forEach((qq) => {
-      mirai.api.sendGroupMessage(qq, messageChain);
+      mirai.api.sendGroupMessage(messageChain, qq);
     });
   }
 }
 
-export {
-  isListening,
-  sendMessageByConfig,
-};
+export { isListening, sendMessageByConfig };

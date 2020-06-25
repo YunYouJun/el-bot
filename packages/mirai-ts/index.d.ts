@@ -30,7 +30,7 @@ export namespace MessageType {
   }
 
   /**
-   * 
+   *
    */
   interface FriendSender extends Sender {
     /**
@@ -59,8 +59,8 @@ export namespace MessageType {
   }
 
   /**
-    * 消息链
-    */
+   * 消息链
+   */
   interface MessageChain {
     [index: number]: SingleMessage;
   }
@@ -68,8 +68,12 @@ export namespace MessageType {
   /**
    * fetchMessage 获取的消息或事件
    */
-  interface Message {
+  interface MessageAndEvent {
     type: string;
+    [propName: string]: any;
+  }
+
+  interface Message extends MessageAndEvent {
     messageChain: MessageChain;
     sender: Sender;
   }
@@ -85,7 +89,7 @@ export namespace MessageType {
     /**
      * 	消息的识别号，用于引用回复（Source 类型永远为 chain 的第一个元素）
      */
-    id: number,
+    id: number;
     /**
      * 时间戳
      */
@@ -96,19 +100,19 @@ export namespace MessageType {
     /**
      * 	被引用回复的原消息的messageId
      */
-    id: number,
+    id: number;
     /**
      * 被引用回复的原消息所接收的群号，当为好友消息时为0
      */
-    groupId?: number,
+    groupId?: number;
     /**
      * 被引用回复的原消息的发送者的QQ号
      */
-    senderId?: number,
+    senderId?: number;
     /**
      * 被引用回复的原消息的接收者者的QQ号（或群号）
      */
-    targetId?: number,
+    targetId?: number;
     /**
      * 被引用回复的原消息的消息链对象
      */
@@ -122,7 +126,7 @@ export namespace MessageType {
     /**
      * 群员QQ号
      */
-    target: number,
+    target: number;
     /**
      * 	At时显示的文字，发送消息时无效，自动使用群名片
      */
@@ -132,7 +136,7 @@ export namespace MessageType {
   /**
    * 艾特全体成员
    */
-  interface AtAll extends SingleMessage { }
+  type AtAll = SingleMessage;
 
   /**
    * 原生表情
@@ -141,7 +145,7 @@ export namespace MessageType {
     /**
      * QQ表情编号，可选，优先高于name
      */
-    faceId: number,
+    faceId: number;
     /**
      * QQ表情拼音，可选
      */
@@ -165,11 +169,11 @@ export namespace MessageType {
     /**
      * 图片的imageId，群图片与好友图片格式不同。不为空时将忽略url属性
      */
-    imageId: string,
+    imageId: string;
     /**
      * 图片的URL，发送时可作网络图片的链接；接收时为腾讯图片服务器的链接，可用于图片下载
      */
-    url: string,
+    url: string;
     /**
      * 图片的路径，发送本地图片，相对路径于plugins/MiraiAPIHTTP/images
      */
@@ -179,7 +183,7 @@ export namespace MessageType {
   /**
    * 闪照
    */
-  interface FlashImage extends Image { }
+  type FlashImage = Image;
 
   /**
    * 富文本消息（譬如合并转发）
@@ -216,7 +220,14 @@ export namespace MessageType {
    * "SixSixSix": 666
    * "FangDaZhao": 放大招
    */
-  enum Pokes { Poke, ShowLove, Like, Heartbroken, SixSixSix, FangDaZhao }
+  enum Pokes {
+    Poke,
+    ShowLove,
+    Like,
+    Heartbroken,
+    SixSixSix,
+    FangDaZhao,
+  }
 
   interface Poke extends SingleMessage {
     /**
@@ -243,6 +254,19 @@ export namespace Api {
   interface SendGroupMessage extends SendMessage {
     quote?: number;
   }
+
+  namespace Response {
+    interface fetchMessage {
+      code: number;
+      data: MessageType.MessageAndEvent[];
+    }
+  }
 }
 
-declare const Mirai: Mirai;
+export namespace MiraiInstance {
+  interface Listener {
+    [propName: string]: Function[];
+  }
+}
+
+export interface Mirai extends Mirai { }

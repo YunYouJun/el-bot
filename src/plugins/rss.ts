@@ -6,8 +6,8 @@ import Parser from "rss-parser";
 
 import log from "../utils/chalk";
 import { sendMessageByConfig } from "../../lib/message";
-import el from "../el";
 import { MessageType } from "mirai-ts";
+import ElBot from "src/bot";
 
 interface RssConfig {
   name: string;
@@ -48,11 +48,11 @@ class Rss {
   }
 
   async parse() {
-    let feed: Parser.Output = await this.parser.parseURL(this.config.url);
+    const feed: Parser.Output = await this.parser.parseURL(this.config.url);
 
     if (feed.items && this.save(feed)) {
       // only semd first
-      let content = feed.title + format(feed.items[0], this.config.content);
+      const content = feed.title + format(feed.items[0], this.config.content);
       sendMessageByConfig(content, this.config.target);
     }
   }
@@ -69,14 +69,17 @@ class Rss {
       fs.mkdirSync(tmpDir, { recursive: true });
     }
 
-    if (rssJson[this.config.name] && rssJson[this.config.name].lastBuildDate === feed.lastBuildDate) {
+    if (
+      rssJson[this.config.name] &&
+      rssJson[this.config.name].lastBuildDate === feed.lastBuildDate
+    ) {
       log.info(`RSS: ${feed.title} 未更新`);
       return false;
     } else {
       log.info(`RSS: ${feed.title} 已更新`);
       rssJson[this.config.name] = {
         title: feed.title,
-        lastBuildDate: feed.lastBuildDate
+        lastBuildDate: feed.lastBuildDate,
       };
       fs.writeFile(path, JSON.stringify(rssJson), (err) => {
         if (err) log.error(err);
@@ -115,33 +118,29 @@ function format(item: Parser.Item, content: string[]) {
   return Function("item", "return `" + template + "`")(item);
 }
 
-function on() {
-  const config = el.config;
+export default function (ctx: ElBot) {
+  const config = ctx.el.config;
+  const mirai = ctx.mirai;
 
+  // 初始化定时
   if (config.rss) {
     config.rss.forEach((rssConfig: RssConfig) => {
       const rss = new Rss(rssConfig);
       rss.init();
     });
   }
+
+  // 监听消息命令
+  mirai.on('message', (msg: MessageType.Message) => {
+    if (msg.plain === "rss" && config.rss) {
+      log.success("立即触发 RSS 抓取");
+      let content = "您当前订阅的 RSS 源：";
+      config.rss.forEach((rssConfig: RssConfig) => {
+        content += `\n${rssConfig.name}: ${rssConfig.url}`;
+        const rss = new Rss(rssConfig);
+        rss.parse();
+      });
+      msg.reply(content);
+    }
+  });
 }
-
-function onMessage(msg: MessageType.Message) {
-  const config = el.config;
-
-  if (msg.plain === "rss" && config.rss) {
-    log.success("立即触发 RSS 抓取");
-    let content = "您当前订阅的 RSS 源：";
-    config.rss.forEach((rssConfig: RssConfig) => {
-      content += `\n${rssConfig.name}: ${rssConfig.url}`;
-      const rss = new Rss(rssConfig);
-      rss.parse();
-    });
-    msg.reply(content);
-  }
-}
-
-export {
-  onMessage,
-  on,
-};

@@ -12,6 +12,4 @@ declare namespace Config {
   }
 }
 
-export {
-  Config
-};
+export { Config };
