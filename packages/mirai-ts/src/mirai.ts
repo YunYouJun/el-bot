@@ -1,8 +1,7 @@
 import axios from "./axios";
 import { AxiosStatic } from "axios";
 import MiraiApiHttp from "./mirai-api-http";
-import { MiraiApiHttpConfig } from "./mirai-api-http";
-import { MessageType, MiraiInstance } from "..";
+import { MessageType, MiraiApiHttpConfig, MiraiInstance } from "..";
 import Message from "./message";
 
 declare module ".." {
