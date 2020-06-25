@@ -36,7 +36,7 @@ function Plain(text: string): MessageType.Plain {
   };
 }
 
-function Image(imageId: string, url: string, path = ""): MessageType.Image {
+function Image(imageId: string = "", url: string = "", path = ""): MessageType.Image {
   return {
     type: "Image",
     imageId,

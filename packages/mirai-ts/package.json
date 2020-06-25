@@ -2,7 +2,7 @@
   "name": "mirai-ts",
   "version": "0.0.1",
   "description": "mirai typescript sdk",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "types": "index.d.ts",
   "files": [
     "src",

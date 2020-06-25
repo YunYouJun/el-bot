@@ -1,6 +1,6 @@
 import { MessageType } from "mirai-ts";
 import { el, bot } from "../index";
-import { Config } from "..";
+import { Config } from "mirai-ts";
 
 /**
  * 是否监听发送者

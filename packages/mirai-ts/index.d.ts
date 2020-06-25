@@ -263,6 +263,35 @@ export namespace Api {
   }
 }
 
+export namespace Config {
+  /**
+ * 正则表达式
+ */
+  interface Re {
+    pattern: string;
+    flags: string;
+  }
+
+  /**
+   * 匹配配置
+   */
+  interface Match {
+    re: Re;
+    is: string | string[];
+    includes: string | string[];
+  }
+
+  interface Listen {
+    friend?: number[];
+    group?: number[];
+  }
+
+  interface Target {
+    friend?: number[];
+    group?: number[];
+  }
+}
+
 export namespace MiraiInstance {
   interface Listener {
     [propName: string]: Function[];

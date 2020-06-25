@@ -27,28 +27,22 @@ export default class ElBot {
   }
 
   /**
-   * 加载所有的插件
+   * 加载对应类型插件
+   * @param type 插件类型 default | custom
+   * @param path 所在路径
    */
-  loadPlugins() {
+  loadPlugins(type: string, path: string) {
     const config = this.el.config;
-
-    // load default plugins on
-    if (config.plugins.default) {
-      config.plugins.default.forEach((name: string) => {
-        const plugin = require(`./plugins/${name}`).default;
-        this.use(plugin);
+    if (config.plugins[type]) {
+      config.plugins[type].forEach((name: string) => {
+        try {
+          const plugin = require(`${path}/${name}`).default;
+          this.use(plugin);
+        } catch (error) {
+          console.log(`插件 ${name} 加载失败`);
+        }
       });
     }
-
-    // load custom plugins on
-    if (config.plugins.custom) {
-      config.plugins.custom.forEach((name: string) => {
-        const plugin = require(`../config/custom/plugins/${name}`).default;
-        this.use(plugin);
-      });
-    }
-
-    log.info('插件加载完毕');
   }
 
   /**
@@ -63,7 +57,9 @@ export default class ElBot {
    * 开始监听，并加载插件
    */
   listen() {
-    this.loadPlugins();
+    this.loadPlugins('default', './plugins');
+    this.loadPlugins('custom', '../config/custom/plugins');
+
     this.mirai.listen();
 
     process.on("exit", () => {

@@ -1,7 +1,6 @@
 import { isListening, sendMessageByConfig } from "../../lib/message";
-import { MessageType } from "mirai-ts";
+import { Config, MessageType } from "mirai-ts";
 import el from "../el";
-import { Config } from "../..";
 import ElBot from "src/bot";
 
 interface ForwardConfig {
