@@ -36,6 +36,7 @@ export default class ElBot {
     const config = this.el.config;
     this.onMessage();
 
+    console.log(config.plugins.default);
     if (this.el.active) {
       // load default plugins on
       if (config.plugins.default) {

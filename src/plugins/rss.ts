@@ -58,24 +58,27 @@ class Rss {
   }
 
   save(feed: Parser.Output) {
-    const tmpDir = "tmp/rss/";
-    const path = tmpDir + this.config.name + ".json";
+    const tmpDir = "tmp/";
+    const path = tmpDir + "rss.json";
+    let rssJson: any = {};
 
-    let cache = "";
     if (fs.existsSync(path)) {
       const data = fs.readFileSync(path);
-      cache = data.toString();
+      rssJson = JSON.parse(data.toString());
     } else {
       fs.mkdirSync(tmpDir, { recursive: true });
     }
 
-    const feedString = JSON.stringify(feed);
-    if (feedString === cache) {
+    if (rssJson[this.config.name] && rssJson[this.config.name].lastBuildDate === feed.lastBuildDate) {
       log.info(`RSS: ${feed.title} 未更新`);
       return false;
     } else {
       log.info(`RSS: ${feed.title} 已更新`);
-      fs.writeFile(path, JSON.stringify(feed), (err) => {
+      rssJson[this.config.name] = {
+        title: feed.title,
+        lastBuildDate: feed.lastBuildDate
+      };
+      fs.writeFile(path, JSON.stringify(rssJson), (err) => {
         if (err) log.error(err);
         log.success(`已在本地记录 ${feed.title} 新的 RSS 信息`);
       });

@@ -11,8 +11,12 @@ function parse(path: string): object {
   return yaml.load(fs.readFileSync(path, 'utf8'));
 }
 
+/**
+ * 单纯 typeof [] 会返回 object
+ * @param item 
+ */
 function isObject(item: any) {
-  return typeof item === "object";
+  return typeof item === "object" && !Array.isArray(item);
 }
 
 /**

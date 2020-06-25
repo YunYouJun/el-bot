@@ -208,6 +208,8 @@ export default class MiraiApiHttp {
     if (quote) {
       payload.quote = quote;
     }
+    console.log(payload);
+    // console.log(this.axios);
     const { data } = await this.axios.post('/sendFriendMessage', payload);
     return data;
   }
