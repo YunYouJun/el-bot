@@ -12,7 +12,8 @@
     "lint": "eslint . --ext .js,.ts",
     "start": "nodemon index.ts",
     "start:console": "node scripts/start-mirai.js",
-    "start:webhook": "nodemon scripts/webhook.js",
+    "webhook": "nodemon scripts/webhook.js",
+    "webhook:commit": "nodemon scripts/webhook.js --watch commit",
     "test": "npm run lint",
     "update:config": "cd config/custom && git add -A && git commit -m ':wrench: update config' && git push"
   },
@@ -41,13 +42,11 @@
   },
   "homepage": "https://github.com/elpsycn/el-bot-js",
   "dependencies": {
-    "axios": "^0.19.2",
     "chalk": "^4.0.0",
     "dayjs": "^1.8.28",
     "dotenv": "^8.2.0",
     "feedparser": "^2.2.10",
     "follow-redirects": "^1.11.0",
-    "form-data": "^3.0.0",
     "github-webhook-handler": "^1.0.0",
     "glob": "^7.1.6",
     "html-to-text": "^5.1.1",

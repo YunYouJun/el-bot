@@ -6,8 +6,16 @@ const handler = createHandler({
   secret: process.env.WEBHOOK_SECRET || "el-bot-js",
 });
 
+const { argv } = require("yargs");
 const shell = require("shelljs");
 
+// 监听端口
+let port = 7777;
+if (argv.port) {
+  port = argv.port;
+}
+
+// 启动监听
 http
   .createServer(function (req, res) {
     handler(req, res, function (err) {
@@ -15,12 +23,13 @@ http
       res.end("no such location");
     });
   })
-  .listen(7777);
+  .listen(port);
 
 handler.on("error", function (err) {
   console.error("Error:", err.message);
 });
 
+// 处理
 handler.on("push", function (event) {
   console.log(
     "Received a push event for %s to %s",
@@ -29,7 +38,9 @@ handler.on("push", function (event) {
   );
 
   const repo = event.payload.repository.name;
-  if (repo === "el-bot-js") {
+
+  // 监听 commit
+  if (argv.watch === "commit" && repo === "el-bot-js") {
     // git pull
     if (shell.exec("git pull").code !== 0) {
       shell.echo("Error: Git pull el-bot-js failed");

@@ -1,11 +1,10 @@
-import Mirai from "../packages/mirai-ts/src";
+import Mirai, { MiraiApiHttpConfig, MiraiInstance } from "mirai-ts";
 import log from "./utils/chalk";
 import { El } from "el-bot";
-import { MiraiApiHttpConfig } from "mirai-ts";
 
 export default class ElBot {
   el: El;
-  mirai: Mirai;
+  mirai: MiraiInstance;
   // 激活
   active: boolean;
 

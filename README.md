@@ -2,7 +2,7 @@
 
 [![docs](https://github.com/ElpsyCN/el-bot-docs/workflows/docs/badge.svg)](https://docs.bot.elpsy.cn/js/)
 ![GitHub package.json version](https://img.shields.io/github/package-json/v/ElpsyCN/el-bot-js)
-[![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/ElpsyCN/el-bot-js)](https://github.com/ElpsyCN/el-bot-js)
+[![GitHub package.json dependency version (prod)](https://img.shields.io/github/package-json/dependency-version/ElpsyCN/el-bot-js/mirai-ts)](https://github.com/YunYouJun/mirai-ts)
 [![QQ Group](https://img.shields.io/badge/qq%20group-707408530-12B7F5)](https://shang.qq.com/wpa/qunwpa?idkey=5b0eef3e3256ce23981f3b0aa2457175c66ca9194efd266fd0e9a7dbe43ed653)
 [![GitHub](https://img.shields.io/github/license/ElpsyCN/el-bot-js)](https://github.com/ElpsyCN/el-bot-js/blob/master/LICENSE)
 
