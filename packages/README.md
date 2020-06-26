@@ -1,3 +1,3 @@
 # packages
 
-依赖
+- [mirai-ts](https://github.com/YunYouJun/mirai-ts)

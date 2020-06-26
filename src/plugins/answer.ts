@@ -14,7 +14,7 @@ export default function (ctx: ElBot) {
   const config = ctx.el.config;
   const mirai = ctx.mirai;
 
-  mirai.on('message', (msg: MessageType.Message) => {
+  mirai.on('message', (msg: MessageType.SingleMessage) => {
     if (config.answer) {
       config.answer.every((ans: AnswerConfig) => {
         // 默认监听所有

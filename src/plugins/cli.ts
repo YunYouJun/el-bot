@@ -77,7 +77,7 @@ export default function (ctx: ElBot) {
   const config = ctx.el.config;
   const mirai = ctx.mirai;
 
-  mirai.on('message', (msg: MessageType.Message) => {
+  mirai.on('message', (msg: MessageType.SingleMessage) => {
     if (!msg.sender) return;
     const qq = msg.sender.id;
     if (!config.master.includes(qq) && !config.admin.includes(qq)) {

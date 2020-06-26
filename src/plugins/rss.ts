@@ -131,7 +131,7 @@ export default function (ctx: ElBot) {
   }
 
   // 监听消息命令
-  mirai.on('message', (msg: MessageType.Message) => {
+  mirai.on('message', (msg: MessageType.SingleMessage) => {
     if (msg.plain === "rss" && config.rss) {
       log.success("立即触发 RSS 抓取");
       let content = "您当前订阅的 RSS 源：";

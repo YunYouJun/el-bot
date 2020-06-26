@@ -10,7 +10,7 @@ interface ForwardConfig {
 
 export default function (ctx: ElBot) {
   const mirai = ctx.mirai;
-  mirai.on('message', (msg: MessageType.Message) => {
+  mirai.on('message', (msg: MessageType.SingleMessage) => {
     if (!msg.sender) return;
 
     const config = el.config;

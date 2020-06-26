@@ -1,6 +1,7 @@
 # custom
 config/custom
 tmp
+packages/
 
 # mirai
 mirai-console-wrapper-*.jar
