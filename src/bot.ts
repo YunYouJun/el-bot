@@ -1,6 +1,6 @@
 import Mirai, { MiraiApiHttpConfig, MiraiInstance } from "mirai-ts";
-import log from "./utils/chalk";
-import { El } from "el-bot";
+import log from "mirai-ts/dist/utils/log";
+import { El } from "..";
 
 export default class ElBot {
   el: El;

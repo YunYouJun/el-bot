@@ -40,7 +40,7 @@ handler.on("push", function (event) {
   const repo = event.payload.repository.name;
 
   // 监听 commit
-  if (argv.watch === "commit" && repo === "el-bot-js") {
+  if (argv.watch === "ebj" && repo === "el-bot-js") {
     // git pull
     if (shell.exec("git pull").code !== 0) {
       shell.echo("Error: Git pull el-bot-js failed");

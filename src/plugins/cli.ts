@@ -1,8 +1,8 @@
-import log from "../utils/chalk";
+import log from "mirai-ts/dist/utils/log";
 import pkg from "../../package.json";
 import shell from "shelljs";
 import { MessageType } from "mirai-ts";
-import ElBot from "src/bot";
+import ElBot from "../bot";
 import { bot } from "../../index";
 
 // change it in onMessage

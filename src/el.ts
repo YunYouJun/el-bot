@@ -1,6 +1,6 @@
-import { El } from "el-bot";
+import { El } from "..";
 import pkg from "../package.json";
-const config = require("../lib/config");
+import * as config from "./utils/config";
 
 // merge config
 const defaultConfig = config.parse("./config/default/index.yml");

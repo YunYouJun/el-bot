@@ -1,6 +1,6 @@
-import { isListening } from "../../lib/message";
+import { isListening } from "../utils/message";
 import { MessageType, Config } from "mirai-ts";
-import ElBot from "src/bot";
+import ElBot from "../bot";
 import { match } from "mirai-ts/dist/utils/message";
 
 interface AnswerConfig extends Config.Match {

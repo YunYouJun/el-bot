@@ -1,7 +1,7 @@
-import { isListening, sendMessageByConfig } from "../../lib/message";
+import { isListening, sendMessageByConfig } from "../utils/message";
 import { Config, MessageType } from "mirai-ts";
 import el from "../el";
-import ElBot from "src/bot";
+import ElBot from "../bot";
 
 interface ForwardConfig {
   listen: Config.Listen;

@@ -1,5 +1,5 @@
 import { MessageType } from "mirai-ts";
-import { el, bot } from "../index";
+import { el, bot } from "../../index";
 import { Config } from "mirai-ts";
 
 /**

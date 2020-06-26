@@ -4,10 +4,10 @@ import htmlToText from "html-to-text";
 import schedule from "node-schedule";
 import Parser from "rss-parser";
 
-import log from "../utils/chalk";
-import { sendMessageByConfig } from "../../lib/message";
+import log from "mirai-ts/dist/utils/log";
+import { sendMessageByConfig } from "../utils/message";
 import { MessageType } from "mirai-ts";
-import ElBot from "src/bot";
+import ElBot from "../bot";
 
 interface RssConfig {
   name: string;

@@ -7,15 +7,16 @@
   "types": "index.d.ts",
   "scripts": {
     "build:mirai-ts": "cd packages/mirai-ts && tsc",
-    "dev": "export NODE_ENV=dev && nodemon index.ts",
+    "dev": "export NODE_ENV=dev && yarn watch:mirai-ts & sleep 2 && nodemon index.ts",
     "install:mirai": "node scripts/install-mirai.js",
     "lint": "eslint . --ext .js,.ts",
-    "start": "nodemon index.ts",
+    "start": "tsc && nodemon dist/index.js",
     "start:console": "node scripts/start-mirai.js",
     "webhook": "nodemon scripts/webhook.js",
-    "webhook:commit": "nodemon scripts/webhook.js --watch commit",
+    "webhook:all": "nodemon scripts/webhook.js --watch ebj",
     "test": "npm run lint",
-    "update:config": "cd config/custom && git add -A && git commit -m ':wrench: update config' && git push"
+    "update:config": "cd config/custom && git add -A && git commit -m ':wrench: update config' && git push",
+    "watch:mirai-ts": "cd packages/mirai-ts && tsc --watch"
   },
   "repository": {
     "type": "git",
@@ -51,7 +52,7 @@
     "glob": "^7.1.6",
     "html-to-text": "^5.1.1",
     "js-yaml": "^3.14.0",
-    "mirai-ts": "^0.0.1",
+    "mirai-ts": "^0.0.3",
     "node-schedule": "^1.3.2",
     "rss-parser": "^3.8.0",
     "shelljs": "^0.8.4",

@@ -1,7 +1,7 @@
 const axios = require("axios").default;
 const fs = require("fs");
 const { https } = require("follow-redirects");
-const log = require("../src/utils/chalk");
+const log = require("mirai-ts/dist/utils/log");
 
 module.exports = class Repo {
   /**
