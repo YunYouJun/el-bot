@@ -7,7 +7,11 @@ import el from "./src/el";
 // init
 const bot = new Bot(el);
 
-bot.init();
-bot.listen();
+async function app() {
+  await bot.init();
+  bot.listen();
+}
+
+app();
 
 export { el, bot };

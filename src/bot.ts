@@ -10,7 +10,7 @@ export default class ElBot {
 
   constructor(el: El) {
     const mahConfig: MiraiApiHttpConfig = {
-      host: `http://${el.setting.host || "localhost"}`,
+      host: el.setting.host || "localhost",
       port: el.setting.port || 8080,
       authKey: el.setting.authKey || "el-bot-js",
       enableWebsocket: el.setting.enableWebsocket || false,

@@ -1,7 +1,7 @@
 require("dotenv").config();
 const glob = require("glob");
 const { spawn } = require("child_process");
-const log = require("mirai-ts/dist/utils/log");
+const log = require("mirai-ts/dist/utils/log").default;
 
 glob("./mirai-console-wrapper-*.jar", {}, (err, files) => {
   if (err) console.log(err);
