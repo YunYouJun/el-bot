@@ -7,7 +7,7 @@
   "types": "index.d.ts",
   "scripts": {
     "build:mirai-ts": "cd packages/mirai-ts && tsc",
-    "dev": "export NODE_ENV=dev && yarn watch:mirai-ts & sleep 2 && nodemon index.ts",
+    "dev": "yarn watch:mirai-ts & sleep 2 && cross-env NODE_ENV=dev nodemon index.ts",
     "install:mirai": "node scripts/install-mirai.js",
     "lint": "eslint . --ext .js,.ts",
     "start": "tsc && nodemon dist/index.js",
@@ -68,6 +68,7 @@
     "@types/yargs": "^15.0.5",
     "@typescript-eslint/eslint-plugin": "^3.4.0",
     "@typescript-eslint/parser": "^3.4.0",
+    "cross-env": "^7.0.2",
     "eslint": "^7.3.1",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.4",

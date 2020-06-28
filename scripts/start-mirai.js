@@ -6,7 +6,7 @@ const log = require("mirai-ts/dist/utils/log").default;
 glob("./mirai-console-wrapper-*.jar", {}, (err, files) => {
   if (err) console.log(err);
 
-  const miraiConsole = spawn("java", ["-jar", files[0]], {
+  const miraiConsole = spawn("java", ["-jar", files[0], "--update", "STABLE"], {
     stdio: ["pipe", "inherit", "inherit"],
   });
 

@@ -92,12 +92,16 @@ class Rss {
 
 function format(item: Parser.Item, content: string[]) {
   item.updated = dayjs(item.updated).format("YYYY-MM-DD HH:mm:ss");
+  item.pubDate = dayjs(item.pubDate).format("YYYY-MM-DD HH:mm:ss");
 
   if (item.summary) {
     item.summary = htmlToText.fromString(item.summary);
   }
   if (item.content) {
     item.content = htmlToText.fromString(item.content);
+  }
+  if (item.description) {
+    item.description = htmlToText.fromString(item.description);
   }
 
   let template = "";

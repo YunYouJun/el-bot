@@ -29,7 +29,7 @@ const yargs = require("yargs")
     await reply("重启 mirai-console");
 
     const consolePid: number = parseInt(
-      shell.exec("pgrep -f java -jar ./mirai-console-wrapper", {
+      shell.exec("pgrep -f java -jar ./mirai-console-wrapper --update STABLE", {
         silent: true,
       }).stdout
     );
