@@ -93,10 +93,8 @@ class Rss {
           }
         ]
       };
-      fs.writeFile(path, JSON.stringify(rssJson), (err) => {
-        if (err) log.error(err);
-        log.success(`已在本地记录 ${feed.title} 新的 RSS 信息`);
-      });
+      fs.writeFileSync(path, JSON.stringify(rssJson));
+      log.success(`已在本地记录 ${feed.title} 新的 RSS 信息`);
       return true;
     } else {
       log.info(`RSS: ${feed.title} 未更新`);

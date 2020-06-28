@@ -17,6 +17,7 @@
     "webhook:all": "nodemon scripts/webhook.js --watch ebj",
     "test": "npm run lint",
     "update:config": "cd config/custom && git add -A && git commit -m ':wrench: update config' && git push",
+    "update:community": "cd packages/el-bot-js-plugins && git pull",
     "watch:mirai-ts": "cd packages/mirai-ts && tsc --watch"
   },
   "repository": {
