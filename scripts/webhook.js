@@ -42,7 +42,7 @@ handler.on("push", function (event) {
   // 监听 commit
   if (argv.watch === "ebj" && repo === "el-bot-js") {
     // git pull
-    if (shell.exec("git pull").code !== 0) {
+    if (shell.exec("git pull && tsc").code !== 0) {
       shell.echo("Error: Git pull el-bot-js failed");
       shell.exit(1);
     }

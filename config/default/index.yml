@@ -7,6 +7,8 @@ plugins:
     - forward
     - hitokoto
     - rss
+  community:
+    - niubi
 
 master:
   - 910426929
@@ -17,6 +19,10 @@ admin:
 # 一言插件
 # https://developer.hitokoto.cn/sentence/#%E8%AF%B7%E6%B1%82%E5%8F%82%E6%95%B0
 hitokoto:
+  cron: 0 0 * * *
+  target:
+    group:
+      - 389401003
   match:
     is: el say
   params:

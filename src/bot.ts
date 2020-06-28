@@ -36,8 +36,9 @@ export default class ElBot {
       config.plugins[type].forEach((name: string) => {
         try {
           const plugin = require(`${path}/${name}`).default;
-          this.use(plugin);
+          if (plugin) this.use(plugin);
         } catch (error) {
+          console.log(error);
           console.log(`插件 ${name} 加载失败`);
         }
       });
@@ -57,6 +58,7 @@ export default class ElBot {
    */
   listen() {
     this.loadPlugins('default', './plugins');
+    this.loadPlugins('community', '../packages/el-bot-js-plugins');
     this.loadPlugins('custom', '../config/custom/plugins');
 
     this.mirai.listen();
