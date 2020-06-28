@@ -9,6 +9,7 @@ plugins:
     - rss
   community:
     - niubi
+    - setu
 
 master:
   - 910426929

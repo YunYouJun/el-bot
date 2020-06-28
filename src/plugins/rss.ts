@@ -48,7 +48,13 @@ class Rss {
   }
 
   async parse() {
-    const feed: Parser.Output = await this.parser.parseURL(this.config.url);
+    let feed: Parser.Output;
+    try {
+      feed = await this.parser.parseURL(this.config.url);
+    } catch {
+      log.error("超时，解析失败");
+      return;
+    }
 
     if (feed.items && this.save(feed)) {
       // only semd first
@@ -58,6 +64,8 @@ class Rss {
   }
 
   save(feed: Parser.Output) {
+    if (feed.items && feed.items.length <= 0) return false;
+
     const tmpDir = "tmp/";
     const path = tmpDir + "rss.json";
     let rssJson: any = {};
@@ -69,23 +77,30 @@ class Rss {
       fs.mkdirSync(tmpDir, { recursive: true });
     }
 
+    // 缓存文件不存在 或 对应对象不存在则更新
     if (
-      rssJson[this.config.name] &&
-      rssJson[this.config.name].title === feed.title
+      Object.keys(rssJson).length === 0 || !rssJson[this.config.name] ||
+      (feed.items && rssJson[this.config.name].items[0].pubDate !== feed.items[0].pubDate)
     ) {
-      log.info(`RSS: ${feed.title} 未更新`);
-      return false;
-    } else {
       log.info(`RSS: ${feed.title} 已更新`);
       rssJson[this.config.name] = {
         title: feed.title,
         lastBuildDate: feed.lastBuildDate,
+        items: [
+          {
+            title: (feed.items as any)[0].title,
+            pubDate: (feed.items as any)[0].pubDate
+          }
+        ]
       };
       fs.writeFile(path, JSON.stringify(rssJson), (err) => {
         if (err) log.error(err);
         log.success(`已在本地记录 ${feed.title} 新的 RSS 信息`);
       });
       return true;
+    } else {
+      log.info(`RSS: ${feed.title} 未更新`);
+      return false;
     }
   }
 }
