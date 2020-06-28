@@ -71,7 +71,7 @@ class Rss {
 
     if (
       rssJson[this.config.name] &&
-      rssJson[this.config.name].lastBuildDate === feed.lastBuildDate
+      rssJson[this.config.name].title === feed.title
     ) {
       log.info(`RSS: ${feed.title} 未更新`);
       return false;
