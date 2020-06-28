@@ -5,6 +5,7 @@ plugins:
     - answer
     - cli
     - forward
+    - hitokoto
     - rss
 
 master:
