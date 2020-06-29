@@ -25,7 +25,7 @@ const yargs = require("yargs")
     await reply("重启 el-bot-js");
     shell.exec("touch index.js");
   })
-  .command("restart:console", "重启 mirai-console", async () => {
+  .command("restart:mirai", "重启 mirai-console", async () => {
     await reply("重启 mirai-console");
 
     const consolePid: number = parseInt(
@@ -34,14 +34,14 @@ const yargs = require("yargs")
       }).stdout
     );
     const scriptPid: number = parseInt(
-      shell.exec("pgrep -f start:console", {
+      shell.exec("pgrep -f start:mirai", {
         silent: true,
       }).stdout
     );
     process.kill(consolePid);
     process.kill(scriptPid);
 
-    shell.exec("npm run start:console", (code, stdout, stderr) => {
+    shell.exec("npm run start:mirai", (code, stdout, stderr) => {
       console.log("Exit code:", code);
       console.log("Program output:", stdout);
       console.log("Program stderr:", stderr);
@@ -68,7 +68,12 @@ function parse(cmd: string[]) {
 
     // handle
     if (argv.about) {
-      reply("GitHub: " + pkg.homepage);
+      reply("GitHub: " + pkg.repository.url);
+      reply("Docs: " + pkg.homepage);
+      reply("SDK: " + pkg.directories.lib);
+      reply("Author: " + `${pkg.author.name} <${pkg.author.url}>`);
+      reply("Contributors: " + pkg.contributors[0] + pkg.contributors[1]);
+      reply('Copyright: @ElpsyCN');
     }
   });
 }

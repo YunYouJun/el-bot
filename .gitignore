@@ -2,6 +2,13 @@
 config/custom
 tmp
 
+# MiraiOK
+miraiOK_*
+config.txt
+.lastupdate
+log/
+.DEBUG
+
 # mirai
 mirai-console-wrapper-*.jar
 mirai-api-http-*.jar

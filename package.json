@@ -9,10 +9,11 @@
     "build": "rm -rf dist && tsc",
     "build:mirai-ts": "cd packages/mirai-ts && tsc",
     "dev": "yarn watch:mirai-ts & sleep 2 && cross-env NODE_ENV=dev nodemon index.ts",
-    "install:mirai": "node scripts/install-mirai.js",
+    "install:mirai": "node scripts/install-mirai-ok.js",
     "lint": "eslint . --ext .js,.ts",
     "start": "yarn build && nodemon dist/index.js",
     "start:console": "node scripts/start-mirai.js",
+    "start:mirai": "node scripts/start-mirai-ok.js",
     "webhook": "nodemon scripts/webhook.js",
     "webhook:all": "nodemon scripts/webhook.js --watch ebj",
     "test": "npm run lint",
@@ -22,7 +23,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/elpsycn/el-bot-js.git"
+    "url": "https://github.com/elpsycn/el-bot-js"
   },
   "keywords": [
     "elpsy",
@@ -31,7 +32,7 @@
     "qq"
   ],
   "author": {
-    "name": "YunYouJun",
+    "name": "云游君",
     "email": "me@yunyoujun.cn",
     "url": "https:/www.yunyoujun.cn"
   },
@@ -43,7 +44,7 @@
   "bugs": {
     "url": "https://github.com/elpsycn/el-bot-js/issues"
   },
-  "homepage": "https://github.com/elpsycn/el-bot-js",
+  "homepage": "https://docs.bot.elpsy.cn/js/",
   "dependencies": {
     "chalk": "^4.0.0",
     "dayjs": "^1.8.28",
@@ -74,10 +75,14 @@
     "eslint": "^7.3.1",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.4",
+    "inquirer": "^7.2.0",
     "nodemon": "^2.0.4",
     "prettier": "^2.0.5",
     "ts-node": "^8.10.2",
     "typedoc": "^0.17.7",
     "typescript": "^3.9.5"
+  },
+  "directories": {
+    "lib": "https://github.com/YunYouJun/mirai-ts"
   }
 }
