@@ -76,11 +76,16 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.4",
     "inquirer": "^7.2.0",
+    "module-alias": "^2.2.2",
     "nodemon": "^2.0.4",
     "prettier": "^2.0.5",
     "ts-node": "^8.10.2",
     "typedoc": "^0.17.7",
     "typescript": "^3.9.5"
+  },
+  "_moduleAliases": {
+    "@utils": "dist/src/utils",
+    "@plugins": "packages/el-bot-js-plugins"
   },
   "directories": {
     "lib": "https://github.com/YunYouJun/mirai-ts"
