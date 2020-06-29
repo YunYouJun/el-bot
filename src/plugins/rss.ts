@@ -52,7 +52,7 @@ class Rss {
     try {
       feed = await this.parser.parseURL(this.config.url);
     } catch {
-      log.error("超时，解析失败");
+      log.error(`${this.config.name} 超时，${this.config.url} 解析失败`);
       return;
     }
 

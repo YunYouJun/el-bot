@@ -68,12 +68,14 @@ function parse(cmd: string[]) {
 
     // handle
     if (argv.about) {
-      reply("GitHub: " + pkg.repository.url);
-      reply("Docs: " + pkg.homepage);
-      reply("SDK: " + pkg.directories.lib);
-      reply("Author: " + `${pkg.author.name} <${pkg.author.url}>`);
-      reply("Contributors: " + pkg.contributors[0] + pkg.contributors[1]);
-      reply('Copyright: @ElpsyCN');
+      let about = '';
+      about += "GitHub: " + pkg.repository.url + '\n';
+      about += "Docs: " + pkg.homepage + '\n';
+      about += "SDK: " + pkg.directories.lib + '\n';
+      about += "Author: " + `${pkg.author.name} <${pkg.author.url}>` + '\n';
+      about += "Contributors: " + pkg.contributors[0] + ' ' + pkg.contributors[1] + '\n';
+      about += 'Copyright: @ElpsyCN';
+      reply(about);
     }
   });
 }

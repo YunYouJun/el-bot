@@ -51,29 +51,29 @@ inquirer
         "您想要安装什么版本的 MiraiOK（https://github.com/LXY1226/miraiOK）？",
       choices: [
         {
-          name: "Windows-386: mirai-native用",
+          name: "Linux-amd64: 服务器（大多数是这个）",
+          value: "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_linux_amd64",
+        },
+        {
+          name: "Linux-arm64: 64位 arm 系",
+          value: "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_linux_arm64",
+        },
+        {
+          name: "Linux-arm: arm 系",
+          value: "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_linux_arm",
+        },
+        {
+          name: "Windows-386: mirai-native 用（EBJ 没用 mirai-native）",
           value:
             "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_windows_386.exe",
         },
         {
-          name: "Windows-amd64: 不用native的话",
+          name: "Windows-amd64: 不用 native （Windows 用户大部分是这个）",
           value:
             "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_windows_amd64.exe",
         },
         {
-          name: "Linux-amd64: 服务器用品",
-          value: "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_linux_amd64",
-        },
-        {
-          name: "Linux-arm64: 64位arm派用品",
-          value: "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_linux_arm64",
-        },
-        {
-          name: "Linux-arm: arm派用品",
-          value: "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_linux_arm",
-        },
-        {
-          name: "Darwin-amd64: MacOS用品 已测试，感谢fjh1997大佬",
+          name: "Darwin-amd64: macOS （你还有的选吗？）",
           value: "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_darwin_amd64",
         },
       ],
