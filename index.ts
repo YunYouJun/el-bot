@@ -1,4 +1,6 @@
-require('module-alias/register');
+if (process.env.NODE_ENV !== 'dev') {
+  require('module-alias/register');
+}
 
 import dotenv from "dotenv";
 dotenv.config();

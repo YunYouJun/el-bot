@@ -6,9 +6,15 @@ plugins:
     - cli
     - forward
     - rss
+    - limit
+    # - dev
 
 master:
   - 910426929
 
 admin:
   - 910426929
+
+limit:
+  interval: 20000
+  count: 10

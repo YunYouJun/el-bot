@@ -2,6 +2,8 @@ import Mirai, { MiraiApiHttpConfig, MiraiInstance } from "mirai-ts";
 import log from "mirai-ts/dist/utils/log";
 import { El } from "..";
 
+import { tryCatch } from "./utils/decorators";
+
 export default class ElBot {
   el: El;
   mirai: MiraiInstance;
@@ -20,6 +22,7 @@ export default class ElBot {
     this.active = true;
   }
 
+  @tryCatch()
   async init() {
     log.info("Link Start! " + this.el.qq);
     await this.mirai.login(this.el.qq);
