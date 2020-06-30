@@ -33,7 +33,7 @@ module.exports = class Repo {
     const path = dest + "/" + filename;
 
     if (fs.existsSync(path)) {
-      log.error("文件已存在！");
+      log.error(`${path} 已存在！`);
       return;
     }
 

@@ -8,7 +8,7 @@ function downloadFile(url, dest = ".") {
   const path = dest + "/" + filename;
 
   if (fs.existsSync(path)) {
-    log.error("文件已存在！");
+    log.error(`${path} 已存在！`);
     return;
   }
 
@@ -18,6 +18,7 @@ function downloadFile(url, dest = ".") {
       const len = parseInt(res.headers["content-length"], 10);
       let downloaded = 0;
       let percent = 0;
+      log.info(`开始下载 ${filename} ...`);
       res
         .on("data", (chunk) => {
           file.write(chunk);

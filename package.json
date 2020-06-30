@@ -8,10 +8,10 @@
   "scripts": {
     "build": "rm -rf dist && tsc",
     "build:mirai-ts": "cd packages/mirai-ts && tsc",
-    "dev": "yarn watch:mirai-ts & sleep 2 && cross-env NODE_ENV=dev nodemon index.ts",
+    "dev": "npm run watch:mirai-ts & sleep 2 && cross-env NODE_ENV=dev nodemon index.ts",
     "install:mirai": "node scripts/install-mirai-ok.js",
     "lint": "eslint . --ext .js,.ts",
-    "start": "yarn build && nodemon dist/index.js",
+    "start": "npm run build && nodemon dist/index.js",
     "start:console": "node scripts/start-mirai.js",
     "start:mirai": "node scripts/start-mirai-ok.js",
     "webhook": "nodemon scripts/webhook.js",

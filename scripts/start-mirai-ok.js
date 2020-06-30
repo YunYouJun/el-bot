@@ -5,6 +5,8 @@ const log = require("mirai-ts/dist/utils/log").default;
 glob("./miraiOK_*", {}, (err, files) => {
   if (err) console.log(err);
 
+  log.info("Windows 用户自己直接双击 miraiOK 的 exe。");
+
   if (files[0]) {
     shell.chmod("+x", files[0]);
     shell.exec(files[0]);
