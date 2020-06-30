@@ -1,24 +1,31 @@
 import { El } from "..";
 import pkg from "../package.json";
 import * as config from "./utils/config";
+import log from "mirai-ts/dist/utils/log";
 
 // merge config
 const defaultConfig = config.parse("./config/default/index.yml");
 
 let customConfig: any = {};
 
-if (process.env.NODE_ENV === "dev") {
-  customConfig = config.parse("./config/custom/dev.yml");
-} else {
-  customConfig = config.parse("./config/custom/index.yml");
+try {
+  if (process.env.NODE_ENV === "dev") {
+    customConfig = config.parse("./config/custom/dev.yml");
+  } else {
+    customConfig = config.parse("./config/custom/index.yml");
+  }
+
+  // 自定义路径配置
+  if (customConfig.configs && customConfig.configs.length > 0) {
+    customConfig.configs.forEach((configFile: string) => {
+      config.merge(customConfig, config.parse(configFile));
+    });
+  }
+}
+catch {
+  log.error("加载自定义配置失败，当前只有默认配置（请新建 config/custom/index.yml 文件）");
 }
 
-// 自定义路径配置
-if (customConfig.configs && customConfig.configs.length > 0) {
-  customConfig.configs.forEach((configFile: string) => {
-    config.merge(customConfig, config.parse(configFile));
-  });
-}
 
 config.merge(defaultConfig, customConfig);
 
