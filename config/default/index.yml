@@ -17,4 +17,4 @@ admin:
 
 limit:
   interval: 20000
-  count: 10
+  count: 3
