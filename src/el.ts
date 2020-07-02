@@ -22,8 +22,8 @@ catch (err) {
 
 try {
   // 自定义路径配置
-  if (customConfig.configs && customConfig.configs.length > 0) {
-    customConfig.configs.forEach((configFile: string) => {
+  if (customConfig.config_files && customConfig.config_files.length > 0) {
+    customConfig.config_files.forEach((configFile: string) => {
       config.merge(customConfig, config.parse(configFile));
     });
   }
