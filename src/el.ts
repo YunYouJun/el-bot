@@ -14,7 +14,13 @@ try {
   } else {
     customConfig = config.parse("./config/custom/index.yml");
   }
+}
+catch (err) {
+  console.log(err);
+  log.error("加载自定义配置失败，当前只有默认配置（请新建 config/custom/index.yml 文件）");
+}
 
+try {
   // 自定义路径配置
   if (customConfig.configs && customConfig.configs.length > 0) {
     customConfig.configs.forEach((configFile: string) => {
@@ -22,10 +28,10 @@ try {
     });
   }
 }
-catch {
-  log.error("加载自定义配置失败，当前只有默认配置（请新建 config/custom/index.yml 文件）");
+catch (err) {
+  console.log(err);
+  log.error("请检查你自定义的配置路径是否存在，或语法是否正确");
 }
-
 
 config.merge(defaultConfig, customConfig);
 
