@@ -7,6 +7,7 @@ import { el, bot } from "../../index";
 import { isAllowed } from "../utils/global";
 import { Bot } from "../..";
 
+
 // change it in onMessage
 let reply: Function = (msg: string | MessageType.MessageChain) => {
   console.log(msg);
@@ -20,6 +21,11 @@ interface Job {
   do: string[];
 }
 
+interface Step {
+  cmd: string;
+  async: boolean;
+}
+
 /**
  * 执行对应任务
  * @param jobs 
@@ -28,12 +34,22 @@ interface Job {
 function doJobByName(jobs: Job[], name: string) {
   jobs.forEach((job: Job) => {
     if (job.name && job.name === name && job.do) {
-      job.do.forEach((cmd: string) => {
+      job.do.forEach((step: string | Step) => {
+        let cmd = '';
+        let async = false;
+        if (typeof step === "string") {
+          cmd = step;
+        } else {
+          cmd = step.cmd;
+          async = step.async;
+        }
         if (cmd.includes("el run ")) {
           name = cmd.slice(7);
           doJobByName(jobs, name);
         }
-        shell.exec(cmd);
+        shell.exec(cmd, {
+          async
+        });
       });
     }
   });
