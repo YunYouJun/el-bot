@@ -3,7 +3,7 @@ import pkg from "../../package.json";
 import shell from "shelljs";
 import { MessageType } from "mirai-ts";
 import ElBot from "../bot";
-import { bot } from "../../index";
+import { el, bot } from "../../index";
 import { isAllowed } from "../utils/global";
 
 // change it in onMessage
@@ -11,7 +11,32 @@ let reply: Function = (msg: string | MessageType.MessageChain) => {
   console.log(msg);
 };
 
+const config = el.config;
 let qq: number = 0;
+
+interface Job {
+  name: string;
+  do: string[];
+}
+
+/**
+ * 执行对应任务
+ * @param jobs 
+ * @param name 
+ */
+function doJobByName(jobs: Job[], name: string) {
+  jobs.forEach((job: Job) => {
+    if (job.name && job.name === name && job.do) {
+      job.do.forEach((cmd: string) => {
+        if (cmd.includes("el run ")) {
+          name = cmd.slice(7);
+          doJobByName(jobs, name);
+        }
+        shell.exec(cmd);
+      });
+    }
+  });
+}
 
 const yargs = require("yargs")
   .scriptName("el")
@@ -19,7 +44,17 @@ const yargs = require("yargs")
   .command("echo <message>", "回声", {}, (argv: any) => {
     reply(argv.message);
   })
-  .command("sleep", "休眠", async () => {
+  .command("run <name>", "运行自定任务", {}, async (argv: any) => {
+    if (!isAllowed(qq)) {
+      await reply("您没有操作权限");
+      return;
+    }
+
+    if (config.cli && config.cli.jobs && config.cli.jobs.length > 0) {
+      doJobByName(config.cli.jobs, argv.name);
+    }
+  })
+  .command("sleep", "休眠", {}, async () => {
     if (!isAllowed(qq)) {
       await reply("您没有操作权限");
       return;
@@ -28,7 +63,7 @@ const yargs = require("yargs")
     bot.active = false;
     reply("进入休眠状态");
   })
-  .command("restart", "重启机器人", async () => {
+  .command("restart", "重启机器人", {}, async () => {
     if (isAllowed(qq)) {
       await reply("重启 el-bot-js");
       shell.exec("touch index.js");
@@ -36,7 +71,7 @@ const yargs = require("yargs")
       await reply("您没有操作权限");
     }
   })
-  .command("restart:mirai", "重启 mirai-console", async () => {
+  .command("restart:mirai", "重启 mirai-console", {}, async () => {
     if (!isAllowed(qq)) {
       await reply("您没有操作权限");
       return;
