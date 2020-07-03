@@ -1,6 +1,7 @@
 # custom
 config/custom
 tmp
+nohup.out
 
 # MiraiOK
 miraiOK_*

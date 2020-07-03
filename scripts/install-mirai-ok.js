@@ -91,8 +91,15 @@ inquirer
     if (answers["mirai-api-http"]) {
       const Repo = require("./repo");
       miraiApiHttp = new Repo("mamoe", "mirai-api-http");
-      miraiApiHttp.getLatestVersion().then(() => {
-        miraiApiHttp.downloadLatestRelease("./plugins");
-      });
+
+      try {
+        miraiApiHttp.getLatestVersion().then(() => {
+          miraiApiHttp.downloadLatestRelease("./plugins");
+        });
+      } catch {
+        log.error(
+          "下载失败（应该是国内行情导致的网络问题），可以到 707408530 群文件下载 mirai-api-http-*.jar，手动放置到 /plugins 目录下。"
+        );
+      }
     }
   });

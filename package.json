@@ -12,6 +12,7 @@
     "clean": "rm -rf dist",
     "dev": "npm run watch:mirai-ts & sleep 2 && cross-env NODE_ENV=dev nodemon --exec ts-node -r tsconfig-paths/register index.ts",
     "install:mirai": "node scripts/install-mirai-ok.js",
+    "install:plugins": "git clone https://github.com/ElpsyCN/el-bot-js-plugins packages/el-bot-js-plugins",
     "lint": "eslint . --ext .js,.ts",
     "start": "npm-run-all --parallel start:*",
     "start:ebj": "npm run build:ebj && nodemon dist/index.js",

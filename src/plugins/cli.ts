@@ -4,11 +4,14 @@ import shell from "shelljs";
 import { MessageType } from "mirai-ts";
 import ElBot from "../bot";
 import { bot } from "../../index";
+import { isAllowed } from "../utils/global";
 
 // change it in onMessage
 let reply: Function = (msg: string | MessageType.MessageChain) => {
   console.log(msg);
 };
+
+let qq: number = 0;
 
 const yargs = require("yargs")
   .scriptName("el")
@@ -16,16 +19,29 @@ const yargs = require("yargs")
   .command("echo <message>", "回声", {}, (argv: any) => {
     reply(argv.message);
   })
-  .command("sleep", "休眠", () => {
+  .command("sleep", "休眠", async () => {
+    if (!isAllowed(qq)) {
+      await reply("您没有操作权限");
+      return;
+    }
     // todo
     bot.active = false;
     reply("进入休眠状态");
   })
   .command("restart", "重启机器人", async () => {
-    await reply("重启 el-bot-js");
-    shell.exec("touch index.js");
+    if (isAllowed(qq)) {
+      await reply("重启 el-bot-js");
+      shell.exec("touch index.js");
+    } else {
+      await reply("您没有操作权限");
+    }
   })
   .command("restart:mirai", "重启 mirai-console", async () => {
+    if (!isAllowed(qq)) {
+      await reply("您没有操作权限");
+      return;
+    }
+
     await reply("重启 mirai-console");
 
     const consolePid: number = parseInt(
@@ -80,17 +96,13 @@ function parse(cmd: string[]) {
   });
 }
 
+
 export default function (ctx: ElBot) {
-  const config = ctx.el.config;
   const mirai = ctx.mirai;
 
   mirai.on('message', (msg: MessageType.SingleMessage) => {
     if (!msg.sender) return;
-    const qq = msg.sender.id;
-    if (!config.master.includes(qq) && !config.admin.includes(qq)) {
-      return;
-    }
-
+    qq = msg.sender.id;
     reply = msg.reply;
 
     // command for message
