@@ -8,7 +8,7 @@ interface ForwardConfig {
   target: Config.Target;
 }
 
-export default function (ctx: ElBot) {
+export default function forward(ctx: ElBot) {
   const mirai = ctx.mirai;
   mirai.on('message', (msg: MessageType.SingleMessage) => {
     if (!msg.sender) return;
@@ -26,3 +26,6 @@ export default function (ctx: ElBot) {
     }
   });
 }
+
+forward.version = "v0.0.1";
+forward.description = "消息转发";

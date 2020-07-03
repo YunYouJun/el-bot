@@ -16,3 +16,15 @@ export interface El {
   setting: Setting;
   config: any;
 }
+
+export namespace Bot {
+  interface Plugin {
+    name: string,
+    version: string;
+    description: string;
+  }
+
+  interface Plugins {
+    [propName: string]: Plugin[];
+  }
+}

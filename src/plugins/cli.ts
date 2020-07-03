@@ -5,6 +5,7 @@ import { MessageType } from "mirai-ts";
 import ElBot from "../bot";
 import { el, bot } from "../../index";
 import { isAllowed } from "../utils/global";
+import { Bot } from "../..";
 
 // change it in onMessage
 let reply: Function = (msg: string | MessageType.MessageChain) => {
@@ -38,13 +39,21 @@ function doJobByName(jobs: Job[], name: string) {
   });
 }
 
+function listPlugins(type: string, name: string) {
+  let content = name + ':\n';
+  bot.plugins[type].forEach((plugin: Bot.Plugin) => {
+    content += `- ${plugin.name}@${plugin.version}: ${plugin.description}\n`;
+  });
+  return content;
+}
+
 const yargs = require("yargs")
   .scriptName("el")
   .usage("Usage: $0 <command> [options]")
   .command("echo <message>", "回声", {}, (argv: any) => {
     reply(argv.message);
   })
-  .command("run <name>", "运行自定任务", {}, async (argv: any) => {
+  .command("run <name>", "运行自定义任务", {}, async (argv: any) => {
     if (!isAllowed(qq)) {
       await reply("您没有操作权限");
       return;
@@ -53,6 +62,34 @@ const yargs = require("yargs")
     if (config.cli && config.cli.jobs && config.cli.jobs.length > 0) {
       doJobByName(config.cli.jobs, argv.name);
     }
+  })
+  .command("jobs", "任务列表", {}, async () => {
+    if (!isAllowed(qq)) {
+      await reply("您没有操作权限");
+      return;
+    }
+
+    let content = '任务列表：';
+    config.cli.jobs.forEach((job: Job) => {
+      if (job.name) {
+        content += '\n- ' + job.name;
+      }
+    });
+    reply(content);
+  })
+  .command("plugins", "插件列表", {}, async () => {
+    let content = '';
+
+    if (config.plugins['default']) {
+      content += listPlugins('default', '默认插件');
+    }
+    if (config.plugins['community']) {
+      content += listPlugins('community', '社区插件');
+    }
+    if (config.plugins['custom']) {
+      content += listPlugins('custom', '自定义插件');
+    }
+    reply(content.slice(0, -1));
   })
   .command("sleep", "休眠", {}, async () => {
     if (!isAllowed(qq)) {
@@ -80,7 +117,7 @@ const yargs = require("yargs")
     await reply("重启 mirai-console");
 
     const consolePid: number = parseInt(
-      shell.exec("pgrep -f java -jar ./mirai-console-wrapper --update STABLE", {
+      shell.exec("pgrep -f ./miraiOK_", {
         silent: true,
       }).stdout
     );
@@ -131,8 +168,10 @@ function parse(cmd: string[]) {
   });
 }
 
+cli.version = "0.0.1";
+cli.description = "交互终端";
 
-export default function (ctx: ElBot) {
+export default function cli(ctx: ElBot) {
   const mirai = ctx.mirai;
 
   mirai.on('message', (msg: MessageType.SingleMessage) => {
@@ -150,3 +189,4 @@ export default function (ctx: ElBot) {
     }
   });
 };
+

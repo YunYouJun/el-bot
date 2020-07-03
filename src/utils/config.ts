@@ -8,7 +8,7 @@ import { Setting } from "../..";
  * @param path 配置文件名
  */
 function parse(path: string): Setting {
-  // return yaml.safeLoad(fs.readFileSync(file));
+  // return yaml.safeLoad(fs.readFileSync(path, "utf8"));
   return yaml.load(fs.readFileSync(path, "utf8"));
 }
 

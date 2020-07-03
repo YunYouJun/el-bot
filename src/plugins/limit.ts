@@ -7,7 +7,7 @@ let count = 0;
 let startTime = new Date().getTime();
 let now = startTime;
 
-function limit() {
+function isLimited() {
   now = new Date().getTime();
   if ((now - startTime) > config.limit.interval) {
     count = 0;
@@ -19,7 +19,7 @@ function limit() {
   return false;
 }
 
-export default function (ctx: ElBot) {
+export default function limit(ctx: ElBot) {
   config = ctx.el.config;
   const mirai = ctx.mirai;
 
@@ -28,7 +28,7 @@ export default function (ctx: ElBot) {
 
   mirai.api.sendFriendMessage = async (messageChain, target, quote) => {
     let data = {};
-    if (!limit()) {
+    if (!isLimited()) {
       count += 1;
       data = await sendFriendMessage.apply(mirai.api, [messageChain, target, quote]);
       return data;
@@ -40,7 +40,7 @@ export default function (ctx: ElBot) {
 
   mirai.api.sendGroupMessage = async (messageChain, target, quote) => {
     let data = {};
-    if (!limit()) {
+    if (!isLimited()) {
       count += 1;
       data = await sendGroupMessage.apply(mirai.api, [messageChain, target, quote]);
       return data;
@@ -50,3 +50,6 @@ export default function (ctx: ElBot) {
     return data;
   };
 }
+
+limit.version = "0.0.1";
+limit.description = "限制消息频率";

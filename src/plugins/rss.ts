@@ -135,7 +135,7 @@ function format(item: Parser.Item, content: string[]) {
   return Function("item", "return `" + template + "`")(item);
 }
 
-export default function (ctx: ElBot) {
+export default function rss(ctx: ElBot) {
   const config = ctx.el.config;
   const mirai = ctx.mirai;
 
@@ -161,3 +161,6 @@ export default function (ctx: ElBot) {
     }
   });
 }
+
+rss.version = "0.0.1";
+rss.description = "订阅 RSS 信息";

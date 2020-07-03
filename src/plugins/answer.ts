@@ -10,7 +10,7 @@ interface AnswerConfig extends Config.Match {
   else?: string | MessageType.MessageChain;
 }
 
-export default function (ctx: ElBot) {
+export default function answer(ctx: ElBot) {
   const config = ctx.el.config;
   const mirai = ctx.mirai;
 
@@ -42,3 +42,6 @@ export default function (ctx: ElBot) {
     }
   });
 }
+
+answer.version = "0.0.1";
+answer.description = "自动应答";

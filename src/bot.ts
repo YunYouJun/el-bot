@@ -1,6 +1,6 @@
 import Mirai, { MiraiApiHttpConfig, MiraiInstance } from "mirai-ts";
 import log from "mirai-ts/dist/utils/log";
-import { El } from "..";
+import { El, Bot } from "..";
 
 import { tryCatch } from "./utils/decorators";
 
@@ -9,7 +9,7 @@ export default class ElBot {
   mirai: MiraiInstance;
   // 激活
   active: boolean;
-
+  plugins: Bot.Plugins;
   constructor(el: El) {
     const mahConfig: MiraiApiHttpConfig = {
       host: el.setting.host || "localhost",
@@ -20,6 +20,11 @@ export default class ElBot {
     this.el = el;
     this.mirai = new Mirai(mahConfig);
     this.active = true;
+    this.plugins = {
+      default: [],
+      community: [],
+      custom: []
+    };
   }
 
   @tryCatch()
@@ -39,7 +44,23 @@ export default class ElBot {
       config.plugins[type].forEach((name: string) => {
         try {
           const plugin = require(`${path}/${name}`).default;
-          if (plugin) this.use(plugin);
+
+          let pkg = {
+            version: "未知",
+            description: "未知"
+          };
+          try {
+            pkg = require(`${path}/${name}/package.json`);
+          } catch { }
+
+          if (plugin) {
+            this.plugins[type].push({
+              name,
+              version: plugin.version || pkg.version,
+              description: plugin.description || pkg.description
+            });
+            this.use(plugin);
+          };
         } catch (error) {
           console.log(error);
           console.log(`插件 ${name} 加载失败`);
