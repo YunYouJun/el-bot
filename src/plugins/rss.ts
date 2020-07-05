@@ -8,6 +8,7 @@ import log from "mirai-ts/dist/utils/log";
 import { sendMessageByConfig } from "../utils/message";
 import { MessageType } from "mirai-ts";
 import ElBot from "../bot";
+import { isAllowed } from "@utils/global";
 
 interface RssConfig {
   name: string;
@@ -149,7 +150,7 @@ export default function rss(ctx: ElBot) {
 
   // 监听消息命令
   mirai.on('message', (msg: MessageType.SingleMessage) => {
-    if (msg.plain === "rss" && config.rss) {
+    if (msg.plain === "rss" && config.rss && isAllowed(msg.sender.id)) {
       log.success("立即触发 RSS 抓取");
       let content = "您当前订阅的 RSS 源：";
       config.rss.forEach((rssConfig: RssConfig) => {

@@ -2,6 +2,7 @@ import ElBot from "src/bot";
 import { el } from "../../index";
 import log from "mirai-ts/dist/utils/log";
 import Mirai from "mirai-ts";
+import { isAllowed } from "@utils/global";
 
 let config = el.config;
 let mirai: Mirai;
@@ -55,8 +56,8 @@ async function isMaxCountForSender() {
     };
   }
 
-  // 同一个用户连续调用多次
-  if (lastList[msg.sender.group.id].count > config.limit.sender.maximum) {
+  // 同一个用户连续调用多次（不限制有机器人管理权限的人）
+  if (lastList[msg.sender.group.id].count > config.limit.sender.maximum && !isAllowed(msg.sender.id)) {
     lastList[msg.sender.group.id].count = 0;
     await msg.reply(config.limit.sender.tooltip);
     await mirai.api.mute(msg.sender.group.id, msg.sender.id, config.limit.sender.time);
