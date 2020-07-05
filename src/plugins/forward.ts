@@ -15,17 +15,24 @@ export default function forward(ctx: ElBot) {
 
     const config = el.config;
 
-    if (config.forward) {
-      config.forward.forEach((item: ForwardConfig) => {
-        const canForward = isListening(msg.sender, item.listen);
+    try {
+      if (config.forward) {
+        config.forward.forEach((item: ForwardConfig) => {
+          const canForward = isListening(msg.sender, item.listen);
 
-        if (canForward) {
-          sendMessageByConfig(msg.messageChain, item.target);
-        }
-      });
+          if (canForward) {
+            // remove source
+            msg.messageChain.shift();
+            sendMessageByConfig(msg.messageChain, item.target);
+          }
+        });
+      }
+    } catch (error) {
+      console.log("ok");
     }
+
   });
 }
 
-forward.version = "v0.0.1";
+forward.version = "0.0.1";
 forward.description = "消息转发";
