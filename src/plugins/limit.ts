@@ -1,8 +1,11 @@
 import ElBot from "src/bot";
 import { el } from "../../index";
 import log from "mirai-ts/dist/utils/log";
+import Mirai from "mirai-ts";
 
 let config = el.config;
+let mirai: Mirai;
+
 let count = 0;
 let startTime = new Date().getTime();
 let now = startTime;
@@ -19,9 +22,51 @@ function isLimited() {
   return false;
 }
 
+interface GroupInfo {
+  /**
+   * 上一位发送者的 QQ
+   */
+  lastSenderId: number;
+  /**
+   * 发言次数
+   */
+  count: number;
+}
+
+interface GroupList {
+  [propName: number]: GroupInfo;
+}
+
+let lastList: GroupList = {};
+async function isMaxCountForSender() {
+  let msg = mirai.curMsg;
+
+  if (lastList[msg.sender.group.id]) {
+    if (lastList[msg.sender.group.id].lastSenderId === msg.sender.id) {
+      lastList[msg.sender.group.id].count += 1;
+    } else {
+      lastList[msg.sender.group.id].lastSenderId = msg.sender.id;
+      lastList[msg.sender.group.id].count = 1;
+    }
+  } else {
+    lastList[msg.sender.group.id] = {
+      lastSenderId: msg.sender.id,
+      count: 1
+    };
+  }
+
+  // 同一个用户连续调用多次
+  if (lastList[msg.sender.group.id].count > config.limit.sender.maximum) {
+    lastList[msg.sender.group.id].count = 0;
+    await msg.reply(config.limit.sender.tooltip);
+    await mirai.api.mute(msg.sender.group.id, msg.sender.id, 600);
+    return true;
+  }
+  return false;
+}
+
 export default function limit(ctx: ElBot) {
-  config = ctx.el.config;
-  const mirai = ctx.mirai;
+  mirai = ctx.mirai;
 
   let sendFriendMessage = mirai.api.sendFriendMessage;
   let sendGroupMessage = mirai.api.sendGroupMessage;
@@ -39,6 +84,9 @@ export default function limit(ctx: ElBot) {
   };
 
   mirai.api.sendGroupMessage = async (messageChain, target, quote) => {
+    let isMax = await isMaxCountForSender();
+    if (isMax) return isMax;
+
     let data = {};
     if (!isLimited()) {
       count += 1;

@@ -18,3 +18,7 @@ admin:
 limit:
   interval: 20000
   count: 10
+  sender:
+    # 连续次数
+    maximum: 3
+    tooltip: 我生气了！

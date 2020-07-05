@@ -7,7 +7,6 @@ import { el, bot } from "../../index";
 import { isAllowed } from "../utils/global";
 import { Bot } from "../..";
 
-
 // change it in onMessage
 let reply: Function = (msg: string | MessageType.MessageChain) => {
   console.log(msg);
@@ -66,7 +65,12 @@ function listPlugins(type: string, name: string) {
 const yargs = require("yargs")
   .scriptName("el")
   .usage("Usage: $0 <command> [options]")
-  .command("echo <message>", "回声", {}, (argv: any) => {
+  .command("echo <message>", "回声", {}, async (argv: any) => {
+    if (!isAllowed(qq)) {
+      await reply("您没有操作权限");
+      return;
+    }
+
     reply(argv.message);
   })
   .command("run <name>", "运行自定义任务", {}, async (argv: any) => {
