@@ -59,7 +59,7 @@ async function isMaxCountForSender() {
   if (lastList[msg.sender.group.id].count > config.limit.sender.maximum) {
     lastList[msg.sender.group.id].count = 0;
     await msg.reply(config.limit.sender.tooltip);
-    await mirai.api.mute(msg.sender.group.id, msg.sender.id, 600);
+    await mirai.api.mute(msg.sender.group.id, msg.sender.id, config.limit.sender.time);
     return true;
   }
   return false;

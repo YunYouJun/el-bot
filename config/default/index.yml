@@ -22,3 +22,4 @@ limit:
     # 连续次数
     maximum: 3
     tooltip: 我生气了！
+    time: 600
