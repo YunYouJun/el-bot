@@ -16,8 +16,8 @@ admin:
   - 910426929
 
 limit:
-  interval: 20000
-  count: 10
+  interval: 30000
+  count: 20
   sender:
     # 连续次数
     maximum: 3

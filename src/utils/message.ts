@@ -58,6 +58,14 @@ function sendMessageByConfig(
 ) {
   const mirai = bot.mirai;
 
+  if (Array.isArray(messageChain)) {
+    messageChain.forEach(msg => {
+      if (msg.type === "Image") {
+        delete msg.imageId;
+      }
+    });
+  }
+
   if (target.friend) {
     target.friend.forEach((qq) => {
       mirai.api.sendFriendMessage(messageChain, qq);

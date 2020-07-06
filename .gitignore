@@ -2,6 +2,7 @@
 config/custom
 tmp
 nohup.out
+.vscode
 
 # MiraiOK
 miraiOK_*
