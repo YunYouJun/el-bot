@@ -122,7 +122,7 @@ const yargs = require("yargs")
   })
   .command("restart", "重启机器人", {}, async () => {
     if (isAllowed(qq)) {
-      await reply("重启 el-bot-js");
+      await reply("重启 el-bot");
       shell.exec("touch index.js");
     } else {
       await reply("您没有操作权限");

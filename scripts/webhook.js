@@ -3,7 +3,7 @@ const http = require("http");
 const createHandler = require("github-webhook-handler");
 const handler = createHandler({
   path: "/webhook",
-  secret: process.env.WEBHOOK_SECRET || "el-bot-js",
+  secret: process.env.WEBHOOK_SECRET || "el-psy-congroo",
 });
 
 const { argv } = require("yargs");
@@ -40,10 +40,10 @@ handler.on("push", function (event) {
   const repo = event.payload.repository.name;
 
   // 监听 commit
-  if (argv.watch === "ebj" && repo === "el-bot-js") {
+  if (argv.watch === "el-bot" && repo === "el-bot") {
     // git pull
     if (shell.exec("git pull && tsc").code !== 0) {
-      shell.echo("Error: Git pull el-bot-js failed");
+      shell.echo("Error: Git pull el-bot failed");
       shell.exit(1);
     }
   }

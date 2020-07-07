@@ -14,7 +14,7 @@ export default class ElBot {
     const mahConfig: MiraiApiHttpConfig = {
       host: el.setting.host || "localhost",
       port: el.setting.port || 8080,
-      authKey: el.setting.authKey || "el-bot-js",
+      authKey: el.setting.authKey || "el-psy-congroo",
       enableWebsocket: el.setting.enableWebsocket || false,
     };
     this.el = el;
@@ -82,7 +82,7 @@ export default class ElBot {
    */
   listen() {
     this.loadPlugins('default', './plugins');
-    this.loadPlugins('community', '../packages/el-bot-js-plugins');
+    this.loadPlugins('community', '../packages/el-bot-plugins');
     this.loadPlugins('custom', '../config/custom/plugins');
 
     this.mirai.listen();

@@ -64,7 +64,7 @@ inquirer
           value: "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_linux_arm",
         },
         {
-          name: "Windows-386: mirai-native 用（EBJ 没用 mirai-native）",
+          name: "Windows-386: mirai-native 用（el-bot 没用 mirai-native）",
           value:
             "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_windows_386.exe",
         },
@@ -82,7 +82,7 @@ inquirer
     {
       type: "confirm",
       name: "mirai-api-http",
-      message: "是否下载最新版本 mirai-api-http？（使用 el-bot-js 务必安装！）",
+      message: "是否下载最新版本 mirai-api-http？（使用 el-bot 务必安装！）",
     },
   ])
   .then((answers) => {

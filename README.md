@@ -1,16 +1,16 @@
-# el-bot-js
+# el-bot
 
 [![docs](https://github.com/ElpsyCN/el-bot-docs/workflows/docs/badge.svg)](https://docs.bot.elpsy.cn/js/)
-![GitHub package.json version](https://img.shields.io/github/package-json/v/ElpsyCN/el-bot-js)
-[![GitHub package.json dependency version (prod)](https://img.shields.io/github/package-json/dependency-version/ElpsyCN/el-bot-js/mirai-ts)](https://github.com/YunYouJun/mirai-ts)
+![GitHub package.json version](https://img.shields.io/github/package-json/v/ElpsyCN/el-bot)
+[![GitHub package.json dependency version (prod)](https://img.shields.io/github/package-json/dependency-version/ElpsyCN/el-bot/mirai-ts)](https://github.com/YunYouJun/mirai-ts)
 [![QQ Group](https://img.shields.io/badge/qq%20group-707408530-12B7F5)](https://shang.qq.com/wpa/qunwpa?idkey=5b0eef3e3256ce23981f3b0aa2457175c66ca9194efd266fd0e9a7dbe43ed653)
-[![GitHub](https://img.shields.io/github/license/ElpsyCN/el-bot-js)](https://github.com/ElpsyCN/el-bot-js/blob/master/LICENSE)
+[![GitHub](https://img.shields.io/github/license/ElpsyCN/el-bot)](https://github.com/ElpsyCN/el-bot/blob/master/LICENSE)
 
 一个基于 [mirai-ts](https://github.com/YunYouJun/mirai-ts) 实现的配置型 QQ 机器人。（开发中...）
 
 [el-bot](https://docs.bot.elpsy.cn/) 的 js（~~女子小学生~~）版本。适合于认为 JavaScript 是世界上最好的语言的用户。
 
-> 一份更详细的说明文档：[el-bot-js | el bot docs](https://docs.bot.elpsy.cn/js/)
+> 一份更详细的说明文档：[el-bot | el bot docs](https://docs.bot.elpsy.cn/js/)
 
 ## 开始
 

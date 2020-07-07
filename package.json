@@ -1,28 +1,28 @@
 {
-  "name": "el-bot-js",
-  "version": "0.1.1",
+  "name": "el-bot",
+  "version": "0.1.2",
   "description": "A quick qq bot for mirai.",
   "private": true,
   "main": "index.ts",
   "types": "index.d.ts",
   "scripts": {
     "build": "npm-run-all --parllel build:*",
-    "build:ebj": "npm run clean && tsc",
+    "build:el-bot": "npm run clean && tsc",
     "build:mirai-ts": "cd packages/mirai-ts && tsc",
     "clean": "rm -rf dist",
     "dev": "npm run watch:mirai-ts & sleep 2 && cross-env NODE_ENV=dev nodemon --exec ts-node -r tsconfig-paths/register index.ts",
     "install:mirai": "node scripts/install-mirai-ok.js",
-    "install:plugins": "git clone https://github.com/ElpsyCN/el-bot-js-plugins packages/el-bot-js-plugins",
+    "install:plugins": "git clone https://github.com/ElpsyCN/el-bot-plugins packages/el-bot-plugins",
     "lint": "eslint . --ext .js,.ts",
     "start": "npm-run-all --parallel start:*",
-    "start:ebj": "npm run build:ebj && nodemon dist/index.js",
+    "start:bot": "npm run build:el-bot && nodemon dist/index.js",
     "start:mirai": "node scripts/start-mirai-ok.js",
     "webhook": "node scripts/webhook.js",
-    "webhook:all": "node scripts/webhook.js --watch ebj",
+    "webhook:all": "node scripts/webhook.js --watch el-bot",
     "test": "npm run lint",
     "pull": "npm-run-all --parallel pull:*",
-    "pull:ebj": "git pull",
-    "pull:plugins": "cd packages/el-bot-js-plugins && git pull",
+    "pull:el-bot": "git pull",
+    "pull:plugins": "cd packages/el-bot-plugins && git pull",
     "pull:config": "cd config/custom && git pull",
     "push:config": "cd config/custom && git add -A && git commit -m ':wrench: update config' && git push",
     "update": "npm run pull && npm install",
@@ -30,7 +30,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/elpsycn/el-bot-js"
+    "url": "https://github.com/elpsycn/el-bot"
   },
   "keywords": [
     "elpsy",
@@ -49,7 +49,7 @@
   ],
   "license": "AGPL-3.0",
   "bugs": {
-    "url": "https://github.com/elpsycn/el-bot-js/issues"
+    "url": "https://github.com/elpsycn/el-bot/issues"
   },
   "homepage": "https://docs.bot.elpsy.cn/js/",
   "dependencies": {
@@ -94,7 +94,7 @@
   },
   "_moduleAliases": {
     "@utils": "dist/src/utils",
-    "@plugins": "packages/el-bot-js-plugins"
+    "@plugins": "packages/el-bot-plugins"
   },
   "directories": {
     "lib": "https://github.com/YunYouJun/mirai-ts"
