@@ -39,8 +39,19 @@ interface GroupList {
 }
 
 let lastList: GroupList = {};
+
+/**
+ * 发送者连续触发次数是否超过限额
+ */
 async function isMaxCountForSender() {
   let msg = mirai.curMsg;
+  if (!msg.sender.group) return;
+
+  // 如果超过间隔时间，则重置历史记录
+  now = new Date().getTime();
+  if (now - startTime > msg.sender.interval) {
+    lastList = {};
+  }
 
   if (lastList[msg.sender.group.id]) {
     if (lastList[msg.sender.group.id].lastSenderId === msg.sender.id) {

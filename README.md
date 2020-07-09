@@ -1,20 +1,20 @@
 # el-bot
 
-[![docs](https://github.com/ElpsyCN/el-bot-docs/workflows/docs/badge.svg)](https://docs.bot.elpsy.cn/js/)
+[![docs](https://github.com/ElpsyCN/el-bot-docs/workflows/docs/badge.svg)](https://docs.bot.elpsy.cn/)
 ![GitHub package.json version](https://img.shields.io/github/package-json/v/ElpsyCN/el-bot)
 [![GitHub package.json dependency version (prod)](https://img.shields.io/github/package-json/dependency-version/ElpsyCN/el-bot/mirai-ts)](https://github.com/YunYouJun/mirai-ts)
 [![QQ Group](https://img.shields.io/badge/qq%20group-707408530-12B7F5)](https://shang.qq.com/wpa/qunwpa?idkey=5b0eef3e3256ce23981f3b0aa2457175c66ca9194efd266fd0e9a7dbe43ed653)
 [![GitHub](https://img.shields.io/github/license/ElpsyCN/el-bot)](https://github.com/ElpsyCN/el-bot/blob/master/LICENSE)
 
-一个基于 [mirai-ts](https://github.com/YunYouJun/mirai-ts) 实现的配置型 QQ 机器人。（开发中...）
+一个基于 [mirai-ts](https://github.com/YunYouJun/mirai-ts)，使用 TS/JS 编写，可配置、可自定义插件的 QQ 机器人（框架？）。
 
-[el-bot](https://docs.bot.elpsy.cn/) 的 js（~~女子小学生~~）版本。适合于认为 JavaScript 是世界上最好的语言的用户。
+（仍旧处于活跃开发中，但又不是不能用.jpg）
 
-> 一份更详细的说明文档：[el-bot | el bot docs](https://docs.bot.elpsy.cn/js/)
+[el-bot](https://docs.bot.elpsy.cn/) 的 js（~~女子小学生~~）版本。适合于认为 JavaScript/TypeScript 是世界上最好的语言的用户。
 
 ## 开始
 
-详细使用说明请参见[文档](https://docs.bot.elpsy.cn/js/)。
+详细使用说明请参见 [el-bot 文档](https://docs.bot.elpsy.cn/js/)。
 
 ## 反馈
 

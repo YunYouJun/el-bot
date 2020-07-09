@@ -51,7 +51,7 @@
   "bugs": {
     "url": "https://github.com/elpsycn/el-bot/issues"
   },
-  "homepage": "https://docs.bot.elpsy.cn/js/",
+  "homepage": "https://docs.bot.elpsy.cn/",
   "dependencies": {
     "chalk": "^4.0.0",
     "dayjs": "^1.8.28",
