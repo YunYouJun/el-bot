@@ -1,3 +1,4 @@
+import log from "mirai-ts/dist/utils/log";
 export function displayCall(target: any, propertyName: string, propertyDescriptor: PropertyDescriptor) {
   const method = propertyDescriptor.value;
 
@@ -30,7 +31,7 @@ export function tryCatch(errorHandler?: (error?: Error) => void) {
             if (errorHandler) {
               errorHandler(error);
             } else {
-              console.log(`调用 ${propertyKey} 出了问题`);
+              log.error(`调用 ${propertyKey} 出了问题`);
             }
           });
         };

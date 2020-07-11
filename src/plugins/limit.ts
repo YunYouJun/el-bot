@@ -45,7 +45,7 @@ let lastList: GroupList = {};
  */
 async function isMaxCountForSender() {
   let msg = mirai.curMsg;
-  if (!msg.sender.group) return;
+  if (!msg.sender || !msg.sender.group) return;
 
   // 如果超过间隔时间，则重置历史记录
   now = new Date().getTime();

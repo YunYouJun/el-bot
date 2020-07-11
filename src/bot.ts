@@ -51,7 +51,11 @@ export default class ElBot {
           };
           try {
             pkg = require(`${path}/${name}/package.json`);
-          } catch { }
+          } catch {
+            if (type !== 'default') {
+              log.warning(`${name} 插件没有相关描述信息`);
+            }
+          }
 
           if (plugin) {
             this.plugins[type].push({
@@ -63,7 +67,7 @@ export default class ElBot {
           };
         } catch (error) {
           console.log(error);
-          console.log(`插件 ${name} 加载失败`);
+          log.error(`插件 ${name} 加载失败`);
         }
       });
     }

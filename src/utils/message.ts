@@ -94,4 +94,24 @@ function renderString(template: string, data: string | object, name: string) {
   return Function(name, "return `" + template + "`")(data);
 }
 
-export { isListening, sendMessageByConfig, renderString };
+/**
+ * 从配置直接获取监听状态（包括判断 listen 与 unlisten）
+ * @param sender 发送者
+ * @param config 配置
+ */
+function getListenStatusByConfig(sender: MessageType.Sender, config: any): boolean {
+  let listenFlag = true;
+  if (config.listen) {
+    listenFlag = isListening(sender, config.listen || "all");
+  } else if (config.unlisten) {
+    listenFlag = !isListening(sender, config.unlisten || "all");
+  }
+  return listenFlag;
+}
+
+export {
+  isListening,
+  renderString,
+  sendMessageByConfig,
+  getListenStatusByConfig
+};

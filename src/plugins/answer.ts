@@ -1,9 +1,8 @@
-import { isListening } from "../utils/message";
+import { renderString, getListenStatusByConfig } from "@utils/index";
 import { MessageType, Config } from "mirai-ts";
 import ElBot from "../bot";
 import { match } from "mirai-ts/dist/utils/message";
 import axios from "axios";
-import { renderString } from "@utils/message";
 
 interface AnswerConfig extends Config.Match {
   /**
@@ -53,6 +52,7 @@ export default function answer(ctx: ElBot) {
       // https://advancedweb.hu/how-to-use-async-functions-with-array-some-and-every-in-javascript/
       let ans: AnswerConfig = {
         listen: 'all',
+        is: "el psy congroo",
         reply: '喵喵喵？'
       };
 
@@ -60,7 +60,7 @@ export default function answer(ctx: ElBot) {
         let replyContent = null;
         if (msg.plain && match(msg.plain, ans)) {
           // 默认监听所有
-          if (isListening(msg.sender, ans.listen || "all")) {
+          if (getListenStatusByConfig(msg.sender, ans)) {
             replyContent = ans.api ? await renderStringByApi(ans.api, ans.reply) : ans.reply;
           } else if (ans.else) {
             // 后续可以考虑用监听白名单、黑名单优化
