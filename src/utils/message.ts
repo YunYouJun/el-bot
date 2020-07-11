@@ -52,15 +52,6 @@ function isListening(sender: MessageType.Sender, listen: string | Config.Listen)
   return false;
 }
 
-interface MessageList {
-  [propName: number]: number[];
-}
-
-export interface AllMessageList {
-  friend: MessageList;
-  group: MessageList;
-}
-
 /**
  * 通过配置发送消息
  * @param {MessageChain} messageChain
@@ -70,12 +61,9 @@ export interface AllMessageList {
 async function sendMessageByConfig(
   messageChain: string | MessageType.MessageChain,
   target: Config.Target
-) {
+): Promise<number[]> {
   const mirai = bot.mirai;
-  let messageList: AllMessageList = {
-    friend: {},
-    group: {}
-  };
+  let messageList: number[] = [];
 
   if (Array.isArray(messageChain)) {
     messageChain.forEach(msg => {
@@ -88,20 +76,14 @@ async function sendMessageByConfig(
   if (target.friend) {
     await Promise.all(target.friend.map(async (qq) => {
       const { messageId } = await mirai.api.sendFriendMessage(messageChain, qq);
-      if (!messageList.friend[qq]) {
-        messageList.friend[qq] = [];
-      }
-      messageList.friend[qq].push(messageId);
+      messageList.push(messageId);
     }));
   }
 
   if (target.group) {
     await Promise.all(target.group.map(async (qq) => {
       const { messageId } = await mirai.api.sendGroupMessage(messageChain, qq);
-      if (!messageList.group[qq]) {
-        messageList.group[qq] = [];
-      }
-      messageList.group[qq].push(messageId);
+      messageList.push(messageId);
     }));
   }
 

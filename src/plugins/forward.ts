@@ -1,4 +1,4 @@
-import { getListenStatusByConfig, sendMessageByConfig, AllMessageList } from "../utils/message";
+import { getListenStatusByConfig, sendMessageByConfig } from "../utils/message";
 import { Config, MessageType } from "mirai-ts";
 import el from "../el";
 import ElBot from "../bot";
@@ -9,28 +9,28 @@ interface ForwardConfig {
   target: Config.Target;
 }
 
-function recallByList(msg: MessageType.SingleMessage, messageList: any) {
+interface AllMessageList {
+  [propName: number]: number[];
+}
+
+function recallByList(msg: MessageType.SingleMessage, messageList: AllMessageList) {
   const mirai = bot.mirai;
-  if (msg.authorId in messageList.friend) {
-    messageList.friend[msg.authorId].map((messageId: number) => {
+  if (messageList && msg.messageId in messageList) {
+    messageList[msg.messageId].map((messageId: number) => {
       mirai.api.recall(messageId);
     });
-  }
-  if (msg.group.id in messageList.group) {
-    messageList.group[msg.group.id].map((messageId: number) => {
-      mirai.api.recall(messageId);
-    });
+    messageList[msg.messageId] = [];
   }
 }
 
 export default function forward(ctx: ElBot) {
   const mirai = ctx.mirai;
   /**
-   * 上一次发送的各消息 Id 列表
+   * 原消息和被转发的各消息 Id 关系列表
    */
-  let lastMessageList: AllMessageList;
+  let allMessageList: AllMessageList = {};
   mirai.on('message', async (msg: MessageType.SingleMessage) => {
-    if (!msg.sender) return;
+    if (!msg.sender || !msg.messageChain) return;
 
     const config = el.config;
 
@@ -40,7 +40,8 @@ export default function forward(ctx: ElBot) {
 
         if (canForward) {
           // remove source
-          lastMessageList = await sendMessageByConfig(msg.messageChain.slice(1), item.target);
+          let sourceMessageId: number = msg.messageChain[0].id;
+          allMessageList[sourceMessageId] = await sendMessageByConfig(msg.messageChain.slice(1), item.target);
         }
       }));
     }
@@ -48,11 +49,11 @@ export default function forward(ctx: ElBot) {
 
   // 消息撤回
   mirai.on('FriendRecallEvent', (msg: MessageType.SingleMessage) => {
-    recallByList(msg, lastMessageList);
+    recallByList(msg, allMessageList);
   });
 
   mirai.on('GroupRecallEvent', (msg: MessageType.SingleMessage) => {
-    recallByList(msg, lastMessageList);
+    recallByList(msg, allMessageList);
   });
 }
 
