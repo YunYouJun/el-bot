@@ -14,23 +14,21 @@ try {
   } else {
     customConfig = config.parse("./config/custom/index.yml");
   }
-}
-catch (err) {
+} catch (err) {
   console.log(err);
   log.error("加载自定义配置失败，当前只有默认配置（请新建 config/custom/index.yml 文件）");
 }
 
-try {
-  // 自定义路径配置
-  if (customConfig.config_files && customConfig.config_files.length > 0) {
-    customConfig.config_files.forEach((configFile: string) => {
+// 自定义的配置路径
+if (customConfig.config_files && customConfig.config_files.length > 0) {
+  customConfig.config_files.forEach((configFile: string) => {
+    try {
       config.merge(customConfig, config.parse(configFile));
-    });
-  }
-}
-catch (err) {
-  console.log(err);
-  log.error("请检查你自定义的配置路径是否存在，或语法是否正确");
+    } catch (err) {
+      console.log(err);
+      log.error(`请检查 config_files 中 ${configFile} 文件是否存在，或语法是否正确`);
+    }
+  });
 }
 
 config.merge(defaultConfig, customConfig);

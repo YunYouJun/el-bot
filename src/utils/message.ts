@@ -52,16 +52,30 @@ function isListening(sender: MessageType.Sender, listen: string | Config.Listen)
   return false;
 }
 
+interface MessageList {
+  [propName: number]: number[];
+}
+
+export interface AllMessageList {
+  friend: MessageList;
+  group: MessageList;
+}
+
 /**
  * 通过配置发送消息
  * @param {MessageChain} messageChain
  * @param {object} target
  */
-function sendMessageByConfig(
+
+async function sendMessageByConfig(
   messageChain: string | MessageType.MessageChain,
   target: Config.Target
 ) {
   const mirai = bot.mirai;
+  let messageList: AllMessageList = {
+    friend: {},
+    group: {}
+  };
 
   if (Array.isArray(messageChain)) {
     messageChain.forEach(msg => {
@@ -72,16 +86,26 @@ function sendMessageByConfig(
   }
 
   if (target.friend) {
-    target.friend.forEach((qq) => {
-      mirai.api.sendFriendMessage(messageChain, qq);
-    });
+    await Promise.all(target.friend.map(async (qq) => {
+      const { messageId } = await mirai.api.sendFriendMessage(messageChain, qq);
+      if (!messageList.friend[qq]) {
+        messageList.friend[qq] = [];
+      }
+      messageList.friend[qq].push(messageId);
+    }));
   }
 
   if (target.group) {
-    target.group.forEach((qq) => {
-      mirai.api.sendGroupMessage(messageChain, qq);
-    });
+    await Promise.all(target.group.map(async (qq) => {
+      const { messageId } = await mirai.api.sendGroupMessage(messageChain, qq);
+      if (!messageList.group[qq]) {
+        messageList.group[qq] = [];
+      }
+      messageList.group[qq].push(messageId);
+    }));
   }
+
+  return messageList;
 }
 
 /**
@@ -113,5 +137,5 @@ export {
   isListening,
   renderString,
   sendMessageByConfig,
-  getListenStatusByConfig
+  getListenStatusByConfig,
 };

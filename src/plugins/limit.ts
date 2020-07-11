@@ -84,7 +84,11 @@ export default function limit(ctx: ElBot) {
   let sendGroupMessage = mirai.api.sendGroupMessage;
 
   mirai.api.sendFriendMessage = async (messageChain, target, quote) => {
-    let data = {};
+    let data = {
+      code: -1,
+      msg: "fail",
+      messageId: 0
+    };
     if (!isLimited()) {
       count += 1;
       data = await sendFriendMessage.apply(mirai.api, [messageChain, target, quote]);
@@ -96,10 +100,15 @@ export default function limit(ctx: ElBot) {
   };
 
   mirai.api.sendGroupMessage = async (messageChain, target, quote) => {
-    let isMax = await isMaxCountForSender();
-    if (isMax) return isMax;
+    let data = {
+      code: -1,
+      msg: "fail",
+      messageId: 0
+    };
 
-    let data = {};
+    let isMax = await isMaxCountForSender();
+    if (isMax) return data;
+
     if (!isLimited()) {
       count += 1;
       data = await sendGroupMessage.apply(mirai.api, [messageChain, target, quote]);
