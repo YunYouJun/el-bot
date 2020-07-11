@@ -10,7 +10,7 @@ export function displayCall(target: any, propertyName: string, propertyDescripto
     // 转换结尾为字符串
     const r = JSON.stringify(result);
     // 在终端显示函数调用细节
-    console.log(`Call: ${propertyName}(${params}) => ${r}`);
+    log.info(`Call: ${propertyName}(${params}) => ${r}`);
     // 返回调用函数的结果
     return result;
   };

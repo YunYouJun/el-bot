@@ -68,7 +68,7 @@ export default function answer(ctx: ElBot) {
           }
 
           if (replyContent) {
-            msg.reply(replyContent, ans.quote);
+            await msg.reply(replyContent, ans.quote);
             // 有一个满足即跳出
             break;
           }
