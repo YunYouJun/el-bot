@@ -5,7 +5,7 @@ import schedule from "node-schedule";
 import Parser from "rss-parser";
 
 import log from "mirai-ts/dist/utils/log";
-import { sendMessageByConfig } from "../utils/message";
+import { sendMessageByConfig, isListening } from "@utils/message";
 import { MessageType } from "mirai-ts";
 import ElBot from "../bot";
 import { isAllowed } from "@utils/global";
@@ -151,14 +151,30 @@ export default function rss(ctx: ElBot) {
   // 监听消息命令
   mirai.on('message', (msg: MessageType.SingleMessage) => {
     if (msg.plain === "rss" && config.rss && isAllowed(msg.sender.id)) {
-      log.success("立即触发 RSS 抓取");
-      let content = "您当前订阅的 RSS 源：";
-      config.rss.forEach((rssConfig: RssConfig) => {
-        content += `\n${rssConfig.name}: ${rssConfig.url}`;
-        const rss = new Rss(rssConfig);
-        rss.parse();
-      });
-      msg.reply(content);
+      if (msg.sender.group) {
+        let rssList = "";
+        let count = 0;
+        config.rss.forEach((rssConfig: RssConfig) => {
+          if (isListening(msg.sender, rssConfig.target)) {
+            count += 1;
+            rssList += `\n${rssConfig.name}: ${rssConfig.url}`;
+          }
+        });
+        if (count !== 0) {
+          msg.reply(`本群共订阅了 ${count} 个 RSS 源：` + rssList);
+        } else {
+          msg.reply("本群尚未订阅 RSS");
+        }
+      } else {
+        log.success("立即触发 RSS 抓取");
+        let content = "您当前订阅的所有 RSS 源：";
+        config.rss.forEach((rssConfig: RssConfig) => {
+          content += `\n${rssConfig.name}: ${rssConfig.url}`;
+          const rss = new Rss(rssConfig);
+          rss.parse();
+        });
+        msg.reply(content);
+      }
     }
   });
 }
