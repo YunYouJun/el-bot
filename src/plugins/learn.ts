@@ -22,7 +22,10 @@ export default function learn(ctx: ElBot) {
   // Q: xxx
   // A: xxx
   mirai.on("message", (msg: MessageType.SingleMessage) => {
-    if (getListenStatusByConfig(msg.sender, config.learn) && includes(msg.plain, ['Q:', '\nA:'])) {
+    const defaultConfig = {
+      listen: ['master', 'admin']
+    };
+    if (getListenStatusByConfig(msg.sender, config.learn || defaultConfig) && includes(msg.plain, ['Q:', '\nA:'])) {
       // 学习应答
       log.info(msg.plain);
       const question = msg.plain.match(/Q:(.*)\n/)[1].trim();
