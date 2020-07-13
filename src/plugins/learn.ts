@@ -1,5 +1,6 @@
 import ElBot from "src/bot";
 import { MessageType } from "mirai-ts";
+import { isAt } from "mirai-ts/dist/message/index";
 import log from "mirai-ts/dist/utils/log";
 import { includes } from "mirai-ts/dist/utils/message";
 import { getListenStatusByConfig } from "@utils/index";
@@ -22,10 +23,15 @@ export default function learn(ctx: ElBot) {
   // Q: xxx
   // A: xxx
   mirai.on("message", (msg: MessageType.SingleMessage) => {
-    const defaultConfig = {
-      listen: ['master', 'admin']
-    };
-    if (getListenStatusByConfig(msg.sender, config.learn || defaultConfig) && includes(msg.plain, ['Q:', '\nA:'])) {
+    // 私聊或被艾特时
+    if (includes(msg.plain, ['Q:', '\nA:']) && (isAt(msg, ctx.el.qq) || !msg.sender.group)) {
+
+      // 没有权限时
+      if (!getListenStatusByConfig(msg.sender, config.learn)) {
+        msg.reply(config.learn.else);
+        return;
+      }
+
       // 学习应答
       log.info(msg.plain);
       const question = msg.plain.match(/Q:(.*)\n/)[1].trim();
@@ -35,7 +41,7 @@ export default function learn(ctx: ElBot) {
           question,
           answer
         });
-        msg.reply("学会了！");
+        msg.reply(config.learn.reply);
       } catch (err) {
         const result = learn.findOne({
           question

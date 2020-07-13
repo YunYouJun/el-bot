@@ -30,3 +30,10 @@ limit:
     tooltip: 我生气了！
     # 禁言时间
     time: 600
+
+learn:
+  listen:
+    - master
+    - admin
+  reply: 我学会了！
+  else: 你在教我做事？
