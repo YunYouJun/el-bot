@@ -1,8 +1,9 @@
 import Mirai, { MiraiApiHttpConfig, MiraiInstance } from "mirai-ts";
 import log from "mirai-ts/dist/utils/log";
 import { El, Bot } from "..";
-
 import { tryCatch } from "./utils/decorators";
+
+import loki from "lokijs";
 
 export default class ElBot {
   el: El;
@@ -10,6 +11,10 @@ export default class ElBot {
   // 激活
   active: boolean;
   plugins: Bot.Plugins;
+  /**
+   * 本地数据库
+   */
+  db: LokiConstructor;
   constructor(el: El) {
     const mahConfig: MiraiApiHttpConfig = {
       host: el.setting.host || "localhost",
@@ -25,6 +30,12 @@ export default class ElBot {
       community: [],
       custom: []
     };
+    // 初始化本地数据库
+    this.db = new loki(this.el.config.db_path, {
+      autoload: true,
+      verbose: true,
+      autosave: true
+    });
   }
 
   @tryCatch()
@@ -92,7 +103,7 @@ export default class ElBot {
     this.mirai.listen();
 
     process.on("exit", () => {
-      log.info("主人再见");
+      log.info("Bye, Master!");
       this.mirai.release();
     });
   }
