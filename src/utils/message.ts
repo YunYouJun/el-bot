@@ -1,14 +1,12 @@
-import { MessageType } from "mirai-ts";
-import { el, bot } from "../../index";
-import { Config } from "mirai-ts";
+import { MessageType, Config } from "mirai-ts";
+import { bot } from "../../index";
+import { isMaster, isAdmin } from "./global";
 
 /**
  * 是否监听发送者
  * @param {Object} sender
  */
 function isListening(sender: MessageType.Sender, listen: string | Config.Listen) {
-  const config = el.config;
-
   if (typeof listen === 'string') {
 
     // 监听所有
@@ -17,16 +15,39 @@ function isListening(sender: MessageType.Sender, listen: string | Config.Listen)
     }
 
     // 监听 master
-    if (listen === "master" && config.master.includes(sender.id)) {
+    if (listen === "master" && isMaster(sender.id)) {
       return true;
     }
 
     // 监听管理员
-    if (listen === "admin" && config.admin.includes(sender.id)) {
+    if (listen === "admin" && isAdmin(sender.id)) {
       return true;
     }
 
   } else {
+
+    // 语法糖
+    if (Array.isArray(listen)) {
+      // 无论 QQ 号还是 QQ 群号
+      if (listen.includes(sender.id) || (sender.group && listen.includes(sender.group.id))) return true;
+
+      if (listen.includes('master') && isMaster(sender.id)) {
+        return true;
+      }
+
+      if (listen.includes("admin") && isAdmin(sender.id)) {
+        return true;
+      }
+
+      // 只监听好友
+      if (listen.includes('friend') && !sender.group) {
+        return true;
+      }
+
+      if (listen.includes('group') && sender.group) {
+        return true;
+      }
+    }
 
     // 指定 QQ
     if (listen.friend && listen.friend.includes(sender.id)) {
