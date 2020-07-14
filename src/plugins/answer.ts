@@ -45,7 +45,7 @@ export default function answer(ctx: ElBot) {
   const config = ctx.el.config;
   const mirai = ctx.mirai;
 
-  mirai.on('message', async (msg: MessageType.SingleMessage) => {
+  mirai.on('message', async (msg: MessageType.ChatMessage) => {
     if (config.answer) {
 
       // use async in some

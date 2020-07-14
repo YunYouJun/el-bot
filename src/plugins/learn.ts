@@ -22,7 +22,7 @@ export default function learn(ctx: ElBot) {
   // 检测学习关键词
   // Q: xxx
   // A: xxx
-  mirai.on("message", (msg: MessageType.SingleMessage) => {
+  mirai.on("message", (msg: MessageType.ChatMessage) => {
     // 私聊或被艾特时
     if (includes(msg.plain, ['Q:', '\nA:']) && (isAt(msg, ctx.el.qq) || !msg.sender.group)) {
 
@@ -34,8 +34,8 @@ export default function learn(ctx: ElBot) {
 
       // 学习应答
       log.info(msg.plain);
-      const question = msg.plain.match(/Q:(.*)\n/)[1].trim();
-      const answer = msg.plain.match(/\nA:(.*)/)[1].trim();
+      const question = (msg.plain.match(/Q:(.*)\n/) || '')[1].trim();
+      const answer = (msg.plain.match(/\nA:(.*)/) || '')[1].trim();
       try {
         learn.insert({
           question,

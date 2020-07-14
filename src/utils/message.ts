@@ -1,4 +1,4 @@
-import { MessageType, Config } from "mirai-ts";
+import { Contact, MessageType, Config } from "mirai-ts";
 import { el, bot } from "../../index";
 import { isMaster, isAdmin } from "./global";
 
@@ -6,7 +6,7 @@ import { isMaster, isAdmin } from "./global";
  * 是否监听发送者
  * @param {Object} sender
  */
-function isListening(sender: MessageType.Sender, listen: string | Config.Listen) {
+function isListening(sender: Contact.User, listen: string | Config.Listen) {
   if (typeof listen === 'string') {
 
     // 监听所有
@@ -29,7 +29,7 @@ function isListening(sender: MessageType.Sender, listen: string | Config.Listen)
     // 语法糖
     if (Array.isArray(listen)) {
       // 无论 QQ 号还是 QQ 群号
-      if (listen.includes(sender.id) || (sender.group && listen.includes(sender.group.id))) return true;
+      if (listen.includes(sender.id) || ((sender as Contact.Member).group && listen.includes((sender as Contact.Member).group.id))) return true;
 
       if (listen.includes('master') && isMaster(sender.id)) {
         return true;
@@ -40,11 +40,11 @@ function isListening(sender: MessageType.Sender, listen: string | Config.Listen)
       }
 
       // 只监听好友
-      if (listen.includes('friend') && !sender.group) {
+      if (listen.includes('friend') && !(sender as Contact.Member).group) {
         return true;
       }
 
-      if (listen.includes('group') && sender.group) {
+      if (listen.includes('group') && (sender as Contact.Member).group) {
         return true;
       }
     }
@@ -54,11 +54,11 @@ function isListening(sender: MessageType.Sender, listen: string | Config.Listen)
       return true;
     }
 
-    if (sender.group) {
+    if ((sender as Contact.Member).group) {
       // 群
       if (
         listen === "group" ||
-        (listen.group && listen.group.includes(sender.group.id))
+        (listen.group && listen.group.includes((sender as Contact.Member).group.id))
       ) {
         return true;
       }
@@ -123,7 +123,7 @@ async function sendMessageByConfig(
   }
 
   if (target.group) {
-    await Promise.all(target.group.map(async (qq) => {
+    await Promise.all(target.group.map(async (qq: number) => {
       const { messageId } = await mirai.api.sendGroupMessage(messageChain, qq);
       messageList.push(messageId);
     }));
@@ -147,7 +147,7 @@ function renderString(template: string, data: string | object, name: string) {
  * @param sender 发送者
  * @param config 配置
  */
-function getListenStatusByConfig(sender: MessageType.Sender, config: any): boolean {
+function getListenStatusByConfig(sender: Contact.User, config: any): boolean {
   let listenFlag = true;
   if (config.listen) {
     listenFlag = isListening(sender, config.listen || "all");

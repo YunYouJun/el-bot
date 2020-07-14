@@ -194,7 +194,7 @@ cli.description = "交互终端";
 export default function cli(ctx: ElBot) {
   const mirai = ctx.mirai;
 
-  mirai.on('message', (msg: MessageType.SingleMessage) => {
+  mirai.on('message', (msg: MessageType.ChatMessage) => {
     if (!msg.sender) return;
     qq = msg.sender.id;
     reply = msg.reply;

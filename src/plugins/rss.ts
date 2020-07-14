@@ -149,7 +149,7 @@ export default function rss(ctx: ElBot) {
   }
 
   // 监听消息命令
-  mirai.on('message', (msg: MessageType.SingleMessage) => {
+  mirai.on('message', (msg: MessageType.ChatMessage) => {
     if (msg.plain === "rss" && config.rss && isAllowed(msg.sender.id)) {
       if (msg.sender.group) {
         let rssList = "";

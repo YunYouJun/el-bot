@@ -13,7 +13,7 @@ interface AllMessageList {
   [propName: number]: number[];
 }
 
-function recallByList(msg: MessageType.SingleMessage, messageList: AllMessageList) {
+function recallByList(msg: MessageType.BaseMessageEvent, messageList: AllMessageList) {
   const mirai = bot.mirai;
   if (messageList && msg.messageId in messageList) {
     messageList[msg.messageId].map((messageId: number) => {
@@ -29,7 +29,7 @@ export default function forward(ctx: ElBot) {
    * 原消息和被转发的各消息 Id 关系列表
    */
   let allMessageList: AllMessageList = {};
-  mirai.on('message', async (msg: MessageType.SingleMessage) => {
+  mirai.on('message', async (msg: MessageType.ChatMessage) => {
     if (!msg.sender || !msg.messageChain) return;
 
     const config = el.config;
@@ -48,11 +48,11 @@ export default function forward(ctx: ElBot) {
   });
 
   // 消息撤回
-  mirai.on('FriendRecallEvent', (msg: MessageType.SingleMessage) => {
+  mirai.on('FriendRecallEvent', (msg: MessageType.BaseMessageEvent) => {
     recallByList(msg, allMessageList);
   });
 
-  mirai.on('GroupRecallEvent', (msg: MessageType.SingleMessage) => {
+  mirai.on('GroupRecallEvent', (msg: MessageType.BaseMessageEvent) => {
     recallByList(msg, allMessageList);
   });
 }
