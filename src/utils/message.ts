@@ -1,5 +1,5 @@
 import { MessageType, Config } from "mirai-ts";
-import { bot } from "../../index";
+import { el, bot } from "../../index";
 import { isMaster, isAdmin } from "./global";
 
 /**
@@ -74,16 +74,29 @@ function isListening(sender: MessageType.Sender, listen: string | Config.Listen)
 }
 
 /**
+ * 根据 QQ 号数组列表发送消息
+ * @param messageChain 
+ * @param array qq 列表
+ */
+function sendFriendMessageByArray(messageChain: string | MessageType.MessageChain, array: number[], messageList: number[]) {
+  const mirai = bot.mirai;
+  return Promise.all(array.map(async (qq) => {
+    const { messageId } = await mirai.api.sendFriendMessage(messageChain, qq);
+    messageList.push(messageId);
+  }));
+}
+
+/**
  * 通过配置发送消息
  * @param {MessageChain} messageChain
  * @param {object} target
  */
-
 async function sendMessageByConfig(
   messageChain: string | MessageType.MessageChain,
   target: Config.Target
 ): Promise<number[]> {
   const mirai = bot.mirai;
+  const config = el.config;
   let messageList: number[] = [];
 
   if (Array.isArray(messageChain)) {
@@ -94,11 +107,19 @@ async function sendMessageByConfig(
     });
   }
 
+
+  if (Array.isArray(target) || typeof target === 'string') {
+    if (target.includes('master')) {
+      await sendFriendMessageByArray(messageChain, config.master, messageList);
+    }
+
+    if (target.includes("admin")) {
+      await sendFriendMessageByArray(messageChain, config.admin, messageList);
+    }
+  }
+
   if (target.friend) {
-    await Promise.all(target.friend.map(async (qq) => {
-      const { messageId } = await mirai.api.sendFriendMessage(messageChain, qq);
-      messageList.push(messageId);
-    }));
+    await sendFriendMessageByArray(messageChain, target.friend, messageList);
   }
 
   if (target.group) {

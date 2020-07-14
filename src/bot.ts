@@ -31,7 +31,8 @@ export default class ElBot {
       custom: []
     };
     // 初始化本地数据库
-    this.db = new loki(this.el.config.db_path, {
+    let db_path = this.el.config.db_path;
+    this.db = new loki(db_path, {
       autoload: true,
       verbose: true,
       autosave: true

@@ -11,7 +11,7 @@ plugins:
     - learn
 
 # your db file path
-db_path: ./config/custom/data/el-bot.json
+db_path: ./tmp/el-bot.json
 
 master:
   - 910426929
