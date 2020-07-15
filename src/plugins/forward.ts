@@ -1,5 +1,5 @@
 import { getListenStatusByConfig, sendMessageByConfig } from "../utils/message";
-import { Config, MessageType } from "mirai-ts";
+import { Config, MessageType, EventType } from "mirai-ts";
 import el from "../el";
 import ElBot from "../bot";
 import { bot } from "../../index";
@@ -13,7 +13,7 @@ interface AllMessageList {
   [propName: number]: number[];
 }
 
-function recallByList(msg: MessageType.BaseMessageEvent, messageList: AllMessageList) {
+function recallByList(msg: EventType.FriendRecallEvent | EventType.GroupRecallEvent, messageList: AllMessageList) {
   const mirai = bot.mirai;
   if (messageList && msg.messageId in messageList) {
     messageList[msg.messageId].map((messageId: number) => {
@@ -48,11 +48,11 @@ export default function forward(ctx: ElBot) {
   });
 
   // 消息撤回
-  mirai.on('FriendRecallEvent', (msg: MessageType.BaseMessageEvent) => {
+  mirai.on('FriendRecallEvent', (msg: EventType.FriendRecallEvent) => {
     recallByList(msg, allMessageList);
   });
 
-  mirai.on('GroupRecallEvent', (msg: MessageType.BaseMessageEvent) => {
+  mirai.on('GroupRecallEvent', (msg: EventType.GroupRecallEvent) => {
     recallByList(msg, allMessageList);
   });
 }

@@ -1,7 +1,7 @@
 import ElBot from "src/bot";
 import { el } from "../../index";
 import log from "mirai-ts/dist/utils/log";
-import Mirai from "mirai-ts";
+import Mirai, { MessageType } from "mirai-ts";
 import { isAllowed } from "@utils/global";
 
 let config = el.config;
@@ -43,13 +43,13 @@ let lastList: GroupList = {};
 /**
  * 发送者连续触发次数是否超过限额
  */
-async function isMaxCountForSender() {
-  let msg = mirai.curMsg;
-  if (!msg.sender || !msg.sender.group) return;
+async function isMaxCountForSender(): Promise<boolean> {
+  if (!(mirai.curMsg && mirai.curMsg.type === 'GroupMessage')) return false;
+  let msg: MessageType.GroupMessage = mirai.curMsg as MessageType.GroupMessage;
 
   // 如果超过间隔时间，则重置历史记录
   now = new Date().getTime();
-  if (now - startTime > msg.sender.interval) {
+  if (now - startTime > config.limit.sender.interval) {
     lastList = {};
   }
 

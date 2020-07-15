@@ -7,7 +7,7 @@ export default async function dev(ctx: ElBot) {
   // mirai.api.sendFriendMessage("咳咳……麦克风测试，麦克风测试……", config.master[0]);
 
   console.log("on message");
-  mirai.on("message", (msg: MessageType.SingleMessage) => {
+  mirai.on("message", (msg: MessageType.ChatMessage) => {
     console.log(msg);
   });
 }

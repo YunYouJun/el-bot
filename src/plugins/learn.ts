@@ -24,7 +24,7 @@ export default function learn(ctx: ElBot) {
   // A: xxx
   mirai.on("message", (msg: MessageType.ChatMessage) => {
     // 私聊或被艾特时
-    if (includes(msg.plain, ['Q:', '\nA:']) && (isAt(msg, ctx.el.qq) || !msg.sender.group)) {
+    if (includes(msg.plain, ['Q:', '\nA:']) && (isAt(msg, ctx.el.qq) || msg.type === 'FriendMessage')) {
 
       // 没有权限时
       if (!getListenStatusByConfig(msg.sender, config.learn)) {
