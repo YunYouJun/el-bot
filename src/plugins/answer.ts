@@ -3,6 +3,7 @@ import { MessageType, Config } from "mirai-ts";
 import ElBot from "../bot";
 import { match } from "mirai-ts/dist/utils/message";
 import axios from "axios";
+import { isAt } from "mirai-ts/dist/message";
 
 interface AnswerConfig extends Config.Match {
   /**
@@ -18,6 +19,13 @@ interface AnswerConfig extends Config.Match {
    */
   api?: string;
   reply: string | MessageType.MessageChain;
+  /**
+   * 只有被 @ 时回复
+   */
+  at?: boolean;
+  /**
+   * 回复时是否引用消息
+   */
   quote?: boolean;
   else?: string | MessageType.MessageChain;
 }
@@ -58,6 +66,8 @@ export default function answer(ctx: ElBot) {
 
       for await (ans of config.answer) {
         let replyContent = null;
+        if (ans.at && !isAt(msg, ctx.el.qq)) return;
+
         if (msg.plain && match(msg.plain, ans)) {
           // 默认监听所有
           if (getListenStatusByConfig(msg.sender, ans)) {
