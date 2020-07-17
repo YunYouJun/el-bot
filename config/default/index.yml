@@ -8,7 +8,7 @@ plugins:
     - forward
     - rss
     - limit
-    - learn
+    - teach
 
 # your db file path
 db_path: ./tmp/el-bot.json
@@ -31,7 +31,7 @@ limit:
     # 禁言时间
     time: 600
 
-learn:
+teach:
   listen:
     - master
     - admin

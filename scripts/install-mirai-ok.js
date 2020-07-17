@@ -93,8 +93,7 @@ inquirer
 
     if (answers["mirai-api-http"]) {
       const Repo = require("./repo");
-      miraiApiHttp = new Repo("project-mirai", "mirai-api-http");
-
+      const miraiApiHttp = new Repo("project-mirai", "mirai-api-http");
       miraiApiHttp.getLatestVersion().then(() => {
         miraiApiHttp.downloadLatestRelease("./plugins");
       });

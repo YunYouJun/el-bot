@@ -1,0 +1,4 @@
+# https://lgtm.com/
+# use lgtm to check code quality
+queries:
+  - exclude: js/template-syntax-in-string-literal

@@ -1,31 +1,53 @@
 import { Contact, MessageType, Config } from "mirai-ts";
 import { el, bot } from "../../index";
 import { isMaster, isAdmin } from "./global";
+import log from "mirai-ts/dist/utils/log";
+
+type BaseListenType = "all" | "master" | "admin" | "friend" | "group";
 
 /**
  * 是否监听发送者
  * @param {Object} sender
  */
-function isListening(sender: Contact.User, listen: string | Config.Listen) {
+function isListening(sender: Contact.User, listen: BaseListenType | Config.Listen) {
   if (typeof listen === 'string') {
+    let listenFlag = false;
+    switch (listen as BaseListenType) {
 
-    // 监听所有
-    if (listen === "all") {
-      return true;
+      // 监听所有
+      case "all":
+        listenFlag = true;
+        break;
+
+      // 监听 master
+      case "master":
+        listenFlag = isMaster(sender.id);
+        break;
+
+      // 监听管理员
+      case "admin":
+        listenFlag = isAdmin(sender.id);
+        break;
+
+      // 只监听好友
+      case "friend":
+        // 群不存在
+        listenFlag = !Boolean((sender as Contact.Member).group);
+        break;
+
+      // 监听群
+      case "group":
+        // 群存在
+        listenFlag = Boolean((sender as Contact.Member).group);
+        break;
+
+      default:
+        break;
     }
 
-    // 监听 master
-    if (listen === "master" && isMaster(sender.id)) {
-      return true;
-    }
-
-    // 监听管理员
-    if (listen === "admin" && isAdmin(sender.id)) {
-      return true;
-    }
+    return listenFlag;
 
   } else {
-
     // 语法糖
     if (Array.isArray(listen)) {
       // 无论 QQ 号还是 QQ 群号
@@ -107,7 +129,6 @@ async function sendMessageByConfig(
     });
   }
 
-
   if (Array.isArray(target) || typeof target === 'string') {
     if (target.includes('master')) {
       await sendFriendMessageByArray(messageChain, config.master, messageList);
@@ -118,15 +139,19 @@ async function sendMessageByConfig(
     }
   }
 
-  if (target.friend) {
-    await sendFriendMessageByArray(messageChain, target.friend, messageList);
-  }
-
   if (target.group) {
     await Promise.all(target.group.map(async (qq: number) => {
       const { messageId } = await mirai.api.sendGroupMessage(messageChain, qq);
       messageList.push(messageId);
     }));
+  }
+
+  if (target.friend) {
+    try {
+      await sendFriendMessageByArray(messageChain, target.friend, messageList);
+    } catch (err) {
+      log.error('发送失败：可能是由于 mirai 私聊暂不支持长文本');
+    }
   }
 
   return messageList;

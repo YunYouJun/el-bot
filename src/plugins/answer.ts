@@ -49,22 +49,15 @@ async function renderStringByApi(api: string, content: string | MessageType.Mess
   }
 }
 
-export default function answer(ctx: ElBot) {
-  const config = ctx.el.config;
+export default function answer(ctx: ElBot, config: AnswerConfig[]) {
   const mirai = ctx.mirai;
 
   mirai.on('message', async (msg: MessageType.ChatMessage) => {
-    if (config.answer) {
+    if (config) {
 
       // use async in some
       // https://advancedweb.hu/how-to-use-async-functions-with-array-some-and-every-in-javascript/
-      let ans: AnswerConfig = {
-        listen: 'all',
-        is: "el psy congroo",
-        reply: '喵喵喵？'
-      };
-
-      for await (ans of config.answer) {
+      for await (let ans of config) {
         let replyContent = null;
         if (ans.at && !isAt(msg, ctx.el.qq)) return;
 

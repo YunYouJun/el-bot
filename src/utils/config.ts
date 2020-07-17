@@ -27,7 +27,7 @@ function isObject(item: any) {
  */
 function merge(target: any, source: any): any {
   for (const key in source) {
-    if (isObject(target[key]) && isObject(source[key])) {
+    if (target.hasOwnProperty(key) && isObject(target[key]) && isObject(source[key])) {
       merge(target[key], source[key]);
     } else {
       target[key] = source[key];

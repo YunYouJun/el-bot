@@ -75,7 +75,7 @@ export default class ElBot {
               version: plugin.version || pkg.version,
               description: plugin.description || pkg.description
             });
-            this.use(plugin);
+            this.use(name, plugin);
           };
         } catch (error) {
           console.log(error);
@@ -87,10 +87,15 @@ export default class ElBot {
 
   /**
    * 使用插件
+   * @param name 插件名
    * @param plugin 
    */
-  use(plugin: Function) {
-    plugin(this);
+  use(name: string, plugin: Function) {
+    if (this.el.config[name]) {
+      plugin(this, this.el.config[name]);
+    } else {
+      plugin(this);
+    }
   }
 
   /**

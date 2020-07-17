@@ -6,17 +6,17 @@ import { includes } from "mirai-ts/dist/utils/message";
 import { getListenStatusByConfig } from "@utils/index";
 
 // implement the autoloadback referenced in loki constructor
-export default function learn(ctx: ElBot) {
+export default function teach(ctx: ElBot) {
   const config = ctx.el.config;
   const db = ctx.db;
   const mirai = ctx.mirai;
 
-  let learn = db.getCollection("learn");
-  if (learn === null) {
-    learn = db.addCollection('learn', {
+  let teach = db.getCollection("teach");
+  if (teach === null) {
+    teach = db.addCollection('teach', {
       unique: ['question'],
     });
-    log.success("新建 Collection：learn");
+    log.success("新建 Collection：teach");
   }
 
   // 检测学习关键词
@@ -27,8 +27,8 @@ export default function learn(ctx: ElBot) {
     if (includes(msg.plain, ['Q:', '\nA:']) && (isAt(msg, ctx.el.qq) || msg.type === 'FriendMessage')) {
 
       // 没有权限时
-      if (!getListenStatusByConfig(msg.sender, config.learn)) {
-        msg.reply(config.learn.else);
+      if (!getListenStatusByConfig(msg.sender, config.teach)) {
+        msg.reply(config.teach.else);
         return;
       }
 
@@ -37,13 +37,13 @@ export default function learn(ctx: ElBot) {
       const question = (msg.plain.match(/Q:(.*)\n/) || '')[1].trim();
       const answer = (msg.plain.match(/\nA:(.*)/) || '')[1].trim();
       try {
-        learn.insert({
+        teach.insert({
           question,
           answer
         });
-        msg.reply(config.learn.reply);
+        msg.reply(config.teach.reply);
       } catch (err) {
-        const result = learn.findOne({
+        const result = teach.findOne({
           question
         });
         msg.reply(`存在重复，已覆盖旧值：\nQ: ${result.question}\nA: ${result.answer}`);
@@ -51,7 +51,7 @@ export default function learn(ctx: ElBot) {
       }
     } else {
       // 查找应答
-      const result = learn.findOne({
+      const result = teach.findOne({
         question: msg.plain
       });
       if (result) msg.reply(result.answer);
@@ -59,5 +59,5 @@ export default function learn(ctx: ElBot) {
   });
 }
 
-learn.version = "0.0.1";
-learn.description = "问答学习";
+teach.version = "0.0.1";
+teach.description = "问答学习";
