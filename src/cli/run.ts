@@ -1,5 +1,5 @@
 import { CAC } from "cac";
-import { fork, exec } from "child_process";
+import { fork } from "child_process";
 import { resolve } from "path";
 
 interface WorkerOptions {
