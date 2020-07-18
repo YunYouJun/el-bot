@@ -2,7 +2,6 @@ import ElBot from "src/bot";
 import { MessageType } from "mirai-ts";
 import { isAt } from "mirai-ts/dist/message/index";
 import log from "mirai-ts/dist/utils/log";
-import { includes } from "mirai-ts/dist/utils/message";
 import { getListenStatusByConfig } from "@utils/index";
 
 // implement the autoloadback referenced in loki constructor
@@ -24,8 +23,9 @@ export default function teach(ctx: ElBot) {
   // A: xxx
   mirai.on("message", (msg: MessageType.ChatMessage) => {
     // 私聊或被艾特时
+    const result = msg.plain.match(/Q:(.*)\nA:(.*)/);
     if (
-      includes(msg.plain, ["Q:", "\nA:"]) &&
+      result &&
       (isAt(msg, ctx.el.qq) || msg.type === "FriendMessage")
     ) {
       // 没有权限时
@@ -36,8 +36,8 @@ export default function teach(ctx: ElBot) {
 
       // 学习应答
       log.info(msg.plain);
-      const question = (msg.plain.match(/Q:(.*)\n/) || "")[1].trim();
-      const answer = (msg.plain.match(/\nA:(.*)/) || "")[1].trim();
+      const question = result[1].trim();
+      const answer = result[2].trim();
       try {
         teach.insert({
           question,

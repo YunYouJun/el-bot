@@ -85,15 +85,9 @@ function isListening(
     if ((sender as Contact.Member).group) {
       // 群
       if (
-        listen === "group" ||
-        (listen.group &&
-          listen.group.includes((sender as Contact.Member).group.id))
+        listen.group &&
+        listen.group.includes((sender as Contact.Member).group.id)
       ) {
-        return true;
-      }
-    } else {
-      // 私聊时，判断是否监听 friend（其余在上方指定 QQ 时已判断过）
-      if (listen === "friend") {
         return true;
       }
     }
