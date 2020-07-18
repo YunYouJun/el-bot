@@ -13,7 +13,10 @@ interface AllMessageList {
   [propName: number]: number[];
 }
 
-function recallByList(msg: EventType.FriendRecallEvent | EventType.GroupRecallEvent, messageList: AllMessageList) {
+function recallByList(
+  msg: EventType.FriendRecallEvent | EventType.GroupRecallEvent,
+  messageList: AllMessageList
+) {
   const mirai = bot.mirai;
   if (messageList && msg.messageId in messageList) {
     messageList[msg.messageId].map((messageId: number) => {
@@ -28,31 +31,36 @@ export default function forward(ctx: ElBot) {
   /**
    * 原消息和被转发的各消息 Id 关系列表
    */
-  let allMessageList: AllMessageList = {};
-  mirai.on('message', async (msg: MessageType.ChatMessage) => {
+  const allMessageList: AllMessageList = {};
+  mirai.on("message", async (msg: MessageType.ChatMessage) => {
     if (!msg.sender || !msg.messageChain) return;
 
     const config = el.config;
 
     if (config.forward) {
-      await Promise.all(config.forward.map(async (item: ForwardConfig) => {
-        const canForward = getListenStatusByConfig(msg.sender, item);
+      await Promise.all(
+        config.forward.map(async (item: ForwardConfig) => {
+          const canForward = getListenStatusByConfig(msg.sender, item);
 
-        if (canForward) {
-          // remove source
-          let sourceMessageId: number = msg.messageChain[0].id;
-          allMessageList[sourceMessageId] = await sendMessageByConfig(msg.messageChain.slice(1), item.target);
-        }
-      }));
+          if (canForward) {
+            // remove source
+            const sourceMessageId: number = msg.messageChain[0].id;
+            allMessageList[sourceMessageId] = await sendMessageByConfig(
+              msg.messageChain.slice(1),
+              item.target
+            );
+          }
+        })
+      );
     }
   });
 
   // 消息撤回
-  mirai.on('FriendRecallEvent', (msg: EventType.FriendRecallEvent) => {
+  mirai.on("FriendRecallEvent", (msg: EventType.FriendRecallEvent) => {
     recallByList(msg, allMessageList);
   });
 
-  mirai.on('GroupRecallEvent', (msg: EventType.GroupRecallEvent) => {
+  mirai.on("GroupRecallEvent", (msg: EventType.GroupRecallEvent) => {
     recallByList(msg, allMessageList);
   });
 }

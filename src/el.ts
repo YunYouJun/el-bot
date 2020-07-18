@@ -16,7 +16,9 @@ try {
   }
 } catch (err) {
   console.log(err);
-  log.error("加载自定义配置失败，当前只有默认配置（请新建 config/custom/index.yml 文件）");
+  log.error(
+    "加载自定义配置失败，当前只有默认配置（请新建 config/custom/index.yml 文件）"
+  );
 }
 
 // 自定义的配置路径
@@ -26,7 +28,9 @@ if (customConfig.config_files && customConfig.config_files.length > 0) {
       config.merge(customConfig, config.parse(configFile));
     } catch (err) {
       console.log(err);
-      log.error(`请检查 config_files 中 ${configFile} 文件是否存在，或语法是否正确`);
+      log.error(
+        `请检查 config_files 中 ${configFile} 文件是否存在，或语法是否正确`
+      );
     }
   });
 }

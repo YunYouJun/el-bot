@@ -9,11 +9,13 @@ type BaseListenType = "all" | "master" | "admin" | "friend" | "group";
  * 是否监听发送者
  * @param {Object} sender
  */
-function isListening(sender: Contact.User, listen: BaseListenType | Config.Listen) {
-  if (typeof listen === 'string') {
+function isListening(
+  sender: Contact.User,
+  listen: BaseListenType | Config.Listen
+) {
+  if (typeof listen === "string") {
     let listenFlag = false;
     switch (listen as BaseListenType) {
-
       // 监听所有
       case "all":
         listenFlag = true;
@@ -32,7 +34,7 @@ function isListening(sender: Contact.User, listen: BaseListenType | Config.Liste
       // 只监听好友
       case "friend":
         // 群不存在
-        listenFlag = !Boolean((sender as Contact.Member).group);
+        listenFlag = !(sender as Contact.Member).group;
         break;
 
       // 监听群
@@ -46,14 +48,18 @@ function isListening(sender: Contact.User, listen: BaseListenType | Config.Liste
     }
 
     return listenFlag;
-
   } else {
     // 语法糖
     if (Array.isArray(listen)) {
       // 无论 QQ 号还是 QQ 群号
-      if (listen.includes(sender.id) || ((sender as Contact.Member).group && listen.includes((sender as Contact.Member).group.id))) return true;
+      if (
+        listen.includes(sender.id) ||
+        ((sender as Contact.Member).group &&
+          listen.includes((sender as Contact.Member).group.id))
+      )
+        return true;
 
-      if (listen.includes('master') && isMaster(sender.id)) {
+      if (listen.includes("master") && isMaster(sender.id)) {
         return true;
       }
 
@@ -62,11 +68,11 @@ function isListening(sender: Contact.User, listen: BaseListenType | Config.Liste
       }
 
       // 只监听好友
-      if (listen.includes('friend') && !(sender as Contact.Member).group) {
+      if (listen.includes("friend") && !(sender as Contact.Member).group) {
         return true;
       }
 
-      if (listen.includes('group') && (sender as Contact.Member).group) {
+      if (listen.includes("group") && (sender as Contact.Member).group) {
         return true;
       }
     }
@@ -80,7 +86,8 @@ function isListening(sender: Contact.User, listen: BaseListenType | Config.Liste
       // 群
       if (
         listen === "group" ||
-        (listen.group && listen.group.includes((sender as Contact.Member).group.id))
+        (listen.group &&
+          listen.group.includes((sender as Contact.Member).group.id))
       ) {
         return true;
       }
@@ -97,21 +104,27 @@ function isListening(sender: Contact.User, listen: BaseListenType | Config.Liste
 
 /**
  * 根据 QQ 号数组列表发送消息
- * @param messageChain 
+ * @param messageChain
  * @param array qq 列表
  */
-function sendFriendMessageByArray(messageChain: string | MessageType.MessageChain, array: number[], messageList: number[]) {
+function sendFriendMessageByArray(
+  messageChain: string | MessageType.MessageChain,
+  array: number[],
+  messageList: number[]
+) {
   const mirai = bot.mirai;
-  return Promise.all(array.map(async (qq) => {
-    const { messageId } = await mirai.api.sendFriendMessage(messageChain, qq);
-    messageList.push(messageId);
-  }));
+  return Promise.all(
+    array.map(async (qq) => {
+      const { messageId } = await mirai.api.sendFriendMessage(messageChain, qq);
+      messageList.push(messageId);
+    })
+  );
 }
 
 /**
  * 通过配置发送消息
- * @param {MessageChain} messageChain
- * @param {object} target
+ * @param messageChain 
+ * @param target 
  */
 async function sendMessageByConfig(
   messageChain: string | MessageType.MessageChain,
@@ -119,18 +132,18 @@ async function sendMessageByConfig(
 ): Promise<number[]> {
   const mirai = bot.mirai;
   const config = el.config;
-  let messageList: number[] = [];
+  const messageList: number[] = [];
 
   if (Array.isArray(messageChain)) {
-    messageChain.forEach(msg => {
+    messageChain.forEach((msg) => {
       if (msg.type === "Image") {
         delete msg.imageId;
       }
     });
   }
 
-  if (Array.isArray(target) || typeof target === 'string') {
-    if (target.includes('master')) {
+  if (Array.isArray(target) || typeof target === "string") {
+    if (target.includes("master")) {
       await sendFriendMessageByArray(messageChain, config.master, messageList);
     }
 
@@ -140,17 +153,22 @@ async function sendMessageByConfig(
   }
 
   if (target.group) {
-    await Promise.all(target.group.map(async (qq: number) => {
-      const { messageId } = await mirai.api.sendGroupMessage(messageChain, qq);
-      messageList.push(messageId);
-    }));
+    await Promise.all(
+      target.group.map(async (qq: number) => {
+        const { messageId } = await mirai.api.sendGroupMessage(
+          messageChain,
+          qq
+        );
+        messageList.push(messageId);
+      })
+    );
   }
 
   if (target.friend) {
     try {
       await sendFriendMessageByArray(messageChain, target.friend, messageList);
     } catch (err) {
-      log.error('发送失败：可能是由于 mirai 私聊暂不支持长文本');
+      log.error("发送失败：可能是由于 mirai 私聊暂不支持长文本");
     }
   }
 

@@ -3,6 +3,9 @@
   "version": "0.2.0",
   "description": "A quick qq bot for mirai.",
   "private": true,
+  "bin": {
+    "el": "dist/src/cli/index.js"
+  },
   "main": "index.ts",
   "types": "index.d.ts",
   "scripts": {
@@ -13,7 +16,7 @@
     "dev": "npm run watch:mirai-ts & sleep 2 && cross-env NODE_ENV=dev nodemon --exec ts-node -r tsconfig-paths/register index.ts",
     "install:mirai": "node scripts/install-mirai-ok.js",
     "install:plugins": "git clone https://github.com/ElpsyCN/el-bot-plugins packages/el-bot-plugins",
-    "lint": "eslint . --ext .js,.ts",
+    "lint": "eslint src --ext .js,.ts --fix",
     "start": "npm-run-all --parallel start:*",
     "start:bot": "npm run build:el-bot && nodemon dist/index.js",
     "start:mirai": "node scripts/start-mirai-ok.js",

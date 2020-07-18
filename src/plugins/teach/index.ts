@@ -13,8 +13,8 @@ export default function teach(ctx: ElBot) {
 
   let teach = db.getCollection("teach");
   if (teach === null) {
-    teach = db.addCollection('teach', {
-      unique: ['question'],
+    teach = db.addCollection("teach", {
+      unique: ["question"],
     });
     log.success("新建 Collection：teach");
   }
@@ -24,8 +24,10 @@ export default function teach(ctx: ElBot) {
   // A: xxx
   mirai.on("message", (msg: MessageType.ChatMessage) => {
     // 私聊或被艾特时
-    if (includes(msg.plain, ['Q:', '\nA:']) && (isAt(msg, ctx.el.qq) || msg.type === 'FriendMessage')) {
-
+    if (
+      includes(msg.plain, ["Q:", "\nA:"]) &&
+      (isAt(msg, ctx.el.qq) || msg.type === "FriendMessage")
+    ) {
       // 没有权限时
       if (!getListenStatusByConfig(msg.sender, config.teach)) {
         msg.reply(config.teach.else);
@@ -34,25 +36,27 @@ export default function teach(ctx: ElBot) {
 
       // 学习应答
       log.info(msg.plain);
-      const question = (msg.plain.match(/Q:(.*)\n/) || '')[1].trim();
-      const answer = (msg.plain.match(/\nA:(.*)/) || '')[1].trim();
+      const question = (msg.plain.match(/Q:(.*)\n/) || "")[1].trim();
+      const answer = (msg.plain.match(/\nA:(.*)/) || "")[1].trim();
       try {
         teach.insert({
           question,
-          answer
+          answer,
         });
         msg.reply(config.teach.reply);
       } catch (err) {
         const result = teach.findOne({
-          question
+          question,
         });
-        msg.reply(`存在重复，已覆盖旧值：\nQ: ${result.question}\nA: ${result.answer}`);
+        msg.reply(
+          `存在重复，已覆盖旧值：\nQ: ${result.question}\nA: ${result.answer}`
+        );
         result.answer = answer;
       }
     } else {
       // 查找应答
       const result = teach.findOne({
-        question: msg.plain
+        question: msg.plain,
       });
       if (result) msg.reply(result.answer);
     }

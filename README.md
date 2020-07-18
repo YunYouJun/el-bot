@@ -11,8 +11,6 @@
 
 （仍旧处于活跃开发中，但又不是不能用.jpg）
 
-[el-bot](https://docs.bot.elpsy.cn/) 的 js（~~女子小学生~~）版本。适合于认为 JavaScript/TypeScript 是世界上最好的语言的用户。
-
 ## 开始
 
 详细使用说明请参见 [el-bot 文档](https://docs.bot.elpsy.cn/js/)。

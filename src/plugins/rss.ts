@@ -80,8 +80,10 @@ class Rss {
 
     // 缓存文件不存在 或 对应对象不存在则更新
     if (
-      Object.keys(rssJson).length === 0 || !rssJson[this.config.name] ||
-      (feed.items && rssJson[this.config.name].items[0].pubDate !== feed.items[0].pubDate)
+      Object.keys(rssJson).length === 0 ||
+      !rssJson[this.config.name] ||
+      (feed.items &&
+        rssJson[this.config.name].items[0].pubDate !== feed.items[0].pubDate)
     ) {
       log.info(`RSS: ${feed.title} 已更新`);
       rssJson[this.config.name] = {
@@ -90,9 +92,9 @@ class Rss {
         items: [
           {
             title: (feed.items as any)[0].title,
-            pubDate: (feed.items as any)[0].pubDate
-          }
-        ]
+            pubDate: (feed.items as any)[0].pubDate,
+          },
+        ],
       };
       fs.writeFileSync(path, JSON.stringify(rssJson));
       log.success(`已在本地记录 ${feed.title} 新的 RSS 信息`);
@@ -149,7 +151,7 @@ export default function rss(ctx: ElBot) {
   }
 
   // 监听消息命令
-  mirai.on('message', (msg: MessageType.ChatMessage) => {
+  mirai.on("message", (msg: MessageType.ChatMessage) => {
     if (msg.plain === "rss" && config.rss && isAllowed(msg.sender.id)) {
       if ((msg as MessageType.GroupMessage).sender.group) {
         let rssList = "";

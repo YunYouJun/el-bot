@@ -28,14 +28,14 @@ export default class ElBot {
     this.plugins = {
       default: [],
       community: [],
-      custom: []
+      custom: [],
     };
     // 初始化本地数据库
-    let db_path = this.el.config.db_path;
+    const db_path = this.el.config.db_path;
     this.db = new loki(db_path, {
       autoload: true,
       verbose: true,
-      autosave: true
+      autosave: true,
     });
   }
 
@@ -59,12 +59,12 @@ export default class ElBot {
 
           let pkg = {
             version: "未知",
-            description: "未知"
+            description: "未知",
           };
           try {
             pkg = require(`${path}/${name}/package.json`);
           } catch {
-            if (type !== 'default') {
+            if (type !== "default") {
               log.warning(`${name} 插件没有相关描述信息`);
             }
           }
@@ -73,10 +73,10 @@ export default class ElBot {
             this.plugins[type].push({
               name,
               version: plugin.version || pkg.version,
-              description: plugin.description || pkg.description
+              description: plugin.description || pkg.description,
             });
             this.use(name, plugin);
-          };
+          }
         } catch (error) {
           console.log(error);
           log.error(`插件 ${name} 加载失败`);
@@ -88,7 +88,7 @@ export default class ElBot {
   /**
    * 使用插件
    * @param name 插件名
-   * @param plugin 
+   * @param plugin
    */
   use(name: string, plugin: Function) {
     if (this.el.config[name]) {
@@ -102,9 +102,9 @@ export default class ElBot {
    * 开始监听，并加载插件
    */
   listen() {
-    this.loadPlugins('default', './plugins');
-    this.loadPlugins('community', '../packages/el-bot-plugins');
-    this.loadPlugins('custom', '../config/custom/plugins');
+    this.loadPlugins("default", "./plugins");
+    this.loadPlugins("community", "../packages/el-bot-plugins");
+    this.loadPlugins("custom", "../config/custom/plugins");
 
     this.mirai.listen();
 
@@ -113,4 +113,4 @@ export default class ElBot {
       this.mirai.release();
     });
   }
-};
+}

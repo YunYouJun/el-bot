@@ -13,7 +13,7 @@ let reply: Function = (msg: string | MessageType.MessageChain) => {
 };
 
 const config = el.config;
-let qq: number = 0;
+let qq = 0;
 
 interface Job {
   name: string;
@@ -27,14 +27,14 @@ interface Step {
 
 /**
  * 执行对应任务
- * @param jobs 
- * @param name 
+ * @param jobs
+ * @param name
  */
 function doJobByName(jobs: Job[], name: string) {
   jobs.forEach((job: Job) => {
     if (job.name && job.name === name && job.do) {
       job.do.forEach((step: string | Step) => {
-        let cmd = '';
+        let cmd = "";
         let async = false;
         if (typeof step === "string") {
           cmd = step;
@@ -47,7 +47,7 @@ function doJobByName(jobs: Job[], name: string) {
           doJobByName(jobs, name);
         }
         shell.exec(cmd, {
-          async
+          async,
         });
       });
     }
@@ -55,7 +55,7 @@ function doJobByName(jobs: Job[], name: string) {
 }
 
 function listPlugins(type: string, name: string) {
-  let content = name + ':\n';
+  let content = name + ":\n";
   bot.plugins[type].forEach((plugin: Bot.Plugin) => {
     content += `- ${plugin.name}@${plugin.version}: ${plugin.description}\n`;
   });
@@ -89,25 +89,25 @@ const yargs = require("yargs")
       return;
     }
 
-    let content = '任务列表：';
+    let content = "任务列表：";
     config.cli.jobs.forEach((job: Job) => {
       if (job.name) {
-        content += '\n- ' + job.name;
+        content += "\n- " + job.name;
       }
     });
     reply(content);
   })
   .command("plugins", "插件列表", {}, async () => {
-    let content = '';
+    let content = "";
 
-    if (config.plugins['default']) {
-      content += listPlugins('default', '默认插件');
+    if (config.plugins["default"]) {
+      content += listPlugins("default", "默认插件");
     }
-    if (config.plugins['community']) {
-      content += listPlugins('community', '社区插件');
+    if (config.plugins["community"]) {
+      content += listPlugins("community", "社区插件");
     }
-    if (config.plugins['custom']) {
-      content += listPlugins('custom', '自定义插件');
+    if (config.plugins["custom"]) {
+      content += listPlugins("custom", "自定义插件");
     }
     reply(content.slice(0, -1));
   })
@@ -176,13 +176,18 @@ function parse(cmd: string[]) {
 
     // handle
     if (argv.about) {
-      let about = '';
-      about += "GitHub: " + pkg.repository.url + '\n';
-      about += "Docs: " + pkg.homepage + '\n';
-      about += "SDK: " + pkg.directories.lib + '\n';
-      about += "Author: " + `${pkg.author.name} <${pkg.author.url}>` + '\n';
-      about += "Contributors: " + pkg.contributors[0] + ' ' + pkg.contributors[1] + '\n';
-      about += 'Copyright: @ElpsyCN';
+      let about = "";
+      about += "GitHub: " + pkg.repository.url + "\n";
+      about += "Docs: " + pkg.homepage + "\n";
+      about += "SDK: " + pkg.directories.lib + "\n";
+      about += "Author: " + `${pkg.author.name} <${pkg.author.url}>` + "\n";
+      about +=
+        "Contributors: " +
+        pkg.contributors[0] +
+        " " +
+        pkg.contributors[1] +
+        "\n";
+      about += "Copyright: @ElpsyCN";
       reply(about);
     }
   });
@@ -194,7 +199,7 @@ cli.description = "交互终端";
 export default function cli(ctx: ElBot) {
   const mirai = ctx.mirai;
 
-  mirai.on('message', (msg: MessageType.ChatMessage) => {
+  mirai.on("message", (msg: MessageType.ChatMessage) => {
     if (!msg.sender) return;
     qq = msg.sender.id;
     reply = msg.reply;
@@ -208,5 +213,4 @@ export default function cli(ctx: ElBot) {
       parse(cmd.slice(1));
     }
   });
-};
-
+}

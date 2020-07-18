@@ -32,10 +32,13 @@ interface AnswerConfig extends Config.Match {
 
 /**
  * 根据 API 返回的内容渲染字符串
- * @param api 
- * @param content 
+ * @param api
+ * @param content
  */
-async function renderStringByApi(api: string, content: string | MessageType.MessageChain) {
+async function renderStringByApi(
+  api: string,
+  content: string | MessageType.MessageChain
+) {
   const { data } = await axios.get(api);
   if (typeof content === "string") {
     return renderString(content, data, "data");
@@ -52,22 +55,25 @@ async function renderStringByApi(api: string, content: string | MessageType.Mess
 export default function answer(ctx: ElBot, config: AnswerConfig[]) {
   const mirai = ctx.mirai;
 
-  mirai.on('message', async (msg: MessageType.ChatMessage) => {
+  mirai.on("message", async (msg: MessageType.ChatMessage) => {
     if (config) {
-
       // use async in some
       // https://advancedweb.hu/how-to-use-async-functions-with-array-some-and-every-in-javascript/
-      for await (let ans of config) {
+      for await (const ans of config) {
         let replyContent = null;
         if (ans.at && !isAt(msg, ctx.el.qq)) return;
 
         if (msg.plain && match(msg.plain, ans)) {
           // 默认监听所有
           if (getListenStatusByConfig(msg.sender, ans)) {
-            replyContent = ans.api ? await renderStringByApi(ans.api, ans.reply) : ans.reply;
+            replyContent = ans.api
+              ? await renderStringByApi(ans.api, ans.reply)
+              : ans.reply;
           } else if (ans.else) {
             // 后续可以考虑用监听白名单、黑名单优化
-            replyContent = ans.api ? renderStringByApi(ans.api, ans.else) : ans.else;
+            replyContent = ans.api
+              ? renderStringByApi(ans.api, ans.else)
+              : ans.else;
           }
 
           if (replyContent) {

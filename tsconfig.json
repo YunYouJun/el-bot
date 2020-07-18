@@ -16,7 +16,7 @@
     // "outFile": "./",                       /* Concatenate and emit output to single file. */
     "outDir": "dist" /* Redirect output structure to the directory. */,
     // "rootDir": "./" /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */,
-    // "composite": true,                     /* Enable project compilation */
+    // "composite": true /* Enable project compilation */,
     // "tsBuildInfoFile": "./",               /* Specify file to store incremental compilation information */
     // "removeComments": true,                /* Do not emit comments to output. */
     // "noEmit": true,                        /* Do not emit outputs. */
@@ -41,7 +41,7 @@
     // "noFallthroughCasesInSwitch": true,    /* Report errors for fallthrough cases in switch statement. */
 
     /* Module Resolution Options */
-    // "moduleResolution": "node",            /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */
+    "moduleResolution": "node" /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */,
     "baseUrl": "." /* Base directory to resolve non-absolute module names. */,
     "paths": {
       "@utils/*": ["src/utils/*"],
@@ -71,7 +71,6 @@
     // custom
     "resolveJsonModule": true
   },
-  "references": [{ "path": "./packages/el-bot-cli" }],
   "include": [
     "src/**/*",
     "config/**/plugins",
