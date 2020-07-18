@@ -18,4 +18,4 @@ async function app() {
 
 app();
 
-export { el, bot };
+export { el, bot, app };

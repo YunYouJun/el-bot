@@ -35,3 +35,4 @@
 - [mirai-api-http](https://github.com/mamoe/mirai-api-http)
 - [MiraiOK](https://github.com/LXY1226/MiraiOK)
 - [mirai-ts](https://github.com/YunYouJun/mirai-ts)
+- [koishi](https://github.com/koishijs/koishi)

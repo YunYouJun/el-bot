@@ -71,6 +71,7 @@
     // custom
     "resolveJsonModule": true
   },
+  "references": [{ "path": "./packages/el-bot-cli" }],
   "include": [
     "src/**/*",
     "config/**/plugins",

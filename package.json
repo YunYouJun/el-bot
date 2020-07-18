@@ -33,6 +33,7 @@
     "url": "https://github.com/elpsycn/el-bot"
   },
   "keywords": [
+    "el-bot",
     "elpsy",
     "bot",
     "mirai",
@@ -53,6 +54,7 @@
   },
   "homepage": "https://docs.bot.elpsy.cn/",
   "dependencies": {
+    "cac": "^6.6.1",
     "chalk": "^4.0.0",
     "dayjs": "^1.8.28",
     "dotenv": "^8.2.0",
