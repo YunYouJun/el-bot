@@ -4,11 +4,11 @@ plugins:
   default:
     # - dev
     - answer
-    - cli
-    - forward
-    - rss
-    - limit
-    - teach
+    # - cli
+    # - forward
+    # - rss
+    # - limit
+    # - teach
 
 # your db file path
 db_path: ./tmp/el-bot.json

@@ -1,6 +1,6 @@
-import { renderString, getListenStatusByConfig } from "@utils/index";
+import { renderString } from "@utils/index";
 import { MessageType, Config } from "mirai-ts";
-import ElBot from "../bot";
+import Bot from "../bot";
 import { match } from "mirai-ts/dist/utils/message";
 import axios from "axios";
 import { isAt } from "mirai-ts/dist/message";
@@ -52,7 +52,7 @@ async function renderStringByApi(
   }
 }
 
-export default function answer(ctx: ElBot, config: AnswerConfig[]) {
+export default function answer(ctx: Bot, config: AnswerConfig[]) {
   const mirai = ctx.mirai;
 
   mirai.on("message", async (msg: MessageType.ChatMessage) => {
@@ -61,11 +61,12 @@ export default function answer(ctx: ElBot, config: AnswerConfig[]) {
       // https://advancedweb.hu/how-to-use-async-functions-with-array-some-and-every-in-javascript/
       for await (const ans of config) {
         let replyContent = null;
+
         if (ans.at && !isAt(msg, ctx.el.qq)) return;
 
         if (msg.plain && match(msg.plain, ans)) {
           // 默认监听所有
-          if (getListenStatusByConfig(msg.sender, ans)) {
+          if (ctx.status.getListenStatusByConfig(msg.sender, ans)) {
             replyContent = ans.api
               ? await renderStringByApi(ans.api, ans.reply)
               : ans.reply;

@@ -3,6 +3,8 @@ const shell = require("shelljs");
 const log = require("mirai-ts/dist/utils/log").default;
 const { spawn } = require("child_process");
 
+// 先进入目录
+shell.cd("mirai");
 glob("./miraiOK_*", {}, (err, files) => {
   if (err) {
     console.log(err);
