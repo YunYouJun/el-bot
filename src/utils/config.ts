@@ -1,13 +1,12 @@
 import yaml from "js-yaml";
 import fs from "fs";
-import { Setting } from "../..";
 
 /**
  * https://www.npmjs.com/package/js-yaml#safeload-string---options-
  * now we can use!!js / undefined!!js / function !!js / regexp
  * @param path 配置文件名
  */
-function parse(path: string): Setting {
+function parse(path: string) {
   // return yaml.safeLoad(fs.readFileSync(path, "utf8"));
   return yaml.load(fs.readFileSync(path, "utf8"));
 }

@@ -5,7 +5,7 @@ import { MessageType } from "mirai-ts";
 import ElBot from "../bot";
 import { el, bot } from "../../index";
 import { isAllowed } from "../utils/global";
-import { Bot } from "../..";
+import { Bot } from "..";
 
 // change it in onMessage
 let reply: Function = (msg: string | MessageType.MessageChain) => {

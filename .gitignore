@@ -1,24 +1,11 @@
 # custom
 config/custom
 tmp
-nohup.out
+*.out
 .vscode
 
-# MiraiOK
-miraiOK_*
-config.txt
-.lastupdate
-log/
-.DEBUG
-
 # mirai
-mirai-console-wrapper-*.jar
-mirai-api-http-*.jar
-content/
-device.json
-plugins/MiraiAPIHTTP/setting.yml
-libraries/
-bot.yml
+mirai
 
 .DS_Store
 yarn.lock
