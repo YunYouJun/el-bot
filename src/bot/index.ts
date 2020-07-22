@@ -1,14 +1,20 @@
 import El from "../el";
 import Mirai, { MiraiApiHttpConfig, MiraiInstance } from "mirai-ts";
 import log from "mirai-ts/dist/utils/log";
-import { tryCatch } from "@utils/decorators";
+// import { tryCatch } from "@utils/decorators";
 import loki from "lokijs";
 
 import Sender from "./sender";
 import User from "./user";
 import Status from "./status";
 import Plugins from "./plugins";
+import cac, { CAC } from "cac";
 
+interface PackageJson {
+  name: string;
+  version: string;
+  [propName: string]: any;
+}
 
 export default class Bot {
   el: El;
@@ -22,7 +28,7 @@ export default class Bot {
   /**
    * package.json
    */
-  pkg: object;
+  pkg: PackageJson;
   /**
    * 状态
    */
@@ -36,9 +42,13 @@ export default class Bot {
    */
   sender: Sender;
   /**
- * 插件系统
- */
+   * 插件系统
+   */
   plugins: Plugins;
+  /**
+   * 指令系统
+   */
+  cli: CAC;
   constructor(el: El) {
     this.el = new El(el);
     const setting = this.el.setting;
@@ -62,9 +72,10 @@ export default class Bot {
     this.user = new User(this);
     this.sender = new Sender(this);
     this.plugins = new Plugins(this);
+    this.cli = cac('el');
   }
 
-  @tryCatch()
+  // @tryCatch()
   async init() {
     log.info("Link Start! " + this.el.qq);
     await this.mirai.login(this.el.qq);
