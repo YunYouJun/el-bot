@@ -1,13 +1,19 @@
 import log from "mirai-ts/dist/utils/log";
 import Bot from "src";
 
-interface Plugin {
+export interface Plugin {
   name: string,
   version: string;
   description: string;
 }
 
-type PluginType = "default" | "community" | "custom";
+export type PluginType = "default" | "community" | "custom";
+
+const PluginTypeMap = {
+  default: "默认插件",
+  community: "社区插件",
+  custom: "自定义插件"
+};
 
 export default class Plugins {
   default: Plugin[];
@@ -70,5 +76,13 @@ export default class Plugins {
     } else {
       plugin(this.bot);
     }
+  }
+
+  list(type: PluginType) {
+    let content = PluginTypeMap[type] + ":\n";
+    this[type].forEach((plugin: Plugin) => {
+      content += `- ${plugin.name}@${plugin.version}: ${plugin.description}\n`;
+    });
+    return content;
   }
 }

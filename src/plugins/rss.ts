@@ -5,10 +5,9 @@ import schedule from "node-schedule";
 import Parser from "rss-parser";
 
 import log from "mirai-ts/dist/utils/log";
-import { sendMessageByConfig, isListening } from "@utils/message";
 import { MessageType } from "mirai-ts";
 import ElBot from "../bot";
-import { isAllowed } from "@utils/global";
+import Bot from "../bot";
 
 interface RssConfig {
   name: string;
@@ -22,7 +21,7 @@ interface RssConfig {
 class Rss {
   config: RssConfig;
   parser: Parser;
-  constructor(rssConfig: RssConfig) {
+  constructor(public bot: Bot, rssConfig: RssConfig) {
     const defaultConfig = {
       cron: "*/15 * * * *",
       customFields: {
@@ -60,7 +59,7 @@ class Rss {
     if (feed.items && this.save(feed)) {
       // only semd first
       const content = feed.title + format(feed.items[0], this.config.content);
-      sendMessageByConfig(content, this.config.target);
+      this.bot.sender.sendMessageByConfig(content, this.config.target);
     }
   }
 
@@ -145,19 +144,19 @@ export default function rss(ctx: ElBot) {
   // 初始化定时
   if (config.rss) {
     config.rss.forEach((rssConfig: RssConfig) => {
-      const rss = new Rss(rssConfig);
+      const rss = new Rss(ctx, rssConfig);
       rss.init();
     });
   }
 
   // 监听消息命令
   mirai.on("message", (msg: MessageType.ChatMessage) => {
-    if (msg.plain === "rss" && config.rss && isAllowed(msg.sender.id)) {
+    if (msg.plain === "rss" && config.rss && ctx.user.isAllowed(msg.sender.id)) {
       if ((msg as MessageType.GroupMessage).sender.group) {
         let rssList = "";
         let count = 0;
         config.rss.forEach((rssConfig: RssConfig) => {
-          if (isListening(msg.sender, rssConfig.target)) {
+          if (ctx.status.isListening(msg.sender, rssConfig.target)) {
             count += 1;
             rssList += `\n${rssConfig.name}: ${rssConfig.url}`;
           }
@@ -172,7 +171,7 @@ export default function rss(ctx: ElBot) {
         let content = "您当前订阅的所有 RSS 源：";
         config.rss.forEach((rssConfig: RssConfig) => {
           content += `\n${rssConfig.name}: ${rssConfig.url}`;
-          const rss = new Rss(rssConfig);
+          const rss = new Rss(ctx, rssConfig);
           rss.parse();
         });
         msg.reply(content);

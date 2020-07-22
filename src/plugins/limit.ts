@@ -1,11 +1,10 @@
 import ElBot from "src/bot";
-import { el } from "../../index";
 import log from "mirai-ts/dist/utils/log";
 import Mirai, { MessageType } from "mirai-ts";
-import { isAllowed } from "@utils/global";
+import Bot from "src/bot";
 
-const config = el.config;
 let mirai: Mirai;
+let config: any;
 
 let count = 0;
 let startTime = new Date().getTime();
@@ -43,7 +42,7 @@ let lastList: GroupList = {};
 /**
  * 发送者连续触发次数是否超过限额
  */
-async function isMaxCountForSender(): Promise<boolean> {
+async function isMaxCountForSender(bot: Bot): Promise<boolean> {
   if (!(mirai.curMsg && mirai.curMsg.type === "GroupMessage")) return false;
   const msg: MessageType.GroupMessage = mirai.curMsg as MessageType.GroupMessage;
 
@@ -70,7 +69,7 @@ async function isMaxCountForSender(): Promise<boolean> {
   // 同一个用户连续调用多次（不限制有机器人管理权限的人）
   if (
     lastList[msg.sender.group.id].count > config.limit.sender.maximum &&
-    !isAllowed(msg.sender.id)
+    !bot.user.isAllowed(msg.sender.id)
   ) {
     lastList[msg.sender.group.id].count = 0;
     await msg.reply(config.limit.sender.tooltip);
@@ -86,6 +85,7 @@ async function isMaxCountForSender(): Promise<boolean> {
 
 export default function limit(ctx: ElBot) {
   mirai = ctx.mirai;
+  config = ctx.el.config;
 
   const sendFriendMessage = mirai.api.sendFriendMessage;
   const sendGroupMessage = mirai.api.sendGroupMessage;
@@ -117,7 +117,7 @@ export default function limit(ctx: ElBot) {
       messageId: 0,
     };
 
-    const isMax = await isMaxCountForSender();
+    const isMax = await isMaxCountForSender(ctx);
     if (isMax) return data;
 
     if (!isLimited()) {

@@ -1,8 +1,5 @@
-import { getListenStatusByConfig, sendMessageByConfig } from "../utils/message";
-import { Config, MessageType, EventType } from "mirai-ts";
-import el from "../el";
+import Mirai, { Config, MessageType, EventType } from "mirai-ts";
 import ElBot from "../bot";
-import { bot } from "../../index";
 
 interface ForwardConfig {
   listen: Config.Listen;
@@ -13,21 +10,28 @@ interface AllMessageList {
   [propName: number]: number[];
 }
 
+/**
+ * 撤回消息对应转发群中的消息
+ * @param mirai 
+ * @param msg 
+ * @param allMessageList 
+ */
 function recallByList(
+  mirai: Mirai,
   msg: EventType.FriendRecallEvent | EventType.GroupRecallEvent,
-  messageList: AllMessageList
+  allMessageList: AllMessageList
 ) {
-  const mirai = bot.mirai;
-  if (messageList && msg.messageId in messageList) {
-    messageList[msg.messageId].map((messageId: number) => {
+  if (allMessageList && msg.messageId in allMessageList) {
+    allMessageList[msg.messageId].map((messageId: number) => {
       mirai.api.recall(messageId);
     });
-    messageList[msg.messageId] = [];
+    allMessageList[msg.messageId] = [];
   }
 }
 
 export default function forward(ctx: ElBot) {
   const mirai = ctx.mirai;
+  const config = ctx.el.config;
   /**
    * 原消息和被转发的各消息 Id 关系列表
    */
@@ -35,17 +39,15 @@ export default function forward(ctx: ElBot) {
   mirai.on("message", async (msg: MessageType.ChatMessage) => {
     if (!msg.sender || !msg.messageChain) return;
 
-    const config = el.config;
-
     if (config.forward) {
       await Promise.all(
         config.forward.map(async (item: ForwardConfig) => {
-          const canForward = getListenStatusByConfig(msg.sender, item);
+          const canForward = ctx.status.getListenStatusByConfig(msg.sender, item);
 
           if (canForward) {
             // remove source
             const sourceMessageId: number = msg.messageChain[0].id;
-            allMessageList[sourceMessageId] = await sendMessageByConfig(
+            allMessageList[sourceMessageId] = await ctx.sender.sendMessageByConfig(
               msg.messageChain.slice(1),
               item.target
             );
@@ -57,11 +59,11 @@ export default function forward(ctx: ElBot) {
 
   // 消息撤回
   mirai.on("FriendRecallEvent", (msg: EventType.FriendRecallEvent) => {
-    recallByList(msg, allMessageList);
+    recallByList(mirai, msg, allMessageList);
   });
 
   mirai.on("GroupRecallEvent", (msg: EventType.GroupRecallEvent) => {
-    recallByList(msg, allMessageList);
+    recallByList(mirai, msg, allMessageList);
   });
 }
 

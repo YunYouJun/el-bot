@@ -2,7 +2,6 @@ import ElBot from "src/bot";
 import { MessageType } from "mirai-ts";
 import { isAt } from "mirai-ts/dist/message/index";
 import log from "mirai-ts/dist/utils/log";
-import { getListenStatusByConfig } from "@utils/index";
 
 // implement the autoloadback referenced in loki constructor
 export default function teach(ctx: ElBot) {
@@ -29,7 +28,7 @@ export default function teach(ctx: ElBot) {
       (isAt(msg, ctx.el.qq) || msg.type === "FriendMessage")
     ) {
       // 没有权限时
-      if (!getListenStatusByConfig(msg.sender, config.teach)) {
+      if (!ctx.status.getListenStatusByConfig(msg.sender, config.teach)) {
         msg.reply(config.teach.else);
         return;
       }
