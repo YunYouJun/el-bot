@@ -25,5 +25,6 @@ export default function (cli: CAC) {
     .action((file, options) => {
       process.env.EL_CONFIG_FILE = file || "";
       createWorker(options);
+      console.log("还没什么用_(:з」∠)_");
     });
 }
