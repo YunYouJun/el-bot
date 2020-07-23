@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-import cac from "cac";
-import registerRunCommand from "./run";
+import cac from 'cac'
+import registerRunCommand from './run'
 
-const { version } = require("../../package");
-const cli = cac("el").help().version(version);
+const { version } = require('../../package')
+const cli = cac('el').help().version(version)
 
-registerRunCommand(cli);
+registerRunCommand(cli)
 
-cli.parse();
+cli.parse()

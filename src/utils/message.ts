@@ -4,10 +4,8 @@
  * @param data 数据
  * @param name 参数名称
  */
-function renderString(template: string, data: string | object, name: string) {
-  return Function(name, "return `" + template + "`")(data);
+function renderString(template: string, data: any, name: string) {
+  return Function(name, 'return `' + template + '`')(data)
 }
 
-export {
-  renderString,
-};
+export { renderString }

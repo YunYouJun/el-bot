@@ -1,15 +1,15 @@
 module.exports = {
-  name: "el-bot",
+  name: 'el-bot',
   plugins: [
     // "dev",
-    "answer",
+    'answer',
     // "cli",
     // "forward",
     // "rss",
     // "limit",
     // "teach"
   ],
-  db_path: "./tmp/el-bot.json",
+  db_path: './tmp/el-bot.json',
   master: [910426929],
   admin: [910426929],
   limit: {
@@ -20,14 +20,14 @@ module.exports = {
       interval: 600000,
       // 连续次数
       maximum: 3,
-      tooltip: "我生气了",
+      tooltip: '我生气了',
       // 禁言时间
       time: 600,
     },
   },
   teach: {
-    listen: ["master", "admin"],
-    reply: "我学会了！",
-    else: "你在教我做事？",
+    listen: ['master', 'admin'],
+    reply: '我学会了！',
+    else: '你在教我做事？',
   },
-};
+}

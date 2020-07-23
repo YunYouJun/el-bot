@@ -1,13 +1,13 @@
-import Bot from "src";
+import Bot from 'src'
 
 export default class User {
-  constructor(public bot: Bot) { }
+  constructor(public bot: Bot) {}
   /**
    * 是否是主人
    * @param qq
    */
   isMaster(qq: number) {
-    return this.bot.el.config.master.includes(qq);
+    return this.bot.el.config.master.includes(qq)
   }
 
   /**
@@ -15,7 +15,7 @@ export default class User {
    * @param qq
    */
   isAdmin(qq: number) {
-    return this.bot.el.config.admin.includes(qq);
+    return this.bot.el.config.admin.includes(qq)
   }
 
   /**
@@ -23,6 +23,6 @@ export default class User {
    * @param qq
    */
   isAllowed(qq: number) {
-    return this.isMaster(qq) || this.isAdmin(qq);
+    return this.isMaster(qq) || this.isAdmin(qq)
   }
 }
