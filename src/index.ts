@@ -1,2 +1,2 @@
-import Bot from "./bot";
-export default Bot;
+import Bot from './bot'
+export default Bot
