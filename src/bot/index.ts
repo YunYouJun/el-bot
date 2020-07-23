@@ -85,9 +85,9 @@ export default class Bot {
    * 开始监听，并加载插件
    */
   listen() {
-    this.plugins.load("default", "../plugins");
-    this.plugins.load("community", "../packages/el-bot-plugins");
-    this.plugins.load("custom", "../config/custom/plugins");
+    this.plugins.load("default");
+    this.plugins.load("official");
+    this.plugins.load("community");
 
     this.mirai.listen();
 
