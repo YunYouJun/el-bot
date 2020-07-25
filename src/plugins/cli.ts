@@ -72,10 +72,6 @@ export default function cli(ctx: Bot) {
   const config = ctx.el.config;
 
   // 回声测试
-  cli.command('test', '测试').action(() => {
-    reply('测试指令');
-  });
-
   cli.command('echo <message>', '回声').action((args) => {
     if (!ctx.user.isAllowed(qq)) {
       reply('您没有操作权限');
@@ -161,12 +157,11 @@ export default function cli(ctx: Bot) {
     }, 5000);
   });
 
+
   // 关于
   cli.option('-a --about', '关于');
   // 版本
-  cli.option('-v --version', '版本').action(() => {
-
-  });
+  cli.option('-v --version', '版本');
 
   // 帮助
   cli.help((sections) => {
@@ -191,8 +186,12 @@ export default function cli(ctx: Bot) {
       });
       cmd.unshift('');
 
-      const parsedArgv = cli.parse(cmd);
-      doByOptions(parsedArgv.options, ctx);
+      try {
+        const parsedArgv = cli.parse(cmd);
+        doByOptions(parsedArgv.options, ctx);
+      } catch (err) {
+        reply(err.toString().slice(3));
+      }
     }
   });
 }
