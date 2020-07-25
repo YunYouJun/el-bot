@@ -1,4 +1,4 @@
-import { renderString } from '@utils/index'
+import { renderString } from '../utils/index'
 import { MessageType, Config } from 'mirai-ts'
 import Bot from '../bot'
 import { match } from 'mirai-ts/dist/utils/message'

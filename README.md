@@ -11,6 +11,10 @@
 
 （仍旧处于活跃开发中，但又不是不能用.jpg）
 
+当前 dev 分支（0.3 开始）已分离为纯粹的库（不再包含 mirai），快速使用请参考 [el-bot-template](https://github.com/ElpsyCN/el-bot-template)。
+
+master 分支当前仍为 el-bot 的模版形式，dev 将在稳定后合并到 master。
+
 ## 开始
 
 详细使用说明请参见 [el-bot 文档](https://docs.bot.elpsy.cn/js/)。
