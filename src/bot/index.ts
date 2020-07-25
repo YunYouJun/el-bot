@@ -80,6 +80,13 @@ export default class Bot {
   }
 
   /**
+   * 加载自定义函数插件
+   */
+  use(name: string, plugin: Function) {
+    this.plugins.use(name, plugin)
+  }
+
+  /**
    * 开始监听，并加载插件
    */
   listen() {
