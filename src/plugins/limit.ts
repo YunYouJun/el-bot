@@ -1,7 +1,6 @@
-import ElBot from 'src/bot'
 import log from 'mirai-ts/dist/utils/log'
 import Mirai, { MessageType } from 'mirai-ts'
-import Bot from 'src/bot'
+import Bot from '../bot'
 
 let mirai: Mirai
 let config: any
@@ -83,7 +82,7 @@ async function isMaxCountForSender(bot: Bot): Promise<boolean> {
   return false
 }
 
-export default function limit(ctx: ElBot) {
+export default function limit(ctx: Bot) {
   mirai = ctx.mirai
   config = ctx.el.config
 

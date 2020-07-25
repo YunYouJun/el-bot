@@ -1,6 +1,6 @@
 {
   "name": "el-bot",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A quick qq bot framework for mirai.",
   "main": "dist/index.js",
   "files": [
@@ -13,14 +13,17 @@
     "build": "yarn clean && tsc",
     "build:mirai-ts": "cd packages/mirai-ts && tsc",
     "clean": "rm -rf dist",
-    "bot": "cross-env NODE_ENV=dev nodemon --exec ts-node -r tsconfig-paths/register bot/index.ts",
-    "dev": "yarn watch:mirai-ts & sleep 2 && cross-env NODE_ENV=dev nodemon --exec ts-node -r tsconfig-paths/register index.ts",
+    "bot": "cross-env NODE_ENV=dev nodemon --exec ts-node bot/index.ts",
+    "dev": "npm-run-all --parallel dev:*",
+    "dev:bot": "cross-env NODE_ENV=dev nodemon --exec ts-node bot/index.ts",
+    "dev:plugins": "cd packages/el-bot-plugins && yarn dev",
     "install:mirai": "node scripts/install-mirai-ok.js",
     "lint": "eslint src --ext .js,.ts --fix",
     "start": "npm-run-all --parallel start:*",
-    "start:bot": "yarn build:el-bot && nodemon dist/index.js",
+    "start:bot": "yarn build && nodemon dist/index.js",
     "start:mirai": "node scripts/start-mirai-ok.js",
     "test": "yarn lint",
+    "watch": "tsc --watch",
     "pull": "npm-run-all --parallel pull:*",
     "pull:el-bot": "git pull",
     "watch:mirai-ts": "cd packages/mirai-ts && tsc --watch",
@@ -59,7 +62,7 @@
     "html-to-text": "^5.1.1",
     "js-yaml": "^3.14.0",
     "lokijs": "^1.5.9",
-    "mirai-ts": "^0.3.0",
+    "mirai-ts": "0.3.4",
     "node-schedule": "^1.3.2",
     "rss-parser": "^3.8.0",
     "shelljs": "^0.8.4"
@@ -80,18 +83,12 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.4",
     "inquirer": "^7.2.0",
-    "module-alias": "^2.2.2",
     "nodemon": "^2.0.4",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.0.5",
     "ts-node": "^8.10.2",
-    "tsconfig-paths": "^3.9.0",
     "typedoc": "^0.17.7",
     "typescript": "^3.9.5"
-  },
-  "_moduleAliases": {
-    "@utils": "dist/src/utils",
-    "@plugins": "packages/el-bot-plugins"
   },
   "directories": {
     "lib": "https://github.com/YunYouJun/mirai-ts"

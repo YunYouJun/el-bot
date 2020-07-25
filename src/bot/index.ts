@@ -1,7 +1,6 @@
 import El from '../el'
 import Mirai, { MiraiApiHttpConfig, MiraiInstance } from 'mirai-ts'
 import log from 'mirai-ts/dist/utils/log'
-// import { tryCatch } from "@utils/decorators";
 import loki from 'lokijs'
 
 import Sender from './sender'
@@ -75,7 +74,6 @@ export default class Bot {
     this.cli = cac('el')
   }
 
-  // @tryCatch()
   async init() {
     log.info('Link Start! ' + this.el.qq)
     await this.mirai.login(this.el.qq)

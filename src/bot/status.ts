@@ -1,4 +1,4 @@
-import Bot from 'src'
+import Bot from '.'
 import { Contact, Config } from 'mirai-ts'
 
 type BaseListenType = 'all' | 'master' | 'admin' | 'friend' | 'group'

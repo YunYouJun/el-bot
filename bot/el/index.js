@@ -12,7 +12,7 @@ module.exports = {
   config: {
     plugins: {
       default: ['dev', 'answer', 'cli', 'forward', 'rss', 'limit', 'teach'],
-      official: ['niubi'],
+      official: ['niubi', 'setu', 'hitokoto'],
     },
   },
 }

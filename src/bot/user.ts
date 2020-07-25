@@ -1,4 +1,4 @@
-import Bot from 'src'
+import Bot from '.'
 
 export default class User {
   constructor(public bot: Bot) {}

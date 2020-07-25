@@ -1,5 +1,5 @@
 import log from 'mirai-ts/dist/utils/log'
-import Bot from 'src'
+import Bot from '.'
 
 export interface Plugin {
   name: string
