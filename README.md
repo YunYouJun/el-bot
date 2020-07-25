@@ -11,11 +11,38 @@
 
 （仍旧处于活跃开发中，但又不是不能用.jpg）
 
-当前 dev 分支（0.3 开始）已分离为纯粹的库（不再包含 mirai），快速使用请参考 [el-bot-template](https://github.com/ElpsyCN/el-bot-template)。
+## 重大变更！！！
+
+当前 dev 分支（0.3 开始）已分离为纯粹的库（不再包含 mirai）。包含 mirai 快速使用模版请参考 。
 
 master 分支当前仍为 el-bot 的模版形式，dev 将在稳定后合并到 master。
 
 ## 开始
+
+So easy! 自行使用 [miraiOK](https://github.com/LXY1226/miraiOK) 启动 [mirai](https://github.com/mamoe/mirai) 与 [mirai-api-http](https://github.com/mamoe/mirai-api-http) 插件。
+
+> 你也可以直接参考 [el-bot-template](https://github.com/ElpsyCN/el-bot-template)。
+
+```sh
+npm install el-bot
+```
+
+```js
+const Bot = require("el-bot").default
+const el = require("../el")
+
+const bot = new Bot({
+  qq: 114514,
+  setting: {
+    host: 'localhost',
+    port: 4859,
+    authKey: 'el-psy-congroo',
+    enableWebsocket: true,
+  },
+  // config: ...
+})
+bot.start()
+```
 
 详细使用说明请参见 [el-bot 文档](https://docs.bot.elpsy.cn/js/)。
 
