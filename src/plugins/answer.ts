@@ -1,33 +1,31 @@
-import { renderString } from '../utils/index'
-import { MessageType, Config } from 'mirai-ts'
-import Bot from '../bot'
-import { match } from 'mirai-ts/dist/utils/message'
-import axios from 'axios'
-import { isAt } from 'mirai-ts/dist/message'
+import { renderString } from "../utils/index";
+import { MessageType, Config, check } from "mirai-ts";
+import Bot from "../bot";
+import axios from "axios";
 
 interface AnswerConfig extends Config.Match {
   /**
    * 监听
    */
-  listen: string | Config.Listen
+  listen: string | Config.Listen;
   /**
    * 不监听
    */
-  unlisten?: Config.Listen
+  unlisten?: Config.Listen;
   /**
    * API 地址，存在时，自动渲染字符串
    */
-  api?: string
-  reply: string | MessageType.MessageChain
+  api?: string;
+  reply: string | MessageType.MessageChain;
   /**
    * 只有被 @ 时回复
    */
-  at?: boolean
+  at?: boolean;
   /**
    * 回复时是否引用消息
    */
-  quote?: boolean
-  else?: string | MessageType.MessageChain
+  quote?: boolean;
+  else?: string | MessageType.MessageChain;
 }
 
 /**
@@ -39,54 +37,54 @@ async function renderStringByApi(
   api: string,
   content: string | MessageType.MessageChain
 ) {
-  const { data } = await axios.get(api)
-  if (typeof content === 'string') {
-    return renderString(content, data, 'data')
+  const { data } = await axios.get(api);
+  if (typeof content === "string") {
+    return renderString(content, data, "data");
   } else {
-    ;(content as any).forEach((msg: MessageType.SingleMessage) => {
-      if (msg.type === 'Plain') {
-        msg.text = renderString(msg.text, data, 'data')
+    (content as any).forEach((msg: MessageType.SingleMessage) => {
+      if (msg.type === "Plain") {
+        msg.text = renderString(msg.text, data, "data");
       }
-    })
-    return content
+    });
+    return content;
   }
 }
 
 export default function answer(ctx: Bot, config: AnswerConfig[]) {
-  const mirai = ctx.mirai
+  const mirai = ctx.mirai;
 
-  mirai.on('message', async (msg: MessageType.ChatMessage) => {
+  mirai.on("message", async (msg: MessageType.ChatMessage) => {
     if (config) {
       // use async in some
       // https://advancedweb.hu/how-to-use-async-functions-with-array-some-and-every-in-javascript/
       for await (const ans of config) {
-        let replyContent = null
+        let replyContent = null;
 
-        if (ans.at && !isAt(msg, ctx.el.qq)) return
+        if (ans.at && !check.isAt(msg, ctx.el.qq)) return;
 
-        if (msg.plain && match(msg.plain, ans)) {
+        if (msg.plain && check.match(msg.plain, ans)) {
           // 默认监听所有
           if (ctx.status.getListenStatusByConfig(msg.sender, ans)) {
             replyContent = ans.api
               ? await renderStringByApi(ans.api, ans.reply)
-              : ans.reply
+              : ans.reply;
           } else if (ans.else) {
             // 后续可以考虑用监听白名单、黑名单优化
             replyContent = ans.api
               ? renderStringByApi(ans.api, ans.else)
-              : ans.else
+              : ans.else;
           }
 
           if (replyContent) {
-            await msg.reply(replyContent, ans.quote)
+            await msg.reply(replyContent, ans.quote);
             // 有一个满足即跳出
-            break
+            break;
           }
         }
       }
     }
-  })
+  });
 }
 
-answer.version = '0.0.1'
-answer.description = '自动应答'
+answer.version = "0.0.1";
+answer.description = "自动应答";

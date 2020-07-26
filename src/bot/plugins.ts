@@ -1,5 +1,5 @@
-import log from 'mirai-ts/dist/utils/log';
-import Bot from '.';
+import log from "mirai-ts/dist/utils/log";
+import Bot from ".";
 
 export interface Plugin {
   name: string;
@@ -7,13 +7,13 @@ export interface Plugin {
   description: string;
 }
 
-export type PluginType = 'default' | 'official' | 'community' | 'custom';
+export type PluginType = "default" | "official" | "community" | "custom";
 
 const PluginTypeMap = {
-  default: '默认插件',
-  official: '官方插件',
-  community: '社区插件',
-  custom: '自定义插件',
+  default: "默认插件",
+  official: "官方插件",
+  community: "社区插件",
+  custom: "自定义插件",
 };
 
 export default class Plugins {
@@ -41,16 +41,16 @@ export default class Plugins {
         let pkgName = name;
 
         switch (type) {
-          case 'default':
+          case "default":
             pkgName = `../plugins/${name}`;
             break;
-          case 'official':
+          case "official":
             pkgName = `@el-bot/plugin-${name}`;
             break;
-          case 'community':
+          case "community":
             pkgName = `el-bot-plugin-${name}`;
             break;
-          case 'custom':
+          case "custom":
             pkgName = name;
             break;
           default:
@@ -62,13 +62,13 @@ export default class Plugins {
           const plugin = require(pkgName).default || require(pkgName);
 
           let pkg = {
-            version: '未知',
-            description: '未知',
+            version: "未知",
+            description: "未知",
           };
           try {
             pkg = require(`${pkgName}/package.json`);
           } catch {
-            if (type !== 'default') {
+            if (type !== "default") {
               log.warning(`${name} 插件没有相关描述信息`);
             }
           }
@@ -103,7 +103,7 @@ export default class Plugins {
   }
 
   list(type: PluginType) {
-    let content = PluginTypeMap[type] + ':\n';
+    let content = PluginTypeMap[type] + ":\n";
     this[type].forEach((plugin: Plugin) => {
       content += `- ${plugin.name}@${plugin.version}: ${plugin.description}\n`;
     });

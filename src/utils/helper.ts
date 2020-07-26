@@ -3,5 +3,5 @@
  * @param url
  */
 export function isUrl(url: string) {
-  return /^https?:\/\/.+/.test(url)
+  return /^https?:\/\/.+/.test(url);
 }

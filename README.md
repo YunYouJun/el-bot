@@ -29,8 +29,7 @@ npm install el-bot
 ```
 
 ```js
-const Bot = require("el-bot").default
-const el = require("../el")
+const Bot = require("el-bot")
 
 const bot = new Bot({
   qq: 114514,

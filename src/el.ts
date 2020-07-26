@@ -1,5 +1,5 @@
-import * as config from './utils/config';
-import { MiraiApiHttpConfig } from 'mirai-ts';
+import * as config from "./utils/config";
+import { MiraiApiHttpConfig } from "mirai-ts";
 
 export default class El {
   qq: number;
@@ -11,14 +11,14 @@ export default class El {
   constructor(el: El) {
     this.qq = 0;
     this.setting = {
-      host: '0.0.0.0',
+      host: "0.0.0.0",
       port: 4859,
-      authKey: 'el-psy-congroo',
+      authKey: "el-psy-congroo",
       cacheSize: 4096,
       enableWebsocket: true,
-      cors: ['*'],
+      cors: ["*"],
     };
-    this.config = require('./config/default');
+    this.config = require("./config/default");
     // 合并
     config.merge(this, el);
   }

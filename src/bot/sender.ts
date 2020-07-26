@@ -1,6 +1,6 @@
-import Bot from './index'
-import log from 'mirai-ts/dist/utils/log'
-import { MessageType, Config } from 'mirai-ts'
+import Bot from "./index";
+import log from "mirai-ts/dist/utils/log";
+import { MessageType, Config } from "mirai-ts";
 
 export default class Sender {
   constructor(public bot: Bot) {}
@@ -15,16 +15,16 @@ export default class Sender {
     array: number[],
     messageList: number[]
   ) {
-    const mirai = this.bot.mirai
+    const mirai = this.bot.mirai;
     return Promise.all(
       array.map(async (qq) => {
         const { messageId } = await mirai.api.sendFriendMessage(
           messageChain,
           qq
-        )
-        messageList.push(messageId)
+        );
+        messageList.push(messageId);
       })
-    )
+    );
   }
 
   /**
@@ -36,33 +36,33 @@ export default class Sender {
     messageChain: string | MessageType.MessageChain,
     target: Config.Target
   ): Promise<number[]> {
-    const mirai = this.bot.mirai
-    const config = this.bot.el.config
-    const messageList: number[] = []
+    const mirai = this.bot.mirai;
+    const config = this.bot.el.config;
+    const messageList: number[] = [];
 
     if (Array.isArray(messageChain)) {
       messageChain.forEach((msg) => {
-        if (msg.type === 'Image') {
-          delete msg.imageId
+        if (msg.type === "Image") {
+          delete msg.imageId;
         }
-      })
+      });
     }
 
-    if (Array.isArray(target) || typeof target === 'string') {
-      if (target.includes('master')) {
+    if (Array.isArray(target) || typeof target === "string") {
+      if (target.includes("master")) {
         await this.sendFriendMessageByArray(
           messageChain,
           config.master,
           messageList
-        )
+        );
       }
 
-      if (target.includes('admin')) {
+      if (target.includes("admin")) {
         await this.sendFriendMessageByArray(
           messageChain,
           config.admin,
           messageList
-        )
+        );
       }
     }
 
@@ -72,10 +72,10 @@ export default class Sender {
           const { messageId } = await mirai.api.sendGroupMessage(
             messageChain,
             qq
-          )
-          messageList.push(messageId)
+          );
+          messageList.push(messageId);
         })
-      )
+      );
     }
 
     if (target.friend) {
@@ -84,12 +84,12 @@ export default class Sender {
           messageChain,
           target.friend,
           messageList
-        )
+        );
       } catch (err) {
-        log.error('发送失败：可能是由于 mirai 私聊暂不支持长文本')
+        log.error("发送失败：可能是由于 mirai 私聊暂不支持长文本");
       }
     }
 
-    return messageList
+    return messageList;
   }
 }

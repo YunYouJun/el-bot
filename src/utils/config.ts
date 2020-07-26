@@ -1,5 +1,5 @@
-import yaml from 'js-yaml'
-import fs from 'fs'
+import yaml from "js-yaml";
+import fs from "fs";
 
 /**
  * https://www.npmjs.com/package/js-yaml#safeload-string---options-
@@ -8,7 +8,7 @@ import fs from 'fs'
  */
 function parse(path: string) {
   // return yaml.safeLoad(fs.readFileSync(path, "utf8"));
-  return yaml.load(fs.readFileSync(path, 'utf8'))
+  return yaml.load(fs.readFileSync(path, "utf8"));
 }
 
 /**
@@ -16,7 +16,7 @@ function parse(path: string) {
  * @param item
  */
 function isObject(item: any) {
-  return typeof item === 'object' && !Array.isArray(item)
+  return typeof item === "object" && !Array.isArray(item);
 }
 
 /**
@@ -31,12 +31,12 @@ function merge(target: any, source: any): any {
       isObject(target[key]) &&
       isObject(source[key])
     ) {
-      merge(target[key], source[key])
+      merge(target[key], source[key]);
     } else {
-      target[key] = source[key]
+      target[key] = source[key];
     }
   }
-  return target
+  return target;
 }
 
-export { parse, merge }
+export { parse, merge };

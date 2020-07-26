@@ -5,7 +5,7 @@
  * @param name 参数名称
  */
 function renderString(template: string, data: any, name: string) {
-  return Function(name, 'return `' + template + '`')(data)
+  return Function(name, "return `" + template + "`")(data);
 }
 
-export { renderString }
+export { renderString };

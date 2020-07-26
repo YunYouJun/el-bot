@@ -1,112 +1,112 @@
-import El from '../el'
-import Mirai, { MiraiApiHttpConfig, MiraiInstance } from 'mirai-ts'
-import log from 'mirai-ts/dist/utils/log'
-import loki from 'lokijs'
+import El from "../el";
+import Mirai, { MiraiApiHttpConfig, MiraiInstance } from "mirai-ts";
+import log from "mirai-ts/dist/utils/log";
+import loki from "lokijs";
 
-import Sender from './sender'
-import User from './user'
-import Status from './status'
-import Plugins from './plugins'
-import cac, { CAC } from 'cac'
+import Sender from "./sender";
+import User from "./user";
+import Status from "./status";
+import Plugins from "./plugins";
+import cac, { CAC } from "cac";
 
 interface PackageJson {
-  name: string
-  version: string
-  [propName: string]: any
+  name: string;
+  version: string;
+  [propName: string]: any;
 }
 
 export default class Bot {
-  el: El
-  mirai: MiraiInstance
+  el: El;
+  mirai: MiraiInstance;
   // 激活
-  active: boolean
+  active: boolean;
   /**
    * 本地数据库
    */
-  db: LokiConstructor
+  db: LokiConstructor;
   /**
    * package.json
    */
-  pkg: PackageJson
+  pkg: PackageJson;
   /**
    * 状态
    */
-  status: Status
+  status: Status;
   /**
    * 用户系统
    */
-  user: User
+  user: User;
   /**
    * 发送器
    */
-  sender: Sender
+  sender: Sender;
   /**
    * 插件系统
    */
-  plugins: Plugins
+  plugins: Plugins;
   /**
    * 指令系统
    */
-  cli: CAC
+  cli: CAC;
   constructor(el: El) {
-    this.el = new El(el)
-    const setting = this.el.setting
+    this.el = new El(el);
+    const setting = this.el.setting;
     const mahConfig: MiraiApiHttpConfig = {
-      host: setting.host || 'localhost',
+      host: setting.host || "localhost",
       port: setting.port || 8080,
-      authKey: setting.authKey || 'el-psy-congroo',
+      authKey: setting.authKey || "el-psy-congroo",
       enableWebsocket: setting.enableWebsocket || false,
-    }
-    this.mirai = new Mirai(mahConfig)
-    this.active = true
+    };
+    this.mirai = new Mirai(mahConfig);
+    this.active = true;
     // 初始化本地数据库
-    const db_path = this.el.config.db_path
+    const db_path = this.el.config.db_path;
     this.db = new loki(db_path, {
       autoload: true,
       verbose: true,
       autosave: true,
-    })
-    this.pkg = require('../../package.json')
-    this.status = new Status(this)
-    this.user = new User(this)
-    this.sender = new Sender(this)
-    this.plugins = new Plugins(this)
-    this.cli = cac('el')
+    });
+    this.pkg = require("../../package.json");
+    this.status = new Status(this);
+    this.user = new User(this);
+    this.sender = new Sender(this);
+    this.plugins = new Plugins(this);
+    this.cli = cac("el");
   }
 
   async init() {
-    log.info('Link Start! ' + this.el.qq)
-    await this.mirai.login(this.el.qq)
+    log.info("Link Start! " + this.el.qq);
+    await this.mirai.login(this.el.qq);
   }
 
   /**
    * 加载自定义函数插件
    */
   use(name: string, plugin: Function) {
-    this.plugins.use(name, plugin)
+    this.plugins.use(name, plugin);
   }
 
   /**
    * 开始监听，并加载插件
    */
   listen() {
-    this.plugins.load('default')
-    this.plugins.load('official')
-    this.plugins.load('community')
+    this.plugins.load("default");
+    this.plugins.load("official");
+    this.plugins.load("community");
 
-    this.mirai.listen()
+    this.mirai.listen();
 
-    process.on('exit', () => {
-      log.info('Bye, Master!')
-      this.mirai.release()
-    })
+    process.on("exit", () => {
+      log.info("Bye, Master!");
+      this.mirai.release();
+    });
   }
 
   /**
    * 启动机器人
    */
   async start() {
-    await this.init()
-    this.listen()
+    await this.init();
+    this.listen();
   }
 }

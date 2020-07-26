@@ -1,7 +1,6 @@
-import Bot from 'src/bot';
-import { MessageType } from 'mirai-ts';
-import { isAt } from 'mirai-ts/dist/message';
-import log from 'mirai-ts/dist/utils/log';
+import Bot from "src/bot";
+import { MessageType, check } from "mirai-ts";
+import log from "mirai-ts/dist/utils/log";
 
 // implement the autoloadback referenced in loki constructor
 export default function teach(ctx: Bot) {
@@ -9,21 +8,21 @@ export default function teach(ctx: Bot) {
   const db = ctx.db;
   const mirai = ctx.mirai;
 
-  let teach = db.getCollection('teach');
+  let teach = db.getCollection("teach");
   if (teach === null) {
-    teach = db.addCollection('teach', {
-      unique: ['question'],
+    teach = db.addCollection("teach", {
+      unique: ["question"],
     });
-    log.success('新建 Collection：teach');
+    log.success("新建 Collection：teach");
   }
 
   // 检测学习关键词
   // Q: xxx
   // A: xxx
-  mirai.on('message', (msg: MessageType.ChatMessage) => {
+  mirai.on("message", (msg: MessageType.ChatMessage) => {
     // 私聊或被艾特时
     const result = msg.plain.match(/Q:(.*)\nA:(.*)/);
-    if (result && (isAt(msg, ctx.el.qq) || msg.type === 'FriendMessage')) {
+    if (result && (check.isAt(msg, ctx.el.qq) || msg.type === "FriendMessage")) {
       // 没有权限时
       if (!ctx.status.getListenStatusByConfig(msg.sender, config.teach)) {
         msg.reply(config.teach.else);
@@ -59,5 +58,5 @@ export default function teach(ctx: Bot) {
   });
 }
 
-teach.version = '0.0.1';
-teach.description = '问答学习';
+teach.version = "0.0.1";
+teach.description = "问答学习";
