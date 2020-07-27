@@ -1,4 +1,4 @@
-import log from "mirai-ts/dist/utils/log";
+import { log } from "mirai-ts";
 export function displayCall(
   target: any,
   propertyName: string,

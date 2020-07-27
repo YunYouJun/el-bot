@@ -1,5 +1,4 @@
 import ElBot from "src/bot";
-import { MessageType } from "mirai-ts";
 
 export default async function dev(ctx: ElBot) {
   const mirai = ctx.mirai;
@@ -7,7 +6,11 @@ export default async function dev(ctx: ElBot) {
   // mirai.api.sendFriendMessage("咳咳……麦克风测试，麦克风测试……", config.master[0]);
 
   console.log("on message");
-  mirai.on("message", (msg: MessageType.ChatMessage) => {
+  mirai.on("message", (msg) => {
+    console.log(msg);
+  });
+
+  mirai.on("MemberJoinRequestEvent", (msg) => {
     console.log(msg);
   });
 }

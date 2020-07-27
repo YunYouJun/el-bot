@@ -157,10 +157,9 @@ export default function cli(ctx: Bot) {
     }, 5000);
   });
 
-  // 关于
-  cli.option("-a --about", "关于");
-  // 版本
-  cli.option("-v --version", "版本");
+  // 选项
+  cli.option("-a --about", "关于")
+    .option("-v --version", "版本");
 
   // 帮助
   cli.help((sections) => {

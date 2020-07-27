@@ -1,6 +1,6 @@
 import El from "../el";
 import Mirai, { MiraiApiHttpConfig, MiraiInstance } from "mirai-ts";
-import log from "mirai-ts/dist/utils/log";
+import { log } from "mirai-ts";
 import loki from "lokijs";
 
 import Sender from "./sender";
@@ -87,26 +87,23 @@ export default class Bot {
   }
 
   /**
-   * 开始监听，并加载插件
+   * 启动机器人
+   * @param callback 回调函数
    */
-  listen() {
+  async start(callback?: Function) {
+    await this.init();
+
+    // 加载插件
     this.plugins.load("default");
     this.plugins.load("official");
     this.plugins.load("community");
 
-    this.mirai.listen();
+    callback ? this.mirai.listen(callback) : this.mirai.listen();
 
+    // 推出信息
     process.on("exit", () => {
-      log.info("Bye, Master!");
+      log.warning("Bye, Master!");
       this.mirai.release();
     });
-  }
-
-  /**
-   * 启动机器人
-   */
-  async start() {
-    await this.init();
-    this.listen();
   }
 }

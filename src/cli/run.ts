@@ -19,8 +19,7 @@ function createWorker(options: WorkerOptions) {
 
 export default function (cli: CAC) {
   cli
-    .command("run [file]", "Start a el-bot")
-    .alias("start")
+    .command("run [file]", "Start el-bot")
     .option("--debug", "Debug mode")
     .action((file, options) => {
       process.env.EL_CONFIG_FILE = file || "";

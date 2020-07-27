@@ -1,6 +1,6 @@
 import Bot from "src/bot";
 import { MessageType, check } from "mirai-ts";
-import log from "mirai-ts/dist/utils/log";
+import { log } from "mirai-ts";
 
 // implement the autoloadback referenced in loki constructor
 export default function teach(ctx: Bot) {
