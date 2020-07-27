@@ -2,6 +2,7 @@ import { CAC } from "cac";
 import inquirer from "inquirer";
 import download from "download";
 import { log } from "mirai-ts";
+import Repo from "./repo";
 
 export default function (cli: CAC) {
   cli.command('install [project]', '安装依赖')
@@ -10,7 +11,7 @@ export default function (cli: CAC) {
       if (project === 'mirai') {
         installMirai();
       }
-    }).outputHelp();
+    });
 }
 
 /**
@@ -60,21 +61,21 @@ function installMirai() {
       },
     ])
     .then((answers) => {
+      const tooltip = "可以到 707408530 群文件下载 mirai-api-http-*.jar，手动放置到 /plugins 目录下。";
+
       try {
-        download(answers.mirai);
+        download(answers.mirai, "./mirai");
       } catch (err) {
         console.log(err);
         log.error(
-          "下载失败（应该是国内行情导致的网络问题），可以到 707408530 群文件下载 mirai-api-http-*.jar，手动放置到 /plugins 目录下。"
+          `下载失败（应该是国内行情导致的网络问题），${tooltip}`
         );
       }
 
       if (answers["mirai-api-http"]) {
-        const Repo = require("./repo");
         const miraiApiHttp = new Repo("project-mirai", "mirai-api-http");
-        miraiApiHttp.getLatestVersion().then(() => {
-          miraiApiHttp.downloadLatestRelease("./plugins");
-        });
+        log.info(`若下载较慢，${tooltip}`);
+        miraiApiHttp.downloadLatestRelease("./mirai/plugins");
       }
     });
 }

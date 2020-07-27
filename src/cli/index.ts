@@ -18,7 +18,6 @@ registerStartCommand(cli);
 
 // default
 cli
-  // Simply omit the command name, just brackets
   .command('[command]', '不存在该命令时，等价于 el start [command]')
   .action((command) => {
     spawn('el', ['start', command], { stdio: 'inherit' });
