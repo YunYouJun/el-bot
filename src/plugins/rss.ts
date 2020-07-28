@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import fs from "fs";
 import htmlToText from "html-to-text";
 import schedule from "node-schedule";
-import Parser from "rss-parser";
+import Parser, { CustomFields } from "rss-parser";
 
 import { MessageType, log } from "mirai-ts";
 import ElBot from "../bot";
@@ -12,7 +12,7 @@ interface RssConfig {
   name: string;
   url: string;
   cron: string;
-  customFields: object;
+  customFields: CustomFields;
   content: string[];
   target: object;
 }

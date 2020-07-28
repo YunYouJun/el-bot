@@ -5,10 +5,11 @@ import { log } from "mirai-ts";
 import Repo from "./repo";
 
 export default function (cli: CAC) {
-  cli.command('install [project]', '安装依赖')
-    .alias('i')
-    .action((project: string, options: WorkerOptions) => {
-      if (project === 'mirai') {
+  cli
+    .command("install [project]", "安装依赖")
+    .alias("i")
+    .action((project: string) => {
+      if (project === "mirai") {
         installMirai();
       }
     });
@@ -50,7 +51,8 @@ function installMirai() {
           },
           {
             name: "Darwin-amd64: macOS （你还有的选吗？）",
-            value: "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_darwin_amd64",
+            value:
+              "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_darwin_amd64",
           },
         ],
       },
@@ -61,15 +63,14 @@ function installMirai() {
       },
     ])
     .then((answers) => {
-      const tooltip = "可以到 707408530 群文件下载 mirai-api-http-*.jar，手动放置到 /plugins 目录下。";
+      const tooltip =
+        "可以到 707408530 群文件下载 mirai-api-http-*.jar，手动放置到 /plugins 目录下。";
 
       try {
         download(answers.mirai, "./mirai");
       } catch (err) {
         console.log(err);
-        log.error(
-          `下载失败（应该是国内行情导致的网络问题），${tooltip}`
-        );
+        log.error(`下载失败（应该是国内行情导致的网络问题），${tooltip}`);
       }
 
       if (answers["mirai-api-http"]) {
@@ -79,4 +80,3 @@ function installMirai() {
       }
     });
 }
-

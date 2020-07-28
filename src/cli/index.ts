@@ -18,9 +18,9 @@ registerStartCommand(cli);
 
 // default
 cli
-  .command('[command]', '不存在该命令时，等价于 el start [command]')
+  .command("[command]", "不存在该命令时，等价于 el start [command]")
   .action((command) => {
-    spawn('el', ['start', command], { stdio: 'inherit' });
+    spawn("el", ["start", command], { stdio: "inherit" });
   });
 
 cli.parse();

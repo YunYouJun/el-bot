@@ -22,7 +22,10 @@ export default function teach(ctx: Bot) {
   mirai.on("message", (msg: MessageType.ChatMessage) => {
     // 私聊或被艾特时
     const result = msg.plain.match(/Q:(.*)\nA:(.*)/);
-    if (result && (check.isAt(msg, ctx.el.qq) || msg.type === "FriendMessage")) {
+    if (
+      result &&
+      (check.isAt(msg, ctx.el.qq) || msg.type === "FriendMessage")
+    ) {
       // 没有权限时
       if (!ctx.status.getListenStatusByConfig(msg.sender, config.teach)) {
         msg.reply(config.teach.else);

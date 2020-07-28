@@ -26,11 +26,7 @@ export function parse(path: string) {
  */
 export function merge(target: any, source: any): any {
   for (const key in source) {
-    if (
-      target.hasOwnProperty(key) &&
-      isObject(target[key]) &&
-      isObject(source[key])
-    ) {
+    if (isObject(target[key]) && isObject(source[key])) {
       merge(target[key], source[key]);
     } else {
       target[key] = source[key];

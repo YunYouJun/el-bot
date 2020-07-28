@@ -1,0 +1,6 @@
+packages
+# Ignore artifacts:
+build
+coverage
+dist
+docs

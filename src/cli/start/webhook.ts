@@ -11,7 +11,7 @@ export function startWebhook() {
       port: 7777,
       path: "/webhook",
       secret: "el-psy-congroo",
-    }
+    },
   };
 
   // 获取配置

@@ -1,6 +1,6 @@
 {
   "name": "el-bot",
-  "version": "0.3.11",
+  "version": "0.3.12",
   "description": "A quick qq bot framework for mirai.",
   "main": "dist/index.js",
   "files": [
@@ -18,7 +18,7 @@
     "dev:bot": "cross-env NODE_ENV=dev nodemon --exec ts-node bot/index.ts",
     "dev:plugins": "cd packages/el-bot-plugins && yarn watch",
     "install:mirai": "node scripts/install-mirai-ok.js",
-    "lint": "eslint src --ext .js,.ts --fix",
+    "lint": "eslint src --ext .ts --fix && prettier --write .",
     "start": "npm-run-all --parallel start:*",
     "start:bot": "yarn build && nodemon dist/index.js",
     "start:mirai": "el start mirai",
@@ -28,6 +28,17 @@
     "pull:el-bot": "git pull",
     "watch:mirai-ts": "cd packages/mirai-ts && tsc --watch",
     "prepublish": "yarn build"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   },
   "repository": {
     "type": "git",
@@ -87,6 +98,8 @@
     "eslint": "^7.3.1",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.4",
+    "husky": "^4.2.5",
+    "lint-staged": "^10.2.11",
     "nodemon": "^2.0.4",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.0.5",

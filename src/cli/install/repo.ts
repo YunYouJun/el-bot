@@ -23,8 +23,8 @@ export default class Repo {
   browser_download_url: string;
   constructor(public owner: string, public repo: string) {
     this.url = `https://api.github.com/repos/${owner}/${repo}/releases/latest`;
-    this.version = '';
-    this.browser_download_url = '';
+    this.version = "";
+    this.browser_download_url = "";
   }
 
   async getLatestVersion() {
@@ -59,20 +59,23 @@ export default class Repo {
 
     try {
       download(this.browser_download_url, path)
-        .on('response', res => {
-          const bar = new ProgressBar(`下载至 ${dest} [:bar] :percent (:rate KB/s :total KB) :etas`, {
-            complete: '=',
-            incomplete: ' ',
-            width: 20,
-            total: 0
-          });
+        .on("response", (res) => {
+          const bar = new ProgressBar(
+            `下载至 ${dest} [:bar] :percent (:rate KB/s :total KB) :etas`,
+            {
+              complete: "=",
+              incomplete: " ",
+              width: 20,
+              total: 0,
+            }
+          );
 
-          bar.total = parseInt(res.headers['content-length'], 10) / 1000;
-          res.on('data', (data: any) => bar.tick(data.length / 8000));
+          bar.total = parseInt(res.headers["content-length"], 10) / 1000;
+          res.on("data", (data: any) => bar.tick(data.length / 8000));
         })
-        .then(() => console.log('done'));;
+        .then(() => console.log("done"));
     } catch (err) {
       console.log(err);
     }
   }
-};
+}
