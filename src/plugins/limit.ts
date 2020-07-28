@@ -1,5 +1,4 @@
-import log from "mirai-ts/dist/utils/log";
-import Mirai, { MessageType } from "mirai-ts";
+import Mirai, { MessageType, log } from "mirai-ts";
 import Bot from "../bot";
 
 let mirai: Mirai;

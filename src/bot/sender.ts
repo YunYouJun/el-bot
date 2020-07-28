@@ -1,9 +1,8 @@
 import Bot from "./index";
-import log from "mirai-ts/dist/utils/log";
-import { MessageType, Config } from "mirai-ts";
+import { MessageType, Config, log } from "mirai-ts";
 
 export default class Sender {
-  constructor(public bot: Bot) {}
+  constructor(public bot: Bot) { }
 
   /**
    * 根据 QQ 号数组列表发送消息

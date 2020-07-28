@@ -1,6 +1,6 @@
 {
   "name": "el-bot",
-  "version": "0.3.10",
+  "version": "0.3.11",
   "description": "A quick qq bot framework for mirai.",
   "main": "dist/index.js",
   "files": [
@@ -21,7 +21,7 @@
     "lint": "eslint src --ext .js,.ts --fix",
     "start": "npm-run-all --parallel start:*",
     "start:bot": "yarn build && nodemon dist/index.js",
-    "start:mirai": "node scripts/start-mirai-ok.js",
+    "start:mirai": "el start mirai",
     "test": "yarn lint",
     "watch": "tsc --watch",
     "pull": "npm-run-all --parallel pull:*",
@@ -63,7 +63,7 @@
     "inquirer": "^7.3.3",
     "js-yaml": "^3.14.0",
     "lokijs": "^1.5.9",
-    "mirai-ts": "^0.4.5",
+    "mirai-ts": "^0.4.6",
     "node-schedule": "^1.3.2",
     "progress": "^2.0.3",
     "rss-parser": "^3.8.0",

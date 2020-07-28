@@ -1,4 +1,4 @@
-import log from "mirai-ts/dist/utils/log";
+import { log } from "mirai-ts";
 import Bot from ".";
 
 export interface Plugin {
