@@ -6,6 +6,7 @@ import { log } from "mirai-ts";
 import { spawn } from "child_process";
 import glob from "glob";
 import { startWebhook } from "./webhook";
+const pkg = require(getAbsolutePath("./package.json"));
 
 /**
  * 获取当前目录下的绝对路径
@@ -19,26 +20,20 @@ function getAbsolutePath(file: string) {
  * 启动机器人
  */
 function startBot() {
-  const pkg = require(getAbsolutePath("./package.json"));
-  const execFileList = [
-    getAbsolutePath(pkg.main),
-    getAbsolutePath("./index.js"),
-    getAbsolutePath("./index.ts")
-  ];
+  const execFile = pkg.main || 'index.js' || 'index.ts';
+  const file = getAbsolutePath(execFile);
 
-  execFileList.some(file => {
-    if (fs.existsSync(file)) {
-      if (file.includes('.ts')) {
-        spawn('ts-node', [file], { stdio: 'inherit' });
-      } else {
-        spawn('node', [file], { stdio: 'inherit' });
-      }
-      return true;
+  if (fs.existsSync(file)) {
+    if (file.includes('.ts')) {
+      spawn('ts-node', [file], { stdio: 'inherit' });
     } else {
-      log.error('不存在可执行文件，请检查 package.json 中 main 入口文件是否存在，或参考文档新建 index.js 机器人实例。');
-      return false;
+      spawn('node', [file], { stdio: 'inherit' });
     }
-  });
+    return true;
+  } else {
+    log.error('不存在可执行文件，请检查 package.json 中 main 入口文件是否存在，或参考文档新建 index.js 机器人实例。');
+    return false;
+  }
 }
 
 /**
@@ -47,7 +42,7 @@ function startBot() {
 function startMirai(folder?: string) {
   // 先进入目录
   try {
-    shell.cd(folder || "mirai");
+    shell.cd(folder || pkg.mirai.folder || "mirai");
   } catch (err) {
     console.log(err);
     log.error('mirai 目录不存在');
@@ -79,10 +74,18 @@ export default function (cli: CAC) {
   cli.command("start [project]", "启动 el-bot")
     .option('-f --folder', 'mirai 所在目录')
     .action((project, options) => {
-      if (!project || project === "bot") {
+      if (!project) {
+        const cwd = process.cwd();
+        setTimeout(() => {
+          // avoid disturb from Mirai
+          shell.cd(cwd);
+          startBot();
+        }, 2000);
+        startMirai(options.folder);
+      } else if (project === "bot") {
         startBot();
       } else if (project === 'mirai') {
-        options.folder ? startMirai(options.folder) : startMirai();
+        startMirai(options.folder);
       } else if (project === 'webhook') {
         startWebhook();
       } else {
