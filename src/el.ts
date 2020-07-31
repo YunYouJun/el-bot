@@ -1,5 +1,6 @@
 import * as config from "./utils/config";
 import { MiraiApiHttpConfig } from "mirai-ts";
+import defaultConfig from "./config/default";
 
 export default class El {
   qq: number;
@@ -18,7 +19,7 @@ export default class El {
       enableWebsocket: true,
       cors: ["*"],
     };
-    this.config = require("./config/default");
+    this.config = defaultConfig;
     // 合并
     config.merge(this, el);
   }

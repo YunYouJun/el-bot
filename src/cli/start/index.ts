@@ -82,7 +82,7 @@ export default function (cli: CAC) {
           // avoid disturb from Mirai
           shell.cd(cwd);
           startBot();
-        }, 2000);
+        }, 3000);
         startMirai(options.folder);
       } else if (project === "bot") {
         startBot();

@@ -21,7 +21,6 @@
     "lint": "eslint src --ext .ts --fix && prettier --write .",
     "start": "npm-run-all --parallel start:*",
     "start:bot": "yarn build && nodemon dist/index.js",
-    "start:mirai": "el start mirai",
     "test": "yarn lint",
     "watch": "tsc --watch",
     "pull": "npm-run-all --parallel pull:*",

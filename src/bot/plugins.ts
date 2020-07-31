@@ -102,6 +102,10 @@ export default class Plugins {
     }
   }
 
+  /**
+   * 插件列表
+   * @param type 插件类型
+   */
   list(type: PluginType) {
     let content = PluginTypeMap[type] + ":\n";
     this[type].forEach((plugin: Plugin) => {

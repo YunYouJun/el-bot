@@ -1,7 +1,6 @@
 import Bot from ".";
-import { Contact, Config } from "mirai-ts";
-
-type BaseListenType = "all" | "master" | "admin" | "friend" | "group";
+import { Contact } from "mirai-ts";
+import * as Config from "../types/config";
 
 export default class Status {
   constructor(public bot: Bot) {}
@@ -10,10 +9,10 @@ export default class Status {
    * 是否监听发送者
    * @param {Object} sender
    */
-  isListening(sender: Contact.User, listen: BaseListenType | Config.Listen) {
+  isListening(sender: Contact.User, listen: Config.Listen) {
     if (typeof listen === "string") {
       let listenFlag = false;
-      switch (listen as BaseListenType) {
+      switch (listen as Config.BaseListenType) {
         // 监听所有
         case "all":
           listenFlag = true;
@@ -73,20 +72,20 @@ export default class Status {
         if (listen.includes("group") && (sender as Contact.Member).group) {
           return true;
         }
-      }
-
-      // 指定 QQ
-      if (listen.friend && listen.friend.includes(sender.id)) {
-        return true;
-      }
-
-      if ((sender as Contact.Member).group) {
-        // 群
-        if (
-          listen.group &&
-          listen.group.includes((sender as Contact.Member).group.id)
-        ) {
+      } else {
+        // 指定 QQ
+        if (listen.friend && listen.friend.includes(sender.id)) {
           return true;
+        }
+
+        if ((sender as Contact.Member).group) {
+          // 群
+          if (
+            listen.group &&
+            listen.group.includes((sender as Contact.Member).group.id)
+          ) {
+            return true;
+          }
         }
       }
     }

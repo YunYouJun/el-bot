@@ -1,10 +1,22 @@
 import Bot from "src/bot";
 import { MessageType, check } from "mirai-ts";
 import { log } from "mirai-ts";
+import * as Config from "../../types/config";
+
+export interface TeachOptions {
+  listen: Config.Listen;
+  /**
+   * 回复
+   */
+  reply: string;
+  /**
+   * 没有权限时的回复
+   */
+  else: string;
+}
 
 // implement the autoloadback referenced in loki constructor
-export default function teach(ctx: Bot) {
-  const config = ctx.el.config;
+export default function teach(ctx: Bot, options: TeachOptions) {
   const db = ctx.db;
   const mirai = ctx.mirai;
 
@@ -27,8 +39,8 @@ export default function teach(ctx: Bot) {
       (check.isAt(msg, ctx.el.qq) || msg.type === "FriendMessage")
     ) {
       // 没有权限时
-      if (!ctx.status.getListenStatusByConfig(msg.sender, config.teach)) {
-        msg.reply(config.teach.else);
+      if (!ctx.status.getListenStatusByConfig(msg.sender, options)) {
+        msg.reply(options.else);
         return;
       }
 
@@ -41,7 +53,7 @@ export default function teach(ctx: Bot) {
           question,
           answer,
         });
-        msg.reply(config.teach.reply);
+        msg.reply(options.reply);
       } catch (err) {
         const result = teach.findOne({
           question,

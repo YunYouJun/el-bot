@@ -1,18 +1,19 @@
-const { resolve } = require("path");
+import { resolve } from "path";
+import dotenv from "dotenv";
 
-require("dotenv").config({
+dotenv.config({
   path: resolve(__dirname, "../.env"),
 });
 
-module.exports = {
-  qq: parseInt(process.env.BOT_QQ),
+export = {
+  qq: parseInt(process.env.BOT_QQ || ""),
   setting: {
     enableWebsocket: true,
   },
   config: {
     plugins: {
       default: ["dev", "answer", "cli", "forward", "rss", "limit", "teach"],
-      official: ["niubi", "setu", "hitokoto"],
+      // official: ["niubi", "setu", "hitokoto"],
     },
   },
 };
