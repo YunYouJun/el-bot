@@ -12,8 +12,10 @@ export interface TeachOptions {
   else: string;
 }
 
-export const teachOptions: TeachOptions = {
+const teachOptions: TeachOptions = {
   listen: ["master", "admin"],
   reply: "我学会了！",
   else: "你在教我做事？",
 };
+
+export default teachOptions;

@@ -33,7 +33,7 @@ export interface LimitOptions {
 /**
  * 默认配置
  */
-const defaultOptions: LimitOptions = {
+const limitOptions: LimitOptions = {
   interval: 30000,
   count: 20,
   sender: {
@@ -46,3 +46,5 @@ const defaultOptions: LimitOptions = {
     time: 600,
   },
 };
+
+export default limitOptions;

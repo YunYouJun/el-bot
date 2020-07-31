@@ -83,7 +83,9 @@ export default class Plugins {
 
             let options = null;
             try {
-              options = require(`${pkgName}/options`);
+              options =
+                require(`${pkgName}/options`).default ||
+                require(`${pkgName}/options`);
             } catch {
               // log.error(`${pkgName}不存在默认配置`)
             }
@@ -105,12 +107,12 @@ export default class Plugins {
    * @param options 默认配置
    */
   use(name: string, plugin: Function, options?: any) {
-    if (this.bot.el.config[name]) {
-      // 自动合并默认配置
-      const pluginOptions = options
-        ? utils.config.merge(options, this.bot.el.config[name])
-        : this.bot.el.config[name];
-      plugin(this.bot, pluginOptions);
+    if (options) {
+      if (this.bot.el.config[name]) {
+        plugin(this.bot, utils.config.merge(options, this.bot.el.config[name]));
+      } else {
+        plugin(this.bot, options);
+      }
     } else {
       plugin(this.bot);
     }
