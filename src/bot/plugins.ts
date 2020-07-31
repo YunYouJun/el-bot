@@ -1,5 +1,6 @@
 import { log } from "mirai-ts";
 import Bot from ".";
+import { utils } from "../index";
 
 export interface Plugin {
   name: string;
@@ -22,11 +23,10 @@ export default class Plugins {
   community: Plugin[];
   custom: Plugin[];
   constructor(public bot: Bot) {
-    const plugins = bot.el.config.plugins;
-    this.default = plugins.default || [];
-    this.official = plugins.official || [];
-    this.community = plugins.community || [];
-    this.custom = plugins.custom || [];
+    this.default = [];
+    this.official = [];
+    this.community = [];
+    this.custom = [];
   }
 
   /**
@@ -65,6 +65,7 @@ export default class Plugins {
             version: "未知",
             description: "未知",
           };
+
           try {
             pkg = require(`${pkgName}/package.json`);
           } catch {
@@ -79,7 +80,15 @@ export default class Plugins {
               version: plugin.version || pkg.version,
               description: plugin.description || pkg.description,
             });
-            this.use(name, plugin);
+
+            let options = null;
+            try {
+              options = require(`${pkgName}/options`);
+            } catch {
+              // log.error(`${pkgName}不存在默认配置`)
+            }
+
+            this.use(name, plugin, options);
           }
         } catch (error) {
           console.log(error);
@@ -92,11 +101,16 @@ export default class Plugins {
   /**
    * 使用插件
    * @param name 插件名
-   * @param plugin
+   * @param plugin 插件函数
+   * @param options 默认配置
    */
-  use(name: string, plugin: Function) {
+  use(name: string, plugin: Function, options?: any) {
     if (this.bot.el.config[name]) {
-      plugin(this.bot, this.bot.el.config[name]);
+      // 自动合并默认配置
+      const pluginOptions = options
+        ? utils.config.merge(options, this.bot.el.config[name])
+        : this.bot.el.config[name];
+      plugin(this.bot, pluginOptions);
     } else {
       plugin(this.bot);
     }
@@ -107,10 +121,13 @@ export default class Plugins {
    * @param type 插件类型
    */
   list(type: PluginType) {
-    let content = PluginTypeMap[type] + ":\n";
-    this[type].forEach((plugin: Plugin) => {
-      content += `- ${plugin.name}@${plugin.version}: ${plugin.description}\n`;
-    });
+    let content = `无${PluginTypeMap[type]}\n`;
+    if (this[type].length > 0) {
+      content = PluginTypeMap[type] + ":\n";
+      this[type].forEach((plugin: Plugin) => {
+        content += `- ${plugin.name}@${plugin.version}: ${plugin.description}\n`;
+      });
+    }
     return content;
   }
 }

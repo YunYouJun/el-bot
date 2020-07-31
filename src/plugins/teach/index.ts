@@ -1,19 +1,7 @@
 import Bot from "src/bot";
 import { MessageType, check } from "mirai-ts";
 import { log } from "mirai-ts";
-import * as Config from "../../types/config";
-
-export interface TeachOptions {
-  listen: Config.Listen;
-  /**
-   * 回复
-   */
-  reply: string;
-  /**
-   * 没有权限时的回复
-   */
-  else: string;
-}
+import { TeachOptions } from "./options";
 
 // implement the autoloadback referenced in loki constructor
 export default function teach(ctx: Bot, options: TeachOptions) {

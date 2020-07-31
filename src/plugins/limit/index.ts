@@ -1,37 +1,6 @@
 import { MessageType, log } from "mirai-ts";
-import Bot from "../bot";
-
-export interface LimitOptions {
-  /**
-   * 间隔
-   */
-  interval: number;
-  /**
-   * 数量
-   */
-  count: number;
-  /**
-   * 发送者
-   */
-  sender: {
-    /**
-     * 超过时间清空记录
-     */
-    interval: number;
-    /**
-     * 连续次数
-     */
-    maximum: number;
-    /**
-     * 提示
-     */
-    tooltip: string;
-    /**
-     * 禁言时间
-     */
-    time: number;
-  };
-}
+import Bot from "../../bot";
+import { LimitOptions } from "./options";
 
 interface GroupInfo {
   /**

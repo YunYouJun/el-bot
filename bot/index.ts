@@ -1,7 +1,3 @@
-if (process.env.NODE_ENV !== "dev") {
-  require("module-alias/register");
-}
-
 import Bot from "../src";
 // import * as config from "../src/utils/config";
 // import { resolve } from "path";
