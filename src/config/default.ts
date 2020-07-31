@@ -48,6 +48,4 @@ const defaultConfig: BotConfig = {
   admin: [910426929],
 };
 
-export default {
-  defaultConfig,
-};
+export default defaultConfig;

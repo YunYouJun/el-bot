@@ -65,9 +65,10 @@ npm install el-bot@latest
 
 ## Thanks
 
+感谢以下项目为 el-bot 提供的开发运行环境以及带来的灵感。
+
 - [mirai](https://github.com/mamoe/mirai)
 - [mirai-console](https://github.com/mamoe/mirai-console)
-- [mirai-console-wrapper](https://github.com/mamoe/mirai-console-wrapper)
 - [mirai-api-http](https://github.com/mamoe/mirai-api-http)
 - [MiraiOK](https://github.com/LXY1226/MiraiOK)
 - [mirai-ts](https://github.com/YunYouJun/mirai-ts)

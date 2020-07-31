@@ -60,6 +60,7 @@ export default class Bot {
     this.mirai = new Mirai(mahConfig);
     this.active = true;
     // 初始化本地数据库
+
     const db_path = this.el.config.db_path;
     this.db = new loki(db_path, {
       autoload: true,
