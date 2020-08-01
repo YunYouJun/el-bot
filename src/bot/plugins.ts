@@ -1,6 +1,6 @@
 import { log } from "mirai-ts";
 import Bot from ".";
-import { utils } from "../index";
+import { merge } from "../utils/config";
 
 export interface Plugin {
   name: string;
@@ -109,7 +109,7 @@ export default class Plugins {
   use(name: string, plugin: Function, options?: any) {
     if (options) {
       if (this.bot.el.config[name]) {
-        plugin(this.bot, utils.config.merge(options, this.bot.el.config[name]));
+        plugin(this.bot, merge(options, this.bot.el.config[name]));
       } else {
         plugin(this.bot, options);
       }
