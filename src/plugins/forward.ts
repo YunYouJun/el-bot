@@ -1,5 +1,6 @@
-import Mirai, { Config, MessageType, EventType } from "mirai-ts";
+import Mirai, { MessageType, EventType } from "mirai-ts";
 import ElBot from "../bot";
+import * as Config from "../types/config";
 
 interface ForwardConfig {
   listen: Config.Listen;

@@ -9,6 +9,8 @@ import Status from "./status";
 import Plugins from "./plugins";
 import cac, { CAC } from "cac";
 
+import { sleep } from "../utils/misc";
+
 interface PackageJson {
   name: string;
   version: string;
@@ -75,11 +77,6 @@ export default class Bot {
     this.cli = cac("el");
   }
 
-  async init() {
-    log.info("Link Start! " + this.el.qq);
-    await this.mirai.login(this.el.qq);
-  }
-
   /**
    * 加载自定义函数插件
    */
@@ -88,11 +85,27 @@ export default class Bot {
   }
 
   /**
+   * 自动重连
+   */
+  async link() {
+    try {
+      await this.mirai.link(this.el.qq);
+    } catch (err) {
+      console.log(err.message);
+      await sleep(3000);
+      log.warning("尝试重新连接...");
+      await this.link();
+    }
+  }
+
+  /**
    * 启动机器人
    * @param callback 回调函数
    */
   async start(callback?: Function) {
-    await this.init();
+    // 链接 QQ
+    log.info("Link Start! " + this.el.qq);
+    await this.link();
 
     // 加载插件
     this.plugins.load("default");

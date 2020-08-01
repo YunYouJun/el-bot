@@ -1,7 +1,5 @@
 import Bot from "../src";
 // import * as config from "../src/utils/config";
-// import { resolve } from "path";
-
 const el = require("./el");
 
 // let customConfig: any = {};

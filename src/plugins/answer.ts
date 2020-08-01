@@ -1,9 +1,10 @@
 import { renderString } from "../utils/index";
-import { MessageType, Config, check } from "mirai-ts";
+import { MessageType, check } from "mirai-ts";
 import Bot from "../bot";
 import axios from "axios";
+import * as Config from "../types/config";
 
-interface AnswerConfig extends Config.Match {
+interface AnswerConfig extends check.Match {
   /**
    * 监听
    */
