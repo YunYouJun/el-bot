@@ -8,13 +8,7 @@
 
 一个基于 [mirai-ts](https://github.com/YunYouJun/mirai-ts)，使用 TS/JS 编写，快速、可配置、可自定义插件的 QQ 机器人框架。
 
-（仍旧处于活跃开发中，但又不是不能用.jpg）
-
-## 重大变更！！！
-
-当前 dev 分支（v0.3 开始）已分离为纯粹的库（不再包含 mirai）。
-
-master 分支当前仍为 el-bot 的模版形式，dev 将在稳定后合并到 master。
+## 由于 mirai 已经跑路，本项目将停止维护。
 
 ## 开始
 
