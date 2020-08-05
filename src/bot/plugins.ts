@@ -1,6 +1,7 @@
 import { log } from "mirai-ts";
 import Bot from ".";
 import { merge } from "../utils/config";
+import { resolve } from "path";
 
 export interface Plugin {
   name: string;
@@ -51,7 +52,7 @@ export default class Plugins {
             pkgName = `el-bot-plugin-${name}`;
             break;
           case "custom":
-            pkgName = name;
+            pkgName = resolve(process.cwd(), name);
             break;
           default:
             break;

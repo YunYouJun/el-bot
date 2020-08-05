@@ -111,6 +111,7 @@ export default class Bot {
     this.plugins.load("default");
     this.plugins.load("official");
     this.plugins.load("community");
+    this.plugins.load("custom");
 
     callback ? this.mirai.listen(callback) : this.mirai.listen();
 
