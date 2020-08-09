@@ -134,7 +134,7 @@ export default function cli(ctx: Bot) {
     await reply("重启 mirai-console");
 
     const consolePid: number = parseInt(
-      shell.exec("pgrep -f ./miraiOK_", {
+      shell.exec("pgrep -f ./mirai-console-wrapper", {
         silent: true,
       }).stdout
     );

@@ -4,13 +4,16 @@
 ![npm](https://img.shields.io/npm/v/el-bot)
 [![GitHub package.json dependency version (prod)](https://img.shields.io/github/package-json/dependency-version/ElpsyCN/el-bot/mirai-ts)](https://github.com/YunYouJun/mirai-ts)
 [![QQ Group](https://img.shields.io/badge/qq%20group-707408530-12B7F5)](https://shang.qq.com/wpa/qunwpa?idkey=5b0eef3e3256ce23981f3b0aa2457175c66ca9194efd266fd0e9a7dbe43ed653)
+[![telegram](https://img.shields.io/badge/telegram-elpsy__cn-blue)](https://t.me/elpsy_cn)
 [![GitHub](https://img.shields.io/github/license/ElpsyCN/el-bot)](https://github.com/ElpsyCN/el-bot/blob/master/LICENSE)
 
 一个基于 [mirai-ts](https://github.com/YunYouJun/mirai-ts)，使用 TS/JS 编写，快速、可配置、可自定义插件的 QQ 机器人框架。
 
 ## 开始
 
-自行使用 [miraiOK](https://github.com/LXY1226/miraiOK) 启动 [mirai](https://github.com/mamoe/mirai) 与 [mirai-api-http](https://github.com/mamoe/mirai-api-http) 插件。
+自行使用 mirai-console-wrapper 或 [miraiOK](https://github.com/LXY1226/miraiOK) 启动 [mirai](https://github.com/mamoe/mirai) 与 [mirai-api-http](https://github.com/mamoe/mirai-api-http) 插件。
+
+（因为种种原因，本项目不接受任何关于如何使用 mirai 的问题，但欢迎 el-bot 项目本身的反馈。）
 
 > 你也可以直接参考 [el-bot-template](https://github.com/ElpsyCN/el-bot-template)。
 
@@ -49,8 +52,6 @@ npm install el-bot@latest
 
 有问题和建议欢迎提 Issue，谢谢！（在此之前，请确保您已仔细阅读文档。）
 
-您也可以加入 QQ 群（707408530）进行反馈与讨论。
-
 ## 说明
 
 请勿将其用于商业或非法用途。
@@ -62,6 +63,5 @@ npm install el-bot@latest
 - [mirai](https://github.com/mamoe/mirai)
 - [mirai-console](https://github.com/mamoe/mirai-console)
 - [mirai-api-http](https://github.com/mamoe/mirai-api-http)
-- [MiraiOK](https://github.com/LXY1226/MiraiOK)
 - [mirai-ts](https://github.com/YunYouJun/mirai-ts)
 - [koishi](https://github.com/koishijs/koishi)

@@ -1,6 +1,5 @@
 import { CAC } from "cac";
 import inquirer from "inquirer";
-import download from "download";
 import { log } from "mirai-ts";
 import Repo from "./repo";
 
@@ -19,43 +18,13 @@ export default function (cli: CAC) {
  * 安装 mirai
  */
 function installMirai() {
+  // 一些想说的话
+  log.info(
+    "本项目使用原生的脚本启动 mirai。\n这只是辅助，本项目基于 mirai-api-http 且专注于机器人本身逻辑，但不提供任何关于如何下载启动 mirai 的解答，你应该自行掌握如何使用 mirai。\n在使用 el-bot 过程中遇到的问题，欢迎提 ISSUE，或加入我们的 QQ 群 707408530 / tg 群 https://t.me/elpsy_cn。"
+  );
+  log.warning("也许你可以在群内发现你需要的文件。");
   inquirer
     .prompt([
-      {
-        type: "rawlist",
-        name: "mirai",
-        message:
-          "您想要安装什么版本的 MiraiOK（https://github.com/LXY1226/miraiOK）？",
-        choices: [
-          {
-            name: "Linux-amd64: 服务器（大多数是这个）",
-            value: "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_linux_amd64",
-          },
-          {
-            name: "Linux-arm64: 64位 arm 系",
-            value: "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_linux_arm64",
-          },
-          {
-            name: "Linux-arm: arm 系",
-            value: "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_linux_arm",
-          },
-          {
-            name: "Windows-386: mirai-native 用（el-bot 没用 mirai-native）",
-            value:
-              "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_windows_386.exe",
-          },
-          {
-            name: "Windows-amd64: 不用 native （Windows 用户大部分是这个）",
-            value:
-              "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_windows_amd64.exe",
-          },
-          {
-            name: "Darwin-amd64: macOS （你还有的选吗？）",
-            value:
-              "http://t.imlxy.net:64724/mirai/MiraiOK/miraiOK_darwin_amd64",
-          },
-        ],
-      },
       {
         type: "confirm",
         name: "mirai-api-http",
@@ -64,14 +33,7 @@ function installMirai() {
     ])
     .then((answers) => {
       const tooltip =
-        "可以到 707408530 群文件下载 mirai-api-http-*.jar，手动放置到 /plugins 目录下。";
-
-      try {
-        download(answers.mirai, "./mirai");
-      } catch (err) {
-        console.log(err);
-        log.error(`下载失败（应该是国内行情导致的网络问题），${tooltip}`);
-      }
+        "可以从群文件中下载 mirai-api-http-*.jar，手动放置到 /plugins 目录下。";
 
       if (answers["mirai-api-http"]) {
         const miraiApiHttp = new Repo("project-mirai", "mirai-api-http");

@@ -50,22 +50,26 @@ function startMirai(folder?: string) {
     log.error("mirai 目录不存在");
   }
 
-  glob("./miraiOK_*", {}, (err, files) => {
-    console.log(err);
+  glob("./mirai-console-wrapper-*.jar", {}, (err, files) => {
+    if (err) console.log(err);
 
     if (files[0]) {
       try {
-        shell.chmod("+x", files[0]);
-        const mirai = spawn(files[0], {
+        const miraiConsole = spawn("java", ["-jar", files[0]], {
           stdio: ["pipe", "inherit", "inherit"],
         });
-        process.stdin.pipe(mirai.stdin);
+        process.stdin.pipe(miraiConsole.stdin);
+        if (process.env.BOT_QQ && process.env.BOT_PASSWORD) {
+          log.info("自动登录 QQ");
+          const loginCmd = `login ${process.env.BOT_QQ} ${process.env.BOT_PASSWORD}\n`;
+          console.log(loginCmd);
+          miraiConsole.stdin.write(loginCmd);
+        }
       } catch (err) {
         console.log(err);
-        log.info("Windows 用户自己直接双击 miraiOK 的 exe。");
       }
     } else {
-      log.error("请先通过 npm run install:mirai 下载对应的 MiraiOK 版本。");
+      log.error("请先通过 npm run install:mirai 下载 mirai-console-wrapper。");
     }
   });
 }
