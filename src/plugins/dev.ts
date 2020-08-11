@@ -9,10 +9,6 @@ export default async function dev(ctx: ElBot) {
   mirai.on("message", (msg) => {
     console.log(msg);
   });
-
-  mirai.on("MemberJoinRequestEvent", (msg) => {
-    console.log(msg);
-  });
 }
 
 dev.version = "0.0.1";

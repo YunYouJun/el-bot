@@ -55,8 +55,6 @@ export default function answer(ctx: Bot, config: AnswerConfig[]) {
   const mirai = ctx.mirai;
 
   mirai.on("message", async (msg) => {
-    console.log(msg);
-    console.log(config);
     if (config) {
       // use async in some
       // https://advancedweb.hu/how-to-use-async-functions-with-array-some-and-every-in-javascript/

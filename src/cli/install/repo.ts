@@ -73,7 +73,7 @@ export default class Repo {
           bar.total = parseInt(res.headers["content-length"], 10) / 1000;
           res.on("data", (data: any) => bar.tick(data.length / 8000));
         })
-        .then(() => console.log("done"));
+        .then(() => log.success("下载完成"));
     } catch (err) {
       console.log(err);
     }

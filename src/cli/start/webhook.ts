@@ -54,6 +54,9 @@ export function startWebhook() {
     if (shell.exec("git pull").code !== 0) {
       shell.echo("Error: Git pull xiao-yun failed");
       shell.exit(1);
+    } else {
+      // install dependencies
+      shell.exec("yarn");
     }
   });
 

@@ -93,8 +93,9 @@ export default class Plugins {
 
             this.use(name, plugin, options);
           }
-        } catch (error) {
-          console.log(error);
+        } catch (err) {
+          console.log(err);
+          log.error(err.message);
           log.error(`插件 ${name} 加载失败`);
         }
       });

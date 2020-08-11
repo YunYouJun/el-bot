@@ -55,9 +55,13 @@ function startMirai(folder?: string) {
 
     if (files[0]) {
       try {
-        const miraiConsole = spawn("java", ["-jar", files[0]], {
-          stdio: ["pipe", "inherit", "inherit"],
-        });
+        const miraiConsole = spawn(
+          "java",
+          ["-jar", files[0], "--update", "KEEP"],
+          {
+            stdio: ["pipe", "inherit", "inherit"],
+          }
+        );
         process.stdin.pipe(miraiConsole.stdin);
         if (process.env.BOT_QQ && process.env.BOT_PASSWORD) {
           log.info("自动登录 QQ");
