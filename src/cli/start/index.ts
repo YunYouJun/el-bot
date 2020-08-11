@@ -42,6 +42,7 @@ function startBot() {
  * 启动 mirai
  */
 function startMirai(folder?: string) {
+  require("dotenv").config();
   // 先进入目录
   try {
     shell.cd(folder || pkg.mirai.folder || "mirai");

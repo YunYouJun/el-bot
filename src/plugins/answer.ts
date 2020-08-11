@@ -3,8 +3,9 @@ import { MessageType, check } from "mirai-ts";
 import Bot from "../bot";
 import axios from "axios";
 import * as Config from "../types/config";
+import nodeSchdule from "node-schedule";
 
-interface AnswerConfig extends check.Match {
+interface BaseAnswerOptions extends check.Match {
   /**
    * 监听
    */
@@ -13,6 +14,14 @@ interface AnswerConfig extends check.Match {
    * 不监听
    */
   unlisten?: Config.Listen;
+  /**
+   * 定时任务
+   */
+  cron?: nodeSchdule.RecurrenceRule;
+  /**
+   * 定时发送的对象
+   */
+  target: Config.Target;
   /**
    * API 地址，存在时，自动渲染字符串
    */
@@ -51,41 +60,56 @@ async function renderStringByApi(
   }
 }
 
-export default function answer(ctx: Bot, config: AnswerConfig[]) {
+type AnswerOptions = BaseAnswerOptions[];
+
+export default function answer(ctx: Bot, options: AnswerOptions) {
   const mirai = ctx.mirai;
+  if (!options) return;
 
+  // 设置定时
+  options.forEach((ans) => {
+    if (ans.cron) {
+      nodeSchdule.scheduleJob(ans.cron, async () => {
+        if (!ans.target) return;
+        const replyContent = ans.api
+          ? await renderStringByApi(ans.api, ans.reply)
+          : ans.reply;
+        ctx.sender.sendMessageByConfig(replyContent, ans.target);
+      });
+    }
+  });
+
+  // 应答
   mirai.on("message", async (msg) => {
-    if (config) {
-      // use async in some
-      // https://advancedweb.hu/how-to-use-async-functions-with-array-some-and-every-in-javascript/
-      for await (const ans of config) {
-        let replyContent = null;
+    // use async in some
+    // https://advancedweb.hu/how-to-use-async-functions-with-array-some-and-every-in-javascript/
+    for await (const ans of options) {
+      let replyContent = null;
 
-        if (ans.at && !check.isAt(msg, ctx.el.qq)) return;
+      if (ans.at && !check.isAt(msg, ctx.el.qq)) return;
 
-        if (msg.plain && check.match(msg.plain, ans)) {
-          // 默认监听所有
-          if (ctx.status.getListenStatusByConfig(msg.sender, ans)) {
-            replyContent = ans.api
-              ? await renderStringByApi(ans.api, ans.reply)
-              : ans.reply;
-          } else if (ans.else) {
-            // 后续可以考虑用监听白名单、黑名单优化
-            replyContent = ans.api
-              ? renderStringByApi(ans.api, ans.else)
-              : ans.else;
-          }
+      if (msg.plain && check.match(msg.plain, ans)) {
+        // 默认监听所有
+        if (ctx.status.getListenStatusByConfig(msg.sender, ans)) {
+          replyContent = ans.api
+            ? await renderStringByApi(ans.api, ans.reply)
+            : ans.reply;
+        } else if (ans.else) {
+          // 后续可以考虑用监听白名单、黑名单优化
+          replyContent = ans.api
+            ? renderStringByApi(ans.api, ans.else)
+            : ans.else;
+        }
 
-          if (replyContent) {
-            await msg.reply(replyContent, ans.quote);
-            // 有一个满足即跳出
-            break;
-          }
+        if (replyContent) {
+          await msg.reply(replyContent, ans.quote);
+          // 有一个满足即跳出
+          break;
         }
       }
     }
   });
 }
 
-answer.version = "0.0.2";
+answer.version = "0.0.3";
 answer.description = "自动应答";
