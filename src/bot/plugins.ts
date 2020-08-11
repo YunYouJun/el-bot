@@ -115,7 +115,7 @@ export default class Plugins {
         plugin(this.bot, options);
       }
     } else {
-      plugin(this.bot);
+      plugin(this.bot, this.bot.el.config[name]);
     }
   }
 

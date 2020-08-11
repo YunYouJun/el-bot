@@ -18,11 +18,14 @@ export default function (cli: CAC) {
  * 安装 mirai
  */
 function installMirai() {
-  // 一些想说的话
-  log.info(
-    "本项目使用原生的脚本启动 mirai。\n这只是辅助，本项目基于 mirai-api-http 且专注于机器人本身逻辑，但不提供任何关于如何下载启动 mirai 的解答，你应该自行掌握如何使用 mirai。\n在使用 el-bot 过程中遇到的问题，欢迎提 ISSUE，或加入我们的 QQ 群 707408530 / tg 群 https://t.me/elpsy_cn。"
+  log.warning(
+    "本项目使用原生脚本启动 mirai。\n这只是辅助，你完全可以自行启动 mirai 而无需使用它。"
   );
-  log.warning("也许你可以在群内发现你需要的文件。");
+  log.info(
+    "\nel-bot 基于 mirai-api-http 且专注于机器人本身逻辑，但不提供任何关于如何下载启动 mirai 的解答，你应该自行掌握如何使用 mirai。\n在使用 el-bot 过程中遇到的问题，欢迎提 ISSUE，或加入我们的 QQ群 : 707408530 / TG群: https://t.me/elpsy_cn。"
+  );
+  log.warning("也许你可以在群内发现一些你需要的文件。");
+
   inquirer
     .prompt([
       {

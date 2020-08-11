@@ -15,5 +15,12 @@ export = {
       default: ["dev", "answer", "cli", "forward", "rss", "limit", "teach"],
       // official: ["niubi", "setu", "hitokoto"],
     },
+    answer: [
+      {
+        includes: "青春",
+        api: "https://elpsy.vercel.app/api/words/young",
+        reply: "${data[0]}",
+      },
+    ],
   },
 };

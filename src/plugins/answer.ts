@@ -54,7 +54,9 @@ async function renderStringByApi(
 export default function answer(ctx: Bot, config: AnswerConfig[]) {
   const mirai = ctx.mirai;
 
-  mirai.on("message", async (msg: MessageType.ChatMessage) => {
+  mirai.on("message", async (msg) => {
+    console.log(msg);
+    console.log(config);
     if (config) {
       // use async in some
       // https://advancedweb.hu/how-to-use-async-functions-with-array-some-and-every-in-javascript/
@@ -87,5 +89,5 @@ export default function answer(ctx: Bot, config: AnswerConfig[]) {
   });
 }
 
-answer.version = "0.0.1";
+answer.version = "0.0.2";
 answer.description = "自动应答";
