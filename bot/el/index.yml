@@ -1,6 +1,6 @@
 plugins:
   default:
-    # - dev
+    - dev
     - rss
     - answer
     - cli
@@ -13,3 +13,5 @@ plugins:
 
 search-image:
   token: 0306dd15aa139efd8c0e2820e07249aef0c9361b
+  options:
+    results: 3

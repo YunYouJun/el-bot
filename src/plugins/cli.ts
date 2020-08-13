@@ -87,6 +87,9 @@ export default function cli(ctx: Bot) {
     if (config.plugins["default"]) {
       content += ctx.plugins.list("default");
     }
+    if (config.plugins["official"]) {
+      content += ctx.plugins.list("official");
+    }
     if (config.plugins["community"]) {
       content += ctx.plugins.list("community");
     }

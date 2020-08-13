@@ -13,7 +13,7 @@
 
 自行使用 mirai-console-wrapper 或 [miraiOK](https://github.com/LXY1226/miraiOK) 启动 [mirai](https://github.com/mamoe/mirai) 与 [mirai-api-http](https://github.com/mamoe/mirai-api-http) 插件。
 
-（因为种种原因，本项目不接受任何关于如何使用 mirai 的问题，但欢迎 el-bot 项目本身的反馈。）
+（因为种种原因，本项目不接受任何关于如何使用 mirai 的问题，你应当具有自行启动 mirai 的能力，但欢迎 el-bot 项目本身的反馈。）
 
 > 你也可以直接参考 [el-bot-template](https://github.com/ElpsyCN/el-bot-template)。
 
