@@ -66,13 +66,20 @@ function doByOptions(options: any, ctx: Bot) {
   }
 }
 
-export default function cli(ctx: Bot) {
-  const cli = ctx.cli;
+/**
+ * cli 配置项
+ */
+interface CliOptions {
+  jobs: Job[];
+}
+
+export default function cli(ctx: Bot, options: CliOptions) {
+  const Cli = ctx.cli;
   const mirai = ctx.mirai;
   const config = ctx.el.config;
 
   // 回声测试
-  cli.command("echo <message>", "回声").action((args) => {
+  Cli.command("echo <message>", "回声").action((args) => {
     if (!ctx.user.isAllowed(qq)) {
       reply("您没有操作权限");
     } else {
@@ -81,7 +88,7 @@ export default function cli(ctx: Bot) {
   });
 
   // 插件
-  cli.command("plugins", "插件列表").action(() => {
+  Cli.command("plugins", "插件列表").action(() => {
     let content = "";
 
     if (config.plugins["default"]) {
@@ -100,14 +107,14 @@ export default function cli(ctx: Bot) {
   });
 
   // 任务
-  cli.command("jobs", "任务列表").action(async () => {
+  Cli.command("jobs", "任务列表").action(async () => {
     if (!ctx.user.isAllowed(qq)) {
       await reply("您没有操作权限");
       return;
     }
 
     let content = "任务列表：";
-    config.cli.jobs.forEach((job: Job) => {
+    options.jobs.forEach((job: Job) => {
       if (job.name) {
         content += "\n- " + job.name;
       }
@@ -116,19 +123,19 @@ export default function cli(ctx: Bot) {
   });
 
   // 自定义任务
-  cli.command("run <name>", "运行自定义任务").action(async (args) => {
+  Cli.command("run <name>", "运行自定义任务").action(async (args) => {
     if (!ctx.user.isAllowed(qq)) {
       await reply("您没有操作权限");
       return;
     }
 
-    if (config.cli && config.cli.jobs && config.cli.jobs.length > 0) {
-      doJobByName(config.cli.jobs, args);
+    if (options && options.jobs && options.jobs.length > 0) {
+      doJobByName(options.jobs, args);
     }
   });
 
   // 重启
-  cli.command("restart:mirai", "重启 mirai-console").action(async () => {
+  Cli.command("restart:mirai", "重启 mirai-console").action(async () => {
     if (!ctx.user.isAllowed(qq)) {
       await reply("您没有操作权限");
       return;
@@ -161,10 +168,10 @@ export default function cli(ctx: Bot) {
   });
 
   // 选项
-  cli.option("-a --about", "关于").option("-v --version", "版本");
+  Cli.option("-a --about", "关于").option("-v --version", "版本");
 
   // 帮助
-  cli.help((sections) => {
+  Cli.help((sections) => {
     reply(
       sections
         .map((section) => {
@@ -187,8 +194,10 @@ export default function cli(ctx: Bot) {
       cmd.unshift("");
 
       try {
-        const parsedArgv = cli.parse(cmd);
+        const parsedArgv = Cli.parse(cmd);
         doByOptions(parsedArgv.options, ctx);
+        // reset
+        delete Cli.matchedCommand;
       } catch (err) {
         reply(err.toString().slice(3));
       }
@@ -196,5 +205,5 @@ export default function cli(ctx: Bot) {
   });
 }
 
-cli.version = "0.0.1";
+cli.version = "0.0.2";
 cli.description = "交互终端";

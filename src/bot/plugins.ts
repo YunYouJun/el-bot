@@ -109,6 +109,11 @@ export default class Plugins {
    * @param options 默认配置
    */
   use(name: string, plugin: Function, options?: any) {
+    // split / for custom path
+    if (name.includes("/")) {
+      const len = name.split("/").length;
+      name = name.split("/")[len - 1];
+    }
     if (options) {
       if (this.bot.el.config[name]) {
         plugin(this.bot, merge(options, this.bot.el.config[name]));

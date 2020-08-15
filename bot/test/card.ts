@@ -1,7 +1,6 @@
 import { MessageType, Message, template } from "mirai-ts";
 
 export function card(msg: MessageType.ChatMessage) {
-  console.log(msg);
   if (msg.plain === "卡片") {
     msg.reply([
       Message.Xml(
