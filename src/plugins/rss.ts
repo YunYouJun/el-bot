@@ -136,7 +136,25 @@ function format(item: Parser.Item, content: string[]) {
   return Function("item", "return `" + template + "`")(item);
 }
 
-export default function rss(ctx: ElBot) {
+/**
+ * 立即触发 RSS 抓取
+ * @param ctx
+ * @param options
+ */
+function triggerRss(ctx: ElBot, options: RssConfig[]) {
+  log.success("立即触发 RSS 抓取");
+  let content = "您当前订阅的所有 RSS 源：";
+
+  options.forEach((rssConfig: RssConfig) => {
+    content += `\n${rssConfig.name}: ${rssConfig.url}`;
+    const rss = new Rss(ctx, rssConfig);
+    rss.parse();
+  });
+
+  return content;
+}
+
+export default function rss(ctx: ElBot, options: RssConfig[]) {
   const config = ctx.el.config;
   const mirai = ctx.mirai;
 
@@ -155,6 +173,7 @@ export default function rss(ctx: ElBot) {
       config.rss &&
       ctx.user.isAllowed(msg.sender.id)
     ) {
+      const content = triggerRss(ctx, options);
       if ((msg as MessageType.GroupMessage).sender.group) {
         let rssList = "";
         let count = 0;
@@ -170,13 +189,6 @@ export default function rss(ctx: ElBot) {
           msg.reply("本群尚未订阅 RSS");
         }
       } else {
-        log.success("立即触发 RSS 抓取");
-        let content = "您当前订阅的所有 RSS 源：";
-        config.rss.forEach((rssConfig: RssConfig) => {
-          content += `\n${rssConfig.name}: ${rssConfig.url}`;
-          const rss = new Rss(ctx, rssConfig);
-          rss.parse();
-        });
         msg.reply(content);
       }
     }

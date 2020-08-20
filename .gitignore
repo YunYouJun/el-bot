@@ -2,6 +2,7 @@
 tmp
 *.out
 .vscode
+.idea
 
 # mirai
 mirai

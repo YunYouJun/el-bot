@@ -1,10 +1,10 @@
 # el-bot
 
 [![docs](https://github.com/ElpsyCN/el-bot-docs/workflows/docs/badge.svg)](https://docs.bot.elpsy.cn/)
-![npm](https://img.shields.io/npm/v/el-bot)
-[![GitHub package.json dependency version (prod)](https://img.shields.io/github/package-json/dependency-version/ElpsyCN/el-bot/mirai-ts)](https://github.com/YunYouJun/mirai-ts)
-[![QQ Group](https://img.shields.io/badge/qq%20group-707408530-12B7F5)](https://shang.qq.com/wpa/qunwpa?idkey=5b0eef3e3256ce23981f3b0aa2457175c66ca9194efd266fd0e9a7dbe43ed653)
-[![telegram](https://img.shields.io/badge/telegram-elpsy__cn-blue)](https://t.me/elpsy_cn)
+[![npm](https://img.shields.io/npm/v/el-bot?logo=npm)](https://www.npmjs.com/package/el-bot)
+[![GitHub package.json dependency version (prod)](https://img.shields.io/github/package-json/dependency-version/ElpsyCN/el-bot/mirai-ts?logo=typescript)](https://github.com/YunYouJun/mirai-ts)
+[![QQ Group](https://img.shields.io/badge/QQ%20Group-707408530-12B7F5?logo=tencent-qq)](https://shang.qq.com/wpa/qunwpa?idkey=5b0eef3e3256ce23981f3b0aa2457175c66ca9194efd266fd0e9a7dbe43ed653)
+[![Telegram](https://img.shields.io/badge/Telegram-elpsy__cn-blue?logo=telegram)](https://t.me/elpsy_cn)
 [![GitHub](https://img.shields.io/github/license/ElpsyCN/el-bot)](https://github.com/ElpsyCN/el-bot/blob/master/LICENSE)
 
 一个基于 [mirai-ts](https://github.com/YunYouJun/mirai-ts)，使用 TS/JS 编写，快速、可配置、可自定义插件的 QQ 机器人框架。
