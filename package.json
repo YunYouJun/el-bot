@@ -41,7 +41,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/elpsycn/el-bot"
+    "url": "https://github.com/YunYouJun/el-bot"
   },
   "keywords": [
     "el-bot",
@@ -58,7 +58,7 @@
   },
   "license": "AGPL-3.0",
   "bugs": {
-    "url": "https://github.com/elpsycn/el-bot/issues"
+    "url": "https://github.com/YunYouJun/el-bot/issues"
   },
   "homepage": "https://docs.bot.elpsy.cn/",
   "dependencies": {

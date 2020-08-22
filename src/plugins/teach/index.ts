@@ -2,6 +2,7 @@ import Bot from "src/bot";
 import { MessageType, check } from "mirai-ts";
 import { log } from "mirai-ts";
 import { TeachOptions } from "./options";
+import { displayList } from "./utils";
 
 // implement the autoloadback referenced in loki constructor
 export default function teach(ctx: Bot, options: TeachOptions) {
@@ -15,6 +16,17 @@ export default function teach(ctx: Bot, options: TeachOptions) {
     });
     log.success("新建 Collection：teach");
   }
+
+  // register command
+  // 显示当前已有的问答列表
+  ctx.cli
+    .command("teach")
+    .option("-l, --list", "当前列表")
+    .action(async (options) => {
+      if (options.list) {
+        (mirai.curMsg as MessageType.ChatMessage).reply(displayList(teach));
+      }
+    });
 
   // 检测学习关键词
   // Q: xxx
