@@ -7,6 +7,7 @@ plugins:
     - limit
     - forward
     - teach
+    - workflow
   official:
     - search-image
     # - niubi
