@@ -67,11 +67,12 @@ export default function limit(ctx: Bot, options: LimitOptions) {
     }
 
     // 同一个用户连续调用多次（不限制有机器人管理权限的人）
-    if (
-      lastList[msg.sender.group.id].count > options.sender.maximum &&
-      !bot.user.isAllowed(msg.sender.id)
-    ) {
+    if (lastList[msg.sender.group.id].count > options.sender.maximum) {
       lastList[msg.sender.group.id].count = 0;
+
+      // 管理员则不限制
+      if (bot.user.isAllowed(msg.sender.id)) return false;
+
       await msg.reply(options.sender.tooltip);
       await mirai.api.mute(
         msg.sender.group.id,

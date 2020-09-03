@@ -13,10 +13,6 @@ export interface BotConfig {
     custom?: string[];
   };
   /**
-   * 数据库存储路径
-   */
-  db_path: string;
-  /**
    * 主人（超级管理员）
    */
   master: number[];
@@ -36,14 +32,13 @@ const defaultConfig: BotConfig = {
     default: [
       // "dev",
       "answer",
-      // "cli",
-      // "forward",
-      // "rss",
-      // "limit",
-      // "teach"
+      "cli",
+      "forward",
+      "rss",
+      "limit",
+      "teach",
     ],
   },
-  db_path: "./tmp/el-bot.json",
   master: [910426929],
   admin: [910426929],
 };

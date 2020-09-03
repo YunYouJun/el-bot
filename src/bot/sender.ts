@@ -43,7 +43,7 @@ export default class Sender {
     if (Array.isArray(messageChain)) {
       messageChain.forEach((msg) => {
         if (msg.type === "Image") {
-          delete msg.imageId;
+          msg.imageId = "";
         }
       });
     }

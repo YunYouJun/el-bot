@@ -56,6 +56,14 @@ npm install el-bot@latest
 
 请勿将其用于商业或非法用途。
 
+## 相关项目
+
+- [el-bot](https://github.com/YunYouJun/el-bot)：机器人主体
+- [el-bot-api](https://github.com/ElpsyCN/el-bot-api): 提供一些插件的默认 API
+- [el-bot-plugins](https://github.com/ElpsyCN/el-bot-api): el-bot 的官方插件集中地（你也可以提交 PR 或一些自己的插件链接到 README 里打广告）
+- [el-bot-docs](https://github.com/ElpsyCN/el-bot-docs): el-bot 使用文档
+- [el-bot-template](https://github.com/ElpsyCN/el-bot-template)：机器人模版（你可以直接使用它来生成你的机器人）
+
 ## Thanks
 
 感谢以下项目为 el-bot 提供的开发运行环境与带来的灵感。

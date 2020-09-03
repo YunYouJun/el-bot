@@ -1,7 +1,6 @@
 import El from "../el";
 import Mirai, { MiraiApiHttpConfig, MiraiInstance } from "mirai-ts";
 import { log } from "mirai-ts";
-import loki from "lokijs";
 
 import Sender from "./sender";
 import User from "./user";
@@ -10,6 +9,9 @@ import Plugins from "./plugins";
 import cac, { CAC } from "cac";
 
 import { sleep } from "../utils/misc";
+import { Logger } from "./logger";
+import { Db } from "mongodb";
+import { connectDb } from "./db";
 
 interface PackageJson {
   name: string;
@@ -25,7 +27,7 @@ export default class Bot {
   /**
    * 本地数据库
    */
-  db: LokiConstructor;
+  db?: Db;
   /**
    * package.json
    */
@@ -50,6 +52,10 @@ export default class Bot {
    * 指令系统
    */
   cli: CAC;
+  /**
+   * 日志系统
+   */
+  logger: Logger;
   constructor(el: El) {
     this.el = new El(el);
     const setting = this.el.setting;
@@ -60,21 +66,16 @@ export default class Bot {
       enableWebsocket: setting.enableWebsocket || false,
     };
     this.mirai = new Mirai(mahConfig);
-    this.active = true;
-    // 初始化本地数据库
-
-    const db_path = this.el.config.db_path;
-    this.db = new loki(db_path, {
-      autoload: true,
-      verbose: true,
-      autosave: true,
-    });
     this.pkg = require("../../package.json");
+    this.active = true;
     this.status = new Status(this);
     this.user = new User(this);
     this.sender = new Sender(this);
     this.plugins = new Plugins(this);
+    this.logger = new Logger();
     this.cli = cac("el");
+
+    connectDb(this, this.el.config.db);
   }
 
   /**
