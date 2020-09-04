@@ -46,7 +46,7 @@ function startMirai(folder?: string) {
 
   // 先进入目录
   try {
-    shell.cd(folder || pkg.mirai.folder || "mirai");
+    shell.cd(folder || (pkg.mirai ? pkg.mirai.folder : "mirai"));
   } catch (err) {
     console.log(err);
     log.error("mirai 目录不存在");

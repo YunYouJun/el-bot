@@ -11,5 +11,9 @@ export = {
   setting: {
     enableWebsocket: true,
   },
+  db: {
+    enable: true,
+    uri: process.env.BOT_DB_URI,
+  },
   config: utils.config.parse(resolve(__dirname, "./index.yml")),
 };

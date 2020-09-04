@@ -9,6 +9,9 @@
   "bin": {
     "el": "dist/cli/index.js"
   },
+  "mirai": {
+    "folder": "mirai"
+  },
   "scripts": {
     "build": "yarn clean && tsc",
     "build:mirai-ts": "cd packages/mirai-ts && yarn build",
@@ -21,6 +24,7 @@
     "lint": "eslint src --ext .ts --fix && prettier --write .",
     "start": "npm-run-all --parallel start:*",
     "start:bot": "yarn build && node dist/index.js",
+    "start:mirai": "el start mirai",
     "test": "yarn lint",
     "watch": "tsc --watch",
     "pull": "npm-run-all --parallel pull:*",

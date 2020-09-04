@@ -16,6 +16,10 @@ plugins:
 db:
   enable: true
 
+answer:
+  - is: 在吗
+    reply: Yes, Master!
+
 search-image:
   token: 0306dd15aa139efd8c0e2820e07249aef0c9361b
   options:

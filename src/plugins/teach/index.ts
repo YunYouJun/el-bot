@@ -1,78 +1,96 @@
-// import Bot from "src/bot";
-// import { MessageType, check } from "mirai-ts";
-// import { log } from "mirai-ts";
-// import { TeachOptions } from "./options";
-// // import { displayList } from "./utils";
+import Bot from "src/bot";
+import { MessageType, check } from "mirai-ts";
+import { TeachOptions } from "./options";
+import { displayList } from "./utils";
 
-// // implement the autoloadback referenced in loki constructor
-// export default function teach(ctx: Bot, options: TeachOptions) {
-//   const db = ctx.db;
-//   const mirai = ctx.mirai;
+// implement the autoloadback referenced in loki constructor
+export default async function teach(ctx: Bot, options: TeachOptions) {
+  if (!ctx.db) {
+    ctx.logger.error("您必须先启用数据库。");
+    return;
+  }
 
-//   let teach = db.getCollection("teach");
-//   console.log(teach);
-//   if (teach === null) {
-//     teach = db.addCollection("teach", {
-//       unique: ["question"],
-//     });
-//     log.success("新建 Collection：teach");
-//   }
+  const db = ctx.db;
+  const mirai = ctx.mirai;
 
-//   // register command
-//   // 显示当前已有的问答列表
-//   ctx.cli
-//     .command("teach")
-//     .option("-l, --list", "当前列表")
-//     .action(async (options) => {
-//       if (options.list) {
-//         (mirai.curMsg as MessageType.ChatMessage).reply(displayList(teach));
-//       }
-//     });
+  const teach = db.collection("teach");
 
-//   // 检测学习关键词
-//   // Q: xxx
-//   // A: xxx
-//   mirai.on("message", (msg: MessageType.ChatMessage) => {
-//     // 私聊或被艾特时
-//     const result = msg.plain.match(/Q:(.*)\nA:(.*)/);
-//     if (
-//       result &&
-//       (check.isAt(msg, ctx.el.qq) || msg.type === "FriendMessage")
-//     ) {
-//       // 没有权限时
-//       if (!ctx.status.getListenStatusByConfig(msg.sender, options)) {
-//         msg.reply(options.else);
-//         return;
-//       }
+  // 初始化 collection 结构
+  if ((await teach.find().count()) === 0) {
+    teach.createIndex(
+      {
+        question: 1,
+      },
+      {
+        unique: true,
+      }
+    );
 
-//       // 学习应答
-//       log.info(msg.plain);
-//       const question = result[1].trim();
-//       const answer = result[2].trim();
-//       try {
-//         teach.insert({
-//           question,
-//           answer,
-//         });
-//         msg.reply(options.reply);
-//       } catch (err) {
-//         const result = teach.findOne({
-//           question,
-//         });
-//         msg.reply(
-//           `存在重复，已覆盖旧值：\nQ: ${result.question}\nA: ${result.answer}`
-//         );
-//         result.answer = answer;
-//       }
-//     } else {
-//       // 查找应答
-//       const result = teach.findOne({
-//         question: msg.plain,
-//       });
-//       if (result) msg.reply(result.answer);
-//     }
-//   });
-// }
+    ctx.logger.success("[teach] 新建 Collection：teach");
+  }
 
-// teach.version = "0.0.1";
-// teach.description = "问答学习";
+  // register command
+  // 显示当前已有的问答列表
+  ctx.cli
+    .command("teach")
+    .option("-l, --list", "当前列表")
+    .action(async (options) => {
+      if (options.list) {
+        (mirai.curMsg as MessageType.ChatMessage).reply(displayList(teach));
+      }
+    });
+
+  // 检测学习关键词
+  // Q: xxx
+  // A: xxx
+  mirai.on("message", async (msg: MessageType.ChatMessage) => {
+    // 私聊或被艾特时
+    const qa = msg.plain.match(/Q:(.*)\nA:(.*)/);
+    if (qa && (check.isAt(msg, ctx.el.qq) || msg.type === "FriendMessage")) {
+      // 没有权限时
+      if (!ctx.status.getListenStatusByConfig(msg.sender, options)) {
+        msg.reply(options.else);
+        return;
+      }
+
+      // 学习应答
+      ctx.logger.info("[teach] " + msg.plain);
+      const question = qa[1].trim();
+      const answer = qa[2].trim();
+
+      const result = await teach.findOne({
+        question,
+      });
+      if (result) {
+        teach.updateOne(
+          {
+            question,
+          },
+          {
+            $set: {
+              answer,
+            },
+          }
+        );
+        msg.reply(
+          `存在重复，已覆盖旧值：\nQ: ${result.question}\nA: ${result.answer}`
+        );
+      } else {
+        teach.insertOne({
+          question,
+          answer,
+        });
+        msg.reply(options.reply);
+      }
+    } else {
+      // 查找应答
+      const result = await teach.findOne({
+        question: msg.plain,
+      });
+      if (result) msg.reply(result.answer);
+    }
+  });
+}
+
+teach.version = "0.1.0";
+teach.description = "问答学习";

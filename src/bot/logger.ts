@@ -1,4 +1,4 @@
-import { log } from "mirai-ts";
+import chalk from "chalk";
 
 /**
  * 辅助工具，输出彩色控制台信息。
@@ -9,7 +9,7 @@ export class Logger {
    * @param msg 文本
    */
   success(msg: any) {
-    log.success(msg);
+    console.log(chalk.green("[SUCCESS]"), msg);
   }
 
   /**
@@ -17,7 +17,7 @@ export class Logger {
    * @param msg 文本
    */
   warning(msg: any) {
-    log.warning(msg);
+    console.log(chalk.yellow("[WARNING]"), msg);
   }
 
   /**
@@ -25,7 +25,7 @@ export class Logger {
    * @param msg 文本
    */
   error(msg: any) {
-    log.error(msg);
+    console.log(chalk.red("[ERROR]"), msg);
   }
 
   /**
@@ -33,6 +33,6 @@ export class Logger {
    * @param msg 文本
    */
   info(msg: any) {
-    log.info(msg);
+    console.log(chalk.blue("[INFO]"), msg);
   }
 }
