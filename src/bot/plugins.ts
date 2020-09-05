@@ -1,4 +1,3 @@
-import { log } from "mirai-ts";
 import Bot from ".";
 import { merge } from "../utils/config";
 import { resolve } from "path";
@@ -71,7 +70,7 @@ export default class Plugins {
             pkg = require(`${pkgName}/package.json`);
           } catch {
             if (type !== "default") {
-              log.warning(`${name} 插件没有相关描述信息`);
+              this.bot.logger.warning(`${name} 插件没有相关描述信息`);
             }
           }
 
@@ -94,9 +93,8 @@ export default class Plugins {
             this.use(name, plugin, options);
           }
         } catch (err) {
-          console.log(err);
-          log.error(err.message);
-          log.error(`插件 ${name} 加载失败`);
+          this.bot.logger.error(err.message);
+          this.bot.logger.error(`插件 ${name} 加载失败`);
         }
       });
     }

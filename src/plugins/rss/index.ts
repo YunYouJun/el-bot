@@ -51,7 +51,9 @@ class Rss {
     try {
       feed = await this.parser.parseURL(this.config.url);
     } catch {
-      log.error(`${this.config.name} 超时，${this.config.url} 解析失败`);
+      this.bot.logger.error(
+        `[rss] ${this.config.name} 超时，${this.config.url} 解析失败`
+      );
       return;
     }
 
@@ -83,7 +85,7 @@ class Rss {
       (feed.items &&
         rssJson[this.config.name].items[0].pubDate !== feed.items[0].pubDate)
     ) {
-      log.info(`RSS: ${feed.title} 已更新`);
+      this.bot.logger.info(`[rss] ${feed.title} 已更新`);
       rssJson[this.config.name] = {
         title: feed.title,
         lastBuildDate: feed.lastBuildDate,
@@ -95,10 +97,10 @@ class Rss {
         ],
       };
       fs.writeFileSync(path, JSON.stringify(rssJson));
-      log.success(`已在本地记录 ${feed.title} 新的 RSS 信息`);
+      this.bot.logger.success(`[rss] 已在本地记录 ${feed.title} 新的 RSS 信息`);
       return true;
     } else {
-      log.info(`RSS: ${feed.title} 未更新`);
+      this.bot.logger.info(`[rss] ${feed.title} 未更新`);
       return false;
     }
   }
@@ -142,7 +144,7 @@ function format(item: Parser.Item, content: string[]) {
  * @param options
  */
 function triggerRss(ctx: ElBot, options: RssConfig[]) {
-  log.success("立即触发 RSS 抓取");
+  ctx.logger.success("[rss] 立即触发 RSS 抓取");
   let content = "您当前订阅的所有 RSS 源：";
 
   options.forEach((rssConfig: RssConfig) => {

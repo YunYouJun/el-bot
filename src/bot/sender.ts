@@ -1,5 +1,5 @@
 import Bot from "./index";
-import { MessageType, log } from "mirai-ts";
+import { MessageType } from "mirai-ts";
 import * as Config from "../types/config";
 
 export default class Sender {
@@ -86,7 +86,7 @@ export default class Sender {
           messageList
         );
       } catch (err) {
-        log.error("发送失败：可能是由于 mirai 私聊暂不支持长文本");
+        this.bot.logger.error("发送失败：可能是由于 mirai 私聊暂不支持长文本");
       }
     }
 

@@ -40,7 +40,7 @@ bot.start();
 
 So easy! Right?
 
-详细使用说明请参见 [el-bot 文档](https://docs.bot.elpsy.cn/js/)。
+详细使用说明请参见 [el-bot 文档](https://docs.bot.elpsy.cn/)。
 
 ## 升级
 

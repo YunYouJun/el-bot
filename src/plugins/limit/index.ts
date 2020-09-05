@@ -1,4 +1,4 @@
-import { MessageType, log } from "mirai-ts";
+import { MessageType } from "mirai-ts";
 import Bot from "../../bot";
 import { LimitOptions } from "./options";
 
@@ -102,7 +102,7 @@ export default function limit(ctx: Bot, options: LimitOptions) {
       ]);
       return data;
     } else {
-      log.error("好友消息发送太频繁啦！");
+      ctx.logger.error("[limit] 好友消息发送太频繁啦！");
     }
     return data;
   };
@@ -126,7 +126,7 @@ export default function limit(ctx: Bot, options: LimitOptions) {
       ]);
       return data;
     } else {
-      log.error("群消息发送太频繁啦！");
+      ctx.logger.error("[limit] 群消息发送太频繁啦！");
     }
     return data;
   };

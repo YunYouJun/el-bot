@@ -1,6 +1,5 @@
 import El from "../el";
 import Mirai, { MiraiApiHttpConfig, MiraiInstance } from "mirai-ts";
-import { log } from "mirai-ts";
 
 import Sender from "./sender";
 import User from "./user";
@@ -94,7 +93,7 @@ export default class Bot {
     } catch (err) {
       console.log(err.message);
       await sleep(3000);
-      log.warning("尝试重新连接...");
+      this.logger.warning("尝试重新连接...");
       await this.link();
     }
   }
