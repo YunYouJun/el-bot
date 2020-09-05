@@ -1,0 +1,11 @@
+{
+  "name": "limit",
+  "private": "true",
+  "version": "0.0.2",
+  "description": "限制消息频率",
+  "author": {
+    "name": "YunYouJun",
+    "url": "https://www.yunyoujun.cn",
+    "email": "me@yunyoujun.cn"
+  }
+}

@@ -91,6 +91,3 @@ export default async function teach(ctx: Bot, options: TeachOptions) {
     }
   });
 }
-
-teach.version = "0.1.0";
-teach.description = "问答学习";

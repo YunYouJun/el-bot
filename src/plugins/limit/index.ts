@@ -131,6 +131,3 @@ export default function limit(ctx: Bot, options: LimitOptions) {
     return data;
   };
 }
-
-limit.version = "0.0.1";
-limit.description = "限制消息频率";

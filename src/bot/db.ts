@@ -1,6 +1,7 @@
 import Bot from ".";
 import { MongoClient } from "mongodb";
 import { dbConfig } from "../el";
+import ora from "ora";
 
 /**
  * db 配置项
@@ -12,7 +13,7 @@ export async function connectDb(bot: Bot, dbConfig: dbConfig): Promise<void> {
   const uri = dbConfig.uri || "mongodb://localhost:27017";
   const name = dbConfig.name || "el-bot";
 
-  bot.logger.info(`连接 MongoDB 数据库「${name}」...`);
+  const linkDb = ora(`连接 MongoDB 数据库「${name}」`).start();
   const client = await MongoClient.connect(uri, {
     useUnifiedTopology: true,
   }).catch((err) => {
@@ -22,7 +23,8 @@ export async function connectDb(bot: Bot, dbConfig: dbConfig): Promise<void> {
   if (!client) return;
 
   try {
-    bot.logger.success(`成功连接 MongoDB 数据库「${name}」`);
+    linkDb.succeed();
+
     bot.client = client;
     bot.db = client.db(name);
   } catch (err) {

@@ -1,0 +1,11 @@
+{
+  "name": "workflow",
+  "private": "true",
+  "version": "0.0.1",
+  "description": "工作流",
+  "author": {
+    "name": "YunYouJun",
+    "url": "https://www.yunyoujun.cn",
+    "email": "me@yunyoujun.cn"
+  }
+}

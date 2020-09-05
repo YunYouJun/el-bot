@@ -7,6 +7,8 @@ import { EventType, MessageType } from "mirai-ts";
 import Bot from "src/bot";
 import fs from "fs";
 import { parse } from "../../utils/config";
+import { exec } from "shelljs";
+import schedule from "node-schedule";
 
 interface step {
   name?: string;
@@ -28,9 +30,20 @@ type MessageAndEventType =
   | EventType.EventType
   | MessageType.ChatMessageType;
 
+/**
+ * 定时格式
+ */
+interface Schedule {
+  cron: string;
+}
+
+interface On {
+  schedule: [Schedule];
+}
+
 interface WorkflowConfig {
   name: string;
-  on: MessageAndEventType | MessageAndEventType[];
+  on: On | MessageAndEventType | MessageAndEventType[];
   jobs: Jobs;
 }
 
@@ -39,14 +52,26 @@ interface WorkflowConfig {
  */
 function createWorkflow(ctx: Bot, workflow: WorkflowConfig) {
   const mirai = ctx.mirai;
+  if (!workflow.on) return;
+
   if (Array.isArray(workflow.on)) {
     workflow.on.forEach((on) => {
       trigger(on);
     });
-  } else {
+  } else if (typeof workflow.on === "string") {
     trigger(workflow.on);
+  } else if ((workflow.on as On).schedule) {
+    (workflow.on as On).schedule.forEach((singleSchedule) => {
+      schedule.scheduleJob(singleSchedule.cron, () => {
+        doJobs(workflow.jobs);
+      });
+    });
   }
 
+  /**
+   * 触发
+   * @param type
+   */
   function trigger(type: MessageAndEventType) {
     mirai.on(type, (msg) => {
       Object.keys(workflow.jobs).forEach((name) => {
@@ -56,6 +81,20 @@ function createWorkflow(ctx: Bot, workflow: WorkflowConfig) {
             msg.reply(step.reply);
           }
         });
+      });
+    });
+  }
+
+  /**
+   * 运行 jobs 中终端命令
+   */
+  function doJobs(jobs: Jobs) {
+    Object.keys(jobs).forEach((name) => {
+      const job = jobs[name];
+      job.steps.forEach((step) => {
+        if (step.run) {
+          exec(step.run);
+        }
       });
     });
   }

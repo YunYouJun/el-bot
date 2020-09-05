@@ -5,8 +5,8 @@ import schedule from "node-schedule";
 import Parser, { CustomFields } from "rss-parser";
 
 import { MessageType, log } from "mirai-ts";
-import ElBot from "../bot";
-import Bot from "../bot";
+import ElBot from "../../bot";
+import Bot from "../../bot";
 
 interface RssConfig {
   name: string;
@@ -194,6 +194,3 @@ export default function rss(ctx: ElBot, options: RssConfig[]) {
     }
   });
 }
-
-rss.version = "0.0.1";
-rss.description = "订阅 RSS 信息";

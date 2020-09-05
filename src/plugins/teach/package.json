@@ -1,0 +1,11 @@
+{
+  "name": "teach",
+  "private": "true",
+  "version": "0.1.0",
+  "description": "问答学习（教小云做事）",
+  "author": {
+    "name": "YunYouJun",
+    "url": "https://www.yunyoujun.cn",
+    "email": "me@yunyoujun.cn"
+  }
+}
