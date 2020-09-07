@@ -4,7 +4,7 @@ import htmlToText from "html-to-text";
 import schedule from "node-schedule";
 import Parser, { CustomFields } from "rss-parser";
 
-import { MessageType, log } from "mirai-ts";
+import { MessageType } from "mirai-ts";
 import ElBot from "../../bot";
 import Bot from "../../bot";
 

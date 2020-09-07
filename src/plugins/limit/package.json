@@ -1,7 +1,7 @@
 {
   "name": "limit",
   "private": "true",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "限制消息频率",
   "author": {
     "name": "YunYouJun",

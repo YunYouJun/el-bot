@@ -1,4 +1,3 @@
-import { MessageType } from "mirai-ts";
 import Bot from "../../bot";
 import { LimitOptions } from "./options";
 
@@ -23,6 +22,7 @@ export default function limit(ctx: Bot, options: LimitOptions) {
   let count = 0;
   let startTime = new Date().getTime();
   let now = startTime;
+
   /**
    * 是否被限制
    */
@@ -31,20 +31,21 @@ export default function limit(ctx: Bot, options: LimitOptions) {
     if (now - startTime > options.interval) {
       count = 0;
       startTime = now;
-    } else if (count >= options.count) {
-      // 超过限定次数;
-      return true;
     }
-    return false;
+    return count > options.count;
   }
 
   /**
    * 发送者连续触发次数是否超过限额
    */
   let lastList: GroupList = {};
-  async function isMaxCountForSender(bot: Bot): Promise<boolean> {
-    if (!(mirai.curMsg && mirai.curMsg.type === "GroupMessage")) return false;
-    const msg: MessageType.GroupMessage = mirai.curMsg as MessageType.GroupMessage;
+  async function isMaxCountForSender(): Promise<boolean> {
+    let msg;
+    if (mirai.curMsg && mirai.curMsg.type === "GroupMessage") {
+      msg = mirai.curMsg;
+    } else {
+      return false;
+    }
 
     // 如果超过间隔时间，则重置历史记录
     now = new Date().getTime();
@@ -52,60 +53,38 @@ export default function limit(ctx: Bot, options: LimitOptions) {
       lastList = {};
     }
 
-    if (lastList[msg.sender.group.id]) {
-      if (lastList[msg.sender.group.id].lastSenderId === msg.sender.id) {
-        lastList[msg.sender.group.id].count += 1;
+    const senderId = msg.sender.id;
+    const groupId = msg.sender.group.id;
+    if (lastList[groupId]) {
+      if (lastList[groupId].lastSenderId === senderId) {
+        lastList[groupId].count += 1;
       } else {
-        lastList[msg.sender.group.id].lastSenderId = msg.sender.id;
-        lastList[msg.sender.group.id].count = 1;
+        lastList[groupId].lastSenderId = senderId;
+        lastList[groupId].count = 1;
       }
     } else {
-      lastList[msg.sender.group.id] = {
-        lastSenderId: msg.sender.id,
+      lastList[groupId] = {
+        lastSenderId: senderId,
         count: 1,
       };
     }
 
     // 同一个用户连续调用多次（不限制有机器人管理权限的人）
-    if (lastList[msg.sender.group.id].count > options.sender.maximum) {
-      lastList[msg.sender.group.id].count = 0;
-
-      // 管理员则不限制
-      if (bot.user.isAllowed(msg.sender.id)) return false;
+    if (
+      lastList[groupId].count > options.sender.maximum &&
+      !ctx.user.isAllowed(senderId)
+    ) {
+      lastList[groupId].count = 0;
 
       await msg.reply(options.sender.tooltip);
-      await mirai.api.mute(
-        msg.sender.group.id,
-        msg.sender.id,
-        options.sender.time
-      );
+      await mirai.api.mute(groupId, senderId, options.sender.time);
       return true;
     }
     return false;
   }
 
-  const sendFriendMessage = mirai.api.sendFriendMessage;
+  // 只限制群消息
   const sendGroupMessage = mirai.api.sendGroupMessage;
-
-  mirai.api.sendFriendMessage = async (messageChain, target, quote) => {
-    let data = {
-      code: -1,
-      msg: "fail",
-      messageId: 0,
-    };
-    if (!isLimited()) {
-      count += 1;
-      data = await sendFriendMessage.apply(mirai.api, [
-        messageChain,
-        target,
-        quote,
-      ]);
-      return data;
-    } else {
-      ctx.logger.error("[limit] 好友消息发送太频繁啦！");
-    }
-    return data;
-  };
 
   mirai.api.sendGroupMessage = async (messageChain, target, quote) => {
     let data = {
@@ -114,7 +93,7 @@ export default function limit(ctx: Bot, options: LimitOptions) {
       messageId: 0,
     };
 
-    const isMax = await isMaxCountForSender(ctx);
+    const isMax = await isMaxCountForSender();
     if (isMax) return data;
 
     if (!isLimited()) {

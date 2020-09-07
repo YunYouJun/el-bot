@@ -15,6 +15,10 @@ export interface dbConfig {
    * 数据库名
    */
   name?: string;
+  /**
+   * 是否进行统计分析
+   */
+  analytics?: Boolean;
 }
 
 export default class El {

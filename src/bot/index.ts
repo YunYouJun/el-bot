@@ -10,7 +10,7 @@ import cac, { CAC } from "cac";
 import { sleep, statement } from "../utils/misc";
 import { Logger } from "./logger";
 import { Db, MongoClient } from "mongodb";
-import { connectDb } from "./db";
+import { connectDb } from "../db";
 import chalk from "chalk";
 
 interface PackageJson {

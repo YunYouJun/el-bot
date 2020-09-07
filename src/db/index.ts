@@ -1,11 +1,8 @@
-import Bot from ".";
+import Bot from "../bot";
 import { MongoClient } from "mongodb";
 import { dbConfig } from "../el";
 import ora from "ora";
-
-/**
- * db 配置项
- */
+import { analytics } from "./analytics";
 
 export async function connectDb(bot: Bot, dbConfig: dbConfig): Promise<void> {
   if (!dbConfig.enable) return;
@@ -29,5 +26,10 @@ export async function connectDb(bot: Bot, dbConfig: dbConfig): Promise<void> {
     bot.db = client.db(name);
   } catch (err) {
     bot.logger.error(err.message);
+  }
+
+  // 分析统计
+  if (dbConfig.analytics) {
+    analytics(bot);
   }
 }
