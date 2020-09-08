@@ -68,6 +68,6 @@
     // custom
     "resolveJsonModule": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "src/plugins/**/package.json"],
   "exclude": ["node_modules", "**/*.spec.ts"]
 }
