@@ -1,6 +1,6 @@
 import Mirai, { MessageType, EventType } from "mirai-ts";
-import ElBot from "../bot";
-import * as Config from "../types/config";
+import ElBot from "../../bot";
+import * as Config from "../../types/config";
 
 interface ForwardConfig {
   listen: Config.Listen;
@@ -30,7 +30,7 @@ function recallByList(
   }
 }
 
-export default function forward(ctx: ElBot) {
+export default function (ctx: ElBot) {
   const mirai = ctx.mirai;
   const config = ctx.el.config;
   /**
@@ -72,6 +72,3 @@ export default function forward(ctx: ElBot) {
     recallByList(mirai, msg, allMessageList);
   });
 }
-
-forward.version = "0.0.1";
-forward.description = "消息转发";

@@ -3,6 +3,7 @@ import { MongoClient } from "mongodb";
 import { dbConfig } from "../el";
 import ora from "ora";
 import { analytics } from "./analytics";
+import users from "./users";
 
 export async function connectDb(bot: Bot, dbConfig: dbConfig): Promise<void> {
   if (!dbConfig.enable) return;
@@ -27,6 +28,9 @@ export async function connectDb(bot: Bot, dbConfig: dbConfig): Promise<void> {
   } catch (err) {
     bot.logger.error(err.message);
   }
+
+  // 初始化用户信息表
+  await users(bot);
 
   // 分析统计
   if (dbConfig.analytics) {

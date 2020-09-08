@@ -5,14 +5,9 @@ import { displayList } from "./utils";
 
 // implement the autoloadback referenced in loki constructor
 export default async function teach(ctx: Bot, options: TeachOptions) {
-  if (!ctx.db) {
-    ctx.logger.error("[teach] 您必须先启用数据库。");
-    return;
-  }
+  if (!ctx.db) return;
 
-  const db = ctx.db;
-  const mirai = ctx.mirai;
-
+  const { db, mirai } = ctx;
   const teach = db.collection("teach");
 
   // 初始化 collection 结构

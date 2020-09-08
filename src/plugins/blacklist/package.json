@@ -1,8 +1,8 @@
 {
-  "name": "teach",
+  "name": "blacklist",
   "private": "true",
-  "version": "0.1.0",
-  "description": "问答学习（教小云做事）",
+  "version": "0.0.1",
+  "description": "黑名单",
   "el-bot": {
     "db": true
   },

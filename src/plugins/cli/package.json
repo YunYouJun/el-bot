@@ -1,11 +1,8 @@
 {
-  "name": "teach",
+  "name": "cli",
   "private": "true",
-  "version": "0.1.0",
-  "description": "问答学习（教小云做事）",
-  "el-bot": {
-    "db": true
-  },
+  "version": "0.0.2",
+  "description": "交互终端",
   "author": {
     "name": "YunYouJun",
     "url": "https://www.yunyoujun.cn",

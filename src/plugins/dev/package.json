@@ -1,11 +1,8 @@
 {
-  "name": "teach",
+  "name": "dev",
   "private": "true",
-  "version": "0.1.0",
-  "description": "问答学习（教小云做事）",
-  "el-bot": {
-    "db": true
-  },
+  "version": "0.0.1",
+  "description": "开发输出",
   "author": {
     "name": "YunYouJun",
     "url": "https://www.yunyoujun.cn",

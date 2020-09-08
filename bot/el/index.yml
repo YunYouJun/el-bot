@@ -3,6 +3,7 @@ plugins:
     # - dev
     - rss
     - answer
+    - blacklist
     - cli
     - limit
     - forward

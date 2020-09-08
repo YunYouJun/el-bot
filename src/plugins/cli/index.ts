@@ -73,7 +73,7 @@ interface CliOptions {
   jobs: Job[];
 }
 
-export default function cli(ctx: Bot, options: CliOptions) {
+export default function (ctx: Bot, options: CliOptions) {
   const Cli = ctx.cli;
   const mirai = ctx.mirai;
   const config = ctx.el.config;
@@ -204,6 +204,3 @@ export default function cli(ctx: Bot, options: CliOptions) {
     }
   });
 }
-
-cli.version = "0.0.2";
-cli.description = "交互终端";

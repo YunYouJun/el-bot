@@ -72,20 +72,7 @@ export async function analytics(bot: Bot) {
   }
 
   const { db, mirai } = bot;
-  const analytics = db.collection("analytics");
-
-  // 初始化 collection 结构
-  if ((await analytics.find().count()) === 0) {
-    analytics.createIndex(
-      {
-        qq: 1,
-      },
-      {
-        unique: true,
-      }
-    );
-    bot.logger.success("[analytics] 新建 Collection: analytics");
-  }
+  const analytics = db.collection("users");
 
   const sendGroupMessage = mirai.api.sendGroupMessage;
   // 重载消息发送函数

@@ -1,8 +1,8 @@
-import { renderString } from "../utils/index";
+import { renderString } from "../../utils/index";
 import { MessageType, check } from "mirai-ts";
-import Bot from "../bot";
+import Bot from "../../bot";
 import axios from "axios";
-import * as Config from "../types/config";
+import * as Config from "../../types/config";
 import nodeSchdule from "node-schedule";
 
 interface BaseAnswerOptions extends check.Match {
@@ -62,7 +62,7 @@ async function renderStringByApi(
 
 type AnswerOptions = BaseAnswerOptions[];
 
-export default function answer(ctx: Bot, options: AnswerOptions) {
+export default function (ctx: Bot, options: AnswerOptions) {
   const mirai = ctx.mirai;
   if (!options) return;
 
@@ -110,6 +110,3 @@ export default function answer(ctx: Bot, options: AnswerOptions) {
     }
   });
 }
-
-answer.version = "0.0.3";
-answer.description = "自动应答";
