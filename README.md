@@ -56,6 +56,8 @@ npm install el-bot@latest
 
 请勿将其用于商业或非法用途。
 
+### [与 koishi 的区别](https://docs.bot.elpsy.cn/about.html#与-koishi-的区别)
+
 ## 相关项目
 
 - [el-bot](https://github.com/YunYouJun/el-bot)：机器人主体
