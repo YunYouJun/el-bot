@@ -1,30 +1,38 @@
 import http from "http";
 import createHandler from "github-webhook-handler";
-import { resolve } from "path";
 import { log } from "mirai-ts";
 import shell from "shelljs";
 
-export function startWebhook() {
+interface WebhookConfig {
+  port?: number;
+  path?: string;
+  secret?: string;
+  /**
+   * 回调函数
+   */
+  callback?: (handler: any) => {};
+}
+
+/**
+ * 启动 webhhook
+ * @param cb
+ */
+export function startWebhook(webhook?: WebhookConfig) {
   // 默认配置
-  let el = {
-    webhook: {
-      port: 7777,
-      path: "/webhook",
-      secret: "el-psy-congroo",
-    },
+  const defaultConfig = {
+    port: 7777,
+    path: "/webhook",
+    secret: "el-psy-congroo",
   };
 
-  // 获取配置
-  try {
-    el = require(resolve(process.cwd(), "../el"));
-  } catch {
+  if (!webhook) {
+    webhook = defaultConfig;
     log.info("当前使用默认配置");
   }
 
-  const webhook = el.webhook;
   const handler = createHandler({
-    path: webhook.path,
-    secret: webhook.secret,
+    path: webhook.path || "/webhook",
+    secret: webhook.secret || "el-psy-congroo",
   });
 
   // 启动监听
@@ -59,6 +67,11 @@ export function startWebhook() {
       shell.exec("yarn");
     }
   });
+
+  // 执行回调函数
+  if (webhook.callback) {
+    webhook.callback(handler);
+  }
 
   // no issues
   // handler.on("issues", function (event) {

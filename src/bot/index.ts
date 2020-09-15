@@ -1,17 +1,22 @@
 import El from "../el";
-import Mirai, { MiraiApiHttpConfig, MiraiInstance } from "mirai-ts";
+import Mirai, {
+  MessageType,
+  MiraiApiHttpConfig,
+  MiraiInstance,
+} from "mirai-ts";
 
 import Sender from "./sender";
 import User from "./user";
 import Status from "./status";
 import Plugins from "./plugins";
-import cac, { CAC } from "cac";
+import Logger from "./logger";
+import { initCli } from "./cli";
 
 import { sleep, statement } from "../utils/misc";
-import { Logger } from "./logger";
 import { Db, MongoClient } from "mongodb";
 import { connectDb } from "../db";
 import chalk from "chalk";
+import commander from "commander";
 
 interface PackageJson {
   name: string;
@@ -52,11 +57,15 @@ export default class Bot {
   /**
    * 指令系统
    */
-  cli: CAC;
+  cli: commander.Command;
   /**
    * 日志系统
    */
   logger: Logger;
+  /**
+   * 是否开发模式下
+   */
+  isDev: boolean;
   constructor(el: El) {
     this.el = new El(el);
     const setting = this.el.setting;
@@ -74,7 +83,21 @@ export default class Bot {
     this.sender = new Sender(this);
     this.plugins = new Plugins(this);
     this.logger = new Logger();
-    this.cli = cac("el");
+    this.cli = initCli(this, "el");
+
+    this.isDev = process.env.NODE_ENV === "dev";
+  }
+
+  /**
+   * 机器人当前消息 快捷回复
+   */
+  reply(msgChain: string | MessageType.MessageChain, quote = false) {
+    if (this.mirai.curMsg && this.mirai.curMsg.reply) {
+      return this.mirai.curMsg.reply(msgChain, quote);
+    } else {
+      this.logger.error("当前消息不存在");
+      return false;
+    }
   }
 
   /**
@@ -91,7 +114,7 @@ export default class Bot {
     try {
       await this.mirai.link(this.el.qq);
     } catch (err) {
-      console.log(err.message);
+      this.logger.error(err.message);
       await sleep(3000);
       this.logger.warning("尝试重新连接...");
       await this.link();
@@ -103,7 +126,9 @@ export default class Bot {
    * @param callback 回调函数
    */
   async start(callback?: Function) {
-    statement(this);
+    if (!this.isDev) {
+      statement(this);
+    }
 
     // 链接 QQ
     if (!this.el.qq) {

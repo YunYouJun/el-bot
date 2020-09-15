@@ -156,27 +156,19 @@ function triggerRss(ctx: ElBot, options: RssConfig[]) {
   return content;
 }
 
-export default function rss(ctx: ElBot, options: RssConfig[]) {
+export default function (ctx: ElBot, options: RssConfig[]) {
   const config = ctx.el.config;
-  const mirai = ctx.mirai;
+  const { cli, mirai } = ctx;
+  const rssOptions = options;
 
-  // 初始化定时
-  if (config.rss) {
-    config.rss.forEach((rssConfig: RssConfig) => {
-      const rss = new Rss(ctx, rssConfig);
-      rss.init();
-    });
-  }
-
-  // 监听消息命令
-  mirai.on("message", (msg: MessageType.ChatMessage) => {
-    if (
-      msg.plain === "rss" &&
-      config.rss &&
-      ctx.user.isAllowed(msg.sender.id)
-    ) {
-      const content = triggerRss(ctx, options);
-      if ((msg as MessageType.GroupMessage).sender.group) {
+  cli
+    .command("rss")
+    .option("-l, --list", "订阅列表", "current")
+    .action((options) => {
+      const content = triggerRss(ctx, rssOptions);
+      const msg = mirai.curMsg as MessageType.GroupMessage;
+      if (options.list === "current" && msg.sender.group) {
+        // 列出当前群 rss 订阅
         let rssList = "";
         let count = 0;
         config.rss.forEach((rssConfig: RssConfig) => {
@@ -190,9 +182,19 @@ export default function rss(ctx: ElBot, options: RssConfig[]) {
         } else {
           msg.reply("本群尚未订阅 RSS");
         }
-      } else {
-        msg.reply(content);
+      } else if (options.list === "all") {
+        // 列出所有 rss 订阅
+        if (ctx.user.isAllowed(msg.sender.id, true)) {
+          msg.reply(content);
+        }
       }
-    }
-  });
+    });
+
+  // 初始化定时
+  if (config.rss) {
+    config.rss.forEach((rssConfig: RssConfig) => {
+      const rss = new Rss(ctx, rssConfig);
+      rss.init();
+    });
+  }
 }

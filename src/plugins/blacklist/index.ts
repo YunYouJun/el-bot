@@ -1,7 +1,6 @@
 import ElBot from "src/bot";
 import { MessageAndEvent } from "mirai-ts/dist/mirai";
-import { isMessage } from "mirai-ts/dist/utils/check";
-import { MessageType } from "mirai-ts";
+import { MessageType, check } from "mirai-ts";
 import { displayList } from "./utils";
 
 export default async function (ctx: ElBot) {
@@ -19,7 +18,7 @@ export default async function (ctx: ElBot) {
   });
 
   mirai.beforeListener.push((msg: MessageAndEvent) => {
-    if (isMessage(msg) && blacklist.includes(msg.sender.id)) {
+    if (check.isChatMessage(msg) && blacklist.includes(msg.sender.id)) {
       mirai.active = false;
     } else {
       mirai.active = true;

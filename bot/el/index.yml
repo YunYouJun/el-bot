@@ -4,13 +4,13 @@ plugins:
     - rss
     - answer
     - blacklist
-    - cli
+    # - cli
     - limit
     - forward
     - teach
     - workflow
   official:
-    - search-image
+    # - search-image
     # - niubi
 
 # default use mongodb

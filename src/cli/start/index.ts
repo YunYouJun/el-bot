@@ -1,4 +1,3 @@
-import { CAC } from "cac";
 import { resolve } from "path";
 import shell from "shelljs";
 import fs from "fs";
@@ -6,6 +5,7 @@ import { log } from "mirai-ts";
 import { spawn } from "child_process";
 import glob from "glob";
 import { startWebhook } from "./webhook";
+import commander from "commander";
 const pkg = require(getAbsolutePath("./package.json"));
 
 /**
@@ -80,7 +80,7 @@ function startMirai(folder?: string) {
   });
 }
 
-export default function (cli: CAC) {
+export default function (cli: commander.Command) {
   // 启动
   cli
     .command("start [project]", "启动 el-bot")
@@ -99,7 +99,8 @@ export default function (cli: CAC) {
       } else if (project === "mirai") {
         startMirai(options.folder);
       } else if (project === "webhook") {
-        startWebhook();
+        const { webhook } = require(resolve(process.cwd(), "../el"));
+        startWebhook(webhook);
       } else {
         log.error("你在教我做事？");
       }

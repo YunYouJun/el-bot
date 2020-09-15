@@ -2,13 +2,13 @@
 
 import registerInstallCommand from "./install";
 import registerStartCommand from "./start";
-import CAC from "cac";
+import commander from "commander";
 // import registerRunCommand from "./run";
 
 import { spawn } from "child_process";
 
 const { version } = require("../../package");
-const cli = CAC("el");
+const cli = new commander.Command("el");
 cli.help();
 cli.version(version);
 

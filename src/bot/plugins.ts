@@ -8,14 +8,14 @@ export interface Plugin {
   description: string;
 }
 
-export type PluginType = "default" | "official" | "community" | "custom";
-
-const PluginTypeMap = {
+export const PluginTypeMap = {
   default: "默认插件",
   official: "官方插件",
   community: "社区插件",
   custom: "自定义插件",
 };
+
+export type PluginType = "default" | "official" | "community" | "custom";
 
 export default class Plugins {
   default: Plugin[];
@@ -154,9 +154,10 @@ export default class Plugins {
    * @param type 插件类型
    */
   list(type: PluginType) {
-    let content = `无${PluginTypeMap[type]}\n`;
+    const pluginTypeName = PluginTypeMap[type];
+    let content = `无${pluginTypeName}\n`;
     if (this[type].length > 0) {
-      content = PluginTypeMap[type] + ":\n";
+      content = pluginTypeName + ":\n";
       this[type].forEach((plugin: Plugin) => {
         content += `- ${plugin.name}@${plugin.version}: ${plugin.description}\n`;
       });

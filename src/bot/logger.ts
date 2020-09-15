@@ -3,7 +3,7 @@ import chalk from "chalk";
 /**
  * 辅助工具，输出彩色控制台信息。
  */
-export class Logger {
+export default class Logger {
   /**
    * 输出成功信息（绿色）
    * @param msg 文本

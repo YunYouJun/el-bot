@@ -1,10 +1,10 @@
-import { CAC } from "cac";
 import inquirer from "inquirer";
 import { log } from "mirai-ts";
 import Repo from "./repo";
 import shell from "shelljs";
+import commander from "commander";
 
-export default function (cli: CAC) {
+export default function (cli: commander.Command) {
   cli
     .command("install [project]", "安装依赖")
     .alias("i")
