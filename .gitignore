@@ -3,6 +3,7 @@ tmp
 *.out
 .vscode
 .idea
+docs
 
 # mirai
 mirai

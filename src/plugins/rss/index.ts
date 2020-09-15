@@ -163,7 +163,7 @@ export default function (ctx: ElBot, options: RssConfig[]) {
 
   cli
     .command("rss")
-    .option("-l, --list", "订阅列表", "current")
+    .option("-l, --list <type>", "订阅列表", "current")
     .action((options) => {
       const content = triggerRss(ctx, rssOptions);
       const msg = mirai.curMsg as MessageType.GroupMessage;

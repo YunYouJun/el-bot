@@ -1,6 +1,6 @@
 {
   "name": "el-bot",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "A quick qq bot framework for mirai.",
   "main": "dist/index.js",
   "files": [
@@ -15,6 +15,7 @@
   "scripts": {
     "build": "yarn clean && tsc",
     "build:mirai-ts": "cd packages/mirai-ts && yarn build",
+    "build:docs": "typedoc --includeDeclarations --excludeExternals",
     "clean": "rm -rf dist",
     "bot": "ts-node bot/index.ts",
     "dev": "npm-run-all --parallel dev:*",
