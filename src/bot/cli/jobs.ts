@@ -62,23 +62,27 @@ export function initProgram(ctx: Bot, options: CliOptions, qq: number) {
   const program = ctx.cli;
 
   // 任务
-  program.command("jobs", "任务列表").action(async () => {
-    if (!ctx.user.isAllowed(qq, true)) {
-      return;
-    }
-
-    let content = "任务列表：";
-    options.jobs.forEach((job: Job) => {
-      if (job.name) {
-        content += "\n- " + job.name;
+  program
+    .command("jobs")
+    .description("任务列表")
+    .action(async () => {
+      if (!ctx.user.isAllowed(qq, true)) {
+        return;
       }
+
+      let content = "任务列表：";
+      options.jobs.forEach((job: Job) => {
+        if (job.name) {
+          content += "\n- " + job.name;
+        }
+      });
+      ctx.reply(content);
     });
-    ctx.reply(content);
-  });
 
   // 自定义任务
   program
-    .command("run <name>", "运行自定义任务")
+    .command("run <name>")
+    .description("运行自定义任务")
     .action(async (name: string) => {
       if (!ctx.user.isAllowed(qq, true)) {
         return;
@@ -90,12 +94,15 @@ export function initProgram(ctx: Bot, options: CliOptions, qq: number) {
     });
 
   // 重启 el-bot
-  program.command("restart", "重启 el-bot").action(async () => {
-    if (!ctx.user.isAllowed(qq, true)) {
-      return;
-    }
+  program
+    .command("restart")
+    .description("重启 el-bot")
+    .action(async () => {
+      if (!ctx.user.isAllowed(qq, true)) {
+        return;
+      }
 
-    await ctx.reply("重启 el-bot");
-    shell.exec("touch index.js");
-  });
+      await ctx.reply("重启 el-bot");
+      shell.exec("touch index.js");
+    });
 }

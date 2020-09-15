@@ -6,7 +6,8 @@ import commander from "commander";
 
 export default function (cli: commander.Command) {
   cli
-    .command("install [project]", "安装依赖")
+    .command("install [project]")
+    .description("安装依赖")
     .alias("i")
     .action((project: string) => {
       if (project === "mirai") {

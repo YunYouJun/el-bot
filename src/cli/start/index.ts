@@ -83,7 +83,8 @@ function startMirai(folder?: string) {
 export default function (cli: commander.Command) {
   // 启动
   cli
-    .command("start [project]", "启动 el-bot")
+    .command("start [project]")
+    .description("启动 el-bot")
     .option("-f --folder", "mirai 所在目录")
     .action((project, options) => {
       if (!project) {
@@ -102,7 +103,7 @@ export default function (cli: commander.Command) {
         const { webhook } = require(resolve(process.cwd(), "../el"));
         startWebhook(webhook);
       } else {
-        log.error("你在教我做事？");
+        console.error("不存在该指令");
       }
     });
 }
