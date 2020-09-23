@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import Bot from "../../bot";
 import schedule from "node-schedule";
-import { ChatMessage } from "mirai-ts/dist/types/message-type";
+import { MessageType } from "mirai-ts";
 
 interface Memo {
   time: string | Date;
@@ -9,6 +9,14 @@ interface Memo {
    * 内容
    */
   content: string;
+  /**
+   * 群
+   */
+  group?: number;
+  /**
+   * 好友
+   */
+  friend?: number;
 }
 
 /**
@@ -34,7 +42,8 @@ function initCollection(ctx: Bot) {
   });
 
   memos.forEach((memo: Memo) => {
-    addSchedule(ctx, memo.time, memo.content);
+    console.log(memo);
+    addSchedule(ctx, memo);
   });
 
   return memos;
@@ -112,8 +121,19 @@ function initCli(ctx: Bot) {
         } else {
           time = options.time.join(" ");
         }
-        addSchedule(ctx, time, content);
-        addMemo(ctx, time, content);
+
+        const memo: Memo = {
+          time,
+          content,
+        };
+        const msg = ctx.mirai.curMsg as MessageType.ChatMessage;
+        memo.friend = msg.sender.id;
+        if ((msg as MessageType.GroupMessage).sender.group) {
+          memo.group = (msg as MessageType.GroupMessage).sender.group.id;
+        }
+
+        addSchedule(ctx, memo);
+        addMemoForDb(ctx, memo);
         ctx.reply(`好的，我将在 ${time} 提醒你 ${content}。`);
       }
     });
@@ -125,11 +145,16 @@ function initCli(ctx: Bot) {
  * @param time
  * @param content
  */
-function addSchedule(ctx: Bot, time: string | Date, content: string) {
-  const msg = ctx.mirai.curMsg;
-  schedule.scheduleJob(time, () => {
-    if (msg) {
-      (msg as ChatMessage).reply(content);
+function addSchedule(ctx: Bot, memo: Memo) {
+  const { mirai } = ctx;
+  const msg = mirai.curMsg;
+  schedule.scheduleJob(memo.time, () => {
+    if (memo.group) {
+      mirai.api.sendGroupMessage(memo.content, memo.group);
+    } else if (memo.friend) {
+      mirai.api.sendFriendMessage(memo.content, memo.friend);
+    } else if (msg) {
+      (msg as MessageType.ChatMessage).reply(memo.content);
     }
   });
 }
@@ -137,16 +162,12 @@ function addSchedule(ctx: Bot, time: string | Date, content: string) {
 /**
  * 添加备忘
  * @param ctx
- * @param time
- * @param content
+ * @param memo
  */
-function addMemo(ctx: Bot, time: string | Date, content: string) {
+function addMemoForDb(ctx: Bot, memo: Memo) {
   if (!ctx.db) return;
   const memosCollection = ctx.db.collection("memos");
-  memosCollection.insertOne({
-    time,
-    content,
-  });
+  memosCollection.insertOne(memo);
 }
 
 export default function (ctx: Bot) {
