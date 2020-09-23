@@ -9,6 +9,7 @@ plugins:
     - forward
     - teach
     - workflow
+    - memo
   official:
     # - search-image
     # - niubi

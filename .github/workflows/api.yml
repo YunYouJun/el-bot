@@ -1,4 +1,4 @@
-name: docs
+name: api
 on:
   push:
     branches:

@@ -1,6 +1,7 @@
 # el-bot
 
 [![docs](https://github.com/ElpsyCN/el-bot-docs/workflows/docs/badge.svg)](https://docs.bot.elpsy.cn/)
+[![api](https://github.com/YunYouJun/el-bot/workflows/api/badge.svg)](https://www.yunyoujun.cn/el-bot/)
 [![npm](https://img.shields.io/npm/v/el-bot?logo=npm)](https://www.npmjs.com/package/el-bot)
 [![GitHub package.json dependency version (prod)](https://img.shields.io/github/package-json/dependency-version/YunYouJun/el-bot/mirai-ts?logo=typescript)](https://github.com/YunYouJun/mirai-ts)
 [![QQ Group](https://img.shields.io/badge/QQ%20Group-707408530-12B7F5?logo=tencent-qq)](https://shang.qq.com/wpa/qunwpa?idkey=5b0eef3e3256ce23981f3b0aa2457175c66ca9194efd266fd0e9a7dbe43ed653)

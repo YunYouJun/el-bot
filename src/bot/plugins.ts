@@ -113,7 +113,9 @@ export default class Plugins {
    */
   isBasedOnDb(pkg: any): boolean {
     if (pkg["el-bot"] && pkg["el-bot"].db && !this.bot.db) {
-      this.bot.logger.error(`[${pkg.name}] 您须先启用数据库。`);
+      this.bot.logger.warning(
+        `[${pkg.name}] 如想要使用该插件，您须先启用数据库。`
+      );
       return true;
     }
     return false;

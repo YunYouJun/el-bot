@@ -12,7 +12,7 @@ export = {
     enableWebsocket: true,
   },
   db: {
-    enable: false,
+    enable: process.env.EL_DB_ENABLE === "true",
     uri: process.env.BOT_DB_URI,
     analytics: true,
   },
