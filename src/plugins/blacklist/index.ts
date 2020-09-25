@@ -1,6 +1,6 @@
 import ElBot from "src/bot";
 import { MessageAndEvent } from "mirai-ts/dist/mirai";
-import { MessageType, check } from "mirai-ts";
+import { check } from "mirai-ts";
 import { displayList } from "./utils";
 
 export default async function (ctx: ElBot) {
@@ -29,10 +29,11 @@ export default async function (ctx: ElBot) {
   // 显示当前已有的黑名单
   ctx.cli
     .command("blacklist")
+    .description("黑名单")
     .option("-l, --list", "当前列表")
     .action(async (options) => {
       if (options.list) {
-        (mirai.curMsg as MessageType.ChatMessage).reply(displayList(blacklist));
+        ctx.reply(displayList(blacklist));
       }
     });
 

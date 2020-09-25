@@ -163,6 +163,7 @@ export default function (ctx: ElBot, options: RssConfig[]) {
 
   cli
     .command("rss")
+    .description("RSS 订阅")
     .option("-l, --list <type>", "订阅列表", "current")
     .action((options) => {
       const content = triggerRss(ctx, rssOptions);

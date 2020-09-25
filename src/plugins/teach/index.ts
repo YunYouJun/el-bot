@@ -28,10 +28,11 @@ export default async function teach(ctx: Bot, options: TeachOptions) {
   // 显示当前已有的问答列表
   ctx.cli
     .command("teach")
+    .description("问答教学")
     .option("-l, --list", "当前列表")
     .action(async (options) => {
       if (options.list) {
-        (mirai.curMsg as MessageType.ChatMessage).reply(displayList(teach));
+        ctx.reply(displayList(teach));
       }
     });
 

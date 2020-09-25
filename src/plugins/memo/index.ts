@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import Bot from "../../bot";
 import schedule from "node-schedule";
 import { MessageType } from "mirai-ts";
+import { parseTime, checkTime } from "./utils";
 
 interface Memo {
   time: string | Date;
@@ -42,30 +43,10 @@ function initCollection(ctx: Bot) {
   });
 
   memos.forEach((memo: Memo) => {
-    console.log(memo);
     addSchedule(ctx, memo);
   });
 
   return memos;
-}
-
-const timeRegExp = new RegExp("^([0-9]+d)?([0-9]+h)?([0-9]+m)?$", "i");
-
-/**
- * 解析时间
- * @param time example: 1d23h50m
- */
-function parseTime(time: string) {
-  const matches = timeRegExp.exec(time);
-  if (matches) {
-    return {
-      day: parseInt(matches[1]) || 0,
-      hour: parseInt(matches[2]) || 0,
-      minute: parseInt(matches[3]) || 0,
-    };
-  } else {
-    return null;
-  }
 }
 
 /**
@@ -102,28 +83,33 @@ function initCli(ctx: Bot) {
       }
 
       if (options.time && options.content) {
-        let time;
+        let time = dayjs();
         const content = options.content.join(" ");
         if (options.time.length === 1) {
-          time = parseTime(options.time);
-          if (time) {
+          const delay = parseTime(options.time);
+          if (delay) {
             time = dayjs()
-              .add(time.day, "day")
-              .add(time.hour, "hour")
-              .add(time.minute, "minute")
-              .toDate();
+              .add(delay.day, "day")
+              .add(delay.hour, "hour")
+              .add(delay.minute, "minute");
           } else {
-            ctx.reply("格式不正确");
+            ctx.reply("无法解析正确的定时，示例：1d1h1m");
             return;
           }
         } else if (options.time.length === 2) {
-          time = dayjs(time, "YYYY-MM-DD HH:mm-ss").toDate();
+          time = dayjs(time, "YYYY-MM-DD HH:mm-ss");
         } else {
-          time = options.time.join(" ");
+          ctx.reply("格式不正确");
+          return;
+        }
+
+        if (!checkTime(time.toDate())) {
+          ctx.reply("时间期限不得超过一年");
+          return;
         }
 
         const memo: Memo = {
-          time,
+          time: time.toDate(),
           content,
         };
         const msg = ctx.mirai.curMsg as MessageType.ChatMessage;
@@ -134,7 +120,11 @@ function initCli(ctx: Bot) {
 
         addSchedule(ctx, memo);
         addMemoForDb(ctx, memo);
-        ctx.reply(`好的，我将在 ${time} 提醒你 ${content}。`);
+        ctx.reply(
+          `好的，我将在 ${time.format(
+            "YYYY-MM-DD ddd HH:mm:ss"
+          )} 提醒你 ${content}。`
+        );
       }
     });
 }
