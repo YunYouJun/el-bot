@@ -97,7 +97,8 @@ function initCli(ctx: Bot) {
             return;
           }
         } else if (options.time.length === 2) {
-          time = dayjs(time, "YYYY-MM-DD HH:mm-ss");
+          // 从格式解析时间
+          time = dayjs(time, "YYYY-MM-DD HH:mm:ss");
         } else {
           ctx.reply("格式不正确");
           return;
@@ -163,7 +164,7 @@ function addMemoForDb(ctx: Bot, memo: Memo) {
 export default function (ctx: Bot) {
   if (!ctx.db) {
     ctx.logger.warning(
-      "[memo] 因为你尚未开启数据库时，备注信息将会在机器人重启后丢失。"
+      "[memo] 因为你尚未开启数据库，备注信息将会在机器人重启后丢失。"
     );
   }
   // init collection

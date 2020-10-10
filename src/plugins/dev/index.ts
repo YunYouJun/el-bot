@@ -7,6 +7,7 @@ export default async function (ctx: ElBot) {
 
   console.log("on message");
   mirai.on("message", (msg) => {
+    // msg.reply(msg.plain);
     console.log(msg);
   });
 }

@@ -1,6 +1,6 @@
 plugins:
   default:
-    # - dev
+    - dev
     - rss
     - answer
     - blacklist
