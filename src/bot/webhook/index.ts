@@ -88,9 +88,8 @@ export default class Webhook {
    * @param callback 回调函数
    */
   on(type: string, callback: Function) {
-    this.emitter.on(type, () => {
-      console.log("callback");
-      callback(this);
+    this.emitter.on(type, (data) => {
+      callback(data);
     });
   }
 }

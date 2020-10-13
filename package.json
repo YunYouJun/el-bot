@@ -1,6 +1,6 @@
 {
   "name": "el-bot",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "A quick qq bot framework for mirai.",
   "main": "dist/index.js",
   "files": [
