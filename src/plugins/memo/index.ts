@@ -98,7 +98,7 @@ function initCli(ctx: Bot) {
           }
         } else if (options.time.length === 2) {
           // 从格式解析时间
-          time = dayjs(time, "YYYY-MM-DD HH:mm:ss");
+          time = dayjs(options.time.join(" "), "YYYY-MM-DD HH:mm:ss");
         } else {
           ctx.reply("格式不正确");
           return;

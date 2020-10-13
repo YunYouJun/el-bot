@@ -1,6 +1,6 @@
 plugins:
   default:
-    - dev
+    # - dev
     - rss
     - answer
     - blacklist
@@ -13,10 +13,8 @@ plugins:
   official:
     # - search-image
     # - niubi
-
-# default use mongodb
-db:
-  enable: true
+  custom:
+    - ./bot/test/webhook
 
 answer:
   - is: 在吗

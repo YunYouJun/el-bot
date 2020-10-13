@@ -17,4 +17,10 @@ export = {
     analytics: true,
   },
   config: utils.config.parse(resolve(__dirname, "./index.yml")),
+  webhook: {
+    enable: true,
+    path: "/webhook",
+    port: 7777,
+    secret: "el-psy-congroo",
+  },
 };

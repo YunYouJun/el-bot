@@ -10,6 +10,7 @@ import User from "./user";
 import Status from "./status";
 import Plugins from "./plugins";
 import Logger from "./logger";
+import Webhook from "./webhook";
 import { initCli } from "./cli";
 
 import { sleep, statement } from "../utils/misc";
@@ -62,6 +63,7 @@ export default class Bot {
    * 日志系统
    */
   logger: Logger;
+  webhook: Webhook;
   /**
    * 是否开发模式下
    */
@@ -83,6 +85,7 @@ export default class Bot {
     this.sender = new Sender(this);
     this.plugins = new Plugins(this);
     this.logger = new Logger();
+    this.webhook = new Webhook(this);
     this.cli = initCli(this, "el");
 
     this.isDev = process.env.NODE_ENV === "dev";
@@ -152,6 +155,9 @@ export default class Bot {
     this.plugins.load("custom");
 
     callback ? this.mirai.listen(callback) : this.mirai.listen();
+
+    // 启动 webhook
+    this.webhook.start();
 
     // 推出信息
     process.on("exit", () => {

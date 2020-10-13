@@ -4,7 +4,6 @@ import fs from "fs";
 import { log } from "mirai-ts";
 import { spawn } from "child_process";
 import glob from "glob";
-import { startWebhook } from "./webhook";
 import commander from "commander";
 const pkg = require(getAbsolutePath("./package.json"));
 
@@ -99,9 +98,6 @@ export default function (cli: commander.Command) {
         startBot();
       } else if (project === "mirai") {
         startMirai(options.folder);
-      } else if (project === "webhook") {
-        const { webhook } = require(resolve(process.cwd(), "../el"));
-        startWebhook(webhook);
       } else {
         console.error("不存在该指令");
       }
