@@ -2,6 +2,7 @@ import Bot from "..";
 import { log } from "mirai-ts";
 import { initGitHubHandler } from "./handler";
 import Koa from "koa";
+import cors from "@koa/cors";
 import bodyParser from "koa-bodyparser";
 import events from "events";
 
@@ -46,6 +47,7 @@ export default class Webhook {
     }
 
     const app = new Koa();
+    app.use(cors());
     app.use(bodyParser());
     app.use((ctx) => {
       ctx.body = ctx.request.body;
@@ -55,7 +57,7 @@ export default class Webhook {
     });
     app.listen(this.config.port);
 
-    log.success(`Webhook Listening ${this.config.path}:${this.config.port}`);
+    log.success(`Webhook Listening localhost:${this.config.port}`);
 
     // 执行回调函数
     if (this.config.callback) {
@@ -76,7 +78,7 @@ export default class Webhook {
       type = ctx.request.body.type;
       this.emitter.emit(type, ctx.request.body);
 
-      log.info(`[webhook] ${type}, ${ctx.request.body}`);
+      log.info(`[webhook] ${type}, ${JSON.stringify(ctx.request.body)}`);
     } else {
       log.error("[webhook] 收到未知类型的请求");
     }
