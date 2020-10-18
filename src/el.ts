@@ -1,6 +1,7 @@
 import * as config from "./utils/config";
 import { MiraiApiHttpConfig } from "mirai-ts";
 import defaultConfig from "./config/default";
+import { WebhookConfig } from "./bot/webhook";
 
 export interface dbConfig {
   /**
@@ -32,6 +33,7 @@ export default class El {
    */
   db: dbConfig;
   config: any;
+  webhook: WebhookConfig;
   constructor(el: El) {
     this.qq = 0;
     this.setting = {
@@ -48,6 +50,12 @@ export default class El {
       uri: "mongodb://localhost:27017",
     };
     this.config = defaultConfig;
+    this.webhook = {
+      enable: true,
+      port: 7777,
+      path: "/webhook",
+      secret: "el-psy-congroo",
+    };
     // 合并
     config.merge(this, el);
   }

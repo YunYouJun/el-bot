@@ -29,16 +29,7 @@ export interface BotConfig {
 const defaultConfig: BotConfig = {
   name: "el-bot",
   plugins: {
-    default: [
-      // "dev",
-      "answer",
-      "cli",
-      "forward",
-      "rss",
-      "limit",
-      // "teach",
-      "memo",
-    ],
+    default: ["answer", "forward", "limit", "memo", "rss", "search"],
   },
   master: [910426929],
   admin: [910426929],

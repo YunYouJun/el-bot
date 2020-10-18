@@ -157,7 +157,13 @@ export default class Bot {
     callback ? this.mirai.listen(callback) : this.mirai.listen();
 
     // 启动 webhook
-    this.webhook.start();
+    if (this.el.webhook.enable) {
+      const server = this.webhook.start();
+      process.on("exit", () => {
+        // 关闭 koa server
+        server.close();
+      });
+    }
 
     // 推出信息
     process.on("exit", () => {

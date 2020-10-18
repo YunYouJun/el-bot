@@ -1,10 +1,9 @@
 import Bot from "..";
-import { log } from "mirai-ts";
-import { initGitHubHandler } from "./handler";
 import Koa from "koa";
 import cors from "@koa/cors";
 import bodyParser from "koa-bodyparser";
 import events from "events";
+import githubHandler, { handler } from "./github-handler";
 
 export interface WebhookConfig {
   /**
@@ -27,14 +26,11 @@ export default class Webhook {
   // 默认配置
   config: WebhookConfig;
   emitter: events.EventEmitter;
+  githubHandler: handler;
   constructor(public bot: Bot) {
-    this.config = {
-      enable: true,
-      port: 7777,
-      path: "/webhook",
-      secret: "el-psy-congroo",
-    };
+    this.config = bot.el.webhook;
     this.emitter = new events.EventEmitter();
+    this.githubHandler = githubHandler(bot);
   }
 
   /**
@@ -50,19 +46,18 @@ export default class Webhook {
     app.use(cors());
     app.use(bodyParser());
     app.use((ctx) => {
-      ctx.body = ctx.request.body;
+      ctx.body = (ctx.request as any).body;
       this.parse(ctx);
       // github handler
-      initGitHubHandler(this.config, ctx.req, ctx.res);
+      this.githubHandler(ctx.req, ctx.res, (err: Error) => {
+        ctx.res.statusCode = 404;
+        ctx.res.end("no such location");
+      });
     });
-    app.listen(this.config.port);
+    const server = app.listen(this.config.port);
 
-    log.success(`Webhook Listening localhost:${this.config.port}`);
-
-    // 执行回调函数
-    if (this.config.callback) {
-      this.config.callback(this);
-    }
+    this.bot.logger.success(`Webhook Listening localhost:${this.config.port}`);
+    return server;
   }
 
   /**
@@ -75,12 +70,12 @@ export default class Webhook {
       type = ctx.request.query.type;
       this.emitter.emit(type, ctx.request.query);
     } else if (ctx.request.method === "POST") {
-      type = ctx.request.body.type;
-      this.emitter.emit(type, ctx.request.body);
+      type = ctx.body.type;
+      this.emitter.emit(type, ctx.body);
 
-      log.info(`[webhook] ${type}, ${JSON.stringify(ctx.request.body)}`);
+      this.bot.logger.info(`[webhook](${type}): ${JSON.stringify(ctx.body)}`);
     } else {
-      log.error("[webhook] 收到未知类型的请求");
+      this.bot.logger.error("[webhook] 收到未知类型的请求");
     }
   }
 

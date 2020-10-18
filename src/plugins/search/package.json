@@ -1,0 +1,11 @@
+{
+  "name": "search",
+  "version": "0.0.5",
+  "description": "引擎搜索",
+  "author": {
+    "name": "YunYouJun",
+    "url": "https://www.yunyoujun.cn",
+    "email": "me@yunyoujun.cn"
+  },
+  "license": "AGPL-3.0"
+}

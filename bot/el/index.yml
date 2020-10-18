@@ -1,15 +1,15 @@
 plugins:
   default:
     # - dev
-    - rss
     - answer
     - blacklist
-    # - cli
-    - limit
     - forward
+    - limit
+    - memo
+    - rss
+    - search
     - teach
     - workflow
-    - memo
   official:
     # - search-image
     # - niubi
