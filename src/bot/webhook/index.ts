@@ -49,9 +49,8 @@ export default class Webhook {
       ctx.body = (ctx.request as any).body;
       this.parse(ctx);
       // github handler
-      this.githubHandler(ctx.req, ctx.res, (err: Error) => {
-        ctx.res.statusCode = 404;
-        ctx.res.end("no such location");
+      this.githubHandler(ctx.req, ctx.res, (err) => {
+        this.bot.logger.error("[Webhook](GitHub) There is no github event.");
       });
     });
     const server = app.listen(this.config.port);
@@ -72,7 +71,6 @@ export default class Webhook {
     } else if (ctx.request.method === "POST") {
       type = ctx.body.type;
       this.emitter.emit(type, ctx.body);
-
       this.bot.logger.info(`[webhook](${type}): ${JSON.stringify(ctx.body)}`);
     } else {
       this.bot.logger.error("[webhook] 收到未知类型的请求");
