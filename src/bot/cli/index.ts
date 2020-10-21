@@ -2,37 +2,8 @@ import Bot from "src";
 import commander, { Command } from "commander";
 import { PluginType } from "../plugins";
 import { ChatMessage } from "mirai-ts/dist/types/message-type";
-
-/**
- * 清理全局选项
- * @param options
- */
-function cleanOptions(program: commander.Command) {
-  const options = program.opts();
-
-  // reset option
-  Object.keys(options).forEach((key) => {
-    delete program[key];
-
-    // 重新设置默认值
-    if (program.options.length > 0) {
-      program.options.forEach((option: any) => {
-        if (
-          option.defaultValue &&
-          (option.long === `--${key}` || option.short === `-${key}`)
-        ) {
-          program[key] = option.defaultValue;
-        }
-      });
-    }
-  });
-
-  if (program.commands.length > 0) {
-    program.commands.forEach((command) => {
-      cleanOptions(command);
-    });
-  }
-}
+import shell from "shelljs";
+import { cleanOptions } from "./utils";
 
 /**
  * 处理全局选项
@@ -86,6 +57,16 @@ export function initCli(ctx: Bot, name: string) {
 
   // default global option
   program.option("-v", "版本").option("-a, --about", "关于");
+
+  // 重启机器人
+  program
+    .command("restart")
+    .description("重启 el-bot")
+    .action(async () => {
+      ctx.user.isAllowed(undefined, true);
+      await ctx.reply("重启 el-bot");
+      shell.exec("touch package.json");
+    });
 
   // 回声测试
   program

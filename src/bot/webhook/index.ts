@@ -64,11 +64,11 @@ export default class Webhook {
    * @param ctx
    */
   parse(ctx: Koa.ParameterizedContext<Koa.DefaultState, Koa.DefaultContext>) {
-    let type = "*";
-    if (ctx.request.method === "GET") {
+    let type = "";
+    if (ctx.request.method === "GET" && ctx.request.query.type) {
       type = ctx.request.query.type;
       this.emitter.emit(type, ctx.request.query);
-    } else if (ctx.request.method === "POST") {
+    } else if (ctx.request.method === "POST" && ctx.body.type) {
       type = ctx.body.type;
       this.emitter.emit(type, ctx.body);
       this.bot.logger.info(`[webhook](${type}): ${JSON.stringify(ctx.body)}`);

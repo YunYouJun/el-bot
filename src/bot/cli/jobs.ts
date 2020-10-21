@@ -92,17 +92,4 @@ export function initProgram(ctx: Bot, options: CliOptions, qq: number) {
         doJobByName(options.jobs, name);
       }
     });
-
-  // 重启 el-bot
-  program
-    .command("restart")
-    .description("重启 el-bot")
-    .action(async () => {
-      if (!ctx.user.isAllowed(qq, true)) {
-        return;
-      }
-
-      await ctx.reply("重启 el-bot");
-      shell.exec("touch index.js");
-    });
 }
