@@ -1,8 +1,10 @@
 import Bot from "..";
 import { EventEmitter } from "events";
-import createHandler from "github-webhook-handler";
 import shell from "shelljs";
 import { IncomingMessage, ServerResponse } from "http";
+
+import { Webhooks } from "@octokit/webhooks";
+
 // github handler
 export interface handler extends EventEmitter {
   (
@@ -12,11 +14,13 @@ export interface handler extends EventEmitter {
   ): void;
 }
 
-export default function (bot: Bot): handler {
-  const handler = createHandler({
-    path: bot.el.config.path || "/webhook",
+export default function (bot: Bot) {
+  const config = {
     secret: bot.el.config.secret || "el-psy-congroo",
-  });
+    path: bot.el.config.path || "/webhook",
+  };
+
+  const handler = new Webhooks(config);
 
   handler.on("error", (err) => {
     bot.logger.error(`Error: ${err.message}`);
@@ -30,9 +34,9 @@ export default function (bot: Bot): handler {
 
     // git pull repo
     if (shell.exec("git pull").code !== 0) {
-      bot.logger.error("Git pull repo failed");
+      bot.logger.error("Git 拉取失败，请检查默认分支。");
     } else {
-      bot.logger.info("Install dependencies");
+      bot.logger.info("安装依赖...");
       shell.exec("yarn");
     }
   });

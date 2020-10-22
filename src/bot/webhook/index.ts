@@ -3,8 +3,8 @@ import Koa from "koa";
 import cors from "@koa/cors";
 import bodyParser from "koa-bodyparser";
 import events from "events";
-import githubHandler, { handler } from "./github-handler";
-
+import githubHandler from "./github-handler";
+import { Webhooks } from "@octokit/webhooks";
 export interface WebhookConfig {
   /**
    * 是否启用
@@ -26,7 +26,7 @@ export default class Webhook {
   // 默认配置
   config: WebhookConfig;
   emitter: events.EventEmitter;
-  githubHandler: handler;
+  githubHandler: Webhooks;
   constructor(public bot: Bot) {
     this.config = bot.el.webhook;
     this.emitter = new events.EventEmitter();
@@ -45,16 +45,18 @@ export default class Webhook {
     const app = new Koa();
     app.use(cors());
     app.use(bodyParser());
-    app.use((ctx) => {
+    app.use((ctx, next) => {
       ctx.body = (ctx.request as any).body;
-      this.parse(ctx);
-      // github handler
-      this.githubHandler(ctx.req, ctx.res, (err) => {
-        this.bot.logger.error("[Webhook](GitHub) There is no github event.");
-      });
+      (ctx.req as any)["body"] = ctx.body;
+      ctx.status = 200;
+      return this.githubHandler.middleware(ctx.req, ctx.res, next);
     });
-    const server = app.listen(this.config.port);
 
+    app.use((ctx) => {
+      this.parse(ctx);
+    });
+
+    const server = app.listen(this.config.port);
     this.bot.logger.success(`Webhook Listening localhost:${this.config.port}`);
     return server;
   }

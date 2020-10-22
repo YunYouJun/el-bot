@@ -35,6 +35,9 @@ export default class El {
   config: any;
   webhook: WebhookConfig;
   constructor(el: El) {
+    if (typeof el.qq === "string") {
+      el.qq = parseInt(el.qq);
+    }
     this.qq = 0;
     this.setting = {
       host: "0.0.0.0",
