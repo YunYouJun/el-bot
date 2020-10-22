@@ -1,5 +1,5 @@
 import Bot from "src/bot";
-import { MessageType, check } from "mirai-ts";
+import { MessageType } from "mirai-ts";
 import { TeachOptions } from "./options";
 import { displayList } from "./utils";
 
@@ -42,7 +42,11 @@ export default async function teach(ctx: Bot, options: TeachOptions) {
   mirai.on("message", async (msg: MessageType.ChatMessage) => {
     // 私聊或被艾特时
     const qa = msg.plain.match(/Q:(.*)\nA:(.*)/);
-    if (qa && (check.isAt(msg, ctx.el.qq) || msg.type === "FriendMessage")) {
+    if (
+      qa &&
+      (msg.type === "FriendMessage" ||
+        (msg.type === "GroupMessage" && msg.isAt()))
+    ) {
       // 没有权限时
       if (!ctx.status.getListenStatusByConfig(msg.sender, options)) {
         msg.reply(options.else);

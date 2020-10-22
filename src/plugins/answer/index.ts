@@ -86,7 +86,7 @@ export default function (ctx: Bot, options: AnswerOptions) {
     for await (const ans of options) {
       let replyContent = null;
 
-      if (ans.at && !check.isAt(msg, ctx.el.qq)) return;
+      if (ans.at && !(msg as MessageType.GroupMessage).isAt()) return;
 
       if (msg.plain && check.match(msg.plain, ans)) {
         // 默认监听所有
