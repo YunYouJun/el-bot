@@ -41,10 +41,10 @@ export function initCli(ctx: Bot, name: string) {
       };
     }
     const cbOutput = cb(this.helpInformation());
+    const command = (ctx.mirai.curMsg as ChatMessage).plain.trim();
     if (
       cbOutput &&
-      (this.parent ||
-        (ctx.mirai.curMsg as ChatMessage).plain.trim() === "el -h")
+      (this.parent || command === "el -h" || command === "el --help")
     ) {
       ctx.reply(cbOutput.trim());
     }

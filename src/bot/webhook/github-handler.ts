@@ -22,7 +22,7 @@ export default function (bot: Bot) {
 
   const handler = new Webhooks(config);
 
-  handler.on("error", (err) => {
+  handler.onError((err) => {
     bot.logger.error(`Error: ${err.message}`);
   });
 
