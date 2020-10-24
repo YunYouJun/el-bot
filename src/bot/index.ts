@@ -161,7 +161,9 @@ export default class Bot {
       const server = this.webhook.start();
       process.on("exit", () => {
         // 关闭 koa server
-        server.close();
+        if (server) {
+          server.close();
+        }
       });
     }
 

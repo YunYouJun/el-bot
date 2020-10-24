@@ -63,9 +63,10 @@ export function initCli(ctx: Bot, name: string) {
     .command("restart")
     .description("重启 el-bot")
     .action(async () => {
-      ctx.user.isAllowed(undefined, true);
-      await ctx.reply("重启 el-bot");
-      shell.exec("touch package.json");
+      if (ctx.user.isAllowed(undefined, true)) {
+        await ctx.reply("重启 el-bot");
+        shell.exec("touch package.json");
+      }
     });
 
   // 回声测试

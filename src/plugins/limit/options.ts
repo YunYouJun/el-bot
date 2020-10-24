@@ -40,7 +40,7 @@ const limitOptions: LimitOptions = {
     // 超过十分钟清空记录
     interval: 600000,
     // 连续次数
-    maximum: 3,
+    maximum: 5,
     tooltip: "我生气了",
     // 禁言时间
     time: 600,

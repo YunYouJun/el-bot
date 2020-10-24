@@ -5,6 +5,7 @@ import bodyParser from "koa-bodyparser";
 import events from "events";
 import githubHandler from "./github-handler";
 import { Webhooks } from "@octokit/webhooks";
+import { Server } from "http";
 export interface WebhookConfig {
   /**
    * 是否启用
@@ -56,8 +57,15 @@ export default class Webhook {
       this.parse(ctx);
     });
 
-    const server = app.listen(this.config.port);
-    this.bot.logger.success(`Webhook Listening localhost:${this.config.port}`);
+    let server: Server | undefined;
+    try {
+      server = app.listen(this.config.port);
+      this.bot.logger.success(
+        `Webhook Listening localhost:${this.config.port}`
+      );
+    } catch (err) {
+      this.bot.logger.error(err.message);
+    }
     return server;
   }
 
