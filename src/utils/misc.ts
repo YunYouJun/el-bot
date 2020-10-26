@@ -1,6 +1,5 @@
 import Bot from "src";
 import chalk from "chalk";
-import pkg from "../../package.json";
 
 /**
  * 休眠
@@ -14,6 +13,7 @@ export async function sleep(ms: number): Promise<void> {
  * 声明
  */
 export function statement(ctx: Bot) {
+  const pkg = require("../../package.json");
   console.log("-----------------------------------------------");
   ctx.logger.info(`GitHub: ${ctx.pkg.repository.url}`);
   ctx.logger.info(`El-Bot Version: ${chalk.cyan(pkg.version)}`);
