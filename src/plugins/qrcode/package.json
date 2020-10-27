@@ -1,7 +1,7 @@
 {
   "name": "qrcode",
-  "private": "true",
-  "version": "0.0.1",
+  "private": true,
+  "version": "0.0.2",
   "description": "二维码生成器",
   "author": {
     "name": "YunYouJun",

@@ -1,6 +1,6 @@
 {
   "name": "rss",
-  "private": "true",
+  "private": true,
   "version": "0.0.2",
   "description": "订阅 RSS 信息",
   "author": {

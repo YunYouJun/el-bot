@@ -7,24 +7,26 @@ import { resolve } from "path";
 /**
  * 生成二维码
  * @param text
+ * @param folder 目标文件夹
  */
-async function generateQR(text: string) {
+async function generateQR(text: string, folder: string) {
   const timestamp = new Date().valueOf();
   const filename = `${timestamp}.png`;
-  const path = resolve(
-    process.cwd(),
-    "mirai",
-    `plugins/MiraiAPIHTTP/images/${filename}`
-  );
-  await QRCode.toFile(path, text);
+  await QRCode.toFile(`${folder}/${filename}`, text);
   return filename;
 }
 
 export default function (ctx: Bot) {
   const { cli } = ctx;
 
-  if (!fs.existsSync("tmp/images")) {
-    fs.mkdirSync("tmp/images");
+  const folder = resolve(
+    process.cwd(),
+    ctx.el.pkg.mirai.folder,
+    `plugins/MiraiAPIHTTP/images/qrcode`
+  );
+
+  if (!fs.existsSync(folder)) {
+    fs.mkdirSync(folder);
   }
 
   cli
@@ -32,8 +34,8 @@ export default function (ctx: Bot) {
     .description("生成二维码")
     .action(async (text: string) => {
       const msg = ctx.mirai.curMsg;
-      const filename = await generateQR(text);
-      const chain = [Message.Image(null, null, filename)];
+      const filename = await generateQR(text, folder);
+      const chain = [Message.Image(null, null, `qrcode/${filename}`)];
       (msg as MessageType.ChatMessage).reply(chain);
     });
 }

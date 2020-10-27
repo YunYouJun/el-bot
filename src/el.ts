@@ -34,6 +34,7 @@ export default class El {
   db: dbConfig;
   config: any;
   webhook: WebhookConfig;
+  pkg?: any;
   constructor(el: El) {
     if (typeof el.qq === "string") {
       el.qq = parseInt(el.qq);
@@ -61,5 +62,7 @@ export default class El {
     };
     // 合并
     config.merge(this, el);
+    // el-bot package.json
+    this.pkg = require("../package.json");
   }
 }

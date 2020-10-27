@@ -1,6 +1,6 @@
 {
   "name": "dev",
-  "private": "true",
+  "private": true,
   "version": "0.0.1",
   "description": "开发输出",
   "author": {

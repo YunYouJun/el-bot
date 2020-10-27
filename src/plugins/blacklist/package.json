@@ -1,6 +1,6 @@
 {
   "name": "blacklist",
-  "private": "true",
+  "private": true,
   "version": "0.0.1",
   "description": "黑名单",
   "el-bot": {

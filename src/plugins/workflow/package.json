@@ -1,6 +1,6 @@
 {
   "name": "workflow",
-  "private": "true",
+  "private": true,
   "version": "0.0.1",
   "description": "工作流",
   "author": {

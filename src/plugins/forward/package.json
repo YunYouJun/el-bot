@@ -1,6 +1,6 @@
 {
   "name": "forward",
-  "private": "true",
+  "private": true,
   "version": "0.0.2",
   "description": "消息转发",
   "author": {

@@ -1,6 +1,6 @@
 {
   "name": "answer",
-  "private": "true",
+  "private": true,
   "version": "0.0.4",
   "description": "自动应答",
   "author": {

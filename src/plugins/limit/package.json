@@ -1,6 +1,6 @@
 {
   "name": "limit",
-  "private": "true",
+  "private": true,
   "version": "0.1.0",
   "description": "限制消息频率",
   "author": {

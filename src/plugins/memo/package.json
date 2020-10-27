@@ -1,6 +1,6 @@
 {
   "name": "memo",
-  "private": "true",
+  "private": true,
   "version": "0.0.1",
   "description": "备忘录",
   "author": {

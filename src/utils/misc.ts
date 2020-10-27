@@ -13,9 +13,9 @@ export async function sleep(ms: number): Promise<void> {
  * 声明
  */
 export function statement(ctx: Bot) {
-  const pkg = require("../../package.json");
+  const pkg = ctx.el.pkg;
   console.log("-----------------------------------------------");
-  ctx.logger.info(`GitHub: ${ctx.pkg.repository.url}`);
+  ctx.logger.info(`GitHub: ${pkg.repository.url}`);
   ctx.logger.info(`El-Bot Version: ${chalk.cyan(pkg.version)}`);
   ctx.logger.warning(
     chalk.cyan("el-bot") + " 是一个非盈利的开源项目，仅供交流学习使用。"

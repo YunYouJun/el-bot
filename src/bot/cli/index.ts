@@ -13,18 +13,19 @@ import { cleanOptions } from "./utils";
 function processOptions(program: commander.Command, ctx: Bot) {
   const options = program.opts();
 
+  const pkg = ctx.el.pkg;
+
   if (options.v || options.version) {
-    ctx.reply(ctx.pkg.version);
+    ctx.reply(pkg.version);
   }
 
   // about
   if (options.a || options.about) {
     let about = "";
-    about += "GitHub: " + ctx.pkg.repository.url + "\n";
-    about += "Docs: " + ctx.pkg.homepage + "\n";
-    about += "SDK: " + ctx.pkg.directories.lib + "\n";
-    about +=
-      "Author: " + `${ctx.pkg.author.name} <${ctx.pkg.author.url}>` + "\n";
+    about += "GitHub: " + pkg.repository.url + "\n";
+    about += "Docs: " + pkg.homepage + "\n";
+    about += "SDK: " + pkg.directories.lib + "\n";
+    about += "Author: " + `${pkg.author.name} <${pkg.author.url}>` + "\n";
     about += "Copyright: @ElpsyCN";
     ctx.reply(about);
   }

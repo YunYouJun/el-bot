@@ -1,5 +1,6 @@
 {
   "name": "search",
+  "private": true,
   "version": "0.0.5",
   "description": "引擎搜索",
   "author": {

@@ -18,6 +18,7 @@ import { Db, MongoClient } from "mongodb";
 import { connectDb } from "../db";
 import chalk from "chalk";
 import commander from "commander";
+import { resolve } from "path";
 
 interface PackageJson {
   name: string;
@@ -70,6 +71,7 @@ export default class Bot {
   isDev: boolean;
   constructor(el: El) {
     this.el = new El(el);
+
     const setting = this.el.setting;
     const mahConfig: MiraiApiHttpConfig = {
       host: setting.host || "localhost",
@@ -78,7 +80,7 @@ export default class Bot {
       enableWebsocket: setting.enableWebsocket || false,
     };
     this.mirai = new Mirai(mahConfig);
-    this.pkg = require("../../package.json");
+    this.pkg = require(resolve(process.cwd(), "./package.json"));
     this.active = true;
     this.status = new Status(this);
     this.user = new User(this);
