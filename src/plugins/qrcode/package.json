@@ -1,0 +1,11 @@
+{
+  "name": "qrcode",
+  "private": "true",
+  "version": "0.0.1",
+  "description": "二维码生成器",
+  "author": {
+    "name": "YunYouJun",
+    "url": "https://www.yunyoujun.cn",
+    "email": "me@yunyoujun.cn"
+  }
+}

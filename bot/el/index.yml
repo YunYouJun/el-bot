@@ -6,6 +6,7 @@ plugins:
     - forward
     - limit
     - memo
+    - qrcode
     - rss
     - search
     - teach
