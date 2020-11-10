@@ -30,11 +30,11 @@ export default function (ctx: Bot) {
   }
 
   cli
-    .command("qrcode <text>")
+    .command("qrcode <text...>")
     .description("生成二维码")
-    .action(async (text: string) => {
+    .action(async (text: string[]) => {
       const msg = ctx.mirai.curMsg;
-      const filename = await generateQR(text, folder);
+      const filename = await generateQR(text.join(" "), folder);
       const chain = [Message.Image(null, null, `qrcode/${filename}`)];
       (msg as MessageType.ChatMessage).reply(chain);
     });
