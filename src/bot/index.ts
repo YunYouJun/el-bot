@@ -160,13 +160,17 @@ export default class Bot {
 
     // 启动 webhook
     if (this.el.webhook.enable) {
-      const server = this.webhook.start();
-      process.on("exit", () => {
-        // 关闭 koa server
-        if (server) {
-          server.close();
-        }
-      });
+      try {
+        const server = this.webhook.start();
+        process.on("exit", () => {
+          // 关闭 koa server
+          if (server) {
+            server.close();
+          }
+        });
+      } catch (err) {
+        console.error(err);
+      }
     }
 
     // 推出信息
