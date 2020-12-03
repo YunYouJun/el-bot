@@ -1,6 +1,6 @@
 {
   "name": "el-bot",
-  "version": "0.5.18",
+  "version": "0.5.19",
   "description": "A quick qq bot framework for mirai.",
   "main": "dist/index.js",
   "files": [
@@ -109,7 +109,7 @@
     "dotenv": "^8.2.0",
     "eslint": "^7.14.0",
     "eslint-config-prettier": "^6.15.0",
-    "eslint-plugin-prettier": "^3.1.4",
+    "eslint-plugin-prettier": "^3.2.0",
     "husky": "^4.3.0",
     "lint-staged": "^10.5.2",
     "npm-run-all": "^4.1.5",

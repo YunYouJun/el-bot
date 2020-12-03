@@ -85,6 +85,7 @@ function initCli(ctx: Bot) {
       if (options.time && options.content) {
         let time = dayjs();
         const content = options.content.join(" ");
+        let isCron = false;
         if (options.time.length === 1) {
           const delay = parseTime(options.time);
           if (delay) {
@@ -99,6 +100,9 @@ function initCli(ctx: Bot) {
         } else if (options.time.length === 2) {
           // 从格式解析时间
           time = dayjs(options.time.join(" "), "YYYY-MM-DD HH:mm:ss");
+        } else if (options.time.length === 5) {
+          // cron
+          isCron = true;
         } else {
           ctx.reply("格式不正确");
           return;
@@ -110,7 +114,7 @@ function initCli(ctx: Bot) {
         }
 
         const memo: Memo = {
-          time: time.toDate(),
+          time: isCron ? options.time.join(" ") : time.toDate(),
           content,
         };
         const msg = ctx.mirai.curMsg as MessageType.ChatMessage;
@@ -121,10 +125,9 @@ function initCli(ctx: Bot) {
 
         addSchedule(ctx, memo);
         addMemoForDb(ctx, memo);
+        const future = time.format("YYYY-MM-DD ddd HH:mm:ss");
         ctx.reply(
-          `好的，我将在 ${time.format(
-            "YYYY-MM-DD ddd HH:mm:ss"
-          )} 提醒你 ${content}。`
+          `好的，我将在 ${isCron ? memo.time : future} 提醒你 ${content}。`
         );
       }
     });
