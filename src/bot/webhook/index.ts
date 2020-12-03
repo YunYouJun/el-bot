@@ -81,7 +81,12 @@ export default class Webhook {
     } else if (ctx.request.method === "POST" && ctx.body.type) {
       type = ctx.body.type;
       this.emitter.emit(type, ctx.body);
-      this.bot.logger.info(`[webhook](${type}): ${JSON.stringify(ctx.body)}`);
+      this.bot.logger.info(`[webhook](${type})`);
+      if (this.bot.isDev) {
+        this.bot.logger.info(
+          `[webhook](ctx.body): ${JSON.stringify(ctx.body)}`
+        );
+      }
     } else {
       this.bot.logger.error("[webhook] 收到未知类型的请求");
     }
