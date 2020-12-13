@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import fs from "fs";
-import htmlToText from "html-to-text";
+import { htmlToText } from "html-to-text";
 import schedule from "node-schedule";
 import Parser, { CustomFields } from "rss-parser";
 
@@ -12,7 +12,7 @@ interface RssConfig {
   name: string;
   url: string;
   cron: string;
-  customFields: CustomFields;
+  customFields: CustomFields<string[], string[]>;
   content: string[];
   target: object;
 }
@@ -47,7 +47,7 @@ class Rss {
   }
 
   async parse() {
-    let feed: Parser.Output;
+    let feed: Parser.Output<any>;
     try {
       feed = await this.parser.parseURL(this.config.url);
     } catch {
@@ -64,7 +64,7 @@ class Rss {
     }
   }
 
-  save(feed: Parser.Output) {
+  save(feed: any) {
     if (feed.items && feed.items.length <= 0) return false;
 
     const tmpDir = "tmp/";
@@ -106,18 +106,18 @@ class Rss {
   }
 }
 
-function format(item: Parser.Item, content: string[]) {
+function format(item: any, content: string[]) {
   item.updated = dayjs(item.updated).format("YYYY-MM-DD HH:mm:ss");
   item.pubDate = dayjs(item.pubDate).format("YYYY-MM-DD HH:mm:ss");
 
   if (item.summary) {
-    item.summary = htmlToText.fromString(item.summary);
+    item.summary = htmlToText(item.summary);
   }
   if (item.content) {
-    item.content = htmlToText.fromString(item.content);
+    item.content = htmlToText(item.content);
   }
   if (item.description) {
-    item.description = htmlToText.fromString(item.description);
+    item.description = htmlToText(item.description);
   }
 
   let template = "";
