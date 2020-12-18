@@ -39,7 +39,7 @@ function installMirai() {
         type: "confirm",
         name: "copy-setting",
         message:
-          "是否拷贝默认配置？（你可以前往 `./mirai/plugins/MiraiAPIHTTP/setting.yaml` 进行修改。）",
+          "是否拷贝默认配置？（你可以前往 `./mcl/config/MiraiAPIHTTP/setting.yml` 进行修改。）",
       },
     ])
     .then((answers) => {
@@ -54,7 +54,7 @@ function installMirai() {
 
       if (answers["copy-setting"]) {
         shell.exec(
-          "cp ./mirai/plugins/MiraiAPIHTTP/setting.example.yaml ./mirai/plugins/MiraiAPIHTTP/setting.yaml"
+          "cp ./mcl/config/MiraiAPIHTTP/setting.example.yml ./mcl/config/MiraiAPIHTTP/setting.yml"
         );
       }
     });

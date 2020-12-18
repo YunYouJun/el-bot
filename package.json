@@ -1,6 +1,6 @@
 {
   "name": "el-bot",
-  "version": "0.5.21",
+  "version": "0.6.0",
   "description": "A quick qq bot framework for mirai.",
   "main": "dist/index.js",
   "files": [
@@ -9,8 +9,8 @@
   "bin": {
     "el": "dist/cli/index.js"
   },
-  "mirai": {
-    "folder": "mirai"
+  "mcl": {
+    "folder": "mcl"
   },
   "scripts": {
     "build": "yarn clean && tsc",
@@ -21,11 +21,10 @@
     "dev": "npm-run-all --parallel dev:*",
     "dev:bot": "cross-env NODE_ENV=dev ts-node-dev bot/index.ts",
     "dev:plugins": "cd packages/el-bot-plugins && yarn watch",
-    "install:mirai": "node scripts/install-mirai-ok.js",
     "lint": "eslint src --ext .ts --fix && prettier --write .",
     "start": "npm-run-all --parallel start:*",
     "start:bot": "yarn build && node dist/index.js",
-    "start:mirai": "el start mirai",
+    "start:mcl": "el start mcl",
     "test": "yarn lint",
     "watch": "tsc --watch",
     "pull": "npm-run-all --parallel pull:*",
@@ -68,9 +67,9 @@
   "homepage": "https://docs.bot.elpsy.cn/",
   "dependencies": {
     "@koa/cors": "^3.1.0",
-    "@octokit/webhooks": "^7.19.0",
+    "@octokit/webhooks": "^7.21.0",
     "chalk": "^4.0.0",
-    "commander": "^6.2.0",
+    "commander": "^6.2.1",
     "dayjs": "^1.9.7",
     "download": "^8.0.0",
     "feedparser": "^2.2.10",
@@ -98,19 +97,19 @@
     "@types/koa-bodyparser": "^4.3.0",
     "@types/koa__cors": "^3.0.2",
     "@types/mongodb": "^3.6.3",
-    "@types/node": "^14.14.13",
+    "@types/node": "^14.14.14",
     "@types/node-schedule": "^1.3.1",
     "@types/progress": "^2.0.3",
     "@types/qrcode": "^1.3.5",
     "@types/shelljs": "^0.8.8",
-    "@typescript-eslint/eslint-plugin": "^4.9.1",
-    "@typescript-eslint/parser": "^4.9.1",
+    "@typescript-eslint/eslint-plugin": "^4.10.0",
+    "@typescript-eslint/parser": "^4.10.0",
     "cross-env": "^7.0.3",
     "dotenv": "^8.2.0",
     "eslint": "^7.15.0",
     "eslint-config-prettier": "^7.0.0",
-    "eslint-plugin-prettier": "^3.2.0",
-    "husky": "^4.3.5",
+    "eslint-plugin-prettier": "^3.3.0",
+    "husky": "^4.3.6",
     "lint-staged": "^10.5.3",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.2.1",

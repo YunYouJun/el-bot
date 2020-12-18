@@ -21,8 +21,8 @@ export default function (ctx: Bot) {
 
   const folder = resolve(
     process.cwd(),
-    ctx.el.pkg.mirai.folder,
-    `plugins/MiraiAPIHTTP/images/qrcode`
+    ctx.el.pkg.mcl.folder,
+    `data/MiraiAPIHTTP/images/qrcode`
   );
 
   if (!fs.existsSync(folder)) {

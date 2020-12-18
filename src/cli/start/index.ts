@@ -38,43 +38,35 @@ function startBot() {
 }
 
 /**
- * 启动 mirai
+ * 启动 MCL
  */
-function startMirai(folder?: string) {
+function startMcl(folder?: string) {
   require("dotenv").config();
 
   // 先进入目录
   try {
-    shell.cd(folder || (pkg.mirai ? pkg.mirai.folder : "mirai"));
+    shell.cd(folder || (pkg.mcl ? pkg.mcl.folder : "mcl"));
   } catch (err) {
     console.log(err);
-    log.error("mirai 目录不存在");
+    log.error("mcl 目录不存在");
   }
 
-  glob("./mirai-console-wrapper-*.jar", {}, (err, files) => {
+  glob("./mcl", {}, (err, files) => {
     if (err) console.log(err);
 
     if (files[0]) {
       try {
-        const miraiConsole = spawn(
-          "java",
-          ["-jar", files[0], "--update", "KEEP"],
-          {
-            stdio: ["pipe", "inherit", "inherit"],
-          }
-        );
+        const miraiConsole = spawn("./mcl", [], {
+          stdio: ["pipe", "inherit", "inherit"],
+        });
         process.stdin.pipe(miraiConsole.stdin);
-        if (process.env.BOT_QQ && process.env.BOT_PASSWORD) {
-          log.info("自动登录 QQ");
-          const loginCmd = `login ${process.env.BOT_QQ} ${process.env.BOT_PASSWORD}\n`;
-          console.log(loginCmd);
-          miraiConsole.stdin.write(loginCmd);
-        }
       } catch (err) {
         console.log(err);
       }
     } else {
-      log.error("请先通过 npm run install:mirai 下载 mirai-console-wrapper。");
+      log.error(
+        "请下载官方启动器 [mirai-console-loader](https://github.com/iTXTech/mirai-console-loader)。"
+      );
     }
   });
 }
@@ -86,18 +78,10 @@ export default function (cli: commander.Command) {
     .description("启动 el-bot")
     .option("-f --folder", "mirai 所在目录")
     .action((project, options) => {
-      if (!project) {
-        const cwd = process.cwd();
-        setTimeout(() => {
-          // avoid disturb from Mirai
-          shell.cd(cwd);
-          startBot();
-        }, 3000);
-        startMirai(options.folder);
-      } else if (project === "bot") {
+      if (!project || project === "bot") {
         startBot();
-      } else if (project === "mirai") {
-        startMirai(options.folder);
+      } else if (project === "mcl") {
+        startMcl(options.folder);
       } else {
         console.error("不存在该指令");
       }
