@@ -1,6 +1,6 @@
 {
   "name": "el-bot",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "A quick qq bot framework for mirai.",
   "main": "dist/index.js",
   "files": [
@@ -79,7 +79,7 @@
     "js-yaml": "^3.14.1",
     "koa": "^2.13.0",
     "koa-bodyparser": "^4.3.0",
-    "mirai-ts": "^0.7.10",
+    "mirai-ts": "^0.8.1",
     "mongodb": "^3.6.3",
     "node-schedule": "^1.3.2",
     "ora": "^5.1.0",

@@ -22,7 +22,7 @@ export default function (ctx: Bot) {
   const folder = resolve(
     process.cwd(),
     ctx.el.pkg.mcl.folder,
-    `data/MiraiAPIHTTP/images/qrcode`
+    `data/MiraiApiHttp/images/qrcode`
   );
 
   if (!fs.existsSync(folder)) {
