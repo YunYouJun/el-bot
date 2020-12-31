@@ -9,7 +9,7 @@ import Sender from "./sender";
 import User from "./user";
 import Status from "./status";
 import Plugins from "./plugins";
-import Logger from "./logger";
+import { createLogger } from "./logger";
 import Webhook from "./webhook";
 import { initCli } from "./cli";
 
@@ -63,7 +63,7 @@ export default class Bot {
   /**
    * 日志系统
    */
-  logger: Logger;
+  logger = createLogger("el-bot");
   webhook: Webhook;
   /**
    * 是否开发模式下
@@ -86,7 +86,6 @@ export default class Bot {
     this.user = new User(this);
     this.sender = new Sender(this);
     this.plugins = new Plugins(this);
-    this.logger = new Logger();
     this.webhook = new Webhook(this);
     this.cli = initCli(this, "el");
 

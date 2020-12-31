@@ -1,38 +1,50 @@
 import chalk from "chalk";
+import winston from "winston";
+
+const customLevels = {
+  levels: {
+    error: 0,
+    warn: 1,
+    warning: 1,
+    success: 2,
+    info: 3,
+    debug: 4,
+  },
+  colors: {
+    error: "red",
+    warn: "yellow",
+    warning: "yellow",
+    success: "green",
+    info: "blue",
+    debug: "cyan",
+  },
+};
+
+export interface Logger extends winston.Logger {
+  success: winston.LeveledLogMethod;
+}
 
 /**
- * 辅助工具，输出彩色控制台信息。
+ * 创建日志工具，基于 winston
+ * @param label
  */
-export default class Logger {
-  /**
-   * 输出成功信息（绿色）
-   * @param msg 文本
-   */
-  success(msg: any) {
-    console.log(chalk.green("[SUCCESS]"), msg);
-  }
-
-  /**
-   * 输出警告信息（黄色）
-   * @param msg 文本
-   */
-  warning(msg: any) {
-    console.log(chalk.yellow("[WARNING]"), msg);
-  }
-
-  /**
-   * 输出错误信息（红色）
-   * @param msg 文本
-   */
-  error(msg: any) {
-    console.log(chalk.red("[ERROR]"), msg);
-  }
-
-  /**
-   * 输出提示信息（蓝色）
-   * @param msg 文本
-   */
-  info(msg: any) {
-    console.log(chalk.blue("[INFO]"), msg);
-  }
+export function createLogger(label = "el-bot") {
+  const logger = winston.createLogger({
+    levels: customLevels.levels,
+    transports: [new winston.transports.Console()],
+    format: winston.format.combine(
+      winston.format.colorize({
+        colors: customLevels.colors,
+      }),
+      winston.format.label({
+        label,
+      }),
+      winston.format.printf(({ level, message, label }) => {
+        const namespace = `${chalk.cyan(`[${label}]`)}`;
+        const content = [namespace, `[${level}]`, message];
+        return content.join(" ");
+      })
+    ),
+  });
+  return logger as Logger;
 }

@@ -1,4 +1,7 @@
-import { log } from "mirai-ts";
+import { Logger } from "mirai-ts";
+
+const logger = new Logger("[decorators]");
+
 export function displayCall(
   target: any,
   propertyName: string,
@@ -14,7 +17,7 @@ export function displayCall(
     // 转换结尾为字符串
     const r = JSON.stringify(result);
     // 在终端显示函数调用细节
-    log.info(`Call: ${propertyName}(${params}) => ${r}`);
+    logger.info(`Call: ${propertyName}(${params}) => ${r}`);
     // 返回调用函数的结果
     return result;
   };
@@ -38,7 +41,7 @@ export function tryCatch(errorHandler?: (error?: Error) => void) {
             if (errorHandler) {
               errorHandler(error);
             } else {
-              log.error(`调用 ${propertyKey} 出了问题`);
+              logger.error(`调用 ${propertyKey} 出了问题`);
             }
           });
         };

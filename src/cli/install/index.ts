@@ -1,5 +1,5 @@
 import inquirer from "inquirer";
-import { log } from "mirai-ts";
+import { Logger } from "mirai-ts";
 import Repo from "./repo";
 import shell from "shelljs";
 import commander from "commander";
@@ -16,17 +16,19 @@ export default function (cli: commander.Command) {
     });
 }
 
+const logger = new Logger("[cli(install)]");
+
 /**
  * 安装 mirai
  */
 function installMirai() {
-  log.warning(
+  logger.warning(
     "由于种种原因，本项目只使用原生脚本启动 mirai。\n这只是辅助，你完全可以自行启动 mirai 而无需使用它。"
   );
-  log.info(
+  logger.info(
     "\nel-bot 基于 mirai-api-http 且专注于机器人本身逻辑，但不提供任何关于如何下载启动 mirai 的解答，你应该自行掌握如何使用 mirai。\n在使用 el-bot 过程中遇到的问题，欢迎提 ISSUE，或加入我们的 QQ群 : 707408530 / TG群: https://t.me/elpsy_cn。"
   );
-  log.warning("也许你可以在群内发现一些你需要的文件。");
+  logger.warning("也许你可以在群内发现一些你需要的文件。");
 
   inquirer
     .prompt([
@@ -48,7 +50,7 @@ function installMirai() {
 
       if (answers["mirai-api-http"]) {
         const miraiApiHttp = new Repo("project-mirai", "mirai-api-http");
-        log.info(`若下载较慢，${tooltip}`);
+        logger.info(`若下载较慢，${tooltip}`);
         miraiApiHttp.downloadLatestRelease("./mirai/plugins");
       }
 

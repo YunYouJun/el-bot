@@ -16,7 +16,8 @@ function processOptions(program: commander.Command, ctx: Bot) {
   const pkg = ctx.el.pkg;
 
   if (options.v || options.version) {
-    ctx.reply(pkg.version);
+    ctx.reply(`mirai-api-http: v${pkg.version}`);
+    ctx.reply(`el-bot: v${pkg.version}`);
   }
 
   // about

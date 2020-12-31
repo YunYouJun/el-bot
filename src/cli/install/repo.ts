@@ -1,8 +1,10 @@
 import axios from "axios";
 import fs from "fs";
-import { log } from "mirai-ts";
+import { Logger } from "mirai-ts";
 import download from "download";
 import ProgressBar from "progress";
+
+const logger = new Logger("[cli(repo)]");
 
 /**
  * Repo 类
@@ -33,12 +35,12 @@ export default class Repo {
       .then((res) => {
         this.version = res.data.tag_name;
         this.browser_download_url = res.data.assets[0].browser_download_url;
-        log.info("Latest Version: " + this.version);
+        logger.info("Latest Version: " + this.version);
         return this.browser_download_url;
       })
       .catch((err) => {
-        log.error(err.message);
-        log.error("获取最新版本失败");
+        logger.error(err.message);
+        logger.error("获取最新版本失败");
       });
     return browser_download_url;
   }
@@ -53,7 +55,7 @@ export default class Repo {
     const path = dest + "/" + filename;
 
     if (fs.existsSync(path)) {
-      log.error(`${path} 已存在！`);
+      logger.error(`${path} 已存在！`);
       return;
     }
 
@@ -73,7 +75,7 @@ export default class Repo {
           bar.total = parseInt(res.headers["content-length"], 10) / 1000;
           res.on("data", (data: any) => bar.tick(data.length / 8000));
         })
-        .then(() => log.success("下载完成"));
+        .then(() => logger.success("下载完成"));
     } catch (err) {
       console.log(err);
     }
