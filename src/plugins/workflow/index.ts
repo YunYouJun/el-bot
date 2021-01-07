@@ -106,7 +106,9 @@ export default function workflow(ctx: Bot) {
     const files = fs.readdirSync(folder);
     files.forEach((file) => {
       const workflow = parse(`${folder}/${file}`);
-      createWorkflow(ctx, workflow);
+      if (workflow) {
+        createWorkflow(ctx, workflow as WorkflowConfig);
+      }
     });
   } catch (err) {
     // 不是 文件不存在 的错误时，才打印出错信息

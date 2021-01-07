@@ -10,12 +10,10 @@ function isObject(item: any) {
 }
 
 /**
- * https://www.npmjs.com/package/js-yaml#safeload-string---options-
- * now we can use!!js / undefined!!js / function !!js / regexp
+ * https://www.npmjs.com/package/js-yaml
  * @param path 配置文件名
  */
 export function parse(path: string) {
-  // return yaml.safeLoad(fs.readFileSync(path, "utf8"));
   return yaml.load(fs.readFileSync(path, "utf8"));
 }
 

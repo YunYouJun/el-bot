@@ -56,7 +56,7 @@ function installMirai() {
 
       if (answers["copy-setting"]) {
         shell.exec(
-          "cp ./mcl/config/MiraiApiHttp/setting.example.yml ./mcl/config/MiraiApiHttp/setting.yml"
+          "cp ./mcl/config/net.mamoe.mirai-api-http/setting.example.yml ./mcl/config/net.mamoe.mirai-api-http/setting.yml"
         );
       }
     });

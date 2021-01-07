@@ -22,11 +22,11 @@ export default function (ctx: Bot) {
   const folder = resolve(
     process.cwd(),
     ctx.el.pkg.mcl.folder,
-    `data/MiraiApiHttp/images/qrcode`
+    `data/net.mamoe.mirai-api-http/images/qrcode`
   );
 
   if (!fs.existsSync(folder)) {
-    fs.mkdirSync(folder);
+    fs.mkdirSync(folder, { recursive: true });
   }
 
   cli
