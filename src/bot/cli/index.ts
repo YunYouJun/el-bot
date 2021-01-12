@@ -10,14 +10,16 @@ import { cleanOptions } from "./utils";
  * @param options
  * @param ctx
  */
-function processOptions(program: commander.Command, ctx: Bot) {
+async function processOptions(program: commander.Command, ctx: Bot) {
   const options = program.opts();
 
   const pkg = ctx.el.pkg;
 
   if (options.v || options.version) {
-    ctx.reply(`mirai-api-http: v${pkg.version}`);
     ctx.reply(`el-bot: v${pkg.version}`);
+
+    const mahAbout = await ctx.mirai.api.about();
+    ctx.reply(`mirai-api-http: v${mahAbout.data.version}`);
   }
 
   // about

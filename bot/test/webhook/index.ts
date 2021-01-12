@@ -1,4 +1,4 @@
-import Bot from "../../src";
+import Bot from "../../../src";
 
 export default function (ctx: Bot) {
   ctx.webhook.on("ok", (data: any) => {
