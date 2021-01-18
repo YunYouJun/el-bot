@@ -19,6 +19,7 @@ import { connectDb } from "../db";
 import chalk from "chalk";
 import commander from "commander";
 import { resolve } from "path";
+import ora from "ora";
 
 interface PackageJson {
   name: string;
@@ -116,7 +117,26 @@ export default class Bot {
    */
   async link() {
     try {
-      await this.mirai.link(this.el.qq);
+      const qq = this.el.qq;
+      const mirai = this.mirai;
+      mirai.qq = qq;
+      mirai.api.handleStatusCode();
+
+      mirai.logger.enable = false;
+      let data = await mirai.auth();
+
+      // 旋转指针
+      const spinner = ora(`验证 Session: ${data.session}`);
+      if (data.code === 0) {
+        spinner.start();
+      }
+      data = await mirai.verify();
+      if (data.code === 0) {
+        spinner.succeed();
+      } else {
+        spinner.fail();
+      }
+      mirai.logger.enable = true;
     } catch (err) {
       this.logger.error(err.message);
       await sleep(3000);
@@ -129,7 +149,7 @@ export default class Bot {
    * 启动机器人
    * @param callback 回调函数
    */
-  async start(callback?: Function) {
+  async start() {
     if (!this.isDev) {
       statement(this);
     }
@@ -155,7 +175,7 @@ export default class Bot {
     this.plugins.load("community");
     this.plugins.load("custom");
 
-    callback ? this.mirai.listen(callback) : this.mirai.listen();
+    this.mirai.listen();
 
     // 启动 webhook
     if (this.el.webhook.enable) {

@@ -77,7 +77,7 @@ export default class Repo {
         })
         .then(() => logger.success("下载完成"));
     } catch (err) {
-      console.log(err);
+      logger.error(err.message);
     }
   }
 }

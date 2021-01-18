@@ -78,7 +78,7 @@ export function initCli(ctx: Bot, name: string) {
     .command("echo <message>")
     .description("回声")
     .action((message) => {
-      console.log(message);
+      ctx.logger.info(message);
       if (ctx.user.isAllowed(undefined, true)) {
         ctx.reply(message);
       }

@@ -5,9 +5,9 @@ export default async function (ctx: ElBot) {
   // const config = ctx.el.config;
   // mirai.api.sendFriendMessage("咳咳……麦克风测试，麦克风测试……", config.master[0]);
 
-  console.log("on message");
+  ctx.logger.info("on message");
   mirai.on("message", (msg) => {
     // msg.reply(msg.plain);
-    console.log(msg);
+    ctx.logger.debug(msg);
   });
 }

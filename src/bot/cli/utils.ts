@@ -9,16 +9,16 @@ export function cleanOptions(program: commander.Command) {
 
   // reset option
   Object.keys(options).forEach((key) => {
-    delete program[key];
+    delete options[key];
 
     // 重新设置默认值
-    if (program.options.length > 0) {
-      program.options.forEach((option: any) => {
+    if (options.length > 0) {
+      options.forEach((option: any) => {
         if (
           option.defaultValue &&
           (option.long === `--${key}` || option.short === `-${key}`)
         ) {
-          program[key] = option.defaultValue;
+          options[key] = option.defaultValue;
         }
       });
     }

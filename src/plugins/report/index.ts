@@ -20,7 +20,7 @@ interface ReportOptions {
 export default function (ctx: Bot, options: ReportOptions[]) {
   options.forEach((option) => {
     ctx.webhook.on(option.type, (data: any) => {
-      console.log(data);
+      ctx.logger.debug(data);
       const text = renderString(option.content, data, "data");
       if (option.target) {
         ctx.sender.sendMessageByConfig(text, option.target);

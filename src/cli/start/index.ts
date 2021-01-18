@@ -54,7 +54,9 @@ function startMcl(folder?: string) {
   }
 
   glob("./mcl", {}, (err, files) => {
-    if (err) console.log(err);
+    if (err) {
+      console.log(err);
+    }
 
     if (files[0]) {
       try {

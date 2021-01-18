@@ -66,6 +66,7 @@ npm install el-bot@latest
 - [el-bot-plugins](https://github.com/ElpsyCN/el-bot-plugins): el-bot 的官方插件集中地（你也可以提交 PR 或一些自己的插件链接到 README 里打广告）
 - [el-bot-docs](https://github.com/ElpsyCN/el-bot-docs): el-bot 使用文档
 - [el-bot-template](https://github.com/ElpsyCN/el-bot-template)：机器人模版（你可以直接使用它来生成你的机器人）
+- [el-bot-web](https://github.com/ElpsyCN/el-bot-web)：机器人前端（通过网页监控与控制你的机器人）（但是还在咕咕咕）
 
 ## Thanks
 
