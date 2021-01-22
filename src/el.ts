@@ -13,10 +13,6 @@ export interface dbConfig {
    */
   uri?: string;
   /**
-   * 数据库名
-   */
-  name?: string;
-  /**
    * 是否进行统计分析
    */
   analytics?: Boolean;
@@ -50,8 +46,6 @@ export default class El {
     };
     this.db = {
       enable: false,
-      name: "el-bot",
-      uri: "mongodb://localhost:27017",
     };
     this.config = defaultConfig;
     this.webhook = {

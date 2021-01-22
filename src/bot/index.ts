@@ -14,12 +14,12 @@ import Webhook from "./webhook";
 import { initCli } from "./cli";
 
 import { sleep, statement } from "../utils/misc";
-import { Db, MongoClient } from "mongodb";
 import { connectDb } from "../db";
 import chalk from "chalk";
 import commander from "commander";
 import { resolve } from "path";
 import ora from "ora";
+import mongoose from "mongoose";
 
 interface PackageJson {
   name: string;
@@ -32,11 +32,10 @@ export default class Bot {
   mirai: MiraiInstance;
   // 激活
   active: boolean;
-  client?: MongoClient;
   /**
    * 数据库，默认使用 MongoDB
    */
-  db?: Db;
+  db?: mongoose.Connection;
   /**
    * package.json
    */
@@ -188,18 +187,18 @@ export default class Bot {
           }
         });
       } catch (err) {
-        console.error(err);
+        this.logger.error(err.message);
       }
     }
 
-    // 推出信息
+    // 退出信息
     process.on("exit", () => {
       this.logger.warning("Bye, Master!");
       this.mirai.release();
 
       // 关闭数据库连接
-      if (this.client) {
-        this.client.close();
+      if (this.db) {
+        this.db.close();
       }
     });
   }

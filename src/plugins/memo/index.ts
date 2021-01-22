@@ -3,33 +3,15 @@ import Bot from "../../bot";
 import schedule from "node-schedule";
 import { MessageType } from "mirai-ts";
 import { parseTime, checkTime } from "./utils";
-
-interface Memo {
-  time: string | Date;
-  /**
-   * 内容
-   */
-  content: string;
-  /**
-   * 群
-   */
-  group?: number;
-  /**
-   * 好友
-   */
-  friend?: number;
-}
+import { Memo, IMemo } from "./memo.schema";
 
 /**
  * 初始化 collection
  * @param db
  */
-function initCollection(ctx: Bot) {
+async function initCollection(ctx: Bot) {
   if (!ctx.db) return;
-  const { db } = ctx;
-  const memosCollection = db.collection("memos");
-
-  const memos = memosCollection.find({
+  const memos = await Memo.find({
     $or: [
       {
         time: { $type: "string" },
@@ -42,7 +24,7 @@ function initCollection(ctx: Bot) {
     ],
   });
 
-  memos.forEach((memo: Memo) => {
+  memos.forEach((memo: IMemo) => {
     addSchedule(ctx, memo);
   });
 
@@ -113,10 +95,10 @@ function initCli(ctx: Bot) {
           return;
         }
 
-        const memo: Memo = {
+        const memo: IMemo = new Memo({
           time: isCron ? options.time.join(" ") : time.toDate(),
           content,
-        };
+        });
         const msg = ctx.mirai.curMsg as MessageType.ChatMessage;
         memo.friend = msg.sender.id;
         if ((msg as MessageType.GroupMessage).sender.group) {
@@ -124,7 +106,7 @@ function initCli(ctx: Bot) {
         }
 
         addSchedule(ctx, memo);
-        addMemoForDb(ctx, memo);
+        memo.save();
         const future = time.format("YYYY-MM-DD ddd HH:mm:ss");
         ctx.reply(
           `好的，我将在 ${isCron ? memo.time : future} 提醒你 ${content}。`
@@ -139,7 +121,7 @@ function initCli(ctx: Bot) {
  * @param time
  * @param content
  */
-function addSchedule(ctx: Bot, memo: Memo) {
+function addSchedule(ctx: Bot, memo: IMemo) {
   const { mirai } = ctx;
   const msg = mirai.curMsg;
   schedule.scheduleJob(memo.time, () => {
@@ -151,17 +133,6 @@ function addSchedule(ctx: Bot, memo: Memo) {
       (msg as MessageType.ChatMessage).reply(memo.content);
     }
   });
-}
-
-/**
- * 添加备忘
- * @param ctx
- * @param memo
- */
-function addMemoForDb(ctx: Bot, memo: Memo) {
-  if (!ctx.db) return;
-  const memosCollection = ctx.db.collection("memos");
-  memosCollection.insertOne(memo);
 }
 
 export default function (ctx: Bot) {

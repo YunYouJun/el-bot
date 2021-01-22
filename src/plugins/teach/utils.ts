@@ -1,11 +1,10 @@
-import { Collection } from "mongodb";
+import { Teach } from "./teach.schema";
 
 /**
  * 展示当前的问答列表
  */
-export function displayList(teach: Collection) {
-  // find {} to return all documents
-  const list = teach.find({});
+export async function displayList() {
+  const list = await Teach.find();
   let listContent = "问答列表：";
   list.forEach((qa) => {
     listContent += `\nQ: 「${qa.question}」 A: 「${qa.answer}」`;

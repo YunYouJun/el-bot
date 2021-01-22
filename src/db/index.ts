@@ -1,36 +1,34 @@
 import Bot from "../bot";
-import { MongoClient } from "mongodb";
+import mongoose from "mongoose";
 import { dbConfig } from "../el";
-import ora from "ora";
 import { analytics } from "./analytics";
-import users from "./users";
 
 export async function connectDb(bot: Bot, dbConfig: dbConfig): Promise<void> {
   if (!dbConfig.enable) return;
 
-  const uri = dbConfig.uri || "mongodb://localhost:27017";
-  const name = dbConfig.name || "el-bot";
+  const uri = dbConfig.uri || "mongodb://localhost:27017/el-bot";
 
-  const linkDb = ora(`连接 MongoDB 数据库「${name}」`).start();
-  const client = await MongoClient.connect(uri, {
+  const dbName = "MongoDB 数据库";
+  bot.logger.info(`连接 ${dbName}`);
+
+  mongoose.connect(uri, {
+    useNewUrlParser: true,
     useUnifiedTopology: true,
-  }).catch((err) => {
-    bot.logger.error(err.message);
+    useFindAndModify: false,
+    useCreateIndex: true,
   });
 
-  if (!client) return;
+  const db = mongoose.connection;
+  bot.db = db;
 
-  try {
-    linkDb.succeed();
+  db.on("error", () => {
+    bot.logger.error(`${dbName}连接失败`);
+  });
+  db.once("open", () => {
+    bot.logger.success(`${dbName}连接成功`);
+  });
 
-    bot.client = client;
-    bot.db = client.db(name);
-  } catch (err) {
-    bot.logger.error(err.message);
-  }
-
-  // 初始化用户信息表
-  await users(bot);
+  if (!db) return;
 
   // 分析统计
   if (dbConfig.analytics) {

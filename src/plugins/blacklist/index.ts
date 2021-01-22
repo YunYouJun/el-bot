@@ -2,18 +2,18 @@ import ElBot from "src/bot";
 import { MessageAndEvent } from "mirai-ts/dist/mirai";
 import { check } from "mirai-ts";
 import { displayList } from "./utils";
+import { User } from "../../db/schemas/user.schema";
 
 export default async function (ctx: ElBot) {
   if (!ctx.db) return;
-  const { db, mirai } = ctx;
-  const users = db.collection("users");
+  const { mirai } = ctx;
 
-  const blockedUsers = users.find({
+  const blockedUsers = await User.find({
     block: true,
   });
 
   const blacklist: number[] = [];
-  await blockedUsers.forEach((user) => {
+  blockedUsers.forEach((user) => {
     blacklist.push(user.qq);
   });
 
@@ -64,7 +64,7 @@ export default async function (ctx: ElBot) {
   });
 
   function blockUser(qq: number) {
-    users.updateOne(
+    User.updateOne(
       {
         qq,
       },
@@ -83,7 +83,7 @@ export default async function (ctx: ElBot) {
   }
 
   function unBlockUser(qq: number) {
-    users.updateOne(
+    User.updateOne(
       {
         qq,
       },

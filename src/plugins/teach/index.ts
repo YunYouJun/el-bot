@@ -2,27 +2,13 @@ import Bot from "src/bot";
 import { MessageType } from "mirai-ts";
 import { TeachOptions } from "./options";
 import { displayList } from "./utils";
+import { Teach } from "./teach.schema";
 
 // implement the autoloadback referenced in loki constructor
 export default async function teach(ctx: Bot, options: TeachOptions) {
   if (!ctx.db) return;
 
-  const { db, mirai } = ctx;
-  const teach = db.collection("teach");
-
-  // 初始化 collection 结构
-  if ((await teach.find().count()) === 0) {
-    teach.createIndex(
-      {
-        question: 1,
-      },
-      {
-        unique: true,
-      }
-    );
-
-    ctx.logger.success("[teach] 新建 Collection：teach");
-  }
+  const { mirai } = ctx;
 
   // register command
   // 显示当前已有的问答列表
@@ -32,7 +18,7 @@ export default async function teach(ctx: Bot, options: TeachOptions) {
     .option("-l, --list", "当前列表")
     .action(async (options) => {
       if (options.list) {
-        ctx.reply(displayList(teach));
+        ctx.reply(await displayList());
       }
     });
 
@@ -58,33 +44,27 @@ export default async function teach(ctx: Bot, options: TeachOptions) {
       const question = qa[1].trim();
       const answer = qa[2].trim();
 
-      const result = await teach.findOne({
-        question,
-      });
+      const result = await Teach.findOneAndUpdate(
+        {
+          question,
+        },
+        {
+          answer,
+        },
+        {
+          upsert: true,
+        }
+      );
       if (result) {
-        teach.updateOne(
-          {
-            question,
-          },
-          {
-            $set: {
-              answer,
-            },
-          }
-        );
         msg.reply(
           `存在重复，已覆盖旧值：\nQ: ${result.question}\nA: ${result.answer}`
         );
       } else {
-        teach.insertOne({
-          question,
-          answer,
-        });
         msg.reply(options.reply);
       }
     } else {
       // 查找应答
-      const result = await teach.findOne({
+      const result = await Teach.findOne({
         question: msg.plain,
       });
       if (result) msg.reply(result.answer);

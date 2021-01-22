@@ -1,50 +1,29 @@
 import Bot from "src";
-import { ObjectID, Collection } from "mongodb";
 import Mirai from "mirai-ts";
-
-/**
- * 用户的触发信息
- */
-interface TriggerInfo {
-  _id?: ObjectID;
-  /**
-   * 触发者 QQ
-   */
-  qq: number;
-  /**
-   * 总计触发次数
-   */
-  total: number;
-  /**
-   * 上次触发时间
-   */
-  lastTriggerTime: Date;
-}
+import { User } from "./schemas/user.schema";
 
 /**
  * 记录触发信息
  * @param mirai
  * @param collection
  */
-async function recordTriggerInfo(mirai: Mirai, collection: Collection) {
-  const analytics = collection;
-
+async function recordTriggerInfo(mirai: Mirai) {
   if (mirai.curMsg && mirai.curMsg.type === "GroupMessage") {
     const msg = mirai.curMsg;
 
-    const res: TriggerInfo | null = await analytics.findOne({
+    const res = await User.findOne({
       qq: msg.sender.id,
     });
 
     if (!res) {
-      const triggerInfo: TriggerInfo = {
+      const triggerInfo = new User({
         qq: msg.sender.id,
         total: 1,
         lastTriggerTime: new Date(),
-      };
-      analytics.insertOne(triggerInfo);
+      });
+      triggerInfo.save();
     } else {
-      analytics.updateOne(
+      User.updateOne(
         {
           qq: msg.sender.id,
         },
@@ -71,13 +50,12 @@ export async function analytics(bot: Bot) {
     return;
   }
 
-  const { db, mirai } = bot;
-  const analytics = db.collection("users");
+  const { mirai } = bot;
 
   const sendGroupMessage = mirai.api.sendGroupMessage;
   // 重载消息发送函数
   mirai.api.sendGroupMessage = async (messageChain, target, quote) => {
-    recordTriggerInfo(mirai, analytics);
+    recordTriggerInfo(mirai);
 
     const data = await sendGroupMessage.apply(mirai.api, [
       messageChain,
