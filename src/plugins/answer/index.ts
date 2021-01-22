@@ -63,7 +63,7 @@ async function renderStringByApi(
 type AnswerOptions = BaseAnswerOptions[];
 
 export default function (ctx: Bot, options: AnswerOptions) {
-  const mirai = ctx.mirai;
+  const { mirai } = ctx;
   if (!options) return;
 
   // 设置定时

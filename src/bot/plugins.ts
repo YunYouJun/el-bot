@@ -94,14 +94,16 @@ export default class Plugins {
                 require(`${pkgName}/options`).default ||
                 require(`${pkgName}/options`);
             } catch {
-              // log.error(`${pkgName}不存在默认配置`)
+              // this.bot.logger.error(`${pkgName}不存在默认配置`)
             }
 
             this.use(name, plugin, options, pkg);
+
+            this.bot.logger.success(`[${type}] (${name}) 加载成功`);
           }
         } catch (err) {
           this.bot.logger.error(err.message);
-          this.bot.logger.error(`插件 ${name} 加载失败`);
+          this.bot.logger.error(`[${type}] (${name}) 加载失败`);
         }
       });
     }

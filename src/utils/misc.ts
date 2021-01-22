@@ -15,13 +15,8 @@ export async function sleep(ms: number): Promise<void> {
 export function statement(ctx: Bot) {
   const pkg = ctx.el.pkg;
   console.log("-----------------------------------------------");
+  ctx.logger.info(`Docs: ${pkg.homepage}`);
   ctx.logger.info(`GitHub: ${pkg.repository.url}`);
   ctx.logger.info(`El-Bot Version: ${chalk.cyan(pkg.version)}`);
-  ctx.logger.warning(
-    chalk.cyan("el-bot") + " 是一个非盈利的开源项目，仅供交流学习使用。"
-  );
-  ctx.logger.warning(
-    "请勿用于商业或非法用途，因使用而与腾讯公司产生的一切纠纷均与原作者无关。"
-  );
   console.log("-----------------------------------------------");
 }

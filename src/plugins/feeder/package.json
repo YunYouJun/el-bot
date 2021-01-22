@@ -1,0 +1,14 @@
+{
+  "name": "feeder",
+  "private": true,
+  "version": "0.0.1",
+  "description": "动态订阅 RSS Feed 信息（与 rss 相区别）",
+  "el-bot": {
+    "db": true
+  },
+  "author": {
+    "name": "YunYouJun",
+    "url": "https://www.yunyoujun.cn",
+    "email": "me@yunyoujun.cn"
+  }
+}

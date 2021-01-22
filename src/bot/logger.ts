@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import winston from "winston";
+import dayjs from "dayjs";
 
 const customLevels = {
   levels: {
@@ -39,9 +40,15 @@ export function createLogger(label = "el-bot") {
       winston.format.label({
         label,
       }),
-      winston.format.printf(({ level, message, label }) => {
+      winston.format.timestamp(),
+      winston.format.printf(({ level, message, label, timestamp }) => {
         const namespace = `${chalk.cyan(`[${label}]`)}`;
-        const content = [namespace, `[${level}]`, message];
+        const content = [
+          namespace,
+          chalk.yellow(`[${dayjs(timestamp).format("HH:mm:ss")}]`),
+          `[${level}]`,
+          message,
+        ];
         return content.join(" ");
       })
     ),

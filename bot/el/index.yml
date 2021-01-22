@@ -2,17 +2,18 @@ plugins:
   default:
     # - dev
     - answer
-    - blacklist
-    - forward
-    - limit
-    - memo
-    - nbnhhsh
-    - qrcode
-    - rss
-    - report
-    - search
-    - teach
-    - workflow
+    # - blacklist
+    - feeder
+    # - forward
+    # - limit
+    # - memo
+    # - nbnhhsh
+    # - qrcode
+    # - rss
+    # - report
+    # - search
+    # - teach
+    # - workflow
   official:
     # - search-image
     # - niubi

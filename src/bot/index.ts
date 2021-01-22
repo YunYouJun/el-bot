@@ -18,7 +18,6 @@ import { connectDb } from "../db";
 import chalk from "chalk";
 import commander from "commander";
 import { resolve } from "path";
-import ora from "ora";
 import mongoose from "mongoose";
 
 interface PackageJson {
@@ -116,26 +115,7 @@ export default class Bot {
    */
   async link() {
     try {
-      const qq = this.el.qq;
-      const mirai = this.mirai;
-      mirai.qq = qq;
-      mirai.api.handleStatusCode();
-
-      mirai.logger.enable = false;
-      let data = await mirai.auth();
-
-      // 旋转指针
-      const spinner = ora(`验证 Session: ${data.session}`);
-      if (data.code === 0) {
-        spinner.start();
-      }
-      data = await mirai.verify();
-      if (data.code === 0) {
-        spinner.succeed();
-      } else {
-        spinner.fail();
-      }
-      mirai.logger.enable = true;
+      await this.mirai.link(this.el.qq);
     } catch (err) {
       this.logger.error(err.message);
       await sleep(3000);
@@ -153,6 +133,11 @@ export default class Bot {
       statement(this);
     }
 
+    // 连接数据库
+    if (this.el.db.enable) {
+      await connectDb(this, this.el.db);
+    }
+
     // 链接 QQ
     if (!this.el.qq) {
       this.logger.error("未传入机器人 QQ");
@@ -162,11 +147,6 @@ export default class Bot {
     this.logger.info(`Bot QQ: ` + chalk.green(this.el.qq));
     this.logger.info(`Link Start!`);
     await this.link();
-
-    // 连接数据库
-    if (this.el.db.enable) {
-      await connectDb(this, this.el.db);
-    }
 
     // 加载插件
     this.plugins.load("default");
@@ -193,13 +173,14 @@ export default class Bot {
 
     // 退出信息
     process.on("exit", () => {
-      this.logger.warning("Bye, Master!");
-      this.mirai.release();
-
       // 关闭数据库连接
       if (this.db) {
         this.db.close();
+        this.logger.info("[db] 关闭数据库连接");
       }
+
+      this.logger.warning("Bye, Master!");
+      this.mirai.release();
     });
   }
 }

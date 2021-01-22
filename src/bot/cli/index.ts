@@ -3,7 +3,7 @@ import commander, { Command } from "commander";
 import { PluginType } from "../plugins";
 import { ChatMessage } from "mirai-ts/dist/types/message-type";
 import shell from "shelljs";
-import { cleanOptions } from "./utils";
+import { aboutInfo, cleanOptions } from "./utils";
 
 /**
  * 处理全局选项
@@ -23,13 +23,11 @@ async function processOptions(program: commander.Command, ctx: Bot) {
   }
 
   // about
-  if (options.a || options.about) {
-    let about = "";
-    about += "GitHub: " + pkg.repository.url + "\n";
-    about += "Docs: " + pkg.homepage + "\n";
-    about += "SDK: " + pkg.directories.lib + "\n";
-    about += "Author: " + `${pkg.author.name} <${pkg.author.url}>` + "\n";
-    about += "Copyright: @ElpsyCN";
+  if (
+    (ctx.mirai.curMsg as ChatMessage).plain === "el -a" &&
+    (options.a || options.about)
+  ) {
+    const about = aboutInfo(pkg);
     ctx.reply(about);
   }
 }
