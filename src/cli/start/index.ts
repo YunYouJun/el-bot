@@ -1,10 +1,11 @@
+import { spawn } from "child_process";
+import commander from "commander";
+import fs from "fs";
+import glob from "glob";
+import { Logger } from "mirai-ts";
+import os from "os";
 import { resolve } from "path";
 import shell from "shelljs";
-import fs from "fs";
-import { Logger } from "mirai-ts";
-import { spawn } from "child_process";
-import glob from "glob";
-import commander from "commander";
 const pkg = require(getAbsolutePath("./package.json"));
 
 const logger = new Logger("[cli(start)]");
@@ -59,10 +60,15 @@ function startMcl(folder?: string) {
     }
 
     if (files[0]) {
+      const platform = os.platform();
       try {
-        const miraiConsole = spawn("./mcl", [], {
-          stdio: ["pipe", "inherit", "inherit"],
-        });
+        const miraiConsole = spawn(
+          platform === "win32" ? "mcl.cmd" : "./mcl",
+          [],
+          {
+            stdio: ["pipe", "inherit", "inherit"],
+          }
+        );
         process.stdin.pipe(miraiConsole.stdin);
       } catch (err) {
         console.log(err);
