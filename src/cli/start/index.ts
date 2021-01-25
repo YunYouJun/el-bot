@@ -63,7 +63,7 @@ function startMcl(folder?: string) {
       const platform = os.platform();
       try {
         const miraiConsole = spawn(
-          platform === "win32" ? "./mcl.cmd" : "./mcl",
+          platform === "win32" ? "mcl.cmd" : "./mcl",
           [],
           {
             stdio: ["pipe", "inherit", "inherit"],
