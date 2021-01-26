@@ -8,14 +8,14 @@ export interface Plugin {
   description: string;
 }
 
-export const PluginTypeMap = {
+export type PluginType = "default" | "official" | "community" | "custom";
+
+export const PluginTypeMap: Record<PluginType, string> = {
   default: "默认插件",
   official: "官方插件",
   community: "社区插件",
   custom: "自定义插件",
 };
-
-export type PluginType = "default" | "official" | "community" | "custom";
 
 export default class Plugins {
   default: Plugin[];
@@ -62,37 +62,34 @@ export default class Plugins {
   load(type: PluginType) {
     const config = this.bot.el.config;
     if (config.plugins[type]) {
-      config.plugins[type].forEach((name: string) => {
+      config.plugins[type].forEach(async (name: string) => {
         const pkgName = this.getPluginFullName(name, type);
 
         try {
-          // 适配 module.exports
-          const plugin = require(pkgName).default || require(pkgName);
+          const pluginPath = pkgName;
+          const { default: plugin } = await import(pluginPath);
 
           let pkg = {
             name: pkgName,
             version: "未知",
             description: "未知",
           };
-
           try {
-            pkg = require(`${pkgName}/package.json`);
+            pkg = await import(`${pluginPath}/package.json`);
           } catch {
             this.bot.logger.warning(`${name} 插件没有相关描述信息`);
           }
 
           if (plugin) {
             this[type].push({
-              name,
+              name: name || pkgName,
               version: plugin.version || pkg.version,
               description: plugin.description || pkg.description,
             });
 
             let options = null;
             try {
-              options =
-                require(`${pkgName}/options`).default ||
-                require(`${pkgName}/options`);
+              options = await import(`${pluginPath}/options`);
             } catch {
               // this.bot.logger.error(`${pkgName}不存在默认配置`)
             }

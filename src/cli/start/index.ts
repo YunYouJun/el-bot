@@ -6,6 +6,7 @@ import { Logger } from "mirai-ts";
 import os from "os";
 import { resolve } from "path";
 import shell from "shelljs";
+// 实例目录下的 package.json
 const pkg = require(getAbsolutePath("./package.json"));
 
 const logger = new Logger("[cli(start)]");
@@ -18,70 +19,68 @@ function getAbsolutePath(file: string) {
   return resolve(process.cwd(), file);
 }
 
-/**
- * 启动机器人
- */
-function startBot() {
-  const execFile = pkg.main || "index.js" || "index.ts";
-  const file = getAbsolutePath(execFile);
+export default async function (cli: commander.Command) {
+  /**
+   * 启动机器人
+   */
+  function startBot() {
+    const execFile = pkg.main || "index.js" || "index.ts";
+    const file = getAbsolutePath(execFile);
 
-  if (fs.existsSync(file)) {
-    if (file.includes(".ts")) {
-      spawn("ts-node", [file], { stdio: "inherit" });
-    } else {
-      spawn("node", [file], { stdio: "inherit" });
-    }
-    return true;
-  } else {
-    logger.error(
-      "不存在可执行文件，请检查 package.json 中 main 入口文件是否存在，或参考文档新建 index.js 机器人实例。"
-    );
-    return false;
-  }
-}
-
-/**
- * 启动 MCL
- */
-function startMcl(folder?: string) {
-  require("dotenv").config();
-
-  // 先进入目录
-  try {
-    shell.cd(folder || (pkg.mcl ? pkg.mcl.folder : "mcl"));
-  } catch (err) {
-    console.log(err);
-    logger.error("mcl 目录不存在");
-  }
-
-  glob("./mcl", {}, (err, files) => {
-    if (err) {
-      console.log(err);
-    }
-
-    if (files[0]) {
-      const platform = os.platform();
-      try {
-        const miraiConsole = spawn(
-          platform === "win32" ? "mcl.cmd" : "./mcl",
-          [],
-          {
-            stdio: ["pipe", "inherit", "inherit"],
-          }
-        );
-        process.stdin.pipe(miraiConsole.stdin);
-      } catch (err) {
-        console.log(err);
+    if (fs.existsSync(file)) {
+      if (file.includes(".ts")) {
+        spawn("ts-node", [file], { stdio: "inherit" });
+      } else {
+        spawn("node", [file], { stdio: "inherit" });
       }
+      return true;
     } else {
       logger.error(
-        "请下载官方启动器 [mirai-console-loader](https://github.com/iTXTech/mirai-console-loader)。"
+        `不存在可执行文件，请检查 package.json 中 main 入口文件是否存在，或参考文档新建 bot/index.js 机器人实例。`
       );
+      return false;
     }
-  });
-}
+  }
 
-export default function (cli: commander.Command) {
+  /**
+   * 启动 MCL
+   */
+  function startMcl(folder?: string) {
+    // 先进入目录
+    try {
+      shell.cd(folder || (pkg.mcl ? pkg.mcl.folder : "mcl"));
+    } catch (err) {
+      logger.error(err.message);
+      logger.error("mcl 目录不存在");
+    }
+
+    glob("./mcl", {}, (err, files) => {
+      if (err) {
+        logger.error(err);
+      }
+
+      if (files[0]) {
+        const platform = os.platform();
+        try {
+          const miraiConsole = spawn(
+            platform === "win32" ? "mcl.cmd" : "./mcl",
+            [],
+            {
+              stdio: ["pipe", "inherit", "inherit"],
+            }
+          );
+          process.stdin.pipe(miraiConsole.stdin);
+        } catch (err) {
+          logger.error(err.message);
+        }
+      } else {
+        logger.error(
+          "请下载官方启动器 [mirai-console-loader](https://github.com/iTXTech/mirai-console-loader)。"
+        );
+      }
+    });
+  }
+
   // 启动
   cli
     .command("start [project]")
@@ -93,7 +92,7 @@ export default function (cli: commander.Command) {
       } else if (project === "mcl") {
         startMcl(options.folder);
       } else {
-        console.error("不存在该指令");
+        logger.error("不存在该指令");
       }
     });
 }

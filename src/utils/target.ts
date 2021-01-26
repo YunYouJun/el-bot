@@ -1,7 +1,7 @@
 /**
  * 广播对象
  */
-class BroadcastTarget {
+export class BroadcastTarget {
   /**
    * 好友
    */

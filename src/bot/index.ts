@@ -17,14 +17,8 @@ import { sleep, statement } from "../utils/misc";
 import { connectDb } from "../db";
 import chalk from "chalk";
 import commander from "commander";
-import { resolve } from "path";
 import mongoose from "mongoose";
-
-interface PackageJson {
-  name: string;
-  version: string;
-  [propName: string]: any;
-}
+import { Server } from "net";
 
 export default class Bot {
   el: El;
@@ -35,10 +29,6 @@ export default class Bot {
    * 数据库，默认使用 MongoDB
    */
   db?: mongoose.Connection;
-  /**
-   * package.json
-   */
-  pkg: PackageJson;
   /**
    * 状态
    */
@@ -79,7 +69,6 @@ export default class Bot {
       enableWebsocket: setting.enableWebsocket || false,
     };
     this.mirai = new Mirai(mahConfig);
-    this.pkg = require(resolve(process.cwd(), "./package.json"));
     this.active = true;
     this.status = new Status(this);
     this.user = new User(this);
@@ -157,15 +146,10 @@ export default class Bot {
     this.mirai.listen();
 
     // 启动 webhook
+    let server: Server | undefined;
     if (this.el.webhook.enable) {
       try {
-        const server = this.webhook.start();
-        process.on("exit", () => {
-          // 关闭 koa server
-          if (server) {
-            server.close();
-          }
-        });
+        server = this.webhook.start();
       } catch (err) {
         this.logger.error(err.message);
       }
@@ -177,6 +161,14 @@ export default class Bot {
       if (this.db) {
         this.db.close();
         this.logger.info("[db] 关闭数据库连接");
+      }
+
+      // close koa server
+      if (this.el.webhook.enable) {
+        if (server) {
+          server.close();
+          this.logger.info("[webhook] 关闭 Server");
+        }
       }
 
       this.logger.warning("Bye, Master!");

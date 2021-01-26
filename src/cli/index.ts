@@ -6,9 +6,9 @@ import commander from "commander";
 
 import { spawn } from "child_process";
 
-const { version } = require("../../package");
+const pkg = require("../../package.json");
 const cli = new commander.Command("el");
-cli.version(version);
+cli.version(pkg.version);
 
 registerInstallCommand(cli);
 registerStartCommand(cli);

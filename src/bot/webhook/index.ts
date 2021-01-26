@@ -5,7 +5,7 @@ import bodyParser from "koa-bodyparser";
 import events from "events";
 import githubHandler from "./github-handler";
 import { Webhooks } from "@octokit/webhooks";
-import { Server } from "http";
+import { Server } from "net";
 export interface WebhookConfig {
   /**
    * 是否启用
@@ -77,10 +77,10 @@ export default class Webhook {
     let type = "";
     if (ctx.request.method === "GET" && ctx.request.query.type) {
       type = ctx.request.query.type;
-      this.emitter.emit(type, ctx.request.query);
+      this.emitter.emit(type, ctx.request.query, ctx.res);
     } else if (ctx.request.method === "POST" && ctx.body.type) {
       type = ctx.body.type;
-      this.emitter.emit(type, ctx.body);
+      this.emitter.emit(type, ctx.body, ctx.res);
       this.bot.logger.info(`[webhook](${type})`);
       if (this.bot.isDev) {
         this.bot.logger.info(
@@ -98,8 +98,10 @@ export default class Webhook {
    * @param callback 回调函数
    */
   on(type: string, callback: Function) {
-    this.emitter.on(type, (data) => {
-      callback(data);
+    // data 为解析后的参数
+    // res 为返回信息
+    this.emitter.on(type, (data, res) => {
+      callback(data, res);
     });
   }
 }
