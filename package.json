@@ -23,7 +23,7 @@
     "dev:plugins": "cd packages/el-bot-plugins && yarn watch",
     "lint": "eslint src --ext .ts --fix && prettier --write .",
     "start": "npm-run-all --parallel start:*",
-    "start:bot": "yarn build && node dist/index.js",
+    "start:bot": "yarn build && cross-env NODE_ENV=production node dist/index.js",
     "start:mcl": "el start mcl",
     "test": "yarn lint",
     "watch": "tsc --watch",

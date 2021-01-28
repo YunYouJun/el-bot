@@ -19,6 +19,19 @@ import chalk from "chalk";
 import commander from "commander";
 import mongoose from "mongoose";
 import { Server } from "net";
+// shared
+import { isFunction } from "src/shared";
+
+// type
+import type { Plugin } from "./plugins";
+
+/**
+ * 创建机器人
+ * @param el
+ */
+export function createBot(el: El) {
+  return new Bot(el);
+}
 
 export default class Bot {
   el: El;
@@ -45,6 +58,10 @@ export default class Bot {
    * 插件系统
    */
   plugins: Plugins;
+  /**
+   * 已按照的插件
+   */
+  installedPlugins = new Set();
   /**
    * 指令系统
    */
@@ -77,7 +94,7 @@ export default class Bot {
     this.webhook = new Webhook(this);
     this.cli = initCli(this, "el");
 
-    this.isDev = process.env.NODE_ENV === "dev";
+    this.isDev = process.env.NODE_ENV !== "production";
   }
 
   /**
@@ -90,13 +107,6 @@ export default class Bot {
       this.logger.error("当前消息不存在");
       return false;
     }
-  }
-
-  /**
-   * 加载自定义函数插件
-   */
-  use(name: string, plugin: Function) {
-    this.plugins.use(name, plugin);
   }
 
   /**
@@ -173,6 +183,39 @@ export default class Bot {
 
       this.logger.warning("Bye, Master!");
       this.mirai.release();
+    });
+  }
+
+  /**
+   * 加载自定义函数插件
+   * 与 this.plugin.use() 的区别是此部分的插件将不会显示在插件列表中
+   */
+  use(plugin: Plugin, ...options: any[]) {
+    const installedPlugins = this.installedPlugins;
+    if (installedPlugins.has(plugin)) {
+      this.isDev && this.logger.warn("插件已经被安装");
+    } else if (plugin && isFunction(plugin.install)) {
+      installedPlugins.add(plugin);
+      plugin.install(this, ...options);
+    } else if (isFunction(plugin)) {
+      installedPlugins.add(plugin);
+      plugin(this, ...options);
+    } else if (this.isDev) {
+      this.logger.warn('插件必须是一个函数，或是带有 "install" 属性的对象。');
+    }
+    return this;
+  }
+
+  /**
+   * 注册插件
+   * @param name 插件名称
+   * @param plugin 插件函数
+   * @param options 插件选项
+   */
+  plugin(name: string, plugin: Plugin, ...options: any[]) {
+    this.plugins.add(name, plugin, ...options);
+    this.plugins["custom"].add({
+      name,
     });
   }
 }
