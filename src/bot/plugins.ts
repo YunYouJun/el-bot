@@ -1,7 +1,7 @@
 import Bot from ".";
 import { merge } from "../utils/config";
 import path from "path";
-import { isFunction } from "src/shared";
+import { isFunction } from "../shared";
 
 type PluginInstallFunction = (bot: Bot, ...options: any[]) => any;
 
@@ -38,10 +38,18 @@ export default class Plugins {
   custom = new Set<PluginInfo>();
   constructor(public bot: Bot) {}
 
+  /**
+   * 根据名称判断是否为官方插件
+   * @param name
+   */
   isOfficial(name: string) {
     return name.startsWith("@el-bot/plugin-");
   }
 
+  /**
+   * 根据名称判断是否为社区插件
+   * @param name
+   */
   isCommunity(name: string) {
     return name.startsWith("el-bot-plugin-");
   }
@@ -161,9 +169,9 @@ export default class Plugins {
     }
 
     if (plugin && isFunction(plugin.install)) {
-      plugin.install(bot, ...pluginOptions);
+      plugin.install(bot, pluginOptions);
     } else if (isFunction(plugin)) {
-      plugin(bot, ...pluginOptions);
+      plugin(bot, pluginOptions);
     } else if (bot.isDev) {
       bot.logger.warn('插件必须是一个函数，或是带有 "install" 属性的对象。');
     }

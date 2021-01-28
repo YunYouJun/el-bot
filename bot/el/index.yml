@@ -3,7 +3,8 @@ plugins:
     # - dev
     - answer
     # - blacklist
-    - feeder
+    - counter
+    # - feeder
     # - forward
     # - limit
     # - memo
@@ -18,7 +19,7 @@ plugins:
     # - search-image
     # - niubi
   custom:
-    - ./bot/test/webhook
+    # - ./bot/test/webhook
 
 answer:
   - is: 在吗

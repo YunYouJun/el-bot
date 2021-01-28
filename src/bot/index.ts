@@ -20,7 +20,7 @@ import commander from "commander";
 import mongoose from "mongoose";
 import { Server } from "net";
 // shared
-import { isFunction } from "src/shared";
+import { isFunction } from "../shared";
 
 // type
 import type { Plugin } from "./plugins";
@@ -37,7 +37,7 @@ export default class Bot {
   el: El;
   mirai: MiraiInstance;
   // 激活
-  active: boolean;
+  active = true;
   /**
    * 数据库，默认使用 MongoDB
    */
@@ -74,10 +74,9 @@ export default class Bot {
   /**
    * 是否开发模式下
    */
-  isDev: boolean;
+  isDev = process.env.NODE_ENV !== "production";
   constructor(el: El) {
     this.el = new El(el);
-
     const setting = this.el.setting;
     const mahConfig: MiraiApiHttpConfig = {
       host: setting.host || "localhost",
@@ -86,15 +85,12 @@ export default class Bot {
       enableWebsocket: setting.enableWebsocket || false,
     };
     this.mirai = new Mirai(mahConfig);
-    this.active = true;
     this.status = new Status(this);
     this.user = new User(this);
     this.sender = new Sender(this);
     this.plugins = new Plugins(this);
     this.webhook = new Webhook(this);
     this.cli = initCli(this, "el");
-
-    this.isDev = process.env.NODE_ENV !== "production";
   }
 
   /**
@@ -115,6 +111,7 @@ export default class Bot {
   async link() {
     try {
       await this.mirai.link(this.el.qq);
+      return true;
     } catch (err) {
       this.logger.error(err.message);
       await sleep(3000);
@@ -148,6 +145,7 @@ export default class Bot {
     await this.link();
 
     // 加载插件
+    this.logger.info("开始加载插件");
     this.plugins.load("default");
     this.plugins.load("official");
     this.plugins.load("community");
@@ -187,7 +185,8 @@ export default class Bot {
   }
 
   /**
-   * 加载自定义函数插件
+   * 加载自定义函数插件（但不注册）
+   * 注册请使用 .plugin
    * 与 this.plugin.use() 的区别是此部分的插件将不会显示在插件列表中
    */
   use(plugin: Plugin, ...options: any[]) {
