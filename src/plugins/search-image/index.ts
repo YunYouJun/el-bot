@@ -1,5 +1,5 @@
 import Bot, { utils } from "el-bot";
-import sagiri, { SagiriResult, Options as SagiriOptions } from "sagiri";
+import * as sagiri from "sagiri";
 import { Message, MessageType } from "mirai-ts";
 
 /**
@@ -7,14 +7,14 @@ import { Message, MessageType } from "mirai-ts";
  */
 interface SearchImageOptions {
   token: string;
-  options?: SagiriOptions;
+  options?: sagiri.Options;
 }
 
 /**
  *
  * @param result 格式化结果
  */
-function formatResult(result: SagiriResult): MessageType.MessageChain {
+function formatResult(result: sagiri.SagiriResult): MessageType.MessageChain {
   const msgChain = [
     Message.Plain(`\n------------------\n`),
     Message.Image(null, result.thumbnail),
@@ -35,9 +35,8 @@ export default async function searchImage(
   ctx: Bot,
   options: SearchImageOptions
 ) {
-  console.log(options);
   const { mirai } = ctx;
-  const client = sagiri(options.token, options.options);
+  const client = sagiri.default(options.token, options.options);
 
   const innerMode = new utils.InnerMode();
 
@@ -49,13 +48,12 @@ export default async function searchImage(
       msg.reply("我准备好了！");
     }
 
-    if (innerMode.status) {
+    if (innerMode.getStatus()) {
       msg.messageChain.forEach(async (singleMessage) => {
         if (singleMessage.type === "Image" && singleMessage.url) {
           let replyContent: MessageType.MessageChain = [];
 
           try {
-            console.log(singleMessage.url);
             const results = await client(singleMessage.url);
             const length = options.options?.results || 3;
             replyContent.push(Message.Plain(`返回 ${length} 个结果`));
