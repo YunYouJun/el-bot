@@ -1,4 +1,4 @@
-import ElBot from "../../bot";
+import Bot from "el-bot";
 import RssFeedEmitter from "rss-feed-emitter";
 import { MessageType } from "mirai-ts";
 import { Feeder, IFeeder } from "./feeder.scheme";
@@ -7,7 +7,7 @@ const feeder = new RssFeedEmitter({
   skipFirstLoad: true,
 });
 
-export default async function (ctx: ElBot) {
+export default async function (ctx: Bot) {
   const { cli } = ctx;
 
   const feederConfig = await Feeder.find({}, { target: 0 });

@@ -9,7 +9,7 @@ export async function connectDb(bot: Bot, dbConfig: dbConfig): Promise<void> {
   const uri = dbConfig.uri || "mongodb://localhost:27017/el-bot";
 
   const dbName = "MongoDB 数据库";
-  bot.logger.info(`连接 ${dbName}`);
+  bot.logger.info(`开始连接 ${dbName}`);
 
   mongoose.connect(uri, {
     useNewUrlParser: true,

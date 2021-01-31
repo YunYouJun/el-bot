@@ -1,6 +1,6 @@
+import Bot from "el-bot";
 import { renderString } from "../../utils/index";
 import { MessageType, check } from "mirai-ts";
-import Bot from "../../bot";
 import axios from "axios";
 import * as Config from "../../types/config";
 import nodeSchdule from "node-schedule";
@@ -99,7 +99,7 @@ export default function (ctx: Bot, options: AnswerOptions) {
         } else if (ans.else) {
           // 后续可以考虑用监听白名单、黑名单优化
           replyContent = ans.api
-            ? renderStringByApi(ans.api, ans.else)
+            ? await renderStringByApi(ans.api, ans.else)
             : ans.else;
         }
 

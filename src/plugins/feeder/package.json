@@ -10,5 +10,8 @@
     "name": "YunYouJun",
     "url": "https://www.yunyoujun.cn",
     "email": "me@yunyoujun.cn"
+  },
+  "dependencies": {
+    "rss-feed-emitter": "^3.2.2"
   }
 }

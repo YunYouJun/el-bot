@@ -1,4 +1,4 @@
-import Bot from "../../bot";
+import Bot from "el-bot";
 import { LimitOptions } from "./options";
 
 interface GroupInfo {

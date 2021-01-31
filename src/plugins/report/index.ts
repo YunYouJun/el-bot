@@ -1,4 +1,4 @@
-import Bot from "src/bot";
+import Bot from "el-bot";
 import { renderString } from "../../utils";
 import * as Config from "../../types/config";
 

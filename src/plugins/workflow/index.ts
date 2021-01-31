@@ -1,10 +1,11 @@
+import Bot from "el-bot";
+
 /**
  * ref github actions
  * https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow
  */
 
 import { EventType, MessageType } from "mirai-ts";
-import Bot from "src/bot";
 import fs from "fs";
 import { parse } from "../../utils/config";
 import { exec } from "shelljs";

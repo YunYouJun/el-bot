@@ -1,6 +1,6 @@
-import ElBot from "src/bot";
+import Bot from "el-bot";
 
-export default async function (ctx: ElBot) {
+export default async function (ctx: Bot) {
   const { mirai } = ctx;
   // const config = ctx.el.config;
   // mirai.api.sendFriendMessage("咳咳……麦克风测试，麦克风测试……", config.master[0]);

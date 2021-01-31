@@ -1,5 +1,5 @@
+import Bot from "el-bot";
 import Mirai, { MessageType, EventType } from "mirai-ts";
-import ElBot from "../../bot";
 import * as Config from "../../types/config";
 
 interface ForwardConfig {
@@ -30,7 +30,7 @@ function recallByList(
   }
 }
 
-export default function (ctx: ElBot) {
+export default function (ctx: Bot) {
   const mirai = ctx.mirai;
   const config = ctx.el.config;
   /**

@@ -1,4 +1,4 @@
-import Bot from "src";
+import Bot from "el-bot";
 import { check, MessageType } from "mirai-ts";
 import { Counter, ICounter } from "./counter.schema";
 

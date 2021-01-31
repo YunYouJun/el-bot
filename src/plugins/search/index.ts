@@ -1,4 +1,4 @@
-import Bot from "src/bot";
+import Bot from "el-bot";
 
 interface Engine {
   keywords: string[];

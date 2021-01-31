@@ -1,4 +1,4 @@
-import Bot from "src/bot";
+import Bot from "el-bot";
 import QRCode from "qrcode";
 import { Message, MessageType } from "mirai-ts";
 import fs from "fs";

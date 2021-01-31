@@ -1,4 +1,4 @@
-import Bot from "src/bot";
+import Bot from "el-bot";
 import { MessageType } from "mirai-ts";
 import axios from "axios";
 

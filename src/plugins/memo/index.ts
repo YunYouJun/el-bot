@@ -1,5 +1,5 @@
+import Bot from "el-bot";
 import dayjs from "dayjs";
-import Bot from "../../bot";
 import schedule from "node-schedule";
 import { MessageType } from "mirai-ts";
 import { parseTime, checkTime } from "./utils";

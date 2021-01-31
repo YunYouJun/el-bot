@@ -1,10 +1,10 @@
-import ElBot from "src/bot";
+import Bot from "el-bot";
 import { MessageAndEvent } from "mirai-ts/dist/mirai";
 import { check } from "mirai-ts";
 import { displayList } from "./utils";
 import { User } from "../../db/schemas/user.schema";
 
-export default async function (ctx: ElBot) {
+export default async function (ctx: Bot) {
   if (!ctx.db) return;
   const { mirai } = ctx;
 

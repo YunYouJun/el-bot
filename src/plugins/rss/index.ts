@@ -1,3 +1,4 @@
+import Bot from "el-bot";
 import dayjs from "dayjs";
 import fs from "fs";
 import { htmlToText } from "html-to-text";
@@ -5,8 +6,6 @@ import schedule from "node-schedule";
 import Parser, { CustomFields } from "rss-parser";
 
 import { MessageType } from "mirai-ts";
-import ElBot from "../../bot";
-import Bot from "../../bot";
 
 interface RssConfig {
   name: string;
@@ -143,7 +142,7 @@ function format(item: any, content: string[]) {
  * @param ctx
  * @param options
  */
-function triggerRss(ctx: ElBot, options: RssConfig[]) {
+function triggerRss(ctx: Bot, options: RssConfig[]) {
   ctx.logger.success("[rss] 立即触发 RSS 抓取");
   let content = "您当前订阅的所有 RSS 源：";
 
@@ -156,7 +155,7 @@ function triggerRss(ctx: ElBot, options: RssConfig[]) {
   return content;
 }
 
-export default function (ctx: ElBot, options: RssConfig[]) {
+export default function (ctx: Bot, options: RssConfig[]) {
   const config = ctx.el.config;
   const { cli, mirai } = ctx;
   const rssOptions = options;
