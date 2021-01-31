@@ -9,7 +9,7 @@
     "email": "me@yunyoujun.cn"
   },
   "license": "AGPL-3.0",
-  "dependencies": {
+  "peerDependencies": {
     "sagiri": "^3.1.1"
   }
 }
