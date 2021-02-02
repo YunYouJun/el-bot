@@ -1,24 +1,21 @@
 import Bot from "el-bot";
 import { MessageAndEvent } from "mirai-ts/dist/mirai";
 import { check } from "mirai-ts";
-import { displayList } from "./utils";
-import { User } from "../../db/schemas/user.schema";
+import { initBlacklist, block, unBlock, displayList } from "./utils";
 
 export default async function (ctx: Bot) {
   if (!ctx.db) return;
-  const { mirai } = ctx;
+  const { mirai, cli } = ctx;
 
-  const blockedUsers = await User.find({
-    block: true,
-  });
-
-  const blacklist: number[] = [];
-  blockedUsers.forEach((user) => {
-    blacklist.push(user.qq);
-  });
+  const blacklist = await initBlacklist();
 
   mirai.beforeListener.push((msg: MessageAndEvent) => {
-    if (check.isChatMessage(msg) && blacklist.includes(msg.sender.id)) {
+    const isUserBlocked =
+      check.isChatMessage(msg) && blacklist.users.has(msg.sender.id);
+    const isGroupBlocked =
+      msg.type === "GroupMessage" && blacklist.groups.has(msg.sender.group.id);
+
+    if (isUserBlocked || isGroupBlocked) {
       mirai.active = false;
     } else {
       mirai.active = true;
@@ -27,78 +24,44 @@ export default async function (ctx: Bot) {
 
   // register command
   // 显示当前已有的黑名单
-  ctx.cli
+  cli
     .command("blacklist")
     .description("黑名单")
-    .option("-l, --list", "当前列表")
+    .option("-l, --list <type>", "当前列表", "all")
     .action(async (options) => {
-      if (options.list) {
-        ctx.reply(displayList(blacklist));
+      if (!ctx.user.isAllowed(undefined, true)) return;
+      const listType = options.list;
+      if (listType) {
+        if (["user", "all"].includes(listType)) {
+          ctx.reply(`当前用户黑名单：` + displayList(blacklist.users));
+        }
+        if (["group", "all"].includes(listType)) {
+          ctx.reply(`当前群聊黑名单：` + displayList(blacklist.groups));
+        }
       }
     });
 
-  mirai.on("message", (msg) => {
-    if (!ctx.user.isAllowed(msg.sender.id)) return;
-
-    let qq = 0;
-    let info = "";
-
-    const res1 = msg.plain.match(/黑名单 (.*)/);
-    if (res1 && res1[1]) {
-      qq = parseInt(res1[1].trim());
-      info = `[blacklist] 将 ${qq} 加入黑名单`;
-      blockUser(qq);
-    }
-
-    const res2 = msg.plain.match(/解除黑名单 (.*)/);
-    if (res2 && res2[1]) {
-      qq = parseInt(res2[1].trim());
-      info = `[blacklist] 将 ${qq} 移出黑名单`;
-      unBlockUser(qq);
-    }
-
-    if (info) {
-      ctx.logger.success(info);
-      msg.reply(info);
-    }
-  });
-
-  function blockUser(qq: number) {
-    User.updateOne(
-      {
-        qq,
-      },
-      {
-        $set: {
-          block: true,
-        },
-      },
-      {
-        upsert: true,
+  cli
+    .command("block <type> [id]")
+    .description("封禁")
+    .action(async (type, id) => {
+      if (!ctx.user.isAllowed(undefined, true)) return;
+      const msg = ctx.mirai.curMsg;
+      if (await block(type, parseInt(id))) {
+        const info = `[blacklist] 封禁 ${type} ${id}`;
+        msg!.reply!(info);
       }
-    );
-    if (!blacklist.includes(qq)) {
-      blacklist.push(qq);
-    }
-  }
+    });
 
-  function unBlockUser(qq: number) {
-    User.updateOne(
-      {
-        qq,
-      },
-      {
-        $set: {
-          block: false,
-        },
-      },
-      {
-        upsert: true,
+  cli
+    .command("unblock <type> [id]")
+    .description("解封")
+    .action(async (type, id) => {
+      if (!ctx.user.isAllowed(undefined, true)) return;
+      const msg = ctx.mirai.curMsg;
+      if (await unBlock(type, parseInt(id))) {
+        const info = `[blacklist] 解封 ${type} ${id}`;
+        msg!.reply!(info);
       }
-    );
-    const i = blacklist.indexOf(qq);
-    if (i !== -1) {
-      blacklist.splice(i, 1);
-    }
-  }
+    });
 }

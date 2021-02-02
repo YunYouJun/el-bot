@@ -25,7 +25,7 @@ export interface IUser extends Document {
 
 export const userSchema = new mongoose.Schema({
   name: String,
-  qq: { type: String, unique: true },
+  qq: { type: Number, unique: true },
   total: Number,
   lastTriggerTime: Date,
   block: Boolean,

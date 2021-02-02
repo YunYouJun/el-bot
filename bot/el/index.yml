@@ -2,8 +2,8 @@ plugins:
   default:
     # - dev
     - answer
-    # - blacklist
-    - counter
+    - blacklist
+    # - counter
     # - feeder
     # - forward
     # - limit
@@ -13,7 +13,7 @@ plugins:
     # - rss
     # - report
     # - search
-    - search-image
+    # - search-image
     # - teach
     # - workflow
   official:

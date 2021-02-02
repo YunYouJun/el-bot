@@ -126,6 +126,7 @@ export function initCli(ctx: Bot, name: string) {
         ctx.reply(err.message);
       }
     }
+
     processOptions(program, ctx);
     cleanOptions(program);
   });
