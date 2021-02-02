@@ -80,3 +80,23 @@ npm install el-bot@latest
 - [mirai-api-http](https://github.com/mamoe/mirai-api-http)
 - [mirai-ts](https://github.com/YunYouJun/mirai-ts)
 - [koishi](https://github.com/koishijs/koishi)
+
+## 开发
+
+```sh
+git clone https://github.com/YunYouJun/el-bot
+cd el-bot
+yarn
+```
+
+配置测试机器人（看情况配置吧）
+
+```sh
+cp bot/.env.example .env
+```
+
+开发测试（运行起来吧）
+
+```sh
+yarn dev:bot
+```
