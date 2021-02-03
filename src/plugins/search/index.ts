@@ -1,15 +1,21 @@
 import Bot from "el-bot";
 
-interface Engine {
+/**
+ * 搜索引擎
+ */
+interface SearchEngine {
   keywords: string[];
   url: string;
 }
 
-interface EngineList {
-  [propName: string]: Engine;
+/**
+ * 搜索引擎列表
+ */
+interface SearchEngineList {
+  [propName: string]: SearchEngine;
 }
 
-const engineList: EngineList = {
+const engineList: SearchEngineList = {
   baidu: {
     keywords: ["百度", "度娘", "baidu"],
     url: "https://www.baidu.com/s?wd=",

@@ -1,6 +1,5 @@
 import Bot from "el-bot";
-import { MessageAndEvent } from "mirai-ts/dist/mirai";
-import { check } from "mirai-ts";
+import { check, MessageType, EventType } from "mirai-ts";
 import { initBlacklist, block, unBlock, displayList } from "./utils";
 
 export default async function (ctx: Bot) {
@@ -9,18 +8,21 @@ export default async function (ctx: Bot) {
 
   const blacklist = await initBlacklist();
 
-  mirai.beforeListener.push((msg: MessageAndEvent) => {
-    const isUserBlocked =
-      check.isChatMessage(msg) && blacklist.users.has(msg.sender.id);
-    const isGroupBlocked =
-      msg.type === "GroupMessage" && blacklist.groups.has(msg.sender.group.id);
+  mirai.beforeListener.push(
+    (msg: MessageType.ChatMessage | EventType.Event) => {
+      const isUserBlocked =
+        check.isChatMessage(msg) && blacklist.users.has(msg.sender.id);
+      const isGroupBlocked =
+        msg.type === "GroupMessage" &&
+        blacklist.groups.has(msg.sender.group.id);
 
-    if (isUserBlocked || isGroupBlocked) {
-      mirai.active = false;
-    } else {
-      mirai.active = true;
+      if (isUserBlocked || isGroupBlocked) {
+        mirai.active = false;
+      } else {
+        mirai.active = true;
+      }
     }
-  });
+  );
 
   // register command
   // 显示当前已有的黑名单

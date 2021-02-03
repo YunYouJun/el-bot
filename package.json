@@ -73,7 +73,7 @@
   },
   "dependencies": {
     "@koa/cors": "^3.1.0",
-    "@octokit/webhooks": "^7.21.0",
+    "@octokit/webhooks": "^7.23.0",
     "chalk": "^4.0.0",
     "commander": "^7.0.0",
     "dayjs": "^1.10.4",
@@ -94,6 +94,7 @@
     "winston": "^3.3.3"
   },
   "devDependencies": {
+    "@octokit/webhooks-definitions": "^3.57.0",
     "@types/download": "^6.2.4",
     "@types/html-to-text": "^6.0.0",
     "@types/inquirer": "^7.3.1",
