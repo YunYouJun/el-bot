@@ -17,7 +17,7 @@ interface GroupList {
 }
 
 export default function limit(ctx: Bot, options: LimitOptions) {
-  const mirai = ctx.mirai;
+  const { mirai } = ctx;
 
   let count = 0;
   let startTime = new Date().getTime();

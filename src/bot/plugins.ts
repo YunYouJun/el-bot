@@ -114,7 +114,10 @@ export default class Plugins {
 
             let options = null;
             try {
-              options = await import(`${pluginPath}/options`);
+              const { default: defaultOptions } = await import(
+                `${pluginPath}/options`
+              );
+              options = defaultOptions;
             } catch {
               // this.bot.logger.error(`${pkgName}不存在默认配置`)
             }
