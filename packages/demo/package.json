@@ -1,0 +1,16 @@
+{
+  "name": "@el-bot/demo",
+  "private": true,
+  "version": "0.0.1",
+  "description": "这只是一个开发用的测试机器人。",
+  "main": "src/index.ts",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "start": "tsc && nodemon dist/index.js",
+    "build": "yarn clean && tsc",
+    "dev": "yarn watch & nodemon dist/index.js",
+    "watch": "tsc -w --incremental",
+    "test": "ts-node src/index.ts"
+  },
+  "author": "YunYouJun"
+}

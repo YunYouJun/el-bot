@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "paths": {
+      "el-bot": ["packages/el-bot/src"]
+    }
+  },
+  "include": ["src", "src/**/*/package.json"]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "@el-bot/create-app",
+  "version": "0.0.1",
+  "description": "Create El Bot",
+  "author": {
+    "name": "云游君",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  }
+}

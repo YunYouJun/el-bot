@@ -1,0 +1,105 @@
+{
+  "name": "el-bot",
+  "version": "0.8.0",
+  "description": "A quick qq bot framework for mirai.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=14.15"
+  },
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "el": "dist/cli/index.js"
+  },
+  "mcl": {
+    "folder": "mcl"
+  },
+  "scripts": {
+    "build": "yarn clean && tsc",
+    "build:docs": "typedoc",
+    "clean": "rm -rf dist",
+    "bot": "ts-node bot/index.ts",
+    "dev": "tsc -w --incremental",
+    "watch": "tsc --watch",
+    "prepublishOnly": "yarn build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YunYouJun/el-bot"
+  },
+  "keywords": [
+    "el-bot",
+    "elpsy",
+    "bot",
+    "mirai",
+    "qq",
+    "framework"
+  ],
+  "author": {
+    "name": "云游君",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/YunYouJun/el-bot/issues"
+  },
+  "homepage": "https://docs.bot.elpsy.cn/",
+  "peerDependencies": {
+    "rss-feed-emitter": "3.2.2",
+    "sagiri": "3.1.1"
+  },
+  "dependencies": {
+    "@koa/cors": "^3.1.0",
+    "@octokit/webhooks": "^7.24.2",
+    "chalk": "^4.0.0",
+    "commander": "^7.0.0",
+    "dayjs": "^1.10.4",
+    "download": "^8.0.0",
+    "glob": "^7.1.6",
+    "html-to-text": "^6.0.0",
+    "inquirer": "^7.3.3",
+    "js-yaml": "^4.0.0",
+    "koa": "^2.13.1",
+    "koa-bodyparser": "^4.3.0",
+    "mirai-ts": "^1.0.0-alpha.5",
+    "mongoose": "^5.11.15",
+    "node-schedule": "^2.0.0",
+    "progress": "^2.0.3",
+    "qrcode": "^1.4.4",
+    "rss-parser": "^3.11.0",
+    "shelljs": "^0.8.4",
+    "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "@octokit/webhooks-definitions": "^3.57.2",
+    "@types/download": "^6.2.4",
+    "@types/html-to-text": "^6.0.0",
+    "@types/inquirer": "^7.3.1",
+    "@types/js-yaml": "^4.0.0",
+    "@types/koa": "^2.11.7",
+    "@types/koa-bodyparser": "^4.3.0",
+    "@types/koa__cors": "^3.0.2",
+    "@types/node": "^14.14.25",
+    "@types/node-schedule": "^1.3.1",
+    "@types/progress": "^2.0.3",
+    "@types/qrcode": "^1.3.5",
+    "@types/shelljs": "^0.8.8",
+    "@types/xml2js": "^0.4.8",
+    "cross-env": "^7.0.3",
+    "dotenv": "^8.2.0",
+    "typedoc": "^0.20.20"
+  },
+  "directories": {
+    "lib": "https://github.com/YunYouJun/mirai-ts"
+  },
+  "ecosystem": {
+    "el-bot-api": "https://github.com/ElpsyCN/el-bot-api",
+    "el-bot-plugins": "https://github.com/ElpsyCN/el-bot-plugins",
+    "el-bot-docs": "https://github.com/ElpsyCN/el-bot-docs",
+    "el-bot-template": "https://github.com/ElpsyCN/el-bot-template",
+    "el-bot-web": "https://github.com/ElpsyCN/el-bot-web"
+  }
+}
