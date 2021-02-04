@@ -28,6 +28,7 @@
   "scripts": {
     "build": "cd packages/el-bot && yarn build",
     "build:demo": "cd packages/demo && yarn build",
+    "build:docs": "cd packages/el-bot && yarn build:docs",
     "dev": "run-p dev:*",
     "dev:bot": "cd packages/demo && yarn dev",
     "dev:lib": "cd packages/el-bot && yarn dev",

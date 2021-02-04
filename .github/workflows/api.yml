@@ -14,7 +14,7 @@ jobs:
         with:
           node-version: "14"
 
-      - run: yarn install
+      - run: yarn
       # for type
       - run: yarn add sagiri rss-feed-emitter
       - run: yarn build:docs
@@ -23,5 +23,5 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
+          publish_dir: ./packages/el-bot/docs
           force_orphan: true
