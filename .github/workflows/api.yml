@@ -16,7 +16,7 @@ jobs:
 
       - run: yarn
       # for type
-      - run: yarn add sagiri rss-feed-emitter
+      - run: yarn workspace el-bot add sagiri rss-feed-emitter
       - run: yarn build:docs
 
       - name: Deploy

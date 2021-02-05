@@ -1,3 +1,7 @@
+import { AnswerOptions } from "../plugins/answer";
+import { ForwardOptions } from "../plugins/forward";
+import { RssOptions } from "../plugins/rss";
+
 export interface BotConfig {
   /**
    * 机器人名
@@ -20,19 +24,14 @@ export interface BotConfig {
    * 管理员
    */
   admin?: number[];
+
+  // 默认插件
+  answer?: AnswerOptions;
+  forward?: ForwardOptions;
+  rss?: RssOptions;
+
   /**
    * 其他插件配置
    */
   [propName: string]: any;
 }
-
-const defaultConfig: BotConfig = {
-  name: "el-bot",
-  plugins: {
-    default: ["answer", "forward", "limit", "memo", "rss", "search", "qrcode"],
-  },
-  master: [910426929],
-  admin: [910426929],
-};
-
-export default defaultConfig;

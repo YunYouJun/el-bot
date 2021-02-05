@@ -4,6 +4,7 @@ import { MessageType, check } from "mirai-ts";
 import axios from "axios";
 import nodeSchdule from "node-schedule";
 import { displayAnswerList, AnswerOptions } from "./utils";
+export { AnswerOptions };
 
 /**
  * 根据 API 返回的内容渲染字符串

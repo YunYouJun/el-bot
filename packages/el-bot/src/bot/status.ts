@@ -3,7 +3,7 @@ import { Contact } from "mirai-ts";
 import * as Config from "../types/config";
 
 export default class Status {
-  constructor(public bot: Bot) {}
+  constructor(public ctx: Bot) {}
 
   /**
    * 是否监听发送者
@@ -20,12 +20,12 @@ export default class Status {
 
         // 监听 master
         case "master":
-          listenFlag = this.bot.user.isMaster(sender.id);
+          listenFlag = this.ctx.user.isMaster(sender.id);
           break;
 
         // 监听管理员
         case "admin":
-          listenFlag = Boolean(this.bot.user.isAdmin(sender.id));
+          listenFlag = Boolean(this.ctx.user.isAdmin(sender.id));
           break;
 
         // 只监听好友
@@ -56,11 +56,11 @@ export default class Status {
         )
           return true;
 
-        if (listen.includes("master") && this.bot.user.isMaster(sender.id)) {
+        if (listen.includes("master") && this.ctx.user.isMaster(sender.id)) {
           return true;
         }
 
-        if (listen.includes("admin") && this.bot.user.isAdmin(sender.id)) {
+        if (listen.includes("admin") && this.ctx.user.isAdmin(sender.id)) {
           return true;
         }
 

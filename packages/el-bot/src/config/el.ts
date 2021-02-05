@@ -1,6 +1,6 @@
 import * as config from "../utils/config";
 import { MiraiApiHttpConfig } from "mirai-ts";
-import defaultConfig, { BotConfig } from "./default";
+import { BotConfig } from "./bot";
 import { WebhookConfig } from "../bot/webhook";
 
 export interface dbConfig {
@@ -19,44 +19,53 @@ export interface dbConfig {
 }
 
 export default class El {
-  qq: number;
+  qq: number = 0;
   /**
    * MiraiAPIHTTP setting.yml
    */
-  setting: MiraiApiHttpConfig;
+  setting: MiraiApiHttpConfig = {
+    host: "0.0.0.0",
+    port: 4859,
+    authKey: "el-psy-congroo",
+    cacheSize: 4096,
+    enableWebsocket: true,
+    cors: ["*"],
+  };
   /**
    * mongodb 数据库默认配置
    */
-  db: dbConfig;
-  config: BotConfig;
-  webhook: WebhookConfig;
-  pkg?: any;
+  db?: dbConfig = {
+    enable: false,
+  };
+  bot: BotConfig = {
+    name: "el-bot",
+    plugins: {
+      default: [
+        "answer",
+        "forward",
+        "limit",
+        "memo",
+        "rss",
+        "search",
+        "qrcode",
+      ],
+    },
+    master: [910426929],
+    admin: [910426929],
+  };
+  webhook?: WebhookConfig = {
+    enable: true,
+    port: 7777,
+    path: "/webhook",
+    secret: "el-psy-congroo",
+  };
+  // el-bot package.json
+  pkg? = require("../../package.json");
   constructor(el: El) {
     if (typeof el.qq === "string") {
       el.qq = parseInt(el.qq);
     }
-    this.qq = 0;
-    this.setting = {
-      host: "0.0.0.0",
-      port: 4859,
-      authKey: "el-psy-congroo",
-      cacheSize: 4096,
-      enableWebsocket: true,
-      cors: ["*"],
-    };
-    this.db = {
-      enable: false,
-    };
-    this.config = defaultConfig;
-    this.webhook = {
-      enable: true,
-      port: 7777,
-      path: "/webhook",
-      secret: "el-psy-congroo",
-    };
     // 合并
     config.merge(this, el);
-    // el-bot package.json
-    this.pkg = require("../../package.json");
   }
 }

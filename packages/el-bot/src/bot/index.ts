@@ -70,7 +70,7 @@ export default class Bot {
    * 日志系统
    */
   logger = createLogger("el-bot");
-  webhook: Webhook;
+  webhook?: Webhook;
   /**
    * 是否开发模式下
    */
@@ -89,7 +89,9 @@ export default class Bot {
     this.user = new User(this);
     this.sender = new Sender(this);
     this.plugins = new Plugins(this);
-    this.webhook = new Webhook(this);
+    if (this.el.webhook?.enable) {
+      this.webhook = new Webhook(this);
+    }
     this.cli = initCli(this, "el");
   }
 
@@ -130,7 +132,7 @@ export default class Bot {
     }
 
     // 连接数据库
-    if (this.el.db.enable) {
+    if (this.el.db?.enable) {
       await connectDb(this, this.el.db);
     }
 
@@ -155,9 +157,9 @@ export default class Bot {
 
     // 启动 webhook
     let server: Server | undefined;
-    if (this.el.webhook.enable) {
+    if (this.el.webhook?.enable) {
       try {
-        server = this.webhook.start();
+        server = this.webhook?.start();
       } catch (err) {
         this.logger.error(err.message);
       }
@@ -172,7 +174,7 @@ export default class Bot {
       }
 
       // close koa server
-      if (this.el.webhook.enable) {
+      if (this.el.webhook?.enable) {
         if (server) {
           server.close();
           this.logger.info("[webhook] 关闭 Server");

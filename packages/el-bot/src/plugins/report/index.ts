@@ -18,8 +18,12 @@ interface ReportOptions {
 }
 
 export default function (ctx: Bot, options: ReportOptions[]) {
+  if (!ctx.webhook) {
+    ctx.logger.error("[report] 您须先开启 webhook");
+    return;
+  }
   options.forEach((option) => {
-    ctx.webhook.on(option.type, (data: any) => {
+    ctx.webhook?.on(option.type, (data: any) => {
       ctx.logger.debug(data);
       const text = renderString(option.content, data, "data");
       if (option.target) {

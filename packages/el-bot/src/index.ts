@@ -12,5 +12,5 @@ if (typeof module !== "undefined") {
 // 放在最后
 export { createBot } from "./bot";
 export { createLogger } from "./bot/logger";
-export { defineConfig } from "./config";
+export * from "./config";
 export * as utils from "./utils";

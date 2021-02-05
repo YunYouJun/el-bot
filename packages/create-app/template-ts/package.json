@@ -1,0 +1,27 @@
+{
+  "name": "el-bot-typescript-starter",
+  "version": "0.0.1",
+  "scripts": {
+    "build": "yarn clean && tsc",
+    "clean": "rm -rf dist",
+    "dev": "yarn watch & nodemon dist/index.js",
+    "lint": "eslint --fix . && prettier --write .",
+    "mcl": "cd mcl && ./mcl",
+    "start": "nodemon dist/index.js",
+    "start:bot": "el start bot",
+    "start:prod": "yarn build && nodemon dist/index.js",
+    "watch": "tsc -w --incremental"
+  },
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "el-bot": "^0.8.0-alpha.1"
+  },
+  "devDependencies": {
+    "typescript": "^4.1.3"
+  }
+}

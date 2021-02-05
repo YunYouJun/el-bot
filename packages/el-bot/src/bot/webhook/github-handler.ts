@@ -14,29 +14,29 @@ export interface handler extends EventEmitter {
   ): void;
 }
 
-export default function (bot: Bot) {
+export default function (ctx: Bot) {
   const config = {
-    secret: bot.el.config.secret || "el-psy-congroo",
-    path: bot.el.config.path || "/webhook",
+    secret: ctx.el.bot.secret || "el-psy-congroo",
+    path: ctx.el.bot.path || "/webhook",
   };
 
   const handler = new Webhooks(config);
 
   handler.onError((err) => {
-    bot.logger.error(`Error: ${err.message}`);
+    ctx.logger.error(`Error: ${err.message}`);
   });
 
   // 处理
   handler.on("push", (event) => {
-    bot.logger.info(
+    ctx.logger.info(
       `Received a push event for ${event.payload.repository.name} to ${event.payload.ref}`
     );
 
     // git pull repo
     if (shell.exec("git pull").code !== 0) {
-      bot.logger.error("Git 拉取失败，请检查默认分支。");
+      ctx.logger.error("Git 拉取失败，请检查默认分支。");
     } else {
-      bot.logger.info("安装依赖...");
+      ctx.logger.info("安装依赖...");
       shell.exec("yarn");
     }
   });

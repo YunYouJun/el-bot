@@ -28,10 +28,10 @@ export default class Webhook {
   config: WebhookConfig;
   emitter: events.EventEmitter;
   githubHandler: Webhooks;
-  constructor(public bot: Bot) {
-    this.config = bot.el.webhook;
+  constructor(public ctx: Bot) {
+    this.config = ctx.el.webhook!;
     this.emitter = new events.EventEmitter();
-    this.githubHandler = githubHandler(bot);
+    this.githubHandler = githubHandler(ctx);
   }
 
   /**
@@ -60,11 +60,11 @@ export default class Webhook {
     let server: Server | undefined;
     try {
       server = app.listen(this.config.port);
-      this.bot.logger.success(
+      this.ctx.logger.success(
         `Webhook Listening localhost:${this.config.port}`
       );
     } catch (err) {
-      this.bot.logger.error(err.message);
+      this.ctx.logger.error(err.message);
     }
     return server;
   }
@@ -81,14 +81,14 @@ export default class Webhook {
     } else if (ctx.request.method === "POST" && ctx.body.type) {
       type = ctx.body.type;
       this.emitter.emit(type, ctx.body, ctx.res);
-      this.bot.logger.info(`[webhook](${type})`);
-      if (this.bot.isDev) {
-        this.bot.logger.info(
+      this.ctx.logger.info(`[webhook](${type})`);
+      if (this.ctx.isDev) {
+        this.ctx.logger.info(
           `[webhook](ctx.body): ${JSON.stringify(ctx.body)}`
         );
       }
     } else {
-      this.bot.logger.error("[webhook] 收到未知类型的请求");
+      this.ctx.logger.error("[webhook] 收到未知类型的请求");
     }
   }
 

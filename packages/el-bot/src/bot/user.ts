@@ -2,13 +2,14 @@ import Bot from ".";
 import { check } from "mirai-ts";
 
 export default class User {
-  constructor(public bot: Bot) {}
+  constructor(public ctx: Bot) {}
+
   /**
    * 是否是主人
    * @param qq
    */
   isMaster(qq: number) {
-    return this.bot.el.config.master.includes(qq);
+    return this.ctx.el.bot.master.includes(qq);
   }
 
   /**
@@ -16,7 +17,7 @@ export default class User {
    * @param qq
    */
   isAdmin(qq: number) {
-    return this.bot.el.config.admin?.includes(qq);
+    return this.ctx.el.bot.admin?.includes(qq);
   }
 
   /**
@@ -28,15 +29,15 @@ export default class User {
   isAllowed(qq = 0, reply = false, content = "您没有操作权限") {
     if (
       !qq &&
-      this.bot.mirai.curMsg &&
-      check.isChatMessage(this.bot.mirai.curMsg)
+      this.ctx.mirai.curMsg &&
+      check.isChatMessage(this.ctx.mirai.curMsg)
     ) {
-      qq = this.bot.mirai.curMsg.sender.id;
+      qq = this.ctx.mirai.curMsg.sender.id;
     }
 
     const allowFlag = this.isMaster(qq) || this.isAdmin(qq);
     if (!allowFlag && reply) {
-      this.bot.reply(content);
+      this.ctx.reply(content);
     }
     return allowFlag;
   }

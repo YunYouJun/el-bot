@@ -1,6 +1,6 @@
 {
   "name": "el-bot",
-  "version": "0.8.0",
+  "version": "0.8.0-alpha.1",
   "description": "A quick qq bot framework for mirai.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -47,10 +47,6 @@
     "url": "https://github.com/YunYouJun/el-bot/issues"
   },
   "homepage": "https://docs.bot.elpsy.cn/",
-  "peerDependencies": {
-    "rss-feed-emitter": "3.2.2",
-    "sagiri": "3.1.1"
-  },
   "dependencies": {
     "@koa/cors": "^3.1.0",
     "@octokit/webhooks": "^7.24.2",

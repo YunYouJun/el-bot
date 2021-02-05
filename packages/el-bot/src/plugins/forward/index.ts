@@ -2,10 +2,12 @@ import Bot from "el-bot";
 import Mirai, { MessageType, EventType } from "mirai-ts";
 import * as Config from "../../types/config";
 
-interface ForwardConfig {
+interface ForwardItem {
   listen: Config.Listen;
   target: Config.Target;
 }
+
+export type ForwardOptions = ForwardItem[];
 
 interface AllMessageList {
   [propName: number]: number[];
@@ -30,9 +32,8 @@ function recallByList(
   }
 }
 
-export default function (ctx: Bot) {
+export default function (ctx: Bot, options: ForwardOptions) {
   const mirai = ctx.mirai;
-  const config = ctx.el.config;
   /**
    * 原消息和被转发的各消息 Id 关系列表
    */
@@ -40,9 +41,9 @@ export default function (ctx: Bot) {
   mirai.on("message", async (msg: MessageType.ChatMessage) => {
     if (!msg.sender || !msg.messageChain) return;
 
-    if (config.forward) {
+    if (options) {
       await Promise.all(
-        config.forward.map(async (item: ForwardConfig) => {
+        options.map(async (item: ForwardItem) => {
           const canForward = ctx.status.getListenStatusByConfig(
             msg.sender,
             item

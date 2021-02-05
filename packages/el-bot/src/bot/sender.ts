@@ -3,7 +3,7 @@ import { MessageType } from "mirai-ts";
 import * as Config from "../types/config";
 
 export default class Sender {
-  constructor(public bot: Bot) {}
+  constructor(public ctx: Bot) {}
 
   /**
    * 根据 QQ 号数组列表发送消息
@@ -15,7 +15,7 @@ export default class Sender {
     array: number[],
     messageList: number[]
   ) {
-    const mirai = this.bot.mirai;
+    const mirai = this.ctx.mirai;
     return Promise.all(
       array.map(async (qq) => {
         const { messageId } = await mirai.api.sendFriendMessage(
@@ -36,8 +36,8 @@ export default class Sender {
     messageChain: string | MessageType.MessageChain,
     target: Config.Target
   ): Promise<number[]> {
-    const mirai = this.bot.mirai;
-    const config = this.bot.el.config;
+    const mirai = this.ctx.mirai;
+    const botConfig = this.ctx.el.bot;
     const messageList: number[] = [];
 
     if (Array.isArray(messageChain)) {
@@ -52,15 +52,15 @@ export default class Sender {
       if (target.includes("master")) {
         await this.sendFriendMessageByArray(
           messageChain,
-          config.master,
+          botConfig.master,
           messageList
         );
       }
 
-      if (target.includes("admin") && config.admin) {
+      if (target.includes("admin") && botConfig.admin) {
         await this.sendFriendMessageByArray(
           messageChain,
-          config.admin,
+          botConfig.admin,
           messageList
         );
       }
@@ -86,7 +86,7 @@ export default class Sender {
           messageList
         );
       } catch (err) {
-        this.bot.logger.error("发送失败：可能是由于 mirai 私聊暂不支持长文本");
+        this.ctx.logger.error("发送失败：可能是由于 mirai 私聊暂不支持长文本");
       }
     }
 

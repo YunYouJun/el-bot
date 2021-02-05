@@ -3,7 +3,7 @@ import { merge } from "../utils/config";
 import path from "path";
 import { isFunction } from "../shared";
 
-type PluginInstallFunction = (bot: Bot, ...options: any[]) => any;
+type PluginInstallFunction = (ctx: Bot, ...options: any[]) => any;
 
 export type Plugin =
   | (PluginInstallFunction & {
@@ -36,7 +36,7 @@ export default class Plugins {
   official = new Set<PluginInfo>();
   community = new Set<PluginInfo>();
   custom = new Set<PluginInfo>();
-  constructor(public bot: Bot) {}
+  constructor(public ctx: Bot) {}
 
   /**
    * 根据名称判断是否为官方插件
@@ -85,9 +85,9 @@ export default class Plugins {
    * @param path 所在路径
    */
   load(type: PluginType) {
-    const config = this.bot.el.config;
-    if (config.plugins && config.plugins[type]) {
-      config.plugins[type]?.forEach(async (name: string) => {
+    const botConfig = this.ctx.el.bot!;
+    if (botConfig.plugins && botConfig.plugins[type]) {
+      botConfig.plugins[type]?.forEach(async (name: string) => {
         const pkgName = this.getPluginFullName(name, type);
 
         try {
@@ -102,7 +102,7 @@ export default class Plugins {
           try {
             pkg = await import(`${pluginPath}/package.json`);
           } catch {
-            this.bot.logger.warning(`${name} 插件没有相关描述信息`);
+            this.ctx.logger.warning(`${name} 插件没有相关描述信息`);
           }
 
           if (plugin) {
@@ -119,17 +119,17 @@ export default class Plugins {
               );
               options = defaultOptions;
             } catch {
-              // this.bot.logger.error(`${pkgName}不存在默认配置`)
+              // this.ctx.logger.error(`${pkgName}不存在默认配置`)
             }
 
             name = path.basename(name);
             this.add(name, plugin, options, pkg);
 
-            this.bot.logger.success(`[${type}] (${name}) 加载成功`);
+            this.ctx.logger.success(`[${type}] (${name}) 加载成功`);
           }
         } catch (err) {
-          this.bot.logger.error(err.message);
-          this.bot.logger.error(`[${type}] (${name}) 加载失败`);
+          this.ctx.logger.error(err.message);
+          this.ctx.logger.error(`[${type}] (${name}) 加载失败`);
         }
       });
     }
@@ -140,7 +140,7 @@ export default class Plugins {
    * @param pkg
    */
   isBasedOnDb(pkg: any): boolean {
-    return pkg["el-bot"] && pkg["el-bot"].db && !this.bot.db;
+    return pkg["el-bot"] && pkg["el-bot"].db && !this.ctx.db;
   }
 
   /**
@@ -151,32 +151,32 @@ export default class Plugins {
    * @param pkg 插件 package.json
    */
   add(name: string, plugin: Plugin, options?: any, pkg?: any) {
-    const bot = this.bot;
+    const ctx = this.ctx;
 
     // 插件基于数据库，但是未启用数据库时
     if (pkg && this.isBasedOnDb(pkg)) {
-      this.bot.logger.warning(
+      this.ctx.logger.warning(
         `[${pkg.name}] 如想要使用该插件，您须先启用数据库。`
       );
       return;
     }
 
     // 加载配置项
-    let pluginOptions = this.bot.el.config[name];
+    let pluginOptions = this.ctx.el.bot![name];
     if (options) {
-      if (this.bot.el.config[name]) {
-        pluginOptions = merge(options, this.bot.el.config[name]);
+      if (this.ctx.el.bot![name]) {
+        pluginOptions = merge(options, this.ctx.el.bot![name]);
       } else {
         pluginOptions = options;
       }
     }
 
     if (plugin && isFunction(plugin.install)) {
-      plugin.install(bot, pluginOptions);
+      plugin.install(ctx, pluginOptions);
     } else if (isFunction(plugin)) {
-      plugin(bot, pluginOptions);
-    } else if (bot.isDev) {
-      bot.logger.warn('插件必须是一个函数，或是带有 "install" 属性的对象。');
+      plugin(ctx, pluginOptions);
+    } else if (ctx.isDev) {
+      ctx.logger.warn('插件必须是一个函数，或是带有 "install" 属性的对象。');
     }
   }
 

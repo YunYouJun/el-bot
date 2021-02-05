@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { createLogger } from "../bot/logger";
 import El from "./el";
-import { BotConfig } from "./default";
+import { BotConfig } from "./bot";
 export { BotConfig };
 
 const logger = createLogger("[config]");
@@ -78,5 +78,13 @@ export async function loadConfigFromFile(
  * @param config
  */
 export function defineConfig(config: El): El {
+  return config;
+}
+
+/**
+ * Bot 配置
+ * @param config
+ */
+export function defineBotConfig(config: BotConfig): BotConfig {
   return config;
 }

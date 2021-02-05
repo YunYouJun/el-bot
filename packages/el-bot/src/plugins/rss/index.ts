@@ -19,7 +19,7 @@ interface RssConfig {
 class Rss {
   config: RssConfig;
   parser: Parser;
-  constructor(public bot: Bot, rssConfig: RssConfig) {
+  constructor(public ctx: Bot, rssConfig: RssConfig) {
     const defaultConfig = {
       cron: "*/15 * * * *",
       customFields: {
@@ -50,7 +50,7 @@ class Rss {
     try {
       feed = await this.parser.parseURL(this.config.url);
     } catch {
-      this.bot.logger.error(
+      this.ctx.logger.error(
         `[rss] ${this.config.name} 超时，${this.config.url} 解析失败`
       );
       return;
@@ -59,7 +59,7 @@ class Rss {
     if (feed.items && this.save(feed)) {
       // only semd first
       const content = feed.title + format(feed.items[0], this.config.content);
-      this.bot.sender.sendMessageByConfig(content, this.config.target);
+      this.ctx.sender.sendMessageByConfig(content, this.config.target);
     }
   }
 
@@ -84,7 +84,7 @@ class Rss {
       (feed.items &&
         rssJson[this.config.name].items[0].pubDate !== feed.items[0].pubDate)
     ) {
-      this.bot.logger.info(`[rss] ${feed.title} 已更新`);
+      this.ctx.logger.info(`[rss] ${feed.title} 已更新`);
       rssJson[this.config.name] = {
         title: feed.title,
         lastBuildDate: feed.lastBuildDate,
@@ -96,10 +96,10 @@ class Rss {
         ],
       };
       fs.writeFileSync(path, JSON.stringify(rssJson));
-      this.bot.logger.success(`[rss] 已在本地记录 ${feed.title} 新的 RSS 信息`);
+      this.ctx.logger.success(`[rss] 已在本地记录 ${feed.title} 新的 RSS 信息`);
       return true;
     } else {
-      this.bot.logger.info(`[rss] ${feed.title} 未更新`);
+      this.ctx.logger.info(`[rss] ${feed.title} 未更新`);
       return false;
     }
   }
@@ -155,8 +155,9 @@ function triggerRss(ctx: Bot, options: RssConfig[]) {
   return content;
 }
 
-export default function (ctx: Bot, options: RssConfig[]) {
-  const config = ctx.el.config;
+export type RssOptions = RssConfig[];
+
+export default function (ctx: Bot, options: RssOptions) {
   const { cli, mirai } = ctx;
   const rssOptions = options;
 
@@ -164,14 +165,14 @@ export default function (ctx: Bot, options: RssConfig[]) {
     .command("rss")
     .description("RSS 订阅")
     .option("-l, --list <type>", "订阅列表", "current")
-    .action((options) => {
+    .action((cmdOptions) => {
       const content = triggerRss(ctx, rssOptions);
       const msg = mirai.curMsg as MessageType.GroupMessage;
-      if (options.list === "current" && msg.sender.group) {
+      if (cmdOptions.list === "current" && msg.sender.group) {
         // 列出当前群 rss 订阅
         let rssList = "";
         let count = 0;
-        config.rss.forEach((rssConfig: RssConfig) => {
+        options.forEach((rssConfig: RssConfig) => {
           if (ctx.status.isListening(msg.sender, rssConfig.target)) {
             count += 1;
             rssList += `\n${rssConfig.name}: ${rssConfig.url}`;
@@ -182,7 +183,7 @@ export default function (ctx: Bot, options: RssConfig[]) {
         } else {
           msg.reply("本群尚未订阅 RSS");
         }
-      } else if (options.list === "all") {
+      } else if (cmdOptions.list === "all") {
         // 列出所有 rss 订阅
         if (ctx.user.isAllowed(msg.sender.id, true)) {
           msg.reply(content);
@@ -191,8 +192,8 @@ export default function (ctx: Bot, options: RssConfig[]) {
     });
 
   // 初始化定时
-  if (config.rss) {
-    config.rss.forEach((rssConfig: RssConfig) => {
+  if (options) {
+    options.forEach((rssConfig: RssConfig) => {
       const rss = new Rss(ctx, rssConfig);
       rss.init();
     });
