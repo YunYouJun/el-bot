@@ -9,6 +9,7 @@ import Sender from "./sender";
 import User from "./user";
 import Status from "./status";
 import Plugins from "./plugins";
+import { Command } from "./command";
 import { createLogger } from "./logger";
 import Webhook from "./webhook";
 import { initCli } from "./cli";
@@ -63,9 +64,13 @@ export default class Bot {
    */
   installedPlugins = new Set();
   /**
-   * 指令系统
+   * 面向开发者的指令系统
    */
   cli: commander.Command;
+  /**
+   * 面向用户的指令系统
+   */
+  _command: Command;
   /**
    * 日志系统
    */
@@ -89,6 +94,7 @@ export default class Bot {
     this.user = new User(this);
     this.sender = new Sender(this);
     this.plugins = new Plugins(this);
+    this._command = new Command(this);
     if (this.el.webhook?.enable) {
       this.webhook = new Webhook(this);
     }
@@ -155,6 +161,9 @@ export default class Bot {
 
     this.mirai.listen();
 
+    // 监听并解析用户指令
+    this._command.listen();
+
     // 启动 webhook
     let server: Server | undefined;
     if (this.el.webhook?.enable) {
@@ -218,5 +227,12 @@ export default class Bot {
     this.plugins["custom"].add({
       name,
     });
+  }
+
+  /**
+   * 注册指令（面向用户）
+   */
+  command(name: string) {
+    return this._command.command(name);
   }
 }

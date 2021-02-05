@@ -6,7 +6,7 @@ interface BaseAnswerOptions extends check.Match {
   /**
    * 监听
    */
-  listen: string | Config.Listen;
+  listen?: string | Config.Listen;
   /**
    * 不监听
    */
@@ -18,7 +18,7 @@ interface BaseAnswerOptions extends check.Match {
   /**
    * 定时发送的对象
    */
-  target: Config.Target;
+  target?: Config.Target;
   /**
    * API 地址，存在时，自动渲染字符串
    */

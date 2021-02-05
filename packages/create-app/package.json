@@ -17,5 +17,8 @@
   "dependencies": {
     "chalk": "^4.1.0",
     "enquirer": "^2.3.6"
+  },
+  "scripts": {
+    "build": "echo 'Do not need build.'"
   }
 }

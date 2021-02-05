@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import path from "path";
 import { defineConfig } from "el-bot";
-import botConfig from "./config";
+import botConfig from "./el/config";
 
 dotenv.config({
   path: path.resolve(__dirname, "../.env"),
@@ -17,7 +17,7 @@ export default defineConfig({
     uri: process.env.BOT_DB_URI,
     analytics: true,
   },
-  config: botConfig,
+  bot: botConfig,
   webhook: {
     enable: true,
     path: "/webhook",

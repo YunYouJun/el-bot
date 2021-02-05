@@ -4,10 +4,10 @@
   "scripts": {
     "build": "yarn clean && tsc",
     "clean": "rm -rf dist",
-    "dev": "yarn watch & nodemon dist/index.js",
+    "dev": "run-p watch start",
     "lint": "eslint --fix . && prettier --write .",
     "mcl": "cd mcl && ./mcl",
-    "start": "nodemon dist/index.js",
+    "start": "cd dist && nodemon index.js",
     "start:bot": "el start bot",
     "start:prod": "yarn build && nodemon dist/index.js",
     "watch": "tsc -w --incremental"
@@ -22,6 +22,7 @@
     "el-bot": "^0.8.0-alpha.1"
   },
   "devDependencies": {
+    "npm-run-all": "^4.1.5",
     "typescript": "^4.1.3"
   }
 }

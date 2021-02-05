@@ -1,3 +1,7 @@
+/**
+ * 面向开发者的终端
+ * @packageDocumentation
+ */
 import Bot from "el-bot";
 import { MessageType } from "mirai-ts";
 import shell from "shelljs";

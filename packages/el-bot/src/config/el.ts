@@ -19,7 +19,7 @@ export interface dbConfig {
 }
 
 export default class El {
-  qq: number = 0;
+  qq = 0;
   /**
    * MiraiAPIHTTP setting.yml
    */

@@ -1,26 +1,28 @@
-import { BotConfig } from "el-bot/dist/config/index";
-export default {
+import { defineBotConfig } from "el-bot";
+export default defineBotConfig({
+  name: "嘿",
+
   plugins: {
     default: [
       // # - dev
       "answer",
-      "blacklist",
-      "counter",
-      "feeder",
-      "forward",
-      "limit",
-      "memo",
-      "nbnhhsh",
-      "qrcode",
-      "rss",
-      "report",
-      "search",
-      "search-image",
-      "teach",
-      "workflow",
+      // "blacklist",
+      // "counter",
+      // "feeder",
+      // "forward",
+      // "limit",
+      // "memo",
+      // "nbnhhsh",
+      // "qrcode",
+      // "rss",
+      // "report",
+      // "search",
+      // "search-image",
+      // "teach",
+      // "workflow",
     ],
     official: [],
-    custom: ["./bot/test/webhook"],
+    custom: ["./plugins/webhook", "./plugins/command"],
   },
 
   master: [910426929],
@@ -49,4 +51,4 @@ export default {
       },
     },
   ],
-} as BotConfig;
+});
