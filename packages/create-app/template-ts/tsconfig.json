@@ -7,7 +7,9 @@
     "sourceMap": true,
     "resolveJsonModule": true,
     "outDir": "dist",
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "allowJs": true
   },
   "include": [
     "index.ts",

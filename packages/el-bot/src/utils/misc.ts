@@ -1,5 +1,6 @@
 import Bot from "el-bot";
 import chalk from "chalk";
+import fs from "fs";
 
 /**
  * 休眠
@@ -19,4 +20,21 @@ export function statement(ctx: Bot) {
   ctx.logger.info(`GitHub: ${pkg.repository.url}`);
   ctx.logger.info(`El-Bot Version: ${chalk.cyan(pkg.version)}`);
   console.log("-----------------------------------------------");
+}
+
+/**
+ * 获取目录下的所有插件
+ * @param dir
+ */
+export function getAllPlugins(dir: string): string[] {
+  const plugins = fs.readdirSync(dir);
+
+  return plugins.map((plugin) => {
+    const extPos = plugin.lastIndexOf(".");
+    if (extPos !== -1) {
+      return plugin.slice(0, extPos);
+    } else {
+      return plugin;
+    }
+  });
 }

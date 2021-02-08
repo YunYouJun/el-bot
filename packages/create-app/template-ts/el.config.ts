@@ -5,11 +5,9 @@ import { MiraiApiHttpConfig } from "mirai-ts";
 export default defineConfig({
   qq: 712727946,
   // 你可以直接解析你的 mirai/mcl 中 mirai-api-http 的配置
+  // 你应当将其修改为你的相对路径或绝对路径
   setting: utils.config.parse(
-    resolve(
-      process.cwd(),
-      "../../../mcl/config/net.mamoe.mirai-api-http/setting.yml"
-    )
+    resolve(process.cwd(), "./mcl/config/net.mamoe.mirai-api-http/setting.yml")
   ) as MiraiApiHttpConfig,
   bot: {
     master: [910426929],

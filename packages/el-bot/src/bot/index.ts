@@ -14,7 +14,7 @@ import { createLogger } from "./logger";
 import Webhook from "./webhook";
 import { initCli } from "./cli";
 
-import { sleep, statement } from "../utils/misc";
+import { getAllPlugins, sleep, statement } from "../utils/misc";
 import { connectDb } from "../db";
 import chalk from "chalk";
 import commander from "commander";
@@ -23,8 +23,12 @@ import { Server } from "net";
 // shared
 import { isFunction } from "../shared";
 
+// node
+import fs from "fs";
+
 // type
-import type { Plugin } from "./plugins";
+import { Plugin } from "./plugins";
+import { resolve } from "path";
 
 /**
  * 创建机器人
@@ -80,6 +84,11 @@ export default class Bot {
    * 是否开发模式下
    */
   isDev = process.env.NODE_ENV !== "production";
+  /**
+   * 根目录
+   */
+  rootDir = process.cwd();
+  isTS = fs.existsSync(resolve(this.rootDir, "tsconfig.json"));
   constructor(el: El) {
     this.el = new El(el);
     const setting = this.el.setting;
@@ -157,6 +166,16 @@ export default class Bot {
     this.plugins.load("default");
     this.plugins.load("official");
     this.plugins.load("community");
+
+    if (this.el.bot.autoloadPlugins) {
+      const allCustomPlugins = getAllPlugins(
+        resolve(this.rootDir, "./plugins")
+      );
+      this.el.bot.plugins!.custom = allCustomPlugins.map((path) =>
+        resolve((this.isTS ? "dist/" : "") + "plugins", path)
+      );
+    }
+
     this.plugins.load("custom");
 
     this.mirai.listen();

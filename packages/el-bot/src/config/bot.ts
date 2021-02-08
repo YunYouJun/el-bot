@@ -7,6 +7,11 @@ export interface BotConfig {
    * 机器人名
    */
   name?: string;
+
+  /**
+   * 是否自动加载 plugins 文件夹下的自定义插件
+   */
+  autoloadPlugins?: boolean;
   /**
    * 插件配置
    */
