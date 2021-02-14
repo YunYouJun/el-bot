@@ -104,10 +104,27 @@ export default class Bot {
     this.sender = new Sender(this);
     this.plugins = new Plugins(this);
     this._command = new Command(this);
-    if (this.el.webhook?.enable) {
+    if (this.el.webhook && this.el.webhook.enable) {
       this.webhook = new Webhook(this);
     }
     this.cli = initCli(this, "el");
+
+    // report error to qq
+    if (this.el.report?.enable) {
+      const logError = this.logger.error;
+      this.logger.error = (...args: any) => {
+        const target = this.el.report?.target || {};
+        if (this.el.bot.devGroup) {
+          if (target?.group) {
+            target.group.push(this.el.bot.devGroup);
+          } else {
+            target.group = [this.el.bot.devGroup];
+          }
+        }
+        this.sender.sendMessageByConfig(args.join(" "), target);
+        return logError(args[0], ...args.slice(1));
+      };
+    }
   }
 
   /**
@@ -185,7 +202,7 @@ export default class Bot {
 
     // 启动 webhook
     let server: Server | undefined;
-    if (this.el.webhook?.enable) {
+    if (this.el.webhook && this.el.webhook.enable) {
       try {
         server = this.webhook?.start();
       } catch (err) {
@@ -202,7 +219,7 @@ export default class Bot {
       }
 
       // close koa server
-      if (this.el.webhook?.enable) {
+      if (this.el.webhook && this.el.webhook.enable) {
         if (server) {
           server.close();
           this.logger.info("[webhook] 关闭 Server");

@@ -27,7 +27,7 @@ export default class Webhook {
   // 默认配置
   config: WebhookConfig;
   emitter: events.EventEmitter;
-  githubHandler: Webhooks;
+  githubHandler: Webhooks<any>;
   constructor(public ctx: Bot) {
     this.config = ctx.el.webhook!;
     this.emitter = new events.EventEmitter();
@@ -76,7 +76,7 @@ export default class Webhook {
   parse(ctx: Koa.ParameterizedContext<Koa.DefaultState, Koa.DefaultContext>) {
     let type = "";
     if (ctx.request.method === "GET" && ctx.request.query.type) {
-      type = ctx.request.query.type;
+      type = ctx.request.query.type as string;
       this.emitter.emit(type, ctx.request.query, ctx.res);
     } else if (ctx.request.method === "POST" && ctx.body.type) {
       type = ctx.body.type;

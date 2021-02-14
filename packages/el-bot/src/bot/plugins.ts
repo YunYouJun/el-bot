@@ -128,7 +128,11 @@ export default class Plugins {
             this.ctx.logger.success(`[${type}] (${name}) 加载成功`);
           }
         } catch (err) {
-          this.ctx.logger.error(err.message);
+          if (this.ctx.isDev) {
+            console.error(err);
+          } else {
+            this.ctx.logger.error(err.message);
+          }
           this.ctx.logger.error(`[${type}] (${name}) 加载失败`);
         }
       });
@@ -162,12 +166,13 @@ export default class Plugins {
     }
 
     // 加载配置项
-    let pluginOptions = this.ctx.el.bot![name];
-    if (options) {
-      if (this.ctx.el.bot![name]) {
-        pluginOptions = merge(options, this.ctx.el.bot![name]);
+    let pluginOptions = options;
+
+    if (this.ctx.el.bot![name]) {
+      if (pluginOptions) {
+        pluginOptions = merge(pluginOptions, this.ctx.el.bot![name]);
       } else {
-        pluginOptions = options;
+        pluginOptions = this.ctx.el.bot![name];
       }
     }
 

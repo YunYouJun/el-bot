@@ -2,6 +2,7 @@ import * as config from "../utils/config";
 import { MiraiApiHttpConfig } from "mirai-ts";
 import { BotConfig } from "./bot";
 import { WebhookConfig } from "../bot/webhook";
+import { Target } from "../types/config";
 
 export interface dbConfig {
   /**
@@ -16,6 +17,20 @@ export interface dbConfig {
    * 是否进行统计分析
    */
   analytics?: Boolean;
+}
+
+/**
+ * 上报配置
+ */
+export interface reportConfig {
+  /**
+   * 是否启用
+   */
+  enable: boolean;
+  /**
+   * 上报对象
+   */
+  target?: Target;
 }
 
 export default class El {
@@ -52,12 +67,16 @@ export default class El {
     },
     master: [910426929],
     admin: [910426929],
+    devGroup: 120117362,
   };
   webhook?: WebhookConfig = {
     enable: true,
     port: 7777,
     path: "/webhook",
     secret: "el-psy-congroo",
+  };
+  report?: reportConfig = {
+    enable: false,
   };
   // el-bot package.json
   pkg? = require("../../package.json");

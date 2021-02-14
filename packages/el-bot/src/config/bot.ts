@@ -30,6 +30,11 @@ export interface BotConfig {
    */
   admin?: number[];
 
+  /**
+   * 开发测试群
+   */
+  devGroup?: number;
+
   // 默认插件
   answer?: AnswerOptions;
   forward?: ForwardOptions;

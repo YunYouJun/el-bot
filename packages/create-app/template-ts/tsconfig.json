@@ -16,5 +16,6 @@
     "package.json",
     "plugins/**/*",
     "plugins/**/*/package.json"
-  ]
+  ],
+  "exclude": ["node_modules", "dist", "mcl"]
 }
