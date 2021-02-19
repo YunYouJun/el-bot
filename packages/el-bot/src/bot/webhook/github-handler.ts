@@ -16,8 +16,8 @@ export interface handler extends EventEmitter {
 
 export default function (ctx: Bot) {
   const config = {
-    secret: ctx.el.bot.secret || "el-psy-congroo",
-    path: ctx.el.bot.path || "/webhook",
+    secret: ctx.el.webhook?.secret || "el-psy-congroo",
+    path: ctx.el.webhook?.path || "/webhook",
   };
 
   const handler = new Webhooks(config);

@@ -4,7 +4,6 @@ import { MiraiApiHttpConfig } from "mirai-ts";
 import { BotConfig } from "./bot";
 import { WebhookConfig } from "../bot/webhook";
 import { Target } from "../types/config";
-import { utils } from "el-bot";
 
 const assetsFolder = "data/net.mamoe.mirai-api-http";
 
@@ -115,13 +114,14 @@ export default class El {
     if (typeof el.qq === "string") {
       el.qq = parseInt(el.qq);
     }
+    // 合并
+    config.merge(this, el);
+    // after merge
     // adapt for config path
     if (typeof this.setting === "string") {
-      this.setting = utils.config.parse(
+      this.setting = config.parse(
         resolve(this.base!, this.setting)
       ) as MiraiApiHttpConfig;
     }
-    // 合并
-    config.merge(this, el);
   }
 }

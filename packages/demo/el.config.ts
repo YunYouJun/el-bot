@@ -9,9 +9,7 @@ dotenv.config({
 
 export default defineConfig({
   qq: parseInt(process.env.BOT_QQ || ""),
-  setting: {
-    enableWebsocket: true,
-  },
+  setting: "./mcl/config/net.mamoe.mirai-api-http/setting.yml",
   db: {
     enable: process.env.EL_DB_ENABLE === "true",
     uri: process.env.BOT_DB_URI,
