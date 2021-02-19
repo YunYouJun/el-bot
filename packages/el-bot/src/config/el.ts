@@ -52,6 +52,9 @@ export default class El {
   db?: dbConfig = {
     enable: false,
   };
+  /**
+   * 机器人及相关插件配置
+   */
   bot: BotConfig = {
     name: "el-bot",
     plugins: {
@@ -69,12 +72,18 @@ export default class El {
     admin: [910426929],
     devGroup: 120117362,
   };
+  /**
+   * webhook 配置
+   */
   webhook?: WebhookConfig = {
     enable: true,
     port: 7777,
     path: "/webhook",
     secret: "el-psy-congroo",
   };
+  /**
+   * 上报错误信息配置
+   */
   report?: reportConfig = {
     enable: false,
   };

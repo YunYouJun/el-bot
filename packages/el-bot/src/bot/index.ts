@@ -64,7 +64,7 @@ export default class Bot {
    */
   plugins: Plugins;
   /**
-   * 已按照的插件
+   * 已安装的插件
    */
   installedPlugins = new Set();
   /**
