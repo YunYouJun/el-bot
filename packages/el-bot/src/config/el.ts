@@ -1,8 +1,12 @@
+import { resolve } from "path";
 import * as config from "../utils/config";
 import { MiraiApiHttpConfig } from "mirai-ts";
 import { BotConfig } from "./bot";
 import { WebhookConfig } from "../bot/webhook";
 import { Target } from "../types/config";
+import { utils } from "el-bot";
+
+const assetsFolder = "data/net.mamoe.mirai-api-http";
 
 export interface dbConfig {
   /**
@@ -36,9 +40,10 @@ export interface reportConfig {
 export default class El {
   qq = 0;
   /**
-   * MiraiAPIHTTP setting.yml
+   * MiraiAPIHTTP setting.yml 路径
+   * 或传入 MiraiApiHttpConfig 对象配置
    */
-  setting: MiraiApiHttpConfig = {
+  setting: MiraiApiHttpConfig | string = {
     host: "0.0.0.0",
     port: 4859,
     authKey: "el-psy-congroo",
@@ -89,9 +94,32 @@ export default class El {
   };
   // el-bot package.json
   pkg? = require("../../package.json");
+  /**
+   * 根目录
+   */
+  base? = process.cwd();
+  /**
+   * mirai-api-http 文件路径
+   */
+  path? = {
+    /**
+     * 图片路径
+     */
+    image: resolve(this.base!, this.pkg.mcl.folder, `${assetsFolder}/images`),
+    /**
+     * 语音路径
+     */
+    voice: resolve(this.base!, this.pkg.mcl.folder, `${assetsFolder}/voices`),
+  };
   constructor(el: El) {
     if (typeof el.qq === "string") {
       el.qq = parseInt(el.qq);
+    }
+    // adapt for config path
+    if (typeof this.setting === "string") {
+      this.setting = utils.config.parse(
+        resolve(this.base!, this.setting)
+      ) as MiraiApiHttpConfig;
     }
     // 合并
     config.merge(this, el);

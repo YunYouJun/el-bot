@@ -6,7 +6,7 @@
   "main": "src/index.ts",
   "scripts": {
     "clean": "rm -rf dist",
-    "start": "tsc && cd dist && nodemon index.js",
+    "start": "tsc && nodemon dist/index.js",
     "build": "yarn clean && tsc",
     "dev": "run-p watch start",
     "watch": "tsc -w --incremental",

@@ -19,11 +19,8 @@ async function generateQR(text: string, folder: string) {
 export default function (ctx: Bot) {
   const { cli } = ctx;
 
-  const folder = resolve(
-    process.cwd(),
-    ctx.el.pkg.mcl.folder,
-    `data/net.mamoe.mirai-api-http/images/qrcode`
-  );
+  const folderName = "qrcode";
+  const folder = resolve(ctx.el.path!.image, folderName);
 
   if (!fs.existsSync(folder)) {
     fs.mkdirSync(folder, { recursive: true });
@@ -33,9 +30,13 @@ export default function (ctx: Bot) {
     .command("qrcode <text...>")
     .description("生成二维码")
     .action(async (text: string[]) => {
-      const msg = ctx.mirai.curMsg;
-      const filename = await generateQR(text.join(" "), folder);
-      const chain = [Message.Image(null, null, `qrcode/${filename}`)];
-      (msg as MessageType.ChatMessage).reply(chain);
+      const msg = ctx.mirai.curMsg as MessageType.ChatMessage;
+      try {
+        const filename = await generateQR(text.join(" "), folder);
+        const chain = [Message.Image(null, null, `${folderName}/${filename}`)];
+        msg.reply(chain);
+      } catch (e) {
+        msg.reply(e.message);
+      }
     });
 }

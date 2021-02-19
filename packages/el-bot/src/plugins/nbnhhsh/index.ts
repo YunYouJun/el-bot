@@ -9,6 +9,10 @@ async function guess(text: string) {
   });
 }
 
+/**
+ * 能不能好好说话？
+ * @param ctx
+ */
 export default function (ctx: Bot) {
   const { cli } = ctx;
   cli

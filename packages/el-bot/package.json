@@ -1,6 +1,6 @@
 {
   "name": "el-bot",
-  "version": "0.8.0-alpha.5",
+  "version": "0.8.0-alpha.6",
   "description": "A quick qq bot framework for mirai.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -60,7 +60,7 @@
     "koa": "^2.13.1",
     "koa-bodyparser": "^4.3.0",
     "mirai-ts": "^1.0.0-alpha.6",
-    "mongoose": "^5.11.17",
+    "mongoose": "^5.11.15",
     "node-schedule": "^2.0.0",
     "progress": "^2.0.3",
     "qrcode": "^1.4.4",

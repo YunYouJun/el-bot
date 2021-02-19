@@ -1,6 +1,7 @@
 import { defineBotConfig } from "el-bot";
 export default defineBotConfig({
   name: "嘿",
+  autoloadPlugins: true,
 
   plugins: {
     default: [

@@ -21,6 +21,17 @@ export interface WebhookConfig {
 }
 
 /**
+ * 收到的内容
+ */
+interface ContextBody {
+  /**
+   * 定义类型
+   */
+  type: string;
+  [propName: string]: any;
+}
+
+/**
  * webhook
  */
 export default class Webhook {
@@ -75,11 +86,12 @@ export default class Webhook {
    */
   parse(ctx: Koa.ParameterizedContext<Koa.DefaultState, Koa.DefaultContext>) {
     let type = "";
+    const body = ctx.body as ContextBody;
     if (ctx.request.method === "GET" && ctx.request.query.type) {
       type = ctx.request.query.type as string;
       this.emitter.emit(type, ctx.request.query, ctx.res);
-    } else if (ctx.request.method === "POST" && ctx.body.type) {
-      type = ctx.body.type;
+    } else if (ctx.request.method === "POST" && body.type) {
+      type = body.type;
       this.emitter.emit(type, ctx.body, ctx.res);
       this.ctx.logger.info(`[webhook](${type})`);
       if (this.ctx.isDev) {

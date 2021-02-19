@@ -84,14 +84,11 @@ export default class Bot {
    * 是否开发模式下
    */
   isDev = process.env.NODE_ENV !== "production";
-  /**
-   * 根目录
-   */
   rootDir = process.cwd();
   isTS = fs.existsSync(resolve(this.rootDir, "tsconfig.json"));
   constructor(el: El) {
     this.el = new El(el);
-    const setting = this.el.setting;
+    const setting = this.el.setting as MiraiApiHttpConfig;
     const mahConfig: MiraiApiHttpConfig = {
       host: setting.host || "localhost",
       port: setting.port || 8080,
