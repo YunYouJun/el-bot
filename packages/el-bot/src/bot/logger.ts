@@ -32,7 +32,13 @@ export interface Logger extends winston.Logger {
 export function createLogger(label = "el-bot") {
   const logger = winston.createLogger({
     levels: customLevels.levels,
-    transports: [new winston.transports.Console()],
+    transports: [
+      new winston.transports.Console(),
+      new winston.transports.File({
+        filename: "logs/error.log",
+        level: "error",
+      }),
+    ],
     format: winston.format.combine(
       winston.format.colorize({
         colors: customLevels.colors,

@@ -13,7 +13,7 @@ export default defineBotConfig({
       // "forward",
       // "limit",
       // "memo",
-      // "nbnhhsh",
+      "nbnhhsh",
       // "qrcode",
       // "rss",
       // "report",

@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import path from "path";
 import { defineConfig } from "el-bot";
-import botConfig from "./el/config";
+import botConfig from "./el/bot-config";
 
 dotenv.config({
   path: path.resolve(__dirname, "../.env"),
