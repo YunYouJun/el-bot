@@ -1,4 +1,6 @@
 import Bot from "el-bot";
+import { check } from "mirai-ts";
+import { getHelpContent } from "./utils";
 
 /**
  * 面向用户的指令
@@ -75,7 +77,13 @@ export class Command {
   listen() {
     const { mirai } = this.ctx;
     mirai.on("message", (msg) => {
-      this.parse(msg.plain);
+      if (check.isAt(msg, this.ctx.el.qq) && msg.plain.trim() === "帮助") {
+        const content = getHelpContent(this.children);
+        msg.reply(content);
+        return;
+      }
+
+      this.parse(msg.plain.trim());
     });
   }
 }
