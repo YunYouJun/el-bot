@@ -85,6 +85,7 @@ export default class Bot {
    */
   isDev = process.env.NODE_ENV !== "production";
   rootDir = process.cwd();
+  tmpDir = "tmp/";
   isTS = fs.existsSync(resolve(this.rootDir, "tsconfig.json"));
   constructor(el: El) {
     this.el = new El(el);

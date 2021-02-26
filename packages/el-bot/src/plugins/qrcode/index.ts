@@ -3,6 +3,8 @@ import QRCode from "qrcode";
 import { Message, MessageType } from "mirai-ts";
 import fs from "fs";
 import { resolve } from "path";
+import pkg from "./package.json";
+import { QRCodeOptions } from "./options";
 
 /**
  * 生成二维码
@@ -16,11 +18,13 @@ async function generateQR(text: string, folder: string) {
   return filename;
 }
 
-export default function (ctx: Bot) {
+export default function (ctx: Bot, options: QRCodeOptions) {
   const { cli } = ctx;
+  const folder = resolve(ctx.el.path!.image, pkg.name);
 
-  const folderName = "qrcode";
-  const folder = resolve(ctx.el.path!.image, folderName);
+  if (options.autoClearCache) {
+    fs.rmdirSync(folder, { recursive: true });
+  }
 
   if (!fs.existsSync(folder)) {
     fs.mkdirSync(folder, { recursive: true });
@@ -33,7 +37,7 @@ export default function (ctx: Bot) {
       const msg = ctx.mirai.curMsg as MessageType.ChatMessage;
       try {
         const filename = await generateQR(text.join(" "), folder);
-        const chain = [Message.Image(null, null, `${folderName}/${filename}`)];
+        const chain = [Message.Image(null, null, `${pkg.name}/${filename}`)];
         msg.reply(chain);
       } catch (e) {
         msg.reply(e.message);

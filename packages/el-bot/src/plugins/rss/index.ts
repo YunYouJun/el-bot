@@ -66,15 +66,14 @@ class Rss {
   save(feed: any) {
     if (feed.items && feed.items.length <= 0) return false;
 
-    const tmpDir = "tmp/";
-    const path = tmpDir + "rss.json";
+    const path = this.ctx.tmpDir + "rss.json";
     let rssJson: any = {};
 
     if (fs.existsSync(path)) {
       const data = fs.readFileSync(path);
       rssJson = JSON.parse(data.toString());
     } else {
-      fs.mkdirSync(tmpDir, { recursive: true });
+      fs.mkdirSync(this.ctx.tmpDir, { recursive: true });
     }
 
     // 缓存文件不存在 或 对应对象不存在则更新

@@ -37,7 +37,7 @@ const bot = new Bot({
     authKey: "el-psy-congroo",
     enableWebsocket: true,
   },
-  // config: ...
+  // bot: ...
 });
 bot.start();
 ```
@@ -51,6 +51,8 @@ So easy! Right?
 ```sh
 npm install el-bot@latest
 ```
+
+相关变动请参见 [Releases](https://github.com/YunYouJun/el-bot/releases)。
 
 ## 反馈
 
