@@ -1,0 +1,11 @@
+{
+  "name": "@el-bot/plugin-niubi",
+  "version": "0.2.0",
+  "description": "夸人牛逼",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo '@某人 nb'"
+  },
+  "author": "YunYouJun",
+  "license": "AGPL-3.0"
+}

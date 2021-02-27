@@ -2,6 +2,7 @@
   "private": true,
   "version": "0.0.1",
   "workspaces": [
+    "packages/@vuepress/*",
     "packages/*"
   ],
   "repository": "https://github.com/YunYouJun/el-bot",
