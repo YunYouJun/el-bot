@@ -176,6 +176,17 @@ export default class Bot {
     this.logger.info(`Link Start!`);
     await this.link();
 
+    // mah about
+    try {
+      const { data } = await this.mirai.api.about();
+      this.logger.info(`[mah] version: ${data.version}`);
+    } catch (e) {
+      console.error(e);
+      this.logger.error(
+        "未检测到 mirai-api-http 版本，请检查是否已与 mah 建立链接！"
+      );
+    }
+
     // 加载插件
     this.logger.info("开始加载插件");
     this.plugins.load("default");
