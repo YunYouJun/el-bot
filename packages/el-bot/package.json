@@ -1,6 +1,6 @@
 {
   "name": "el-bot",
-  "version": "0.8.0-alpha.9",
+  "version": "0.8.0-beta.1",
   "description": "A quick qq bot framework for mirai.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -48,7 +48,7 @@
   "homepage": "https://docs.bot.elpsy.cn/",
   "dependencies": {
     "@koa/cors": "^3.1.0",
-    "@octokit/webhooks": "^8.5.0",
+    "@octokit/webhooks": "^8.5.3",
     "chalk": "^4.0.0",
     "commander": "^7.1.0",
     "dayjs": "^1.10.4",
@@ -59,8 +59,8 @@
     "js-yaml": "^4.0.0",
     "koa": "^2.13.1",
     "koa-bodyparser": "^4.3.0",
-    "mirai-ts": "^1.0.0-beta.7",
-    "mongoose": "^5.11.18",
+    "mirai-ts": "^1.0.0-beta.8",
+    "mongoose": "^5.11.19",
     "node-schedule": "^2.0.0",
     "progress": "^2.0.3",
     "qrcode": "^1.4.4",
@@ -73,7 +73,7 @@
     "@types/html-to-text": "^6.0.0",
     "@types/inquirer": "^7.3.1",
     "@types/js-yaml": "^4.0.0",
-    "@types/koa": "^2.13.0",
+    "@types/koa": "^2.13.1",
     "@types/koa-bodyparser": "^4.3.0",
     "@types/koa__cors": "^3.0.2",
     "@types/node": "^14.14.31",
@@ -84,7 +84,7 @@
     "@types/xml2js": "^0.4.8",
     "cross-env": "^7.0.3",
     "dotenv": "^8.2.0",
-    "typedoc": "^0.20.28"
+    "typedoc": "^0.20.29"
   },
   "directories": {
     "lib": "https://github.com/YunYouJun/mirai-ts"
