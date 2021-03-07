@@ -6,6 +6,7 @@ export default defineBotConfig({
   plugins: {
     default: [
       // # - dev
+      "admin",
       "answer",
       // "blacklist",
       // "counter",

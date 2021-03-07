@@ -63,6 +63,7 @@ export default class El {
     name: "el-bot",
     plugins: {
       default: [
+        "admin",
         "answer",
         "forward",
         "limit",
