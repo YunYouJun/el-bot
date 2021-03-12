@@ -1,6 +1,6 @@
-import { Logger } from "mirai-ts";
+import { Logger } from "@yunyoujun/logger";
 
-const logger = new Logger("[decorators]");
+const logger = new Logger({ prefix: "[decorators]" });
 
 export function displayCall(
   target: any,

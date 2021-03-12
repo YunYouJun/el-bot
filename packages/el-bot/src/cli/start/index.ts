@@ -2,14 +2,14 @@ import { spawn } from "child_process";
 import commander from "commander";
 import fs from "fs";
 import glob from "glob";
-import { Logger } from "mirai-ts";
+import { Logger } from "@yunyoujun/logger";
 import os from "os";
 import { resolve } from "path";
 import shell from "shelljs";
 // 实例目录下的 package.json
 const pkg = require(getAbsolutePath("./package.json"));
 
-const logger = new Logger("[cli(start)]");
+const logger = new Logger({ prefix: "[cli(start)]" });
 
 /**
  * 获取当前目录下的绝对路径

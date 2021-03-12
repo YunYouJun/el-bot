@@ -1,10 +1,10 @@
 import axios from "axios";
 import fs from "fs";
-import { Logger } from "mirai-ts";
+import { Logger } from "@yunyoujun/logger";
 import download from "download";
 import ProgressBar from "progress";
 
-const logger = new Logger("[cli(repo)]");
+const logger = new Logger({ prefix: "[cli(repo)]" });
 
 /**
  * Repo 类

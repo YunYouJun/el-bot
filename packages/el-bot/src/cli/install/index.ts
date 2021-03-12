@@ -1,5 +1,5 @@
 import inquirer from "inquirer";
-import { Logger } from "mirai-ts";
+import { Logger } from "@yunyoujun/logger";
 import Repo from "./repo";
 import commander from "commander";
 import fs from "fs";
@@ -16,7 +16,7 @@ export default function (cli: commander.Command) {
     });
 }
 
-const logger = new Logger("[cli(install)]");
+const logger = new Logger({ prefix: "[cli(install)]" });
 
 const settingPath = "./mcl/config/MiraiApiHttp/setting.yml";
 
