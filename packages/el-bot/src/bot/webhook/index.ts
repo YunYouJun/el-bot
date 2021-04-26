@@ -39,10 +39,17 @@ export default class Webhook {
   config: WebhookConfig;
   emitter: events.EventEmitter;
   githubHandler: Webhooks<any>;
+  middleware: (
+    request: any,
+    response: any,
+    next?: Function | undefined
+  ) => Promise<any>;
   constructor(public ctx: Bot) {
     this.config = ctx.el.webhook!;
     this.emitter = new events.EventEmitter();
-    this.githubHandler = githubHandler(ctx);
+    const { handler, middleware } = githubHandler(ctx);
+    this.githubHandler = handler;
+    this.middleware = middleware;
   }
 
   /**
@@ -61,7 +68,7 @@ export default class Webhook {
       ctx.body = (ctx.request as any).body;
       (ctx.req as any)["body"] = ctx.body;
       ctx.status = 200;
-      return this.githubHandler.middleware(ctx.req, ctx.res, next);
+      return this.middleware(ctx.req, ctx.res, next);
     });
 
     app.use((ctx) => {

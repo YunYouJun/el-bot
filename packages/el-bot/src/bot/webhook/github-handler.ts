@@ -3,7 +3,7 @@ import { EventEmitter } from "events";
 import shell from "shelljs";
 import { IncomingMessage, ServerResponse } from "http";
 
-import { Webhooks } from "@octokit/webhooks";
+import { Webhooks, createNodeMiddleware } from "@octokit/webhooks";
 
 // github handler
 export interface handler extends EventEmitter {
@@ -17,10 +17,13 @@ export interface handler extends EventEmitter {
 export default function (ctx: Bot) {
   const config = {
     secret: ctx.el.webhook?.secret || "el-psy-congroo",
-    path: ctx.el.webhook?.path || "/webhook",
   };
 
   const handler = new Webhooks(config);
+
+  const middleware = createNodeMiddleware(handler, {
+    path: ctx.el.webhook?.path || "/webhook",
+  });
 
   handler.onError((err) => {
     ctx.logger.error(`Error: ${err.message}`);
@@ -41,5 +44,8 @@ export default function (ctx: Bot) {
     }
   });
 
-  return handler;
+  return {
+    handler,
+    middleware,
+  };
 }
