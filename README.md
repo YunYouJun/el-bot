@@ -97,8 +97,27 @@ yarn
 cp bot/.env.example .env
 ```
 
+启动 mcl，须已配置 [mirai-console-loader](https://github.com/iTXTech/mirai-console-loader)
+
+```sh
+yarn mcl
+```
+
 开发测试（运行起来吧）
 
 ```sh
 yarn dev:bot
+```
+
+开发 el-bot 库
+
+```sh
+yarn dev:lib
+```
+
+### 构建
+
+```sh
+# 构建 el-bot
+yarn build
 ```

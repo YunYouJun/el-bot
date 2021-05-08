@@ -142,8 +142,8 @@ export default class Bot {
    */
   async link() {
     try {
-      await this.mirai.link(this.el.qq);
-      return true;
+      const data = await this.mirai.link(this.el.qq);
+      return data;
     } catch (err) {
       this.logger.error(err.message);
       await sleep(3000);
@@ -174,7 +174,13 @@ export default class Bot {
 
     this.logger.info(`Bot QQ: ` + chalk.green(this.el.qq));
     this.logger.info(`Link Start!`);
-    await this.link();
+
+    // link
+    const data = await this.link();
+    if (data?.code !== 0) {
+      this.logger.error("无法正确链接您的 QQ，请检查 QQ 是否正确！");
+      return;
+    }
 
     // mah about
     try {
@@ -185,6 +191,7 @@ export default class Bot {
       this.logger.error(
         "未检测到 mirai-api-http 版本，请检查是否已与 mah 建立链接！"
       );
+      return;
     }
 
     // 加载插件
