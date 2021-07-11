@@ -14,23 +14,24 @@ import { aboutInfo, cleanOptions } from "./utils";
  * @param options
  * @param ctx
  */
-async function processOptions(program: commander.Command, ctx: Bot) {
+async function processOptions(
+  program: commander.Command,
+  ctx: Bot,
+  msg: MessageType.ChatMessage
+) {
   const options = program.opts();
 
   const pkg = ctx.el.pkg;
 
   if (options.v || options.version) {
-    ctx.reply(`el-bot: v${pkg.version}`);
+    msg.reply(`el-bot: v${pkg.version}`);
 
     const mahAbout = await ctx.mirai.api.about();
-    ctx.reply(`mirai-api-http: v${mahAbout.data.version}`);
+    msg.reply(`mirai-api-http: v${mahAbout.data.version}`);
   }
 
   // about
-  if (
-    (ctx.mirai.curMsg as MessageType.ChatMessage).plain === "el -a" &&
-    (options.a || options.about)
-  ) {
+  if (msg.plain === "el -a" && (options.a || options.about)) {
     const about = aboutInfo(pkg);
     ctx.reply(about);
   }
@@ -131,7 +132,7 @@ export function initCli(ctx: Bot, name: string) {
       }
     }
 
-    processOptions(program, ctx);
+    processOptions(program, ctx, msg);
     cleanOptions(program);
   });
 
