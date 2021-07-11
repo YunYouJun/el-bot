@@ -18,6 +18,7 @@
     "forceConsistentCasingInFileNames": true,
     // custom
     "resolveJsonModule": true,
-    "types": ["node"]
+    "types": ["node"],
+    "skipLibCheck": true
   }
 }

@@ -1,6 +1,6 @@
 import { resolve } from "path";
 import * as config from "../utils/config";
-import { MiraiApiHttpConfig } from "mirai-ts";
+import { MiraiApiHttpSetting } from "mirai-ts";
 import { BotConfig } from "./bot";
 import { WebhookConfig } from "../bot/webhook";
 import { Target } from "../types/config";
@@ -42,14 +42,8 @@ export default class El {
    * MiraiAPIHTTP setting.yml 路径
    * 或传入 MiraiApiHttpConfig 对象配置
    */
-  setting: MiraiApiHttpConfig | string = {
-    host: "0.0.0.0",
-    port: 4859,
-    authKey: "el-psy-congroo",
-    cacheSize: 4096,
-    enableWebsocket: true,
-    cors: ["*"],
-  };
+  setting: MiraiApiHttpSetting | string =
+    "../mcl/config/net.mamoe.mirai-api-http/setting.yml";
   /**
    * mongodb 数据库默认配置
    */
@@ -122,7 +116,7 @@ export default class El {
     if (typeof this.setting === "string") {
       this.setting = config.parse(
         resolve(this.base!, this.setting)
-      ) as MiraiApiHttpConfig;
+      ) as MiraiApiHttpSetting;
     }
   }
 }

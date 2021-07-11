@@ -1,8 +1,8 @@
 import El from "../config/el";
 import Mirai, {
   MessageType,
-  MiraiApiHttpConfig,
   MiraiInstance,
+  MiraiApiHttpSetting,
 } from "mirai-ts";
 
 import Sender from "./sender";
@@ -89,14 +89,8 @@ export default class Bot {
   isTS = fs.existsSync(resolve(this.rootDir, "tsconfig.json"));
   constructor(el: El) {
     this.el = new El(el);
-    const setting = this.el.setting as MiraiApiHttpConfig;
-    const mahConfig: MiraiApiHttpConfig = {
-      host: setting.host || "localhost",
-      port: setting.port || 8080,
-      authKey: setting.authKey || "el-psy-congroo",
-      enableWebsocket: setting.enableWebsocket || false,
-    };
-    this.mirai = new Mirai(mahConfig);
+    const setting = this.el.setting as MiraiApiHttpSetting;
+    this.mirai = new Mirai(setting);
     this.status = new Status(this);
     this.user = new User(this);
     this.sender = new Sender(this);
