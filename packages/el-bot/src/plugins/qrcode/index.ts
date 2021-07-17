@@ -37,7 +37,8 @@ export default function (ctx: Bot, options: QRCodeOptions) {
       const msg = ctx.mirai.curMsg as MessageType.ChatMessage;
       try {
         const filename = await generateQR(text.join(" "), folder);
-        const chain = [Message.Image(null, null, `${pkg.name}/${filename}`)];
+        console.log(`${folder}/${pkg.name}/${filename}`);
+        const chain = [Message.Image(null, null, `${folder}/${filename}`)];
         msg.reply(chain);
       } catch (e) {
         msg.reply(e.message);

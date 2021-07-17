@@ -15,7 +15,7 @@ export default defineBotConfig({
       // "limit",
       // "memo",
       "nbnhhsh",
-      // "qrcode",
+      "qrcode",
       // "rss",
       // "report",
       // "search",
