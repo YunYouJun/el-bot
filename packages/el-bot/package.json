@@ -59,7 +59,7 @@
     "js-yaml": "^4.1.0",
     "koa": "^2.13.1",
     "koa-bodyparser": "^4.3.0",
-    "mirai-ts": "^2.0.0-alpha.4",
+    "mirai-ts": "^2.0.0-alpha.5",
     "mongoose": "^5.12.5",
     "node-schedule": "^2.0.0",
     "progress": "^2.0.3",

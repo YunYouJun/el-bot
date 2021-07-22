@@ -20,7 +20,7 @@ export default defineBotConfig({
       // "report",
       // "search",
       // "search-image",
-      // "teach",
+      "teach",
       // "workflow",
     ],
     official: [],

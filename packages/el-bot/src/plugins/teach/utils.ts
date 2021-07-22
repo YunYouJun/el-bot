@@ -7,7 +7,7 @@ export async function displayList() {
   const list = await Teach.find();
   let listContent = "问答列表：";
   list.forEach((qa) => {
-    listContent += "----------";
+    listContent += "\n----------";
     listContent += `\nQ: 「${qa.question}\nA: 「${qa.answer}」`;
   });
   return listContent;
