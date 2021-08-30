@@ -1,0 +1,22 @@
+{
+  "private": true,
+  "name": "@el-bot/docs",
+  "description": "Docs for el-bot.",
+  "repository": "https://github.com/YunYouJun/el-bot/docs",
+  "homepage": "https://docs.bot.elpsy.cn",
+  "author": {
+    "name": "云游君",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "scripts": {
+    "dev": "vitepress",
+    "build": "vitepress build",
+    "serve": "vitepress serve"
+  },
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "sass": "^1.38.2",
+    "vitepress": "^0.16.1"
+  }
+}

@@ -1,0 +1,30 @@
+:root {
+  --c-brand: steelblue;
+  --c-brand-light: #747bff;
+}
+
+* {
+  scrollbar-color: var(--c-divider-light) var(--c-bg);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar:horizontal {
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--c-bg);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--c-divider-light);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--c-divider-dark);
+}
