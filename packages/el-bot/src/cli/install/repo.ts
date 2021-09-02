@@ -72,7 +72,7 @@ export default class Repo {
             }
           );
 
-          bar.total = parseInt(res.headers["content-length"], 10) / 1000;
+          bar.total = parseInt(res.headers["content-length"] || "", 10) / 1000;
           res.on("data", (data: any) => bar.tick(data.length / 8000));
         })
         .then(() => logger.success("下载完成"));
