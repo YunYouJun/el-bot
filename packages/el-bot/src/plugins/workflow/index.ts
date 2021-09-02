@@ -10,6 +10,7 @@ import fs from "fs";
 import { parse } from "../../utils/config";
 import { exec } from "shelljs";
 import schedule from "node-schedule";
+import { handleError } from "../../utils/error";
 
 interface step {
   name?: string;
@@ -111,10 +112,10 @@ export default function workflow(ctx: Bot) {
         createWorkflow(ctx, workflow as WorkflowConfig);
       }
     });
-  } catch (err) {
+  } catch (err: any) {
     // 不是 文件不存在 的错误时，才打印出错信息
-    if (err.code !== "ENOENT") {
-      console.error(err.message);
+    if (err && err.code !== "ENOENT") {
+      handleError(err);
     }
   }
 }

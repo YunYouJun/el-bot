@@ -6,6 +6,7 @@ import events from "events";
 import githubHandler from "./github-handler";
 import { Webhooks } from "@octokit/webhooks";
 import { Server } from "net";
+import { handleError } from "../../utils/error";
 export interface WebhookConfig {
   /**
    * 是否启用
@@ -82,7 +83,7 @@ export default class Webhook {
         `Webhook Listening localhost:${this.config.port}`
       );
     } catch (err) {
-      this.ctx.logger.error(err.message);
+      handleError(err, this.ctx.logger);
     }
     return server;
   }

@@ -29,6 +29,7 @@ import fs from "fs";
 // type
 import { Plugin } from "./plugins";
 import { resolve } from "path";
+import { handleError } from "../utils/error";
 
 /**
  * 创建机器人
@@ -138,7 +139,7 @@ export default class Bot {
     try {
       const data = await this.mirai.link(this.el.qq);
       return data;
-    } catch (err) {
+    } catch (err: any) {
       this.logger.error(err.message);
       await sleep(3000);
       this.logger.warning("尝试重新连接...");
@@ -215,8 +216,8 @@ export default class Bot {
     if (this.el.webhook && this.el.webhook.enable) {
       try {
         server = this.webhook?.start();
-      } catch (err) {
-        this.logger.error(err.message);
+      } catch (err: any) {
+        handleError(err, this.logger);
       }
     }
 

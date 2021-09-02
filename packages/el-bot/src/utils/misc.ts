@@ -3,6 +3,11 @@ import chalk from "chalk";
 import fs from "fs";
 
 /**
+ * 是否为开发模式
+ */
+export const isDev = process.env.NODE_ENV !== "production";
+
+/**
  * 休眠
  * @param ms
  */

@@ -1,6 +1,7 @@
 import Bot from "el-bot";
 import { MessageType } from "mirai-ts";
 import axios from "axios";
+import { handleError } from "../../utils/error";
 
 async function guess(text: string) {
   const API_URL = "https://lab.magiconch.com/api/nbnhhsh/guess";
@@ -35,8 +36,11 @@ export default function (ctx: Bot) {
             msg.reply(content);
           });
         }
-      } catch (e) {
-        msg.reply(e.message);
+      } catch (e: any) {
+        if (e) {
+          msg.reply(e.message);
+          handleError(e);
+        }
       }
     });
 }

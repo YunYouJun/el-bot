@@ -6,6 +6,7 @@ import { Logger } from "@yunyoujun/logger";
 import os from "os";
 import { resolve } from "path";
 import shell from "shelljs";
+import { handleError } from "../../utils/error";
 // 实例目录下的 package.json
 const pkg = require(getAbsolutePath("./package.json"));
 
@@ -50,7 +51,7 @@ export default async function (cli: commander.Command) {
     try {
       shell.cd(folder || (pkg.mcl ? pkg.mcl.folder : "mcl"));
     } catch (err) {
-      logger.error(err.message);
+      handleError(err, logger);
       logger.error("mcl 目录不存在");
     }
 
@@ -71,7 +72,7 @@ export default async function (cli: commander.Command) {
           );
           process.stdin.pipe(miraiConsole.stdin);
         } catch (err) {
-          logger.error(err.message);
+          handleError(err, logger);
         }
       } else {
         logger.error(

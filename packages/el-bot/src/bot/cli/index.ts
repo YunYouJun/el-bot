@@ -125,8 +125,8 @@ export function initCli(ctx: Bot, name: string) {
       const cmd = msg.plain.split(" ");
       cmd.shift();
       program.parse(cmd, { from: "user" });
-    } catch (err) {
-      if (err.code !== "commander.help" && err.exitCode) {
+    } catch (err: any) {
+      if (err && err.code !== "commander.help" && err.exitCode) {
         ctx.logger.error(`[cli] ${msg.plain}`);
         ctx.reply(err.message);
       }

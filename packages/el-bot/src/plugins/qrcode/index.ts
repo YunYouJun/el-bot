@@ -5,6 +5,7 @@ import fs from "fs";
 import { resolve } from "path";
 import pkg from "./package.json";
 import { QRCodeOptions } from "./options";
+import { handleError } from "../../utils/error";
 
 /**
  * 生成二维码
@@ -40,8 +41,11 @@ export default function (ctx: Bot, options: QRCodeOptions) {
         console.log(`${folder}/${pkg.name}/${filename}`);
         const chain = [Message.Image(null, null, `${folder}/${filename}`)];
         msg.reply(chain);
-      } catch (e) {
-        msg.reply(e.message);
+      } catch (e: any) {
+        if (e) {
+          msg.reply(e.message);
+        }
+        handleError(e);
       }
     });
 }

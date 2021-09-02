@@ -76,7 +76,7 @@ export default class Repo {
           res.on("data", (data: any) => bar.tick(data.length / 8000));
         })
         .then(() => logger.success("下载完成"));
-    } catch (err) {
+    } catch (err: any) {
       logger.error(err.message);
     }
   }

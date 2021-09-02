@@ -2,6 +2,7 @@ import Bot from ".";
 import { merge } from "../utils/config";
 import path from "path";
 import { isFunction } from "../shared";
+import { handleError } from "../utils/error";
 
 type PluginInstallFunction = (ctx: Bot, ...options: any[]) => any;
 
@@ -127,12 +128,8 @@ export default class Plugins {
 
             this.ctx.logger.success(`[${type}] (${name}) 加载成功`);
           }
-        } catch (err) {
-          if (this.ctx.isDev) {
-            console.error(err);
-          } else {
-            this.ctx.logger.error(err.message);
-          }
+        } catch (err: any) {
+          handleError(err as Error, this.ctx.logger);
           this.ctx.logger.error(`[${type}] (${name}) 加载失败`);
         }
       });

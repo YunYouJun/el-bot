@@ -1,6 +1,7 @@
 import Bot, { utils } from "el-bot";
 import * as sagiri from "sagiri";
 import { Message, MessageType } from "mirai-ts";
+import { handleError } from "../../utils/error";
 
 /**
  * 搜图设置
@@ -74,9 +75,11 @@ export default async function searchImage(
 
             // 退出搜图模式
             innerMode.exit();
-          } catch (err) {
-            ctx.logger.error("[search-image]", err.message);
-            console.error(err);
+          } catch (err: any) {
+            if (err) {
+              handleError(err);
+              err.message && ctx.logger.error("[search-image]", err.message);
+            }
           }
         }
       });
