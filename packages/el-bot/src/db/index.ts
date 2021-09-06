@@ -11,12 +11,7 @@ export async function connectDb(bot: Bot, dbConfig: dbConfig): Promise<void> {
   const dbName = "MongoDB 数据库";
   bot.logger.info(`开始连接 ${dbName}`);
 
-  mongoose.connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useFindAndModify: false,
-    useCreateIndex: true,
-  });
+  mongoose.connect(uri);
 
   const db = mongoose.connection;
   bot.db = db;

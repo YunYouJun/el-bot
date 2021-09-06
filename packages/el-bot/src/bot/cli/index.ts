@@ -55,7 +55,6 @@ export function initCli(ctx: Bot, name: string) {
     ) {
       ctx.reply(cbOutput.trim());
     }
-    this.emit(this._helpLongFlag);
   };
 
   const cli = new Command("el");

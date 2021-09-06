@@ -1,4 +1,4 @@
-import Bot from "../el-bot/";
+import Bot from "el-bot";
 import { MessageType } from "../../../mirai-ts/dist";
 import el from "./el.config";
 
