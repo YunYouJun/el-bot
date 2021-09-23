@@ -38,6 +38,11 @@ module.exports = {
     editLinks: true,
     editLinkText: "帮助改善此页面！( ￣□￣)/",
 
+    algolia: {
+      apiKey: "978ef82b43148b59dc771ea53b7a56af",
+      indexName: "elpsy",
+    },
+
     smoothScroll: true,
     collapsable: false,
     nav: [
