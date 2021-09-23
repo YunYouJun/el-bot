@@ -11,7 +11,7 @@ mcl*
 .DS_Store
 yarn.lock
 package-lock.json
-pnpm-lock.yaml
+# pnpm-lock.yaml
 
 ### Node ###
 # Logs
