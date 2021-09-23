@@ -35,8 +35,8 @@ const bot = new Bot({
     host: "localhost",
     port: 4859,
     authKey: "el-psy-congroo",
-    enableWebsocket: true,
-  },
+    enableWebsocket: true
+  }
   // bot: ...
 });
 bot.start();
@@ -88,7 +88,7 @@ npm install el-bot@latest
 ```sh
 git clone https://github.com/YunYouJun/el-bot
 cd el-bot
-yarn
+pnpm i
 ```
 
 配置测试机器人（看情况配置吧）
@@ -100,24 +100,24 @@ cp bot/.env.example .env
 启动 mcl，须已配置 [mirai-console-loader](https://github.com/iTXTech/mirai-console-loader)
 
 ```sh
-yarn mcl
+npm run mcl
 ```
 
 开发测试（运行起来吧）
 
 ```sh
-yarn dev:bot
+npm run dev:bot
 ```
 
 开发 el-bot 库
 
 ```sh
-yarn dev:lib
+npm run dev:lib
 ```
 
 ### 构建
 
 ```sh
 # 构建 el-bot
-yarn build
+npm run build
 ```

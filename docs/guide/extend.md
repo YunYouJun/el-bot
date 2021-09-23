@@ -6,12 +6,12 @@
 
 你也可以通过全局安装 el-bot 的方式以使用 el-bot 的命令行。
 
-```sh
+```bash
 npm install -g el-bot
 # yarn global add el-bot
 ```
 
-```sh
+```bash
 # 安装 mirai
 el install mirai
 
@@ -55,8 +55,8 @@ module.exports = {
     enable: true,
     path: "/webhook",
     port: 7777,
-    secret: "el-psy-congroo",
-  },
+    secret: "el-psy-congroo"
+  }
 };
 ```
 

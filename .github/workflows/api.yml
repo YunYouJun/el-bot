@@ -14,10 +14,8 @@ jobs:
         with:
           node-version: "14"
 
-      - run: yarn
-      # for type
-      - run: yarn workspace el-bot add sagiri rss-feed-emitter
-      - run: yarn build:docs
+      - run: npm i
+      - run: npm run build:api
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3

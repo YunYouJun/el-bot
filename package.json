@@ -1,9 +1,5 @@
 {
   "private": true,
-  "workspaces": [
-    "packages/@vuepress/*",
-    "packages/*"
-  ],
   "repository": "https://github.com/YunYouJun/el-bot",
   "author": {
     "name": "云游君",
@@ -26,14 +22,14 @@
     "el-bot-web": "https://github.com/ElpsyCN/el-bot-web"
   },
   "scripts": {
-    "build": "cd packages/el-bot && yarn build",
-    "build:demo": "cd packages/demo && yarn build",
-    "build:docs": "cd packages/el-bot && yarn build:docs",
+    "build": "cd packages/el-bot && npm run build",
+    "build:demo": "cd packages/demo && npm run build",
+    "build:api": "cd packages/el-bot && npm run build:api",
     "dev": "run-p dev:*",
-    "dev:bot": "cd packages/demo && yarn dev",
-    "dev:lib": "cd packages/el-bot && yarn dev",
-    "docs:dev": "cd docs && yarn dev",
-    "docs:build": "cd docs && yarn build",
+    "dev:bot": "cd packages/demo && npm run dev",
+    "dev:lib": "cd packages/el-bot && npm run dev",
+    "docs:dev": "cd docs && npm run dev",
+    "docs:build": "cd docs && npm run build",
     "lint": "eslint . --ext .ts --fix && prettier --write .",
     "mcl": "cd mcl && ./mcl",
     "start": "npm-run-all --parallel start:*",

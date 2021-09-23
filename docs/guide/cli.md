@@ -7,7 +7,7 @@
 
 > el-bot@version >= 0.5.0
 
-```sh
+```bash
 el <command> [options]
 ```
 

@@ -1,17 +1,17 @@
 <template>
   <div style="display: inline-block">
     <img
-      v-if="avatar || id"
+      v-if="props.avatar || props.id"
       class="avatar"
-      :src="avatar || getAvatarById(this.id, this.type, this.size)"
+      :src="props.avatar || getAvatarById(props.id, props.type, props.size)"
     />
     <div v-else class="avatar" :style="`background-color:${color}`">
-      {{ nickname[0] }}
+      {{ props.nickname[0] }}
     </div>
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup lang="ts">
 interface ChatAvatarProps {
   avatar?: string;
   id?: number | null;

@@ -6,8 +6,8 @@ el-bot 使用了 [mirai-ts](https://github.com/YunYouJun/mirai-ts)。
 
 mirai-ts 也提供了许多字符匹配、彩色日志等辅助小工具。
 
-> [Mirai-api-http 事件类型一览](https://github.com/project-mirai/mirai-api-http/blob/master/EventType.md)  
-> [Mirai-api-http 消息类型一览](https://github.com/project-mirai/mirai-api-http/blob/master/MessageType.md)
+> [Mirai-api-http 事件类型一览](https://github.com/project-mirai/mirai-api-http/blob/master/docs/api/EventType.md)  
+> [Mirai-api-http 消息类型一览](https://github.com/project-mirai/mirai-api-http/blob/master/docs/api/MessageType.md)
 
 具体例子见下方。
 
@@ -66,7 +66,7 @@ const { default: Bot } = require("el-bot");
  * module.exports = function(ctx) {
  * @param {Bot} ctx
  */
-module.exports = async function(ctx) {
+module.exports = async function (ctx) {
   const mirai = ctx.mirai;
 
   // 对收到的消息进行处理
@@ -98,7 +98,7 @@ module.exports = async function(ctx) {
 test.ts
 
 ```ts
-export default function(ctx) {
+export default function (ctx) {
   const mirai = ctx.mirai;
   mirai.on("message", (msg) => {
     console.log("on message");
