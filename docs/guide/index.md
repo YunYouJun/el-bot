@@ -2,7 +2,6 @@
 
 ## 介绍
 
-[![docs](https://github.com/ElpsyCN/el-bot-docs/workflows/docs/badge.svg)](https://docs.bot.elpsy.cn/)&nbsp;
 [![npm](https://img.shields.io/npm/v/el-bot?logo=npm)](https://www.npmjs.com/package/el-bot)&nbsp;
 [![GitHub package.json dependency version (subfolder of monorepo)](https://img.shields.io/github/package-json/dependency-version/YunYouJun/el-bot/mirai-ts?filename=packages%2Fel-bot%2Fpackage.json&logo=typescript)](https://github.com/YunYouJun/mirai-ts)&nbsp;
 [![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/ElpsyCN/el-bot)](https://github.com/ElpsyCN/el-bot)&nbsp;
@@ -86,8 +85,8 @@ const bot = new Bot({
     host: "localhost",
     port: 4859,
     authKey: "el-psy-congroo",
-    enableWebsocket: false,
-  },
+    enableWebsocket: false
+  }
   // bot: ...
 });
 bot.start();
@@ -124,12 +123,12 @@ const { utils } = require("el-bot");
 module.exports = {
   qq: parseInt(process.env.BOT_QQ),
   setting: {
-    enableWebsocket: true,
+    enableWebsocket: true
   },
   // 0.8.0 后 config 字段被重命名为 bot
   bot: {
-    plugins: utils.config.parse(resolve(__dirname, "./index.yml")),
-  },
+    plugins: utils.config.parse(resolve(__dirname, "./index.yml"))
+  }
 };
 ```
 

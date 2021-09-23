@@ -169,63 +169,6 @@ importers:
       dotenv: 10.0.0
       typedoc: 0.22.4_typescript@4.4.3
 
-  packages/el-bot/dist/plugins/admin:
-    specifiers: {}
-
-  packages/el-bot/dist/plugins/answer:
-    specifiers: {}
-
-  packages/el-bot/dist/plugins/blacklist:
-    specifiers: {}
-
-  packages/el-bot/dist/plugins/counter:
-    specifiers: {}
-
-  packages/el-bot/dist/plugins/dev:
-    specifiers: {}
-
-  packages/el-bot/dist/plugins/egg:
-    specifiers: {}
-
-  packages/el-bot/dist/plugins/feeder:
-    specifiers: {}
-
-  packages/el-bot/dist/plugins/forward:
-    specifiers: {}
-
-  packages/el-bot/dist/plugins/github:
-    specifiers: {}
-
-  packages/el-bot/dist/plugins/limit:
-    specifiers: {}
-
-  packages/el-bot/dist/plugins/memo:
-    specifiers: {}
-
-  packages/el-bot/dist/plugins/nbnhhsh:
-    specifiers: {}
-
-  packages/el-bot/dist/plugins/qrcode:
-    specifiers: {}
-
-  packages/el-bot/dist/plugins/report:
-    specifiers: {}
-
-  packages/el-bot/dist/plugins/rss:
-    specifiers: {}
-
-  packages/el-bot/dist/plugins/search:
-    specifiers: {}
-
-  packages/el-bot/dist/plugins/search-image:
-    specifiers: {}
-
-  packages/el-bot/dist/plugins/teach:
-    specifiers: {}
-
-  packages/el-bot/dist/plugins/workflow:
-    specifiers: {}
-
   packages/el-bot/src/plugins/admin:
     specifiers: {}
 
