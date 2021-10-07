@@ -24,7 +24,7 @@ export default function (ctx: Bot, options: QRCodeOptions) {
   const folder = resolve(ctx.el.path!.image, pkg.name);
 
   if (options.autoClearCache) {
-    fs.rmdirSync(folder, { recursive: true });
+    fs.rmSync(folder, { recursive: true });
   }
 
   if (!fs.existsSync(folder)) {

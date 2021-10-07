@@ -1,4 +1,4 @@
-import Bot from "./bot";
+import { Bot } from "./bot";
 export default Bot;
 
 // 必须放在最前面，适配 js require
@@ -10,7 +10,7 @@ if (typeof module !== "undefined") {
 }
 
 // 放在最后
-export { createBot } from "./bot";
+export { Bot, createBot } from "./bot";
 export { createLogger } from "./bot/logger";
 export * from "./config";
 export * as utils from "./utils";

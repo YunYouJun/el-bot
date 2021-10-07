@@ -3,22 +3,24 @@
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
 
     /* Basic Options */
-    "target": "ES2018",
+    "target": "es2017",
     "module": "CommonJS",
     "allowJs": true,
     "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
     "outDir": "./dist",
     "strict": true,
     "noUnusedLocals": true,
     "moduleResolution": "node",
     "baseUrl": ".",
+    "incremental": true,
+    "skipLibCheck": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     // custom
-    "resolveJsonModule": true,
-    "types": ["node"],
-    "skipLibCheck": true
+    "resolveJsonModule": true
   }
 }

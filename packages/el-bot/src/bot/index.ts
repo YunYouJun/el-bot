@@ -39,7 +39,10 @@ export function createBot(el: El) {
   return new Bot(el);
 }
 
-export default class Bot {
+export class Bot {
+  /**
+   * 全局配置
+   */
   el: El;
   mirai: MiraiInstance;
   // 激活
@@ -283,3 +286,5 @@ export default class Bot {
     return this._command.command(name);
   }
 }
+
+export default Bot;

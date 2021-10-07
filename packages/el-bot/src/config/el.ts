@@ -36,7 +36,7 @@ export interface reportConfig {
   target?: Target;
 }
 
-export default class El {
+export class El {
   qq = 0;
   /**
    * MiraiAPIHTTP setting.yml 路径
@@ -120,3 +120,5 @@ export default class El {
     }
   }
 }
+
+export default El;

@@ -1,8 +1,12 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "./dist"
+    "baseUrl": ".",
+    "outDir": "./dist",
+    "paths": {
+      "el-bot": ["../el-bot/src/index.ts"]
+    }
   },
-  "include": ["**/*/package.json", "el.config.ts", "index.ts", "plugins/**/*"],
-  "exclude": ["dist", "node_modules"]
+  "include": ["src/**/*.ts", "**/*/package.json", "src/plugins/**/*"],
+  "exclude": ["dist", "node_modules", "test", "**/*spec.ts"]
 }

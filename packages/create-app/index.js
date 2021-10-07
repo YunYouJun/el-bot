@@ -143,7 +143,7 @@ function emptyDir(dir) {
     // baseline is Node 12 so can't use rmSync :(
     if (fs.lstatSync(abs).isDirectory()) {
       emptyDir(abs);
-      fs.rmdirSync(abs);
+      fs.rmSync(abs);
     } else {
       fs.unlinkSync(abs);
     }

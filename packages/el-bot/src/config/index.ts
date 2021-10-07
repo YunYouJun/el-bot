@@ -1,9 +1,9 @@
 import fs from "fs";
 import path from "path";
 import { createLogger } from "../bot/logger";
-import El from "./el";
+import { El } from "./el";
 import { BotConfig } from "./bot";
-export { BotConfig };
+export { El, BotConfig };
 
 const logger = createLogger("[config]");
 

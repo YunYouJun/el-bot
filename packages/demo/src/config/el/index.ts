@@ -1,10 +1,10 @@
 import dotenv from "dotenv";
 import path from "path";
 import { defineConfig } from "el-bot";
-import botConfig from "./el/bot-config";
+import botConfig from "./bot";
 
 dotenv.config({
-  path: path.resolve(__dirname, "../.env"),
+  path: path.resolve(process.cwd(), ".env"),
 });
 
 export default defineConfig({
