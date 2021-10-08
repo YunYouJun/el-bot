@@ -2,7 +2,7 @@
   "name": "el-bot-typescript-starter",
   "version": "0.0.1",
   "scripts": {
-    "prebuild": "yarn clean",
+    "prebuild": "npm run clean",
     "build": "tsc",
     "clean": "rm -rf dist",
     "dev": "run-p watch start",
@@ -10,7 +10,7 @@
     "mcl": "cd mcl && ./mcl",
     "start": "cd dist && nodemon index.js",
     "start:bot": "el start bot",
-    "start:prod": "yarn build && yarn start",
+    "start:prod": "npm run build && npm run start",
     "watch": "tsc -w --incremental"
   },
   "author": {

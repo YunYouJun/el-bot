@@ -1,7 +1,6 @@
-/**
- * @type {import('vitepress').UserConfig}
- */
-module.exports = {
+import type { UserConfig } from "vitepress";
+
+export default {
   head: [
     ["link", { rel: "icon", href: "/logo.svg" }],
     ["link", { rel: "manifest", href: "/manifest.json" }],
@@ -143,7 +142,7 @@ module.exports = {
       "/": [],
     },
   },
-};
+} as UserConfig;
 
 // todo
 // google-analytics

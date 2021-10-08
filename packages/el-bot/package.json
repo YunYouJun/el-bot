@@ -1,6 +1,6 @@
 {
   "name": "el-bot",
-  "version": "0.9.0-beta.3",
+  "version": "0.9.0-beta.4",
   "description": "A quick qq bot framework for mirai.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -17,12 +17,12 @@
     "folder": "mcl"
   },
   "scripts": {
-    "build": "yarn clean && tsc",
+    "prebuild": "rm -rf dist",
+    "build": "tsc",
     "build:api": "typedoc",
-    "clean": "rm -rf dist",
     "dev": "tsc -w --incremental",
     "watch": "tsc --watch",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",

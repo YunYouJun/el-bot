@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
-import { El, Bot } from "el-bot";
+import { Bot, El } from "el-bot";
 
 import el from "../config/el";
 
