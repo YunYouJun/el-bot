@@ -201,10 +201,13 @@ export class Bot {
     if (this.el.bot.autoloadPlugins) {
       try {
         const allCustomPlugins = getAllPlugins(
-          resolve(this.rootDir, (this.isTS ? "src/" : "") + "plugins")
+          resolve(
+            this.rootDir,
+            (this.isTS ? "src/" : "") + this.el.bot.pluginDir
+          )
         );
         this.el.bot.plugins!.custom = allCustomPlugins.map((path) =>
-          resolve((this.isTS ? "dist/" : "") + "plugins", path)
+          resolve((this.isTS ? "dist/" : "") + this.el.bot.pluginDir, path)
         );
       } catch (e) {
         this.logger.error("无法加载 plugins 目录");

@@ -4,7 +4,7 @@ importers:
 
   .:
     specifiers:
-      '@types/node': ^16.11.4
+      '@types/node': ^16.11.5
       '@typescript-eslint/eslint-plugin': ^5.1.0
       '@typescript-eslint/parser': ^5.1.0
       eslint: ^8.1.0
@@ -20,7 +20,7 @@ importers:
       ts-node-dev: ^1.1.8
       typescript: ^4.4.4
     devDependencies:
-      '@types/node': 16.11.4
+      '@types/node': 16.11.5
       '@typescript-eslint/eslint-plugin': 5.1.0_273a00ec265649c49755eee7222c1c12
       '@typescript-eslint/parser': 5.1.0_eslint@8.1.0+typescript@4.4.4
       eslint: 8.1.0
@@ -32,7 +32,7 @@ importers:
       npm-run-all: 4.1.5
       prettier: 2.4.1
       ts-loader: 9.2.6_typescript@4.4.4
-      ts-node: 10.4.0_bada05a3e1cd24c0fc5f82f6eaa2ca15
+      ts-node: 10.4.0_209ed3137f8b35664889b84bcf9b7514
       ts-node-dev: 1.1.8_typescript@4.4.4
       typescript: 4.4.4
 
@@ -133,7 +133,7 @@ importers:
       js-yaml: ^4.1.0
       koa: ^2.13.4
       koa-bodyparser: ^4.3.0
-      mirai-ts: ^2.0.0-beta.6
+      mirai-ts: ^2.0.0-beta.7
       mongoose: ^6.0.12
       node-schedule: ^2.0.0
       progress: ^2.0.3
@@ -155,7 +155,7 @@ importers:
       js-yaml: 4.1.0
       koa: 2.13.4
       koa-bodyparser: 4.3.0
-      mirai-ts: 2.0.0-beta.6
+      mirai-ts: 2.0.0-beta.7
       mongoose: 6.0.12
       node-schedule: 2.0.0
       progress: 2.0.3
@@ -843,6 +843,10 @@ packages:
 
   /@types/node/16.11.4:
     resolution: {integrity: sha512-TMgXmy0v2xWyuCSCJM6NCna2snndD8yvQF67J29ipdzMcsPa9u+o0tjF5+EQNdhcuZplYuouYqpc4zcd5I6amQ==}
+
+  /@types/node/16.11.5:
+    resolution: {integrity: sha512-NyUV2DGcqYIx9op++MG2+Z4Nhw1tPhi0Wfs81TgncuX1aJC4zf2fgCJlJhl4BW9bCSS04e34VkqmOS96w0XQdg==}
+    dev: true
 
   /@types/node/16.7.10:
     resolution: {integrity: sha512-S63Dlv4zIPb8x6MMTgDq5WWRJQe56iBEY0O3SOFA9JrRienkOVDXSXBjjJw6HTNQYSE2JI6GMCR6LVbIMHJVvA==}
@@ -3967,8 +3971,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  /mirai-ts/2.0.0-beta.6:
-    resolution: {integrity: sha512-wZef5tjYe3cb/pDOmHg479RaKaPp0XrE80UYdZsBLy1deIS8GRa6ZpZbNIwrM775aOgpXsIhE7vCMCV2RwQL9w==}
+  /mirai-ts/2.0.0-beta.7:
+    resolution: {integrity: sha512-HonacHvXuM40S+ea8eX3IbVJIwchp4jt4jYPcwN4JbRYJif50R9+u5Fyh3P7N/NjLeFJy2aYAUYgWNea7rS0pQ==}
     dependencies:
       '@yunyoujun/logger': 0.1.4
       axios: 0.23.0
@@ -5531,7 +5535,7 @@ packages:
       typescript: 4.4.4
     dev: true
 
-  /ts-node/10.4.0_bada05a3e1cd24c0fc5f82f6eaa2ca15:
+  /ts-node/10.4.0_209ed3137f8b35664889b84bcf9b7514:
     resolution: {integrity: sha512-g0FlPvvCXSIO1JDF6S232P5jPYqBkRL9qly81ZgAOSU7rwI0stphCgd2kLiCrU9DjQCrJMWEqcNSjQL02s6d8A==}
     hasBin: true
     peerDependencies:
@@ -5550,7 +5554,7 @@ packages:
       '@tsconfig/node12': 1.0.9
       '@tsconfig/node14': 1.0.1
       '@tsconfig/node16': 1.0.2
-      '@types/node': 16.11.4
+      '@types/node': 16.11.5
       acorn: 8.5.0
       acorn-walk: 8.2.0
       arg: 4.1.3
