@@ -39,7 +39,7 @@ export interface reportConfig {
 export class El {
   qq = 0;
   /**
-   * MiraiAPIHTTP setting.yml 路径
+   * MiraiApiHttp setting.yml 路径
    * 或传入 MiraiApiHttpConfig 对象配置
    */
   setting: MiraiApiHttpSetting | string =
@@ -67,6 +67,8 @@ export class El {
         "qrcode",
       ],
     },
+    autoloadPlugins: true,
+    pluginDir: "plugins",
     master: [910426929],
     admin: [910426929],
     devGroup: 120117362,

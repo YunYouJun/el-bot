@@ -199,12 +199,16 @@ export class Bot {
     this.plugins.load("community");
 
     if (this.el.bot.autoloadPlugins) {
-      const allCustomPlugins = getAllPlugins(
-        resolve(this.rootDir, "./plugins")
-      );
-      this.el.bot.plugins!.custom = allCustomPlugins.map((path) =>
-        resolve((this.isTS ? "dist/" : "") + "plugins", path)
-      );
+      try {
+        const allCustomPlugins = getAllPlugins(
+          resolve(this.rootDir, (this.isTS ? "src/" : "") + "plugins")
+        );
+        this.el.bot.plugins!.custom = allCustomPlugins.map((path) =>
+          resolve((this.isTS ? "dist/" : "") + "plugins", path)
+        );
+      } catch (e) {
+        this.logger.error("无法加载 plugins 目录");
+      }
     }
 
     this.plugins.load("custom");

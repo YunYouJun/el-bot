@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { createLogger } from "../bot/logger";
 import { El } from "./el";
-import { BotConfig } from "./bot";
+import { BotConfig, BotUserConfig } from "./bot";
 export { El, BotConfig };
 
 const logger = createLogger("[config]");
@@ -85,6 +85,6 @@ export function defineConfig(config: El): El {
  * Bot 配置
  * @param config
  */
-export function defineBotConfig(config: BotConfig): BotConfig {
+export function defineBotConfig(config: BotUserConfig): BotUserConfig {
   return config;
 }

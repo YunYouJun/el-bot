@@ -22,14 +22,14 @@
     "url": "https://www.yunyoujun.cn"
   },
   "dependencies": {
-    "@nestjs/common": "^8.0.11",
-    "@nestjs/core": "^8.0.11",
-    "@nestjs/platform-express": "^8.0.11",
+    "@nestjs/common": "^8.1.1",
+    "@nestjs/core": "^8.1.1",
+    "@nestjs/platform-express": "^8.1.1",
     "el-bot": "workspace:*",
     "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
-    "nodemon": "^2.0.12",
+    "nodemon": "^2.0.14",
     "npm-run-all": "^4.1.5",
     "ts-loader": "^9.2.6"
   }
