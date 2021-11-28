@@ -210,7 +210,9 @@ export class Bot {
           resolve((this.isTS ? "dist/" : "") + this.el.bot.pluginDir, path)
         );
       } catch (e) {
-        this.logger.error("无法加载 plugins 目录");
+        this.logger.error(
+          `无法加载 plugins ${this.el.bot.pluginDir} 目录，请检查 'bot.pluginDir' 配置`
+        );
       }
     }
 

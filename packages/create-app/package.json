@@ -15,7 +15,7 @@
   "homepage": "https://github.com/YunYouJun/el-bot/blob/dev/packages/create-app#readme",
   "license": "AGPL-3.0",
   "dependencies": {
-    "chalk": "^4.1.1",
+    "chalk": "^5.0.0",
     "enquirer": "^2.3.6"
   },
   "scripts": {
