@@ -5,9 +5,9 @@ export class BroadcastTarget {
   /**
    * 好友
    */
-  friends = new Set();
+  friends = new Set()
   /**
    * 群聊
    */
-  groups = new Set();
+  groups = new Set()
 }

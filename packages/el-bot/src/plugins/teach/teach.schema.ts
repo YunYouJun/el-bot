@@ -1,24 +1,24 @@
-import mongoose, { Document } from "mongoose";
+import mongoose, { Document } from 'mongoose'
 
 export interface ITeach extends Document {
   /**
    * 问题
    */
-  question: string;
+  question: string
   /**
    * 回答
    */
-  answer: string;
+  answer: string
   /**
    * 更新时间
    */
-  updatedAt?: Date;
+  updatedAt?: Date
 }
 
 export const teachSchema = new mongoose.Schema({
   question: { type: String, required: true, unique: true },
   answer: { type: String, required: true },
   updatedAt: Date,
-});
+})
 
-export const Teach = mongoose.model<ITeach>("Teach", teachSchema);
+export const Teach = mongoose.model<ITeach>('Teach', teachSchema)

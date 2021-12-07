@@ -1,6 +1,6 @@
-import Bot from "el-bot";
-import Mirai from "mirai-ts";
-import { Friend } from "./schemas/friend.schema";
+import Bot from 'el-bot'
+import Mirai from 'mirai-ts'
+import { Friend } from './schemas/friend.schema'
 
 /**
  * 记录触发信息
@@ -8,8 +8,8 @@ import { Friend } from "./schemas/friend.schema";
  * @param collection
  */
 async function recordTriggerInfo(mirai: Mirai) {
-  if (mirai.curMsg && mirai.curMsg.type === "GroupMessage") {
-    const msg = mirai.curMsg;
+  if (mirai.curMsg && mirai.curMsg.type === 'GroupMessage') {
+    const msg = mirai.curMsg
 
     Friend.findOneAndUpdate(
       {
@@ -26,8 +26,8 @@ async function recordTriggerInfo(mirai: Mirai) {
       },
       {
         upsert: true,
-      }
-    );
+      },
+    )
   }
 }
 
@@ -37,23 +37,23 @@ async function recordTriggerInfo(mirai: Mirai) {
  */
 export async function analytics(bot: Bot) {
   if (!bot.db) {
-    bot.logger.error("[analytics] 您必须先启用数据库。");
-    return;
+    bot.logger.error('[analytics] 您必须先启用数据库。')
+    return
   }
 
-  const { mirai } = bot;
+  const { mirai } = bot
 
-  const sendGroupMessage = mirai.api.sendGroupMessage;
+  const sendGroupMessage = mirai.api.sendGroupMessage
   // 重载消息发送函数
-  mirai.api.sendGroupMessage = async (messageChain, target, quote) => {
-    recordTriggerInfo(mirai);
+  mirai.api.sendGroupMessage = async(messageChain, target, quote) => {
+    recordTriggerInfo(mirai)
 
     const data = await sendGroupMessage.apply(mirai.api, [
       messageChain,
       target,
       quote,
-    ]);
+    ])
 
-    return data;
-  };
+    return data
+  }
 }

@@ -1,12 +1,12 @@
-import yaml from "js-yaml";
-import fs from "fs";
+import fs from 'fs'
+import yaml from 'js-yaml'
 
 /**
  * 单纯 typeof [] 会返回 object
  * @param item
  */
 function isObject(item: any) {
-  return typeof item === "object" && !Array.isArray(item);
+  return typeof item === 'object' && !Array.isArray(item)
 }
 
 /**
@@ -14,7 +14,7 @@ function isObject(item: any) {
  * @param path 配置文件名
  */
 export function parse(path: string) {
-  return yaml.load(fs.readFileSync(path, "utf8"));
+  return yaml.load(fs.readFileSync(path, 'utf8'))
 }
 
 /**
@@ -24,11 +24,10 @@ export function parse(path: string) {
  */
 export function merge(target: any, source: any): any {
   for (const key in source) {
-    if (isObject(target[key]) && isObject(source[key])) {
-      merge(target[key], source[key]);
-    } else {
-      target[key] = source[key];
-    }
+    if (isObject(target[key]) && isObject(source[key]))
+      merge(target[key], source[key])
+    else
+      target[key] = source[key]
   }
-  return target;
+  return target
 }

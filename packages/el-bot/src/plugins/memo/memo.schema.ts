@@ -1,19 +1,19 @@
-import mongoose, { Document } from "mongoose";
+import mongoose, { Document } from 'mongoose'
 
 export interface IMemo extends Document {
-  time: string | Date;
+  time: string | Date
   /**
    * 内容
    */
-  content: string;
+  content: string
   /**
    * 群
    */
-  group?: number;
+  group?: number
   /**
    * 好友
    */
-  friend?: number;
+  friend?: number
 }
 
 export const memoSchema = new mongoose.Schema({
@@ -21,6 +21,6 @@ export const memoSchema = new mongoose.Schema({
   content: String,
   group: Number,
   friend: Number,
-});
+})
 
-export const Memo = mongoose.model<IMemo>("Memo", memoSchema);
+export const Memo = mongoose.model<IMemo>('Memo', memoSchema)

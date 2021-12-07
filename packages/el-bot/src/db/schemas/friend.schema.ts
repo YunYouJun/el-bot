@@ -1,26 +1,26 @@
-import mongoose, { Document, Model } from "mongoose";
+import mongoose, { Document, Model } from 'mongoose'
 
 export interface IFriend extends Document {
   /**
    * 备注姓名
    */
-  name: string;
+  name: string
   /**
    * 触发者 QQ
    */
-  qq: number;
+  qq: number
   /**
    * 总计触发次数
    */
-  total: number;
+  total: number
   /**
    * 上次触发时间
    */
-  lastTriggerTime: Date;
+  lastTriggerTime: Date
   /**
    * 是否被封禁
    */
-  block?: boolean;
+  block?: boolean
 }
 
 export const friendSchema = new mongoose.Schema({
@@ -29,7 +29,7 @@ export const friendSchema = new mongoose.Schema({
   total: Number,
   lastTriggerTime: Date,
   block: Boolean,
-});
+})
 
-export const Friend: Model<IFriend> =
-  mongoose.models.Friend || mongoose.model<IFriend>("Friend", friendSchema);
+export const Friend: Model<IFriend>
+  = mongoose.models.Friend || mongoose.model<IFriend>('Friend', friendSchema)

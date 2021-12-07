@@ -1,25 +1,25 @@
-import { resolve } from "path";
-import * as config from "../utils/config";
-import { MiraiApiHttpSetting } from "mirai-ts";
-import { BotConfig } from "./bot";
-import { WebhookConfig } from "../bot/webhook";
-import { Target } from "../types/config";
+import { resolve } from 'path'
+import { MiraiApiHttpSetting } from 'mirai-ts'
+import * as config from '../utils/config'
+import { WebhookConfig } from '../bot/webhook'
+import { Target } from '../types/config'
+import { BotConfig } from './bot'
 
-const assetsFolder = "data/net.mamoe.mirai-api-http";
+const assetsFolder = 'data/net.mamoe.mirai-api-http'
 
 export interface dbConfig {
   /**
    * 是否启用
    */
-  enable: boolean;
+  enable: boolean
   /**
    * 数据库连接 uri
    */
-  uri?: string;
+  uri?: string
   /**
    * 是否进行统计分析
    */
-  analytics?: Boolean;
+  analytics?: Boolean
 }
 
 /**
@@ -29,71 +29,76 @@ export interface reportConfig {
   /**
    * 是否启用
    */
-  enable: boolean;
+  enable: boolean
   /**
    * 上报对象
    */
-  target?: Target;
+  target?: Target
 }
 
 export class El {
-  qq = 0;
+  qq = 0
   /**
    * MiraiApiHttp setting.yml 路径
    * 或传入 MiraiApiHttpConfig 对象配置
    */
-  setting: MiraiApiHttpSetting | string =
-    "../mcl/config/net.mamoe.mirai-api-http/setting.yml";
+  setting: MiraiApiHttpSetting | string
+    = '../mcl/config/net.mamoe.mirai-api-http/setting.yml'
+
   /**
    * mongodb 数据库默认配置
    */
   db?: dbConfig = {
     enable: false,
-  };
+  }
+
   /**
    * 机器人及相关插件配置
    */
   bot: BotConfig = {
-    name: "el-bot",
+    name: 'el-bot',
     plugins: {
       default: [
-        "admin",
-        "answer",
-        "forward",
-        "limit",
-        "memo",
-        "rss",
-        "search",
-        "qrcode",
+        'admin',
+        'answer',
+        'forward',
+        'limit',
+        'memo',
+        'rss',
+        'search',
+        'qrcode',
       ],
     },
     autoloadPlugins: true,
-    pluginDir: "plugins",
+    pluginDir: 'plugins',
     master: [910426929],
     admin: [910426929],
     devGroup: 120117362,
-  };
+  }
+
   /**
    * webhook 配置
    */
   webhook?: WebhookConfig = {
     enable: true,
     port: 7777,
-    path: "/webhook",
-    secret: "el-psy-congroo",
-  };
+    path: '/webhook',
+    secret: 'el-psy-congroo',
+  }
+
   /**
    * 上报错误信息配置
    */
   report?: reportConfig = {
     enable: false,
-  };
+  }
+
   // el-bot package.json
-  pkg? = require("../../package.json");
+  pkg? = require('../../package.json')
   /**
    * 根目录
    */
-  base? = process.cwd();
+  base? = process.cwd()
   /**
    * mirai-api-http 文件路径
    */
@@ -106,21 +111,22 @@ export class El {
      * 语音路径
      */
     voice: resolve(this.base!, this.pkg.mcl.folder, `${assetsFolder}/voices`),
-  };
+  }
+
   constructor(el: El) {
-    if (typeof el.qq === "string") {
-      el.qq = parseInt(el.qq);
-    }
+    if (typeof el.qq === 'string')
+      el.qq = parseInt(el.qq)
+
     // 合并
-    config.merge(this, el);
+    config.merge(this, el)
     // after merge
     // adapt for config path
-    if (typeof this.setting === "string") {
+    if (typeof this.setting === 'string') {
       this.setting = config.parse(
-        resolve(this.base!, this.setting)
-      ) as MiraiApiHttpSetting;
+        resolve(this.base!, this.setting),
+      ) as MiraiApiHttpSetting
     }
   }
 }
 
-export default El;
+export default El

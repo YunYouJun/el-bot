@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import fs from 'fs'
+import path from 'path'
 
 /**
  * 寻找文件
@@ -10,16 +10,14 @@ import path from "path";
 export function lookupFile(
   dir: string,
   formats: string[],
-  pathOnly = false
+  pathOnly = false,
 ): string | undefined {
   for (const format of formats) {
-    const fullPath = path.join(dir, format);
-    if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
-      return pathOnly ? fullPath : fs.readFileSync(fullPath, "utf-8");
-    }
+    const fullPath = path.join(dir, format)
+    if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile())
+      return pathOnly ? fullPath : fs.readFileSync(fullPath, 'utf-8')
   }
-  const parentDir = path.dirname(dir);
-  if (parentDir !== dir) {
-    return lookupFile(parentDir, formats, pathOnly);
-  }
+  const parentDir = path.dirname(dir)
+  if (parentDir !== dir)
+    return lookupFile(parentDir, formats, pathOnly)
 }

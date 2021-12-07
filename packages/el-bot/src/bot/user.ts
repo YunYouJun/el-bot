@@ -1,5 +1,5 @@
-import Bot from ".";
-import { check } from "mirai-ts";
+import { check } from 'mirai-ts'
+import { Bot } from '.'
 
 export default class User {
   constructor(public ctx: Bot) {}
@@ -9,7 +9,7 @@ export default class User {
    * @param qq
    */
   isMaster(qq: number) {
-    return this.ctx.el.bot.master.includes(qq);
+    return this.ctx.el.bot.master.includes(qq)
   }
 
   /**
@@ -17,7 +17,7 @@ export default class User {
    * @param qq
    */
   isAdmin(qq: number) {
-    return this.ctx.el.bot.admin?.includes(qq);
+    return this.ctx.el.bot.admin?.includes(qq)
   }
 
   /**
@@ -26,19 +26,18 @@ export default class User {
    * @param reply 是否回复
    * @param content 提示内容
    */
-  isAllowed(qq = 0, reply = false, content = "您没有操作权限") {
+  isAllowed(qq = 0, reply = false, content = '您没有操作权限') {
     if (
-      !qq &&
-      this.ctx.mirai.curMsg &&
-      check.isChatMessage(this.ctx.mirai.curMsg)
-    ) {
-      qq = this.ctx.mirai.curMsg.sender.id;
-    }
+      !qq
+      && this.ctx.mirai.curMsg
+      && check.isChatMessage(this.ctx.mirai.curMsg)
+    )
+      qq = this.ctx.mirai.curMsg.sender.id
 
-    const allowFlag = this.isMaster(qq) || this.isAdmin(qq);
-    if (!allowFlag && reply) {
-      this.ctx.reply(content);
-    }
-    return allowFlag;
+    const allowFlag = this.isMaster(qq) || this.isAdmin(qq)
+    if (!allowFlag && reply)
+      this.ctx.reply(content)
+
+    return allowFlag
   }
 }

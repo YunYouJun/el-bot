@@ -1,26 +1,26 @@
-import { Match } from "mirai-ts/dist/utils/check";
+import type { check } from 'mirai-ts'
 
 export interface NiubiOptions {
   /**
    * API URL
    */
-  url: string;
-  match: Match[];
+  url: string
+  match: check.Match[]
 }
 
 const niubiOptions: NiubiOptions = {
-  url: "https://el-bot-api.vercel.app/api/words/niubi",
+  url: 'https://el-bot-api.vercel.app/api/words/niubi',
   match: [
     {
       re: {
-        pattern: "来点(\\S*)笑话",
-        flags: "i",
+        pattern: '来点(\\S*)笑话',
+        flags: 'i',
       },
     },
     {
-      is: "nb",
+      is: 'nb',
     },
   ],
-};
+}
 
-export default niubiOptions;
+export default niubiOptions

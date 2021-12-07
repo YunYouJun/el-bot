@@ -2,11 +2,11 @@ export interface LimitOptions {
   /**
    * 间隔
    */
-  interval: number;
+  interval: number
   /**
    * 数量
    */
-  count: number;
+  count: number
   /**
    * 发送者
    */
@@ -14,20 +14,20 @@ export interface LimitOptions {
     /**
      * 超过时间清空记录
      */
-    interval: number;
+    interval: number
     /**
      * 连续次数
      */
-    maximum: number;
+    maximum: number
     /**
      * 提示
      */
-    tooltip: string;
+    tooltip: string
     /**
      * 禁言时间
      */
-    time: number;
-  };
+    time: number
+  }
 }
 
 /**
@@ -41,10 +41,10 @@ const limitOptions: LimitOptions = {
     interval: 600000,
     // 连续次数
     maximum: 5,
-    tooltip: "我生气了",
+    tooltip: '我生气了',
     // 禁言时间
     time: 600,
   },
-};
+}
 
-export default limitOptions;
+export default limitOptions

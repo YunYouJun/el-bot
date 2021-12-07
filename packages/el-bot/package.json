@@ -4,12 +4,18 @@
   "description": "A quick qq bot framework for mirai.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "engines": {
-    "node": ">=12"
-  },
   "files": [
     "dist"
   ],
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "engines": {
+    "node": ">=12"
+  },
   "bin": {
     "el": "dist/cli/index.js"
   },
@@ -17,8 +23,7 @@
     "folder": "mcl"
   },
   "scripts": {
-    "prebuild": "rm -rf dist",
-    "build": "tsc",
+    "build": "tsup",
     "build:api": "typedoc",
     "dev": "tsc -w --incremental",
     "watch": "tsc --watch",
@@ -59,9 +64,9 @@
     "js-yaml": "^4.1.0",
     "koa": "^2.13.4",
     "koa-bodyparser": "^4.3.0",
-    "mirai-ts": "^2.1.1",
-    "mongoose": "^6.0.13",
-    "node-schedule": "^2.0.0",
+    "mirai-ts": "^2.2.1",
+    "mongoose": "^6.0.15",
+    "node-schedule": "^2.1.0",
     "progress": "^2.0.3",
     "qrcode": "^1.5.0",
     "rss-parser": "^3.12.0",
@@ -76,7 +81,7 @@
     "@types/koa": "^2.13.4",
     "@types/koa-bodyparser": "^4.3.4",
     "@types/koa__cors": "^3.0.3",
-    "@types/node": "^16.11.10",
+    "@types/node": "^16.11.12",
     "@types/node-schedule": "^1.3.2",
     "@types/progress": "^2.0.5",
     "@types/qrcode": "^1.4.1",
@@ -84,6 +89,7 @@
     "@types/xml2js": "^0.4.9",
     "cross-env": "^7.0.3",
     "dotenv": "^10.0.0",
+    "tsup": "^5.10.3",
     "typedoc": "^0.22.10"
   },
   "directories": {

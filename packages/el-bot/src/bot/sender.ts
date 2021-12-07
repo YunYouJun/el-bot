@@ -1,6 +1,6 @@
-import Bot from "./index";
-import { MessageType } from "mirai-ts";
-import * as Config from "../types/config";
+import { MessageType } from 'mirai-ts'
+import * as Config from '../types/config'
+import { Bot } from './index'
 
 export default class Sender {
   constructor(public ctx: Bot) {}
@@ -13,18 +13,18 @@ export default class Sender {
   sendFriendMessageByArray(
     messageChain: string | MessageType.MessageChain,
     array: number[],
-    messageList: number[]
+    messageList: number[],
   ) {
-    const mirai = this.ctx.mirai;
+    const mirai = this.ctx.mirai
     return Promise.all(
-      array.map(async (qq) => {
+      array.map(async(qq) => {
         const { messageId } = await mirai.api.sendFriendMessage(
           messageChain,
-          qq
-        );
-        messageList.push(messageId);
-      })
-    );
+          qq,
+        )
+        messageList.push(messageId)
+      }),
+    )
   }
 
   /**
@@ -34,48 +34,47 @@ export default class Sender {
    */
   async sendMessageByConfig(
     messageChain: string | MessageType.MessageChain,
-    target: Config.Target
+    target: Config.Target,
   ): Promise<number[]> {
-    const mirai = this.ctx.mirai;
-    const botConfig = this.ctx.el.bot;
-    const messageList: number[] = [];
+    const mirai = this.ctx.mirai
+    const botConfig = this.ctx.el.bot
+    const messageList: number[] = []
 
     if (Array.isArray(messageChain)) {
       messageChain.forEach((msg) => {
-        if (msg.type === "Image") {
-          msg.imageId = "";
-        }
-      });
+        if (msg.type === 'Image')
+          msg.imageId = ''
+      })
     }
 
-    if (Array.isArray(target) || typeof target === "string") {
-      if (target.includes("master")) {
+    if (Array.isArray(target) || typeof target === 'string') {
+      if (target.includes('master')) {
         await this.sendFriendMessageByArray(
           messageChain,
           botConfig.master,
-          messageList
-        );
+          messageList,
+        )
       }
 
-      if (target.includes("admin") && botConfig.admin) {
+      if (target.includes('admin') && botConfig.admin) {
         await this.sendFriendMessageByArray(
           messageChain,
           botConfig.admin,
-          messageList
-        );
+          messageList,
+        )
       }
     }
 
     if (target.group) {
       await Promise.all(
-        target.group.map(async (qq: number) => {
+        target.group.map(async(qq: number) => {
           const { messageId } = await mirai.api.sendGroupMessage(
             messageChain,
-            qq
-          );
-          messageList.push(messageId);
-        })
-      );
+            qq,
+          )
+          messageList.push(messageId)
+        }),
+      )
     }
 
     if (target.friend) {
@@ -83,13 +82,14 @@ export default class Sender {
         await this.sendFriendMessageByArray(
           messageChain,
           target.friend,
-          messageList
-        );
-      } catch (err) {
-        this.ctx.logger.error("发送失败：可能是由于 mirai 私聊暂不支持长文本");
+          messageList,
+        )
+      }
+      catch (err) {
+        this.ctx.logger.error('发送失败：可能是由于 mirai 私聊暂不支持长文本')
       }
     }
 
-    return messageList;
+    return messageList
   }
 }

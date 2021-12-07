@@ -1,10 +1,10 @@
-import Bot from "el-bot";
+import Bot from 'el-bot'
 
-export default function (ctx: Bot) {
+export default function(ctx: Bot) {
   ctx
-    .command("命令")
-    .description("一个测试用的命令")
+    .command('命令')
+    .description('一个测试用的命令')
     .action((options) => {
-      console.log(options);
-    });
+      console.log(options)
+    })
 }

@@ -1,6 +1,6 @@
-import chalk from "chalk";
-import winston from "winston";
-import dayjs from "dayjs";
+import chalk from 'chalk'
+import winston from 'winston'
+import dayjs from 'dayjs'
 
 const customLevels = {
   levels: {
@@ -12,31 +12,31 @@ const customLevels = {
     debug: 4,
   },
   colors: {
-    error: "red",
-    warn: "yellow",
-    warning: "yellow",
-    success: "green",
-    info: "blue",
-    debug: "cyan",
+    error: 'red',
+    warn: 'yellow',
+    warning: 'yellow',
+    success: 'green',
+    info: 'blue',
+    debug: 'cyan',
   },
-};
+}
 
 export interface Logger extends winston.Logger {
-  success: winston.LeveledLogMethod;
+  success: winston.LeveledLogMethod
 }
 
 /**
  * 创建日志工具，基于 winston
  * @param label
  */
-export function createLogger(label = "el-bot") {
+export function createLogger(label = 'el-bot') {
   const logger = winston.createLogger({
     levels: customLevels.levels,
     transports: [
       new winston.transports.Console(),
       new winston.transports.File({
-        filename: "logs/error.log",
-        level: "error",
+        filename: 'logs/error.log',
+        level: 'error',
       }),
     ],
     format: winston.format.combine(
@@ -48,16 +48,16 @@ export function createLogger(label = "el-bot") {
       }),
       winston.format.timestamp(),
       winston.format.printf(({ level, message, label, timestamp }) => {
-        const namespace = `${chalk.cyan(`[${label}]`)}`;
+        const namespace = `${chalk.cyan(`[${label}]`)}`
         const content = [
           namespace,
-          chalk.yellow(`[${dayjs(timestamp).format("HH:mm:ss")}]`),
+          chalk.yellow(`[${dayjs(timestamp).format('HH:mm:ss')}]`),
           `[${level}]`,
           message,
-        ];
-        return content.join(" ");
-      })
+        ]
+        return content.join(' ')
+      }),
     ),
-  });
-  return logger as Logger;
+  })
+  return logger as Logger
 }

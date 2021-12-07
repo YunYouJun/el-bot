@@ -1,36 +1,38 @@
-import { MessageType } from "mirai-ts";
+import type { MessageType } from 'mirai-ts'
 
 /**
  * 判断是否为 URL 链接
  * @param url
  */
 export function isUrl(url: string) {
-  return /^https?:\/\/.+/.test(url);
+  return /^https?:\/\/.+/.test(url)
 }
 
 /**
  * 内部模式
  */
 export class InnerMode {
-  friendSet = new Set();
-  groupSet = new Set();
-  constructor(public msg?: MessageType.ChatMessage) {}
+  msg: MessageType.ChatMessage | undefined
+  friendSet = new Set()
+  groupSet = new Set()
+  constructor(msg?: MessageType.ChatMessage) {
+    if (msg) this.msg = msg
+  }
 
   setMsg(msg: MessageType.ChatMessage) {
-    this.msg = msg;
+    this.msg = msg
   }
 
   /**
    * 进入
    */
   enter() {
-    const msg = this.msg;
-    if (!msg) return;
-    if (msg.type === "FriendMessage") {
-      this.friendSet.add(msg.sender.id);
-    } else if (msg.type === "GroupMessage") {
-      this.groupSet.add(msg.sender.group.id);
-    }
+    const msg = this.msg
+    if (!msg) return
+    if (msg.type === 'FriendMessage')
+      this.friendSet.add(msg.sender.id)
+    else if (msg.type === 'GroupMessage')
+      this.groupSet.add(msg.sender.group.id)
   }
 
   /**
@@ -38,25 +40,23 @@ export class InnerMode {
    * 是否已进入内部
    */
   getStatus() {
-    const msg = this.msg;
-    if (!msg) return;
-    if (msg.type === "FriendMessage") {
-      return this.friendSet.has(msg.sender.id);
-    } else if (msg.type === "GroupMessage") {
-      return this.groupSet.has(msg.sender.group.id);
-    }
+    const msg = this.msg
+    if (!msg) return
+    if (msg.type === 'FriendMessage')
+      return this.friendSet.has(msg.sender.id)
+    else if (msg.type === 'GroupMessage')
+      return this.groupSet.has(msg.sender.group.id)
   }
 
   /**
    * 退出
    */
   exit() {
-    const msg = this.msg;
-    if (!msg) return;
-    if (msg.type === "FriendMessage") {
-      this.friendSet.delete(msg.sender.id);
-    } else if (msg.type === "GroupMessage") {
-      this.groupSet.delete(msg.sender.group.id);
-    }
+    const msg = this.msg
+    if (!msg) return
+    if (msg.type === 'FriendMessage')
+      this.friendSet.delete(msg.sender.id)
+    else if (msg.type === 'GroupMessage')
+      this.groupSet.delete(msg.sender.group.id)
   }
 }

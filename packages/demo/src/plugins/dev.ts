@@ -1,9 +1,9 @@
-import Bot from "el-bot";
+import Bot from 'el-bot'
 
-export default async function (ctx: Bot) {
-  const mirai = ctx.mirai;
-  console.log(ctx.el.path);
+export default async function(ctx: Bot) {
+  const mirai = ctx.mirai
+  console.log(ctx.el.path)
 
-  const friendList = await mirai.api.friendList();
-  console.log(friendList);
+  const friendList = await mirai.api.friendList()
+  console.log(friendList)
 }

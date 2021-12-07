@@ -1,4 +1,4 @@
-import { isDev } from "./misc";
+import { isDev } from './misc'
 
 /**
  * 通用的异常处理
@@ -8,20 +8,18 @@ import { isDev } from "./misc";
 export function handleError(
   e: any | Error,
   logger?: {
-    error: (...args: any[]) => void;
-  }
+    error: (...args: any[]) => void
+  },
 ) {
-  if (!e) return;
+  if (!e) return
 
-  if (isDev) {
-    console.error(e);
-  }
+  if (isDev)
+    console.error(e)
 
   if (e.message) {
-    if (logger) {
-      logger.error(e.message);
-    } else {
-      console.error(e.message);
-    }
+    if (logger)
+      logger.error(e.message)
+    else
+      console.error(e.message)
   }
 }

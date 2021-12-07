@@ -1,5 +1,7 @@
 {
-  "cSpell.words": [
-    "mamoe"
-  ]
+  "cSpell.words": ["mamoe"],
+  "prettier.enable": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  }
 }

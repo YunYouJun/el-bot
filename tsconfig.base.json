@@ -16,7 +16,6 @@
     "noUnusedLocals": true,
     "moduleResolution": "node",
     "baseUrl": ".",
-    "incremental": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,

@@ -30,30 +30,25 @@
     "dev:lib": "cd packages/el-bot && npm run dev",
     "docs:dev": "cd docs && npm run dev",
     "docs:build": "cd docs && npm run build",
-    "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
-    "lint": "eslint . --ext .ts --fix && npm run format",
+    "lint": "eslint \"**/*.{ts,js}\"",
+    "lint:fix": "eslint \"**/*.{ts,js}\" --fix",
     "mcl": "cd mcl && ./mcl",
     "start": "pnpm start -C packages/demo",
     "prepare": "husky install"
   },
   "lint-staged": {
     "*.{js,ts}": [
-      "eslint --fix",
-      "prettier --write"
+      "eslint --fix"
     ]
   },
   "devDependencies": {
-    "@types/node": "^16.11.10",
-    "@typescript-eslint/eslint-plugin": "^5.4.0",
-    "@typescript-eslint/parser": "^5.4.0",
-    "eslint": "^8.3.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-prettier": "^4.0.0",
+    "@antfu/eslint-config-ts": "^0.12.1",
+    "@types/node": "^16.11.12",
+    "eslint": "^8.4.1",
     "husky": "7.0.4",
     "lint-staged": "^12.1.2",
     "nodemon": "^2.0.15",
     "npm-run-all": "^4.1.5",
-    "prettier": "^2.5.0",
     "ts-loader": "^9.2.6",
     "ts-node": "^10.4.0",
     "ts-node-dev": "^1.1.8",
