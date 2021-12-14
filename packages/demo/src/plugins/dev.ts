@@ -1,4 +1,4 @@
-import Bot from 'el-bot'
+import type Bot from 'el-bot'
 
 export default async function(ctx: Bot) {
   const mirai = ctx.mirai

@@ -1,5 +1,6 @@
-import Bot from 'el-bot'
-import { MessageType, check } from 'mirai-ts'
+import type { Bot } from 'el-bot'
+import type { MessageType } from 'mirai-ts'
+import { check } from 'mirai-ts'
 import axios from 'axios'
 import nodeSchdule from 'node-schedule'
 import { renderString } from '../../utils/index'
@@ -20,6 +21,7 @@ async function renderStringByApi(
     return renderString(content, data, 'data')
   }
   else {
+    if (!content) return
     (content as any).forEach((msg: MessageType.SingleMessage) => {
       if (msg.type === 'Plain')
         msg.text = renderString(msg.text, data, 'data')

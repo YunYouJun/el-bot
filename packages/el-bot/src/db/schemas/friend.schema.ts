@@ -1,4 +1,5 @@
-import mongoose, { Document, Model } from 'mongoose'
+import type { Document, Model } from 'mongoose'
+import mongoose from 'mongoose'
 
 export interface IFriend extends Document {
   /**

@@ -1,6 +1,6 @@
-import Bot from 'el-bot'
-import { MessageType } from 'mirai-ts'
-import { TeachOptions } from './options'
+import type Bot from 'el-bot'
+import type { MessageType } from 'mirai-ts'
+import type { TeachOptions } from './options'
 import { displayList } from './utils'
 import { Teach } from './teach.schema'
 

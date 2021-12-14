@@ -1,4 +1,5 @@
-import { MessageType, Message, template } from 'mirai-ts'
+import type { MessageType } from 'mirai-ts'
+import { Message, template } from 'mirai-ts'
 
 export function card(msg: MessageType.ChatMessage) {
   if (msg.plain === '卡片') {

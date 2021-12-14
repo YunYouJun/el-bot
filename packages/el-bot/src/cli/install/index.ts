@@ -1,7 +1,7 @@
 import fs from 'fs'
 import inquirer from 'inquirer'
 import { Logger } from '@yunyoujun/logger'
-import commander from 'commander'
+import type commander from 'commander'
 import Repo from './repo'
 
 export default function(cli: commander.Command) {

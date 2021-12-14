@@ -1,5 +1,5 @@
-import Bot from 'el-bot'
-import { LimitOptions } from './options'
+import type Bot from 'el-bot'
+import type { LimitOptions } from './options'
 
 interface GroupInfo {
   /**

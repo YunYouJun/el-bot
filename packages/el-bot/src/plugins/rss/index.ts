@@ -1,11 +1,12 @@
 import fs from 'fs'
-import Bot from 'el-bot'
+import type Bot from 'el-bot'
 import dayjs from 'dayjs'
 import { htmlToText } from 'html-to-text'
 import schedule from 'node-schedule'
-import Parser, { CustomFields } from 'rss-parser'
+import type { CustomFields } from 'rss-parser'
+import Parser from 'rss-parser'
 
-import { MessageType } from 'mirai-ts'
+import type { MessageType } from 'mirai-ts'
 
 interface RssConfig {
   name: string

@@ -1,5 +1,7 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
-import { Bot, El } from 'el-bot'
+import type { OnModuleInit } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
+import type { El } from 'el-bot'
+import { Bot } from 'el-bot'
 
 import el from '../config/el'
 

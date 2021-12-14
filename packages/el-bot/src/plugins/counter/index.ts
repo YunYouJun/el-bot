@@ -1,6 +1,8 @@
-import Bot from 'el-bot'
-import { check, MessageType } from 'mirai-ts'
-import { Counter, ICounter } from './counter.schema'
+import type Bot from 'el-bot'
+import type { MessageType } from 'mirai-ts'
+import { check } from 'mirai-ts'
+import type { ICounter } from './counter.schema'
+import { Counter } from './counter.schema'
 
 /**
  * 根据匹配规则统计关键字

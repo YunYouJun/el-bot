@@ -1,6 +1,7 @@
-import Bot from 'el-bot'
-import Mirai, { MessageType, EventType } from 'mirai-ts'
-import * as Config from '../../types/config'
+import type Bot from 'el-bot'
+import type { MessageType, EventType } from 'mirai-ts'
+import type Mirai from 'mirai-ts'
+import type * as Config from '../../types/config'
 
 interface ForwardItem {
   listen: Config.Listen

@@ -2,11 +2,12 @@
  * 面向开发者的终端
  * @packageDocumentation
  */
-import Bot from 'el-bot'
-import { MessageType } from 'mirai-ts'
+import type Bot from 'el-bot'
+import type { MessageType } from 'mirai-ts'
 import shell from 'shelljs'
-import commander, { Command } from 'commander'
-import { PluginType } from '../plugins'
+import type commander from 'commander'
+import { Command } from 'commander'
+import type { PluginType } from '../plugins'
 import { aboutInfo, cleanOptions } from './utils'
 
 /**

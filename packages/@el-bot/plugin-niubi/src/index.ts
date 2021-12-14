@@ -1,7 +1,8 @@
-import Bot, { utils } from 'el-bot'
+import type Bot from 'el-bot'
+import { utils } from 'el-bot'
 import axios from 'axios'
 import { check } from 'mirai-ts'
-import { NiubiOptions } from './options'
+import type { NiubiOptions } from './options'
 
 async function getRandomSentence(url: string, name: string) {
   let sentence = ''

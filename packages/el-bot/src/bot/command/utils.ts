@@ -1,4 +1,4 @@
-import { Command } from './index'
+import type { Command } from './index'
 
 export type CommandList = Map<string, Command>
 

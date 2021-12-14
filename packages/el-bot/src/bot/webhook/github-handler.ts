@@ -1,9 +1,9 @@
-import { EventEmitter } from 'events'
-import { IncomingMessage, ServerResponse } from 'http'
+import type { EventEmitter } from 'events'
+import type { IncomingMessage, ServerResponse } from 'http'
 import shell from 'shelljs'
 
 import { Webhooks, createNodeMiddleware } from '@octokit/webhooks'
-import Bot from '..'
+import type Bot from '..'
 
 // github handler
 export interface handler extends EventEmitter {

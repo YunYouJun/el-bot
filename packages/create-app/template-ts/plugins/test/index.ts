@@ -1,5 +1,5 @@
-import Bot from 'el-bot'
-import { TestOptions } from './options'
+import type Bot from 'el-bot'
+import type { TestOptions } from './options'
 
 /**
  * 这是一个测试插件

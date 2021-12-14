@@ -2,7 +2,8 @@ import fs from 'fs'
 import path from 'path'
 import { createLogger } from '../bot/logger'
 import { El } from './el'
-import { BotConfig, BotUserConfig } from './bot'
+import type { BotUserConfig } from './bot'
+import { BotConfig } from './bot'
 export { El, BotConfig }
 
 const logger = createLogger('[config]')

@@ -1,6 +1,6 @@
-import { Contact } from 'mirai-ts'
-import * as Config from '../types/config'
-import { Bot } from '.'
+import type { Contact } from 'mirai-ts'
+import type * as Config from '../types/config'
+import type { Bot } from '.'
 
 export default class Status {
   constructor(public ctx: Bot) {}

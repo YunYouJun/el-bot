@@ -1,6 +1,6 @@
-import Bot from 'el-bot'
+import type Bot from 'el-bot'
 import { renderString } from '../../utils'
-import * as Config from '../../types/config'
+import type * as Config from '../../types/config'
 
 interface ReportOptions {
   /**
@@ -17,7 +17,7 @@ interface ReportOptions {
   content: string
 }
 
-export default function(ctx: Bot, options: ReportOptions[]) {
+export default function(ctx: Bot, options: ReportOptions[] = []) {
   if (!ctx.webhook) {
     ctx.logger.error('[report] 您须先开启 webhook')
     return

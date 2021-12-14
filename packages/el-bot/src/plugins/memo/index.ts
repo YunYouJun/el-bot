@@ -1,9 +1,10 @@
-import Bot from 'el-bot'
+import type Bot from 'el-bot'
 import dayjs from 'dayjs'
 import schedule from 'node-schedule'
-import { MessageType } from 'mirai-ts'
+import type { MessageType } from 'mirai-ts'
 import { parseTime, checkTime } from './utils'
-import { Memo, IMemo } from './memo.schema'
+import type { IMemo } from './memo.schema'
+import { Memo } from './memo.schema'
 
 /**
  * 初始化 collection

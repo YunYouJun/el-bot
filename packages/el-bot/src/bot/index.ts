@@ -1,16 +1,18 @@
-import { Server } from 'net'
+import type { Server } from 'net'
 import fs from 'fs'
 import { resolve } from 'path'
-import {
-  Mirai,
+import type {
   MessageType,
   MiraiInstance,
   MiraiApiHttpSetting,
   Api,
 } from 'mirai-ts'
+import {
+  Mirai,
+} from 'mirai-ts'
 import chalk from 'chalk'
-import commander from 'commander'
-import mongoose from 'mongoose'
+import type commander from 'commander'
+import type mongoose from 'mongoose'
 import El from '../config/el'
 
 import { getAllPlugins, sleep, statement } from '../utils/misc'
@@ -31,7 +33,7 @@ import { initCli } from './cli'
 // node
 
 // type
-import type { Plugin } from './plugins'
+import type { Plugin, PluginInstallFunction } from './plugins'
 
 /**
  * 创建机器人
@@ -259,20 +261,21 @@ export class Bot {
    * 注册请使用 .plugin
    * 与 this.plugin.use() 的区别是此部分的插件将不会显示在插件列表中
    */
-  use(plugin: Plugin, ...options: any[]) {
+  use(plugin: Plugin | PluginInstallFunction, ...options: any[]) {
     const installedPlugins = this.installedPlugins
     if (installedPlugins.has(plugin)) {
       this.isDev && this.logger.warn('插件已经被安装')
     }
-    else if (plugin && isFunction(plugin.install)) {
-      installedPlugins.add(plugin)
-      plugin.install(this, ...options)
-    }
-    else if (isFunction(plugin)) {
+    else if (plugin && isFunction(plugin)) {
       installedPlugins.add(plugin)
       plugin(this, ...options)
     }
+    else if (isFunction(plugin.install)) {
+      installedPlugins.add(plugin)
+      plugin.install(this, ...options)
+    }
     else if (this.isDev) {
+      console.log(plugin)
       this.logger.warn('插件必须是一个函数，或是带有 "install" 属性的对象。')
     }
     return this
@@ -284,8 +287,14 @@ export class Bot {
    * @param plugin 插件函数
    * @param options 插件选项
    */
-  plugin(name: string, plugin: Plugin, ...options: any[]) {
-    this.plugins.add(name, plugin, ...options)
+  plugin(name: string, plugin: Plugin | PluginInstallFunction, ...options: any[]) {
+    const addedPlugin = isFunction(plugin)
+      ? {
+        install: plugin,
+      }
+      : plugin
+
+    this.plugins.add(name, addedPlugin, ...options)
     this.plugins.custom.add({
       name,
     })

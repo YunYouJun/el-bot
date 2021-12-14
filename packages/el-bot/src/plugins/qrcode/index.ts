@@ -7,6 +7,7 @@ import type { MessageType } from 'mirai-ts'
 import { Message } from 'mirai-ts'
 import pkg from './package.json'
 import type { QRCodeOptions } from './options'
+import qrcodeOptions from './options'
 
 /**
  * 生成二维码
@@ -20,7 +21,7 @@ async function generateQR(text: string, folder: string) {
   return filename
 }
 
-export default function(ctx: Bot, options: QRCodeOptions) {
+export default function(ctx: Bot, options: QRCodeOptions = qrcodeOptions) {
   const { cli } = ctx
   const folder = resolve(ctx.el.path!.image, pkg.name)
 

@@ -1,12 +1,12 @@
 import fs from 'fs'
-import Bot from 'el-bot'
+import type Bot from 'el-bot'
 
 /**
  * ref github actions
  * https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow
  */
 
-import { EventType, MessageType } from 'mirai-ts'
+import type { EventType, MessageType } from 'mirai-ts'
 import { exec } from 'shelljs'
 import schedule from 'node-schedule'
 import { parse } from '../../utils/config'

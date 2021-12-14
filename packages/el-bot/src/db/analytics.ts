@@ -1,5 +1,5 @@
-import Bot from 'el-bot'
-import Mirai from 'mirai-ts'
+import type Bot from 'el-bot'
+import type Mirai from 'mirai-ts'
 import { Friend } from './schemas/friend.schema'
 
 /**

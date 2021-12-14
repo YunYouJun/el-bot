@@ -1,5 +1,5 @@
 import fs from 'fs'
-import Bot from 'el-bot'
+import type Bot from 'el-bot'
 import chalk from 'chalk'
 
 /**

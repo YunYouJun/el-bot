@@ -1,10 +1,10 @@
 import events from 'events'
-import { Server } from 'net'
+import type { Server } from 'net'
 import Koa from 'koa'
 import cors from '@koa/cors'
 import bodyParser from 'koa-bodyparser'
-import { Webhooks } from '@octokit/webhooks'
-import { Bot } from '..'
+import type { Webhooks } from '@octokit/webhooks'
+import type { Bot } from '..'
 import { handleError } from '../../utils/error'
 import githubHandler from './github-handler'
 export interface WebhookConfig {

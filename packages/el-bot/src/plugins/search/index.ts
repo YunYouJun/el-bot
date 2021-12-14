@@ -1,4 +1,4 @@
-import Bot from 'el-bot'
+import type Bot from 'el-bot'
 
 /**
  * 搜索引擎

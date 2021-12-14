@@ -1,4 +1,4 @@
-import Bot from 'el-bot'
+import type Bot from 'el-bot'
 
 export default function(ctx: Bot) {
   ctx.webhook?.on('ok', (data: any) => {

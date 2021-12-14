@@ -1,5 +1,6 @@
-import Bot from 'el-bot'
-import { check, MessageType, EventType } from 'mirai-ts'
+import type Bot from 'el-bot'
+import type { MessageType, EventType } from 'mirai-ts'
+import { check } from 'mirai-ts'
 import { initBlacklist, block, unBlock, displayList } from './utils'
 
 export default async function(ctx: Bot) {

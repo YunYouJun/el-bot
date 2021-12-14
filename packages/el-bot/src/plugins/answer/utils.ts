@@ -1,6 +1,6 @@
-import { MessageType, check } from 'mirai-ts'
-import nodeSchdule from 'node-schedule'
-import * as Config from '../../types/config'
+import type { MessageType, check } from 'mirai-ts'
+import type nodeSchdule from 'node-schedule'
+import type * as Config from '../../types/config'
 
 interface BaseAnswerOptions extends check.Match {
   /**

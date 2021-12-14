@@ -1,6 +1,6 @@
-import { MessageType } from 'mirai-ts'
-import * as Config from '../types/config'
-import { Bot } from './index'
+import type { MessageType } from 'mirai-ts'
+import type * as Config from '../types/config'
+import type { Bot } from './index'
 
 export default class Sender {
   constructor(public ctx: Bot) {}

@@ -4,24 +4,18 @@ import { isFunction } from '../shared'
 import { handleError } from '../utils/error'
 import type { Bot } from '.'
 
-type PluginInstallFunction = (ctx: Bot, ...options: any[]) => any
-
-export type Plugin =
-  | (PluginInstallFunction & {
-    name?: string
-    version?: string
-    description?: string
-    install?: PluginInstallFunction
-  })
-  | {
-    install: PluginInstallFunction
-  }
+export type PluginInstallFunction = (ctx: Bot, ...options: any[]) => any
 
 export interface PluginInfo {
-  name: string
+  name?: string
   version?: string
   description?: string
+  pkg?: object
 }
+
+export type Plugin = ({
+  install: PluginInstallFunction
+} & PluginInfo)
 
 export type PluginType = 'default' | 'official' | 'community' | 'custom'
 
@@ -108,25 +102,18 @@ export class Plugins {
           }
 
           if (plugin) {
+            if (pkg) plugin.pkg = pkg
+
             this[type].add({
               name: name || pkgName,
               version: plugin.version || pkg.version,
               description: plugin.description || pkg.description,
             })
 
-            let options = null
-            try {
-              const { default: defaultOptions } = await import(
-                `${pluginPath}/options`
-              )
-              options = defaultOptions
-            }
-            catch {
-              // this.ctx.logger.error(`${pkgName}不存在默认配置`)
-            }
-
             name = path.basename(name)
-            this.add(name, plugin, options, pkg)
+            this.add(name, {
+              install: plugin,
+            })
 
             this.ctx.logger.success(`[${type}] (${name}) 加载成功`)
           }
@@ -154,13 +141,13 @@ export class Plugins {
    * @param options 默认配置
    * @param pkg 插件 package.json
    */
-  add(name: string, plugin: Plugin, options?: any, pkg?: any) {
+  add(name: string, plugin: Plugin, options?: any) {
     const ctx = this.ctx
 
     // 插件基于数据库，但是未启用数据库时
-    if (pkg && this.isBasedOnDb(pkg)) {
+    if (plugin.pkg && this.isBasedOnDb(plugin.pkg)) {
       this.ctx.logger.warning(
-        `[${pkg.name}] 如想要使用该插件，您须先启用数据库。`,
+        `[${name}] 如想要使用该插件，您须先启用数据库。`,
       )
       return
     }
@@ -177,10 +164,6 @@ export class Plugins {
 
     if (plugin && isFunction(plugin.install))
       plugin.install(ctx, pluginOptions)
-    else if (isFunction(plugin))
-      plugin(ctx, pluginOptions)
-    else if (ctx.isDev)
-      ctx.logger.warn('插件必须是一个函数，或是带有 "install" 属性的对象。')
   }
 
   /**

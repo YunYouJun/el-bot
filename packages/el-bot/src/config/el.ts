@@ -1,9 +1,9 @@
 import { resolve } from 'path'
-import { MiraiApiHttpSetting } from 'mirai-ts'
+import type { MiraiApiHttpSetting } from 'mirai-ts'
 import * as config from '../utils/config'
-import { WebhookConfig } from '../bot/webhook'
-import { Target } from '../types/config'
-import { BotConfig } from './bot'
+import type { WebhookConfig } from '../bot/webhook'
+import type { Target } from '../types/config'
+import type { BotConfig } from './bot'
 
 const assetsFolder = 'data/net.mamoe.mirai-api-http'
 

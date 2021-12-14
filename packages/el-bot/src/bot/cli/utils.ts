@@ -1,4 +1,4 @@
-import commander from 'commander'
+import type commander from 'commander'
 
 /**
  * 返回关于信息

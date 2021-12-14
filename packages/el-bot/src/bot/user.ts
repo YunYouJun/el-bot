@@ -1,5 +1,5 @@
 import { check } from 'mirai-ts'
-import { Bot } from '.'
+import type { Bot } from '.'
 
 export default class User {
   constructor(public ctx: Bot) {}
