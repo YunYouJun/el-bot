@@ -26,6 +26,10 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      # fix pnpm install
+      - name: pnpm - output bin stubs
+        run: echo "#! /usr/bin/env node" > ./packages/el-bot/dist/cli/index.js
+
       - name: Install dependencies
         run: npm i -g pnpm && pnpm install
 
