@@ -3,6 +3,10 @@
   "private": true,
   "version": "0.0.3",
   "description": "二维码生成器",
+  "main": "index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
   "author": {
     "name": "YunYouJun",
     "url": "https://www.yunyoujun.cn",

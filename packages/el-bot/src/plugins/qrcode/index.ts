@@ -1,11 +1,12 @@
 import fs from 'fs'
 import { resolve } from 'path'
-import Bot from 'el-bot'
+import type { Bot } from 'el-bot'
+import { utils } from 'el-bot'
 import QRCode from 'qrcode'
-import { Message, MessageType } from 'mirai-ts'
-import { handleError } from '../../utils/error'
+import type { MessageType } from 'mirai-ts'
+import { Message } from 'mirai-ts'
 import pkg from './package.json'
-import { QRCodeOptions } from './options'
+import type { QRCodeOptions } from './options'
 
 /**
  * 生成二维码
@@ -44,7 +45,7 @@ export default function(ctx: Bot, options: QRCodeOptions) {
         if (e)
           msg.reply(e.message)
 
-        handleError(e)
+        utils.handleError(e)
       }
     })
 }

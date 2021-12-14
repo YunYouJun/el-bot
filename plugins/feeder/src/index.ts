@@ -1,7 +1,8 @@
-import Bot from 'el-bot'
+import type Bot from 'el-bot'
 import RssFeedEmitter from 'rss-feed-emitter'
-import { MessageType } from 'mirai-ts'
-import { Feeder, IFeeder } from './feeder.scheme'
+import type { MessageType } from 'mirai-ts'
+import type { IFeeder } from './feeder.scheme'
+import { Feeder } from './feeder.scheme'
 
 const feeder = new RssFeedEmitter({
   skipFirstLoad: true,

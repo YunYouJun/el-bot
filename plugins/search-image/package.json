@@ -1,5 +1,5 @@
 {
-  "name": "search-image",
+  "name": "@el-bot/plugin-search-image",
   "private": true,
   "version": "0.1.0",
   "description": "以图搜图",
@@ -9,7 +9,7 @@
     "email": "me@yunyoujun.cn"
   },
   "license": "AGPL-3.0",
-  "peerDependencies": {
+  "dependencies": {
     "sagiri": "^3.1.1"
   }
 }

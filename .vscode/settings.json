@@ -1,5 +1,11 @@
 {
-  "cSpell.words": ["mamoe"],
+  "cSpell.words": [
+    "el-bot",
+    "koishi",
+    "mamoe",
+    "mirai",
+    "Onebot"
+  ],
   "prettier.enable": false,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true

@@ -6,4 +6,6 @@ logs/
 docs/
 # don't lint nyc coverage output
 coverage
+
 mcl
+go-cqhttp

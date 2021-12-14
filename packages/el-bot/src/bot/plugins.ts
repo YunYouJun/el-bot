@@ -2,7 +2,7 @@ import path from 'path'
 import { merge } from '../utils/config'
 import { isFunction } from '../shared'
 import { handleError } from '../utils/error'
-import { Bot } from '.'
+import type { Bot } from '.'
 
 type PluginInstallFunction = (ctx: Bot, ...options: any[]) => any
 
@@ -63,7 +63,7 @@ export class Plugins {
     let pkgName = name
     switch (type) {
       case 'default':
-        pkgName = `../plugins/${name}`
+        pkgName = `plugins/${name}`
         break
       case 'official':
         pkgName = `@el-bot/plugin-${name}`
@@ -93,7 +93,7 @@ export class Plugins {
 
         try {
           const pluginPath = pkgName
-          const { default: plugin } = await import(pluginPath)
+          const { default: plugin } = await import(type === 'default' ? path.resolve(__dirname, pluginPath) : pluginPath)
 
           let pkg = {
             name: pkgName,

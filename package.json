@@ -33,6 +33,8 @@
     "lint": "eslint \"**/*.{ts,js}\"",
     "lint:fix": "eslint \"**/*.{ts,js}\" --fix",
     "mcl": "cd mcl && ./mcl",
+    "cqhttp": "cd go-cqhttp && ./go-cqhttp faststart",
+    "cqhttp:update": "cd go-cqhttp && ./go-cqhttp update",
     "start": "pnpm start -C packages/demo",
     "prepare": "husky install"
   },
@@ -42,16 +44,20 @@
     ]
   },
   "devDependencies": {
-    "@antfu/eslint-config-ts": "^0.12.1",
+    "@antfu/eslint-config-ts": "^0.13.1",
     "@types/node": "^16.11.12",
     "eslint": "^8.4.1",
     "husky": "7.0.4",
+    "koishi-core": "^3.14.2",
     "lint-staged": "^12.1.2",
     "nodemon": "^2.0.15",
     "npm-run-all": "^4.1.5",
     "ts-loader": "^9.2.6",
     "ts-node": "^10.4.0",
     "ts-node-dev": "^1.1.8",
-    "typescript": "^4.5.2"
+    "typescript": "^4.5.4"
+  },
+  "peerDependencies": {
+    "koishi-core": "^3.14.2"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "el-bot",
-  "version": "0.9.0-beta.5",
+  "version": "0.9.0-beta.10",
   "description": "A quick qq bot framework for mirai.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,6 +11,10 @@
     ".": {
       "require": "./dist/index.js",
       "import": "./dist/index.mjs"
+    },
+    "./plugins/*": {
+      "require": "./dist/plugins/*",
+      "import": "./dist/plugins/*"
     }
   },
   "engines": {
@@ -54,7 +58,7 @@
   "dependencies": {
     "@koa/cors": "^3.1.0",
     "@octokit/webhooks": "^9.20.0",
-    "chalk": "^5.0.0",
+    "chalk": "4",
     "commander": "^8.3.0",
     "dayjs": "^1.10.7",
     "download": "^8.0.0",
@@ -65,7 +69,7 @@
     "koa": "^2.13.4",
     "koa-bodyparser": "^4.3.0",
     "mirai-ts": "^2.2.1",
-    "mongoose": "^6.0.15",
+    "mongoose": "^6.1.0",
     "node-schedule": "^2.1.0",
     "progress": "^2.0.3",
     "qrcode": "^1.5.0",

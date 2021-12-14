@@ -1,0 +1,24 @@
+{
+  "name": "koishi-adapter-mirai",
+  "description": "Mirai adapter form Koishi",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "author": {
+    "name": "云游君",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "homepage": "https://github.com/YunYouJun/el-bot/tree/dev/packages/koishi-adapter-mirai#readme",
+  "keywords": [
+    "bot",
+    "mirai",
+    "koishi"
+  ],
+  "peerDependencies": {
+    "koishi": "^4.0.0-beta.5"
+  },
+  "dependencies": {
+    "mirai-ts": "^2.2.1"
+  }
+}

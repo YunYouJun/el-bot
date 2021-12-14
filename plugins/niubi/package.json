@@ -1,0 +1,23 @@
+{
+  "name": "@el-bot/plugin-niubi",
+  "version": "0.3.1",
+  "description": "夸人牛逼",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepublishOnly": "npm run build",
+    "build": "tsup",
+    "test": "echo '@某人 nb'"
+  },
+  "author": "YunYouJun",
+  "license": "AGPL-3.0",
+  "devDependencies": {
+    "el-bot": "latest"
+  }
+}

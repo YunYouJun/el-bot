@@ -1,6 +1,5 @@
-import { AnswerOptions } from '../plugins/answer'
-import { ForwardOptions } from '../plugins/forward'
-import { RssOptions } from '../plugins/rss'
+import type { AnswerOptions } from '../plugins/answer'
+import type { ForwardOptions } from '../plugins/forward'
 
 export interface BotConfig {
   /**
@@ -43,7 +42,6 @@ export interface BotConfig {
   // 默认插件
   answer?: AnswerOptions
   forward?: ForwardOptions
-  rss?: RssOptions
 
   /**
    * 其他插件配置

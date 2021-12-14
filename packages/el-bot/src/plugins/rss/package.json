@@ -1,5 +1,5 @@
 {
-  "name": "rss",
+  "name": "@el-bot/plugin-rss",
   "private": true,
   "version": "0.0.2",
   "description": "订阅 RSS 信息",

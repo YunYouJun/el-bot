@@ -1,7 +1,8 @@
-import Bot, { utils } from 'el-bot'
+import type { Bot } from 'el-bot'
+import { utils } from 'el-bot'
 import * as sagiri from 'sagiri'
-import { Message, MessageType } from 'mirai-ts'
-import { handleError } from '../../utils/error'
+import type { MessageType } from 'mirai-ts'
+import { Message } from 'mirai-ts'
 
 /**
  * 搜图设置
@@ -79,7 +80,7 @@ export default async function searchImage(
           }
           catch (err: any) {
             if (err) {
-              handleError(err)
+              utils.handleError(err)
               err.message && ctx.logger.error('[search-image]', err.message)
             }
           }

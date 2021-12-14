@@ -1,0 +1,23 @@
+{
+  "name": "@el-bot/plugin-setu",
+  "version": "0.2.0",
+  "description": "发点色图",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "prepublishOnly": "npm run build",
+    "build": "tsup",
+    "test": "echo '来点色图'"
+  },
+  "author": "YunYouJun",
+  "license": "AGPL-3.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "el-bot": "latest"
+  }
+}

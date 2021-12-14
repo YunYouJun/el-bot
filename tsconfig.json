@@ -1,11 +1,11 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
+    "baseUrl": "./",
     "paths": {
       "el-bot": ["packages/el-bot/src/index.ts"]
-    },
-    "baseUrl": "./"
+    }
   },
-  "include": ["packages/*/src", "packages/*/src/**/*/package.json"],
+  "include": ["plugins/*/src/**/*.ts", "packages/*/src", "packages/*/src/**/*/package.json"],
   "exclude": ["dist", "node_modules", "**/*.spec.ts"]
 }

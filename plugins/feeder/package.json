@@ -1,8 +1,8 @@
 {
-  "name": "feeder",
-  "private": true,
+  "name": "@el-bot/plugin-feeder",
   "version": "0.0.1",
   "description": "动态订阅 RSS Feed 信息（与 rss 相区别）",
+  "main": "dist/index.js",
   "el-bot": {
     "db": true
   },
@@ -11,7 +11,7 @@
     "url": "https://www.yunyoujun.cn",
     "email": "me@yunyoujun.cn"
   },
-  "peerDependencies": {
+  "dependencies": {
     "rss-feed-emitter": "^3.2.2"
   }
 }
