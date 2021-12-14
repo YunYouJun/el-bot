@@ -16,7 +16,7 @@ jobs:
 
       # fix pnpm install
       - name: pnpm - output bin stubs
-        run: echo "#! /usr/bin/env node" > ./packages/el-bot/dist/cli/index.js
+        run: npx esno scripts/fix-pnpm.ts
 
       - run: npm i -g pnpm && pnpm i
       - run: pnpm run build:api
