@@ -1,5 +1,5 @@
 import shell from 'shelljs'
-import type Bot from '..'
+import type { Bot } from 'el-bot'
 
 /**
  * 任务

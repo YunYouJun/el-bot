@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import type Bot from '../bot'
+import type { Bot } from 'el-bot'
 import type { dbConfig } from '../config/el'
 import { analytics } from './analytics'
 

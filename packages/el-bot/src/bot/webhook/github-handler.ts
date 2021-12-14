@@ -3,7 +3,7 @@ import type { IncomingMessage, ServerResponse } from 'http'
 import shell from 'shelljs'
 
 import { Webhooks, createNodeMiddleware } from '@octokit/webhooks'
-import type Bot from '..'
+import type { Bot } from 'el-bot'
 
 // github handler
 export interface handler extends EventEmitter {
