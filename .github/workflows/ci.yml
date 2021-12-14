@@ -27,7 +27,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Install dependencies
-        run: npx i -g pnpm && pnpm install
+        run: npm i -g pnpm && pnpm install
 
       - name: Lint
         run: pnpm lint
