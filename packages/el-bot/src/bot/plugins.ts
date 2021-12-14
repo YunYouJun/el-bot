@@ -86,8 +86,8 @@ export class Plugins {
         const pkgName = this.getPluginFullName(name, type)
 
         try {
-          const pluginPath = pkgName
-          const { default: plugin } = await import(type === 'default' ? path.resolve(__dirname, pluginPath) : pluginPath)
+          const pluginPath = type === 'default' ? path.resolve(__dirname, pkgName) : pkgName
+          const { default: plugin } = await import(pluginPath)
 
           let pkg = {
             name: pkgName,

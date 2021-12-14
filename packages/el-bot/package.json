@@ -1,6 +1,6 @@
 {
   "name": "el-bot",
-  "version": "0.9.0-beta.10",
+  "version": "0.9.0-beta.11",
   "description": "A quick qq bot framework for mirai.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,6 +15,10 @@
     "./plugins/*": {
       "require": "./dist/plugins/*",
       "import": "./dist/plugins/*"
+    },
+    "./plugins/*/package.json": {
+      "require": "./dist/plugins/*/package.js",
+      "import": "./dist/plugins/*/package.mjs"
     }
   },
   "engines": {
@@ -27,8 +31,9 @@
     "folder": "mcl"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && npm run copy:pkg",
     "build:api": "typedoc",
+    "copy:pkg": "esno scripts/copy.ts",
     "dev": "tsc -w --incremental",
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build"

@@ -4,6 +4,6 @@ export default defineConfig({
   clean: true,
   dts: true,
   minify: true,
-  entryPoints: ['src/index.ts', 'src/cli/index.ts', 'src/bot/plugins.ts', 'src/plugins/**/index.ts'],
+  entry: ['src/index.ts', 'src/cli/index.ts', 'src/bot/plugins.ts', 'src/plugins/**/index.ts'],
   format: ['esm', 'cjs'],
 })
