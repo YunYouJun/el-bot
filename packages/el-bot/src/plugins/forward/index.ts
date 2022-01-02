@@ -1,5 +1,5 @@
 import type Bot from 'el-bot'
-import type { MessageType, EventType } from 'mirai-ts'
+import type { EventType, MessageType } from 'mirai-ts'
 import type Mirai from 'mirai-ts'
 import type * as Config from '../../types/config'
 

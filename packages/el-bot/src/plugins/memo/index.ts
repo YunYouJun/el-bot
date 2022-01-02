@@ -2,7 +2,7 @@ import type Bot from 'el-bot'
 import dayjs from 'dayjs'
 import schedule from 'node-schedule'
 import type { MessageType } from 'mirai-ts'
-import { parseTime, checkTime } from './utils'
+import { checkTime, parseTime } from './utils'
 import type { IMemo } from './memo.schema'
 import { Memo } from './memo.schema'
 

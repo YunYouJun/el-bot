@@ -16,7 +16,7 @@
   },
   "license": "AGPL-3.0",
   "dependencies": {
-    "sass": "^1.45.0",
-    "vitepress": "^0.20.5"
+    "sass": "^1.45.2",
+    "vitepress": "^0.20.10"
   }
 }

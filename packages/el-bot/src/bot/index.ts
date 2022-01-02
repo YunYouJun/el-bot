@@ -2,10 +2,10 @@ import type { Server } from 'net'
 import fs from 'fs'
 import { resolve } from 'path'
 import type {
-  MessageType,
-  MiraiInstance,
-  MiraiApiHttpSetting,
   Api,
+  MessageType,
+  MiraiApiHttpSetting,
+  MiraiInstance,
 } from 'mirai-ts'
 import {
   Mirai,

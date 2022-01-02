@@ -80,13 +80,9 @@ const Bot = require("el-bot");
 
 const bot = new Bot({
   qq: 114514,
-  // setting: './mcl/config/net.mamoe.mirai-api-http/setting.yml',
-  setting: {
-    host: "localhost",
-    port: 4859,
-    authKey: "el-psy-congroo",
-    enableWebsocket: false
-  }
+  // 推荐
+  setting: './mcl/config/net.mamoe.mirai-api-http/setting.yml',
+  // 您也可以按照其格式，手动书写对应 JSON
   // bot: ...
 });
 bot.start();

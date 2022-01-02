@@ -4,7 +4,7 @@ import { check } from 'mirai-ts'
 import axios from 'axios'
 import nodeSchdule from 'node-schedule'
 import { renderString } from '../../utils/index'
-import { displayAnswerList, AnswerOptions } from './utils'
+import { AnswerOptions, displayAnswerList } from './utils'
 export { AnswerOptions }
 
 /**
