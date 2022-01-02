@@ -8,7 +8,7 @@
     ></chat-avatar>
     <div class="message-box">
       <div class="nickname">{{ props.nickname }}</div>
-      <div class="message">
+      <div class="message shadow-sm">
         <slot></slot>
       </div>
     </div>
@@ -100,7 +100,7 @@ onMounted(() => {
   position: relative;
   font-size: 0.9rem;
   border-radius: 0.5rem;
-  background-color: white;
+  background-color: var(--c-bg);
   word-break: break-all;
   padding: 0.6rem 0.7rem;
   margin-top: 0.2rem;
@@ -121,7 +121,7 @@ onMounted(() => {
     border-bottom-width: 5px;
     border-bottom-color: currentColor;
     border-radius: 0 0 0 1rem;
-    color: white;
+    color: var(--c-bg);
   }
 }
 </style>

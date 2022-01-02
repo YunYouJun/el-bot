@@ -248,7 +248,7 @@ rss:
 
 | Name          | Type   | Example                  |
 | ------------- | ------ | ------------------------ |
-| author        | Object | {name: ['云游君']}       |
+| author        | Object | `{name: ['云游君']}`       |
 | updated       | String | 2020-05-31T12:00:00.000Z |
 | link          | String | /atom.xml                |
 | feedUrl       | String | /atom.xml                |

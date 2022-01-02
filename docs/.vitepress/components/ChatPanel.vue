@@ -30,7 +30,7 @@ const props = withDefaults(defineProps<ChatPanelProps>(), {
   border-radius: 0.5rem;
   margin: 1rem auto;
   padding: 0.3rem 0;
-  background-color: #f9f9f9;
+  background-color: rgba(0, 0, 0, 0.02);
   overflow-x: auto;
 
   .controls {

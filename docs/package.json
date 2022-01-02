@@ -10,13 +10,17 @@
     "url": "https://www.yunyoujun.cn"
   },
   "scripts": {
-    "dev": "vitepress dev . --open",
+    "dev": "vitepress dev . --open --host",
     "build": "vitepress build",
     "serve": "vitepress serve"
   },
   "license": "AGPL-3.0",
   "dependencies": {
     "sass": "^1.45.2",
-    "vitepress": "^0.20.10"
+    "vitepress": "^0.20.10",
+    "vitepress-theme-you": "^0.0.27"
+  },
+  "devDependencies": {
+    "@iconify-json/ri": "^1.0.2"
   }
 }

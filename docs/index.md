@@ -1,10 +1,11 @@
 ---
 home: true
-heroImage: /logo.png
+heroIconClass: i-ri-robot-line
 heroText: el-bot
 tagline: 基于 Mirai 的可配置 QQ 机器人框架
-actionText: 快速上手 →
-actionLink: /guide/
+actions:
+  - text: 快速上手 →
+    link: /guide/
 features:
   - title: Element
     details: 元素，无尽的世界线
@@ -12,7 +13,12 @@ features:
     details: 优雅，不死的凤凰鸟
   - title: Electronic
     details: 电子，闪光的指压师
-footer: AGPL-3.0 Licensed | Copyright ©YunYouJun
+footer:
+  license: AGPL-3.0 Licensed
+  since: 2020
+  author:
+    name: YunYouJun
+    url: https://www.yunyoujun.cn
 ---
 
 > 一个优雅的电子机器人，通过简单的配置便可以实现你的大部分需求。

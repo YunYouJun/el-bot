@@ -1,8 +1,12 @@
 import type { UserConfig } from "vitepress";
+// @ts-ignore
+import baseConfig from 'vitepress-theme-you/config'
 
 export default {
+  extends: baseConfig,
+
   head: [
-    ["link", { rel: "icon", href: "/logo.svg" }],
+    ["link", { rel: "icon", href: "/favicon.svg" }],
     ["link", { rel: "manifest", href: "/manifest.json" }],
     ["meta", { name: "theme-color", content: "steelblue" }],
     ["meta", { name: "apple-mobile-web-app-capable", content: "yes" }],
@@ -30,7 +34,7 @@ export default {
   ],
   title: "El Bot Docs",
   themeConfig: {
-    logo: "/logo.png",
+    iconClass: 'i-ri-robot-line',
     repo: "YunYouJun/el-bot",
     docsDir: "docs",
 
