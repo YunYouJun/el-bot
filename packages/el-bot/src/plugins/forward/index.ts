@@ -10,9 +10,7 @@ interface ForwardItem {
 
 export type ForwardOptions = ForwardItem[]
 
-interface AllMessageList {
-  [propName: number]: number[]
-}
+type AllMessageList = Record<number, number[]>
 
 /**
  * 撤回消息对应转发群中的消息

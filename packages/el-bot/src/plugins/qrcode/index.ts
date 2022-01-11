@@ -25,11 +25,11 @@ export default function(ctx: Bot, options: QRCodeOptions = qrcodeOptions) {
   const { cli } = ctx
   const folder = resolve(ctx.el.path!.image, pkg.name)
 
-  if (options.autoClearCache)
-    fs.rmSync(folder, { recursive: true })
-
   if (!fs.existsSync(folder))
     fs.mkdirSync(folder, { recursive: true })
+
+  if (options.autoClearCache)
+    fs.rmSync(folder, { recursive: true })
 
   cli
     .command('qrcode <text...>')

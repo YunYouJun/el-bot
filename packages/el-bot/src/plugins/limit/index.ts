@@ -12,9 +12,7 @@ interface GroupInfo {
   count: number
 }
 
-interface GroupList {
-  [propName: number]: GroupInfo
-}
+type GroupList = Record<number, GroupInfo>
 
 export default function limit(ctx: Bot, options: LimitOptions) {
   const { mirai } = ctx

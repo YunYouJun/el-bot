@@ -23,9 +23,7 @@ interface Job {
   steps: step[]
 }
 
-interface Jobs {
-  [propName: string]: Job
-}
+type Jobs = Record<string, Job>
 
 type MessageAndEventType =
   | 'message'

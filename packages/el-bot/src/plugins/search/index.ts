@@ -11,9 +11,7 @@ interface SearchEngine {
 /**
  * 搜索引擎列表
  */
-interface SearchEngineList {
-  [propName: string]: SearchEngine
-}
+type SearchEngineList = Record<string, SearchEngine>
 
 const engineList: SearchEngineList = {
   baidu: {
