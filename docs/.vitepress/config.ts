@@ -2,7 +2,7 @@ import type { UserConfig } from "vitepress";
 // @ts-ignore
 import baseConfig from 'vitepress-theme-you/config'
 
-export default {
+const config: UserConfig = {
   extends: baseConfig,
 
   head: [
@@ -146,7 +146,9 @@ export default {
       "/": [],
     },
   },
-} as UserConfig;
+}
+
+export default config;
 
 // todo
 // google-analytics
