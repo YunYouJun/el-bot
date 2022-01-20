@@ -16,9 +16,9 @@
   },
   "license": "AGPL-3.0",
   "dependencies": {
-    "sass": "^1.47.0",
-    "vitepress": "^0.21.4",
-    "vitepress-theme-you": "^0.0.28"
+    "sass": "^1.49.0",
+    "vitepress": "^0.21.6",
+    "vitepress-theme-you": "^0.0.31"
   },
   "devDependencies": {
     "@iconify-json/ri": "^1.0.2"

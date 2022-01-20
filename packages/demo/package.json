@@ -22,9 +22,9 @@
     "url": "https://www.yunyoujun.cn"
   },
   "dependencies": {
-    "@nestjs/common": "^8.2.4",
-    "@nestjs/core": "^8.2.4",
-    "@nestjs/platform-express": "^8.2.4",
+    "@nestjs/common": "^8.2.5",
+    "@nestjs/core": "^8.2.5",
+    "@nestjs/platform-express": "^8.2.5",
     "el-bot": "workspace:*",
     "reflect-metadata": "^0.1.13"
   },
