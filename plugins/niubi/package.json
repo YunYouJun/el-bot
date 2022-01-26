@@ -18,6 +18,6 @@
   "author": "YunYouJun",
   "license": "AGPL-3.0",
   "devDependencies": {
-    "el-bot": "latest"
+    "el-bot": "workspace:*"
   }
 }

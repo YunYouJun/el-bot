@@ -5,7 +5,6 @@ import { utils } from 'el-bot'
 import QRCode from 'qrcode'
 import type { MessageType } from 'mirai-ts'
 import { Message } from 'mirai-ts'
-import pkg from './package.json'
 import type { QRCodeOptions } from './options'
 import qrcodeOptions from './options'
 
@@ -23,7 +22,8 @@ async function generateQR(text: string, folder: string) {
 
 export default function(ctx: Bot, options: QRCodeOptions = qrcodeOptions) {
   const { cli } = ctx
-  const folder = resolve(ctx.el.path!.image, pkg.name)
+  const name = 'qrcode'
+  const folder = resolve(ctx.el.path!.image, name)
 
   if (!fs.existsSync(folder))
     fs.mkdirSync(folder, { recursive: true })
@@ -38,7 +38,7 @@ export default function(ctx: Bot, options: QRCodeOptions = qrcodeOptions) {
       const msg = ctx.mirai.curMsg as MessageType.ChatMessage
       try {
         const filename = await generateQR(text.join(' '), folder)
-        console.log(`${folder}/${pkg.name}/${filename}`)
+        console.log(`${folder}/${name}/${filename}`)
         const chain = [Message.Image(null, null, `${folder}/${filename}`)]
         msg.reply(chain)
       }

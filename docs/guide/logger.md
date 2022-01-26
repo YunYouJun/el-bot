@@ -3,11 +3,11 @@
 日志系统使用 [winston](https://github.com/winstonjs/winston) 实现。
 
 ```js
-const { default: Bot } = require("el-bot");
+import { Bot } from "el-bot";
 /*
  * @param {Bot} ctx
  */
-module.exports = (ctx) => {
+export default (ctx: Bot) => {
   ctx.logger.success("整挺好！");
 };
 ```

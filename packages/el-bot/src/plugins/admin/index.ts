@@ -1,6 +1,6 @@
-import type Bot from 'el-bot'
 import type { EventType } from 'mirai-ts'
 import { Message } from 'mirai-ts'
+import type { Bot } from 'el-bot'
 
 export default function(ctx: Bot) {
   const { mirai } = ctx

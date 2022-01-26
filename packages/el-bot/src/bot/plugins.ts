@@ -1,3 +1,4 @@
+import fs from 'fs'
 import path from 'path'
 import { merge } from '../utils/config'
 import { isFunction } from '../shared'
@@ -57,7 +58,7 @@ export class Plugins {
     let pkgName = name
     switch (type) {
       case 'default':
-        pkgName = `plugins/${name}`
+        pkgName = `${name}`
         break
       case 'official':
         pkgName = `@el-bot/plugin-${name}`
@@ -86,8 +87,11 @@ export class Plugins {
         const pkgName = this.getPluginFullName(name, type)
 
         try {
-          const pluginPath = type === 'default' ? path.resolve(__dirname, pkgName) : pkgName
-          const { default: plugin } = await import(pluginPath)
+          const pluginPath = type === 'default' ? `./plugins/${pkgName}` : pkgName
+          const isMjs = this.ctx.el.pkg.type === 'module'
+          const suffix = isMjs ? 'mjs' : 'js'
+          const importedPath = fs.existsSync(`${pluginPath}.${suffix}`) ? `${pluginPath}.${suffix}` : `${pluginPath}/index.${suffix}`
+          const { default: plugin } = await import(importedPath)
 
           let pkg = {
             name: pkgName,
@@ -95,9 +99,9 @@ export class Plugins {
             description: '未知',
           }
           try {
-            pkg = await import(`${pluginPath}/package.json`)
+            pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, `./plugins/${pkgName}/package.json`), 'utf-8'))
           }
-          catch {
+          catch (e) {
             this.ctx.logger.warning(`${name} 插件没有相关描述信息`)
           }
 

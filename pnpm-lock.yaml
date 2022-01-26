@@ -1,5 +1,8 @@
 lockfileVersion: 5.3
 
+overrides:
+  el-bot: workspace:*
+
 importers:
 
   .:
@@ -9,7 +12,7 @@ importers:
       eslint: ^8.7.0
       husky: 7.0.4
       koishi-core: ^3.14.2
-      lint-staged: ^12.3.1
+      lint-staged: ^12.3.2
       nodemon: ^2.0.15
       npm-run-all: ^4.1.5
       ts-loader: ^9.2.6
@@ -22,7 +25,7 @@ importers:
       eslint: 8.7.0
       husky: 7.0.4
       koishi-core: 3.14.2
-      lint-staged: 12.3.1
+      lint-staged: 12.3.2
       nodemon: 2.0.15
       npm-run-all: 4.1.5
       ts-loader: 9.2.6_typescript@4.5.5
@@ -43,7 +46,7 @@ importers:
     devDependencies:
       '@iconify-json/ri': 1.0.2
 
-  packages/@el-bot/plugin-niubi:
+  packages/cli:
     specifiers: {}
 
   packages/create-app:
@@ -53,28 +56,6 @@ importers:
     dependencies:
       chalk: 5.0.0
       enquirer: 2.3.6
-
-  packages/create-app/template-ts:
-    specifiers:
-      el-bot: workspace:^0.9.0-beta.5
-      nodemon: ^2.0.15
-      npm-run-all: ^4.1.5
-      typescript: ^4.5.5
-    dependencies:
-      el-bot: link:../../el-bot
-    devDependencies:
-      nodemon: 2.0.15
-      npm-run-all: 4.1.5
-      typescript: 4.5.5
-
-  packages/create-app/template-ts/dist:
-    specifiers:
-      el-bot: workspace:^0.9.0-beta.5
-      typescript: ^4.5.5
-    dependencies:
-      el-bot: link:../../../el-bot
-    devDependencies:
-      typescript: 4.5.5
 
   packages/demo:
     specifiers:
@@ -97,15 +78,6 @@ importers:
       npm-run-all: 4.1.5
       ts-loader: 9.2.6_typescript@4.5.5
 
-  packages/demo/dist/demo/src/plugins/webhook:
-    specifiers: {}
-
-  packages/demo/dist/plugins/webhook:
-    specifiers: {}
-
-  packages/demo/src/plugins/webhook:
-    specifiers: {}
-
   packages/el-bot:
     specifiers:
       '@koa/cors': ^3.1.0
@@ -123,7 +95,6 @@ importers:
       '@types/qrcode': ^1.4.2
       '@types/shelljs': ^0.8.11
       '@types/xml2js': ^0.4.9
-      chalk: ^5.0.0
       commander: ^8.3.0
       cross-env: ^7.0.3
       dayjs: ^1.10.7
@@ -135,7 +106,7 @@ importers:
       js-yaml: ^4.1.0
       koa: ^2.13.4
       koa-bodyparser: ^4.3.0
-      mirai-ts: ^2.3.0
+      mirai-ts: ^2.3.5
       mongoose: ^6.1.8
       node-schedule: ^2.1.0
       progress: ^2.0.3
@@ -149,7 +120,6 @@ importers:
     dependencies:
       '@koa/cors': 3.1.0
       '@octokit/webhooks': 9.22.0
-      chalk: 5.0.0
       commander: 8.3.0
       dayjs: 1.10.7
       download: 8.0.0
@@ -159,7 +129,7 @@ importers:
       js-yaml: 4.1.0
       koa: 2.13.4
       koa-bodyparser: 4.3.0
-      mirai-ts: 2.3.0
+      mirai-ts: 2.3.5
       mongoose: 6.1.8
       node-schedule: 2.1.0
       progress: 2.0.3
@@ -187,62 +157,11 @@ importers:
       typedoc: 0.22.11_typescript@4.5.5
       typescript: 4.5.5
 
-  packages/el-bot/src/plugins/admin:
-    specifiers: {}
-
-  packages/el-bot/src/plugins/answer:
-    specifiers: {}
-
-  packages/el-bot/src/plugins/blacklist:
-    specifiers: {}
-
-  packages/el-bot/src/plugins/counter:
-    specifiers: {}
-
-  packages/el-bot/src/plugins/dev:
-    specifiers: {}
-
-  packages/el-bot/src/plugins/egg:
-    specifiers: {}
-
-  packages/el-bot/src/plugins/forward:
-    specifiers: {}
-
-  packages/el-bot/src/plugins/github:
-    specifiers: {}
-
-  packages/el-bot/src/plugins/limit:
-    specifiers: {}
-
-  packages/el-bot/src/plugins/memo:
-    specifiers: {}
-
-  packages/el-bot/src/plugins/nbnhhsh:
-    specifiers: {}
-
-  packages/el-bot/src/plugins/qrcode:
-    specifiers: {}
-
-  packages/el-bot/src/plugins/report:
-    specifiers: {}
-
-  packages/el-bot/src/plugins/rss:
-    specifiers: {}
-
-  packages/el-bot/src/plugins/search:
-    specifiers: {}
-
-  packages/el-bot/src/plugins/teach:
-    specifiers: {}
-
-  packages/el-bot/src/plugins/workflow:
-    specifiers: {}
-
   packages/koishi-adapter-mirai:
     specifiers:
-      mirai-ts: ^2.2.1
+      mirai-ts: ^2.3.1
     dependencies:
-      mirai-ts: 2.2.1
+      mirai-ts: 2.3.1
 
   packages/koishi-bot:
     specifiers:
@@ -250,7 +169,6 @@ importers:
       '@koishijs/plugin-adapter-discord': ^2.0.0
       '@koishijs/plugin-adapter-onebot': ^4.0.0
       '@koishijs/plugin-adapter-telegram': ^2.0.1
-      '@koishijs/plugin-common': ^5.0.0-rc.1
       '@koishijs/plugin-console': ^1.1.0
       '@koishijs/plugin-manager': ^1.1.0
       '@koishijs/plugin-status': ^5.1.0
@@ -264,7 +182,6 @@ importers:
       '@koishijs/plugin-adapter-discord': 2.0.0_koishi@4.1.0
       '@koishijs/plugin-adapter-onebot': 4.0.0_koishi@4.1.0
       '@koishijs/plugin-adapter-telegram': 2.0.1_koishi@4.1.0
-      '@koishijs/plugin-common': 5.0.0-rc.1_koishi@4.1.0
       '@koishijs/plugin-console': 1.1.0_koishi@4.1.0
       '@koishijs/plugin-manager': 1.1.0_fb4e2056a81d7a7e4c74378a2ca7032c
       '@koishijs/plugin-status': 5.1.0_koishi@4.1.0
@@ -283,7 +200,7 @@ importers:
 
   plugins/niubi:
     specifiers:
-      el-bot: latest
+      el-bot: workspace:*
     devDependencies:
       el-bot: link:../../packages/el-bot
 
@@ -295,7 +212,7 @@ importers:
 
   plugins/setu:
     specifiers:
-      el-bot: latest
+      el-bot: workspace:*
     devDependencies:
       el-bot: link:../../packages/el-bot
 
@@ -679,15 +596,6 @@ packages:
       koishi: 4.1.0
     transitivePeerDependencies:
       - debug
-    dev: false
-
-  /@koishijs/plugin-common/5.0.0-rc.1_koishi@4.1.0:
-    resolution: {integrity: sha512-KaZXhnbD6Ho583cy/CRBdPfutSJdQOTGVADeBv30MigWdFV0uZRUdYNziTxiQokonXg/buNOr9kzX0ZNMeks2A==}
-    deprecated: see https://koishi.js.org/api/migration.html
-    peerDependencies:
-      koishi: ^4.0.0-rc.1
-    dependencies:
-      koishi: 4.1.0
     dev: false
 
   /@koishijs/plugin-console/1.1.0_koishi@4.1.0:
@@ -1521,16 +1429,16 @@ packages:
       vue-demi: 0.12.1
     dev: false
 
-  /@yunyoujun/logger/0.1.4:
-    resolution: {integrity: sha512-B87xxYA9C02yCoL0M+0HM0RevBUkwbDgNFIoU0zQfgOWi3j4tdgSj5sMtdzxLUd63RP1PpsZmxgAVhLaERdtgA==}
-    dependencies:
-      chalk: 4.1.2
-    dev: false
-
   /@yunyoujun/logger/0.2.0:
     resolution: {integrity: sha512-xsWjk/SYymLMTAt7f0U2LTYCNTusZyQntsSozBqbRxXZy8T7rUwAzn9AWqU4hVLpPSLY/wa+w8gOmBAenqUpIA==}
     dependencies:
       chalk: 5.0.0
+    dev: false
+
+  /@yunyoujun/logger/0.2.1:
+    resolution: {integrity: sha512-jR9MlZ8v1WByo9Je2kt0s7Z88HXQwhVtrj+X1ivBXJMncCWi4+ysOi307vLusaADPgz5GRpNNYi4FOnf8ihF3g==}
+    dependencies:
+      chalk: 4.1.2
     dev: false
 
   /abbrev/1.1.1:
@@ -4958,8 +4866,8 @@ packages:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
     dev: true
 
-  /lint-staged/12.3.1:
-    resolution: {integrity: sha512-Ocht/eT+4/siWOZDJpNUKcKX2UeWW/pDbohJ4gRsrafAjBi79JK8kiNVk2ciIVNKdw0Q4ABptl2nr6uQAlRImw==}
+  /lint-staged/12.3.2:
+    resolution: {integrity: sha512-gtw4Cbj01SuVSfAOXC6ivd/7VKHTj51yj5xV8TgktFmYNMsZzXuSd5/brqJEA93v63wL7R6iDlunMANOechC0A==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     hasBin: true
     dependencies:
@@ -5219,26 +5127,25 @@ packages:
   /minimist/1.2.5:
     resolution: {integrity: sha512-FM9nNUYrRBAELZQT3xeZQ7fmMOBg6nWNmJKTcgsJeaLstP/UODVpGsr5OhXhhXg6f+qtJ8uiZ+PUxkDWcgIXLw==}
 
-  /mirai-ts/2.2.1:
-    resolution: {integrity: sha512-M/LlRT07WDerp6hHtnVpFr/yyQB8uGP0xIIE46SJQVasP9lxgzTqNBi6SBo08TCEUasYFqwfdMEj4RwW0uWn2Q==}
+  /mirai-ts/2.3.1:
+    resolution: {integrity: sha512-xGdEsxBbA7chUq+6lVObjOoAeWh3pKHrwueUKhZEJc/6xIIhT0AjDVh+dPp2Rq2NsdQK0Q2iAPmsefDwVL83Mw==}
     dependencies:
-      '@yunyoujun/logger': 0.1.4
-      axios: 0.24.0
-      chalk: 4.1.2
+      '@yunyoujun/logger': 0.2.0
+      axios: 0.25.0
+      chalk: 5.0.0
       form-data: 4.0.0
-      ws: 8.3.0
+      ws: 8.4.2
     transitivePeerDependencies:
       - bufferutil
       - debug
       - utf-8-validate
     dev: false
 
-  /mirai-ts/2.3.0:
-    resolution: {integrity: sha512-5pkvKXJrSaejkriBBCa+/ZdmYlxpuY5tcWXCqwNz1u3ufatF3DOZSJzBIDlUykxNl4F1M1bEQuUAWZPLdnU0/g==}
+  /mirai-ts/2.3.5:
+    resolution: {integrity: sha512-Si5d2pppsODvRw6a7CigRVF4mdydLC8EBUEKUeo20adZDMItSjshckKbUQBkfE9oTN2jBUSyp6dQsI7JJ3523Q==}
     dependencies:
-      '@yunyoujun/logger': 0.2.0
+      '@yunyoujun/logger': 0.2.1
       axios: 0.25.0
-      chalk: 5.0.0
       form-data: 4.0.0
       ws: 8.4.2
     transitivePeerDependencies:
@@ -7637,19 +7544,6 @@ packages:
       signal-exit: 3.0.6
       typedarray-to-buffer: 3.1.5
     dev: true
-
-  /ws/8.3.0:
-    resolution: {integrity: sha512-Gs5EZtpqZzLvmIM59w4igITU57lrtYVFneaa434VROv4thzJyV6UjIL3D42lslWlI+D4KzLYnxSwtfuiO79sNw==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: ^5.0.2
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
-    dev: false
 
   /ws/8.4.2:
     resolution: {integrity: sha512-Kbk4Nxyq7/ZWqr/tarI9yIt/+iNNFOjBXEWgTb4ydaNHBNGgvf2QHbS9fdfsndfjFlFwEd4Al+mw83YkaD10ZA==}

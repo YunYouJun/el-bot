@@ -1,10 +1,11 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist",
+    "baseUrl": "./",
+    "module": "CommonJS",
     "paths": {
-      "el-bot": ["packages/el-bot/src"]
+      // for esbuild alias
+      "el-bot": ["src/index.ts"]
     }
-  },
-  "include": ["src", "src/**/*/package.json"]
+  }
 }

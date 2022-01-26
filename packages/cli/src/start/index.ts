@@ -6,7 +6,7 @@ import type commander from 'commander'
 import glob from 'glob'
 import { Logger } from '@yunyoujun/logger'
 import shell from 'shelljs'
-import { handleError } from '../../utils/error'
+import { handleError } from 'el-bot/src/utils/error'
 // 实例目录下的 package.json
 const pkg = require(getAbsolutePath('./package.json'))
 

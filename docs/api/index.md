@@ -14,8 +14,8 @@ el-bot 的 [API 文档](https://www.yunyoujun.cn/el-bot/) 已通过 [typedoc](ht
 
 因此你可以借助它来实现与 mirai-api-http 的一切交互。这也意味着除此之外的便是 `el-bot` 的扩展功能（及其存在的意义）。
 
-```js
-const Bot = require("el-bot");
+```ts
+import { Bot } from "el-bot";
 const bot = new Bot();
 
 function test(ctx) {

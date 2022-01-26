@@ -1,0 +1,7 @@
+lockfileVersion: 5.3
+
+specifiers:
+  mirai-ts: ^2.3.5
+
+dependencies:
+  mirai-ts: link:../../../../../../../../.asdf/installs/nodejs/lts/.npm/pnpm-global/5/node_modules/mirai-ts

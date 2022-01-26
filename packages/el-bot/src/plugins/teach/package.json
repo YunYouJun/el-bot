@@ -10,5 +10,11 @@
     "name": "YunYouJun",
     "url": "https://www.yunyoujun.cn",
     "email": "me@yunyoujun.cn"
+  },
+  "exports": {
+    ".": {
+      "require": "./index.js",
+      "import": "./index.mjs"
+    }
   }
 }

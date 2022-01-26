@@ -2,10 +2,10 @@
 
 import { spawn } from 'child_process'
 import commander from 'commander'
+import pkg from '../package.json'
 import registerInstallCommand from './install'
 import registerStartCommand from './start'
 
-const pkg = require('../../package.json')
 const cli = new commander.Command('el')
 cli.version(pkg.version)
 

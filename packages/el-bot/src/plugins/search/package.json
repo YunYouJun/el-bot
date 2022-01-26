@@ -8,5 +8,11 @@
     "url": "https://www.yunyoujun.cn",
     "email": "me@yunyoujun.cn"
   },
-  "license": "AGPL-3.0"
+  "license": "AGPL-3.0",
+  "exports": {
+    ".": {
+      "require": "./index.js",
+      "import": "./index.mjs"
+    }
+  }
 }

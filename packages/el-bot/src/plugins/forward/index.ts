@@ -1,6 +1,5 @@
-import type Bot from 'el-bot'
-import type { EventType, MessageType } from 'mirai-ts'
-import type Mirai from 'mirai-ts'
+import type { Bot } from 'el-bot'
+import type { EventType, MessageType, Mirai } from 'mirai-ts'
 import type * as Config from '../../types/config'
 
 interface ForwardItem {

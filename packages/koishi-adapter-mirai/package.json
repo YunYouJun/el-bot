@@ -19,6 +19,6 @@
     "koishi": "^4.0.0-beta.5"
   },
   "dependencies": {
-    "mirai-ts": "^2.2.1"
+    "mirai-ts": "^2.3.1"
   }
 }

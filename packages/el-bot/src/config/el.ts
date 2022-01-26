@@ -1,3 +1,4 @@
+import fs from 'fs'
 import { resolve } from 'path'
 import type { MiraiApiHttpSetting } from 'mirai-ts'
 import * as config from '../utils/config'
@@ -36,6 +37,8 @@ export interface reportConfig {
   target?: Target
 }
 
+const pkg = JSON.parse(fs.readFileSync(resolve(process.cwd(), 'package.json'), 'utf-8'))
+
 export class El {
   qq = 0
   /**
@@ -44,6 +47,13 @@ export class El {
    */
   setting: MiraiApiHttpSetting | string
     = '../mcl/config/net.mamoe.mirai-api-http/setting.yml'
+
+  /**
+   * mirai info
+   */
+  mirai = {
+    folder: 'mcl',
+  }
 
   /**
    * mongodb 数据库默认配置
@@ -93,8 +103,11 @@ export class El {
     enable: false,
   }
 
-  // el-bot package.json
-  pkg? = require('../../package.json')
+  /**
+   * 用户的 package.json
+   */
+  pkg?: any
+
   /**
    * 根目录
    */
@@ -106,16 +119,18 @@ export class El {
     /**
      * 图片路径
      */
-    image: resolve(this.base!, this.pkg.mcl.folder, `${assetsFolder}/images`),
+    image: resolve(this.base!, this.mirai.folder, `${assetsFolder}/images`),
     /**
      * 语音路径
      */
-    voice: resolve(this.base!, this.pkg.mcl.folder, `${assetsFolder}/voices`),
+    voice: resolve(this.base!, this.mirai.folder, `${assetsFolder}/voices`),
   }
 
   constructor(el: El) {
     if (typeof el.qq === 'string')
       el.qq = parseInt(el.qq)
+
+    el.pkg = pkg
 
     // 合并
     config.merge(this, el)

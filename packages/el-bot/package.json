@@ -1,6 +1,6 @@
 {
   "name": "el-bot",
-  "version": "0.9.0-beta.13",
+  "version": "0.9.0-beta.17",
   "description": "A quick qq bot framework for mirai.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,19 +13,12 @@
       "import": "./dist/index.mjs"
     },
     "./plugins/*": {
-      "require": "./dist/plugins/*",
-      "import": "./dist/plugins/*"
-    },
-    "./plugins/*/package.json": {
-      "require": "./dist/plugins/*/package.js",
-      "import": "./dist/plugins/*/package.mjs"
+      "require": "./dist/plugins/*/index.js",
+      "import": "./dist/plugins/*/index.mjs"
     }
   },
   "engines": {
     "node": ">=12"
-  },
-  "bin": {
-    "el": "dist/cli/index.js"
   },
   "mcl": {
     "folder": "mcl"
@@ -33,7 +26,7 @@
   "scripts": {
     "build": "tsup && npm run copy:pkg",
     "build:api": "npx typedoc",
-    "copy:pkg": "esno scripts/copy.ts",
+    "copy:pkg": "esmo scripts/copy.ts",
     "dev": "tsc -w --incremental",
     "watch": "tsc --watch",
     "prepublishOnly": "npm run build"
@@ -63,7 +56,6 @@
   "dependencies": {
     "@koa/cors": "^3.1.0",
     "@octokit/webhooks": "^9.22.0",
-    "chalk": "^5.0.0",
     "commander": "^8.3.0",
     "dayjs": "^1.10.7",
     "download": "^8.0.0",
@@ -73,7 +65,7 @@
     "js-yaml": "^4.1.0",
     "koa": "^2.13.4",
     "koa-bodyparser": "^4.3.0",
-    "mirai-ts": "^2.3.0",
+    "mirai-ts": "^2.3.5",
     "mongoose": "^6.1.8",
     "node-schedule": "^2.1.0",
     "progress": "^2.0.3",

@@ -15,6 +15,8 @@
 - 使用文档：<https://docs.bot.elpsy.cn>
 - API 文档：<https://www.yunyoujun.cn/el-bot/>
 
+> El-Bot will be ESM only!
+
 ## 开始
 
 mirai 1.0 版本以上推荐使用官方启动器 [mirai-console-loader](https://github.com/iTXTech/mirai-console-loader) 自行启动 [mirai](https://github.com/mamoe/mirai) 与 [mirai-api-http](https://github.com/mamoe/mirai-api-http) 插件。
@@ -25,11 +27,11 @@ mirai 1.0 版本以上推荐使用官方启动器 [mirai-console-loader](https:/
 
 ```sh
 npm install el-bot
-# yarn add el-bot
+# pnpm i el-bot
 ```
 
-```js
-const Bot = require("el-bot");
+```ts
+import { Bot } = from "el-bot";
 
 const bot = new Bot({
   qq: 114514,
