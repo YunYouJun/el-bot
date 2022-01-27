@@ -4,6 +4,7 @@ import axios from 'axios'
 import nodeSchdule from 'node-schedule'
 import type { Bot } from '../..'
 import { renderString } from '../../utils/index'
+import type { ReplyContent } from './utils'
 import { AnswerOptions, displayAnswerList } from './utils'
 export { AnswerOptions }
 
@@ -14,7 +15,7 @@ export { AnswerOptions }
  */
 async function renderStringByApi(
   api: string,
-  content: string | MessageType.MessageChain,
+  content: ReplyContent,
 ) {
   const { data } = await axios.get(api)
   if (typeof content === 'string') {

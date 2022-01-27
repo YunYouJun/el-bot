@@ -8,7 +8,6 @@
   "devDependencies": {
     "esbuild": "^0.14.14",
     "esbuild-register": "^3.3.2",
-    "esno": "^0.14.0",
     "typescript": "^4.5.5"
   },
   "dependencies": {
@@ -17,6 +16,11 @@
     "@koishijs/plugin-adapter-onebot": "^4.0.0",
     "@koishijs/plugin-adapter-telegram": "^2.0.1",
     "@koishijs/plugin-console": "^1.1.0",
+    "@koishijs/plugin-dataview": "^1.0.0",
+    "@koishijs/plugin-echo": "^1.0.0",
+    "@koishijs/plugin-forward": "^1.0.1",
+    "@koishijs/plugin-insight": "^1.0.0",
+    "@koishijs/plugin-logger": "^1.0.0",
     "@koishijs/plugin-manager": "^1.1.0",
     "@koishijs/plugin-status": "^5.1.0",
     "koishi": "^4.1.0"
