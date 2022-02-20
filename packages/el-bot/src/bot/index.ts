@@ -13,7 +13,8 @@ import {
 import chalk from 'chalk'
 import type commander from 'commander'
 import type mongoose from 'mongoose'
-import El from '../config/el'
+import type { ElConfig, ElUserConfig } from '../config/el'
+import { resolveElConfig } from '../config/el'
 
 import { getAllPlugins, sleep, statement } from '../utils/misc'
 import { connectDb } from '../db'
@@ -39,7 +40,7 @@ import type { Plugin, PluginInstallFunction } from './plugins'
  * 创建机器人
  * @param el
  */
-export function createBot(el: El) {
+export function createBot(el: ElUserConfig) {
   return new Bot(el)
 }
 
@@ -47,7 +48,7 @@ export class Bot {
   /**
    * 全局配置
    */
-  el: El
+  el: ElConfig
   mirai: MiraiInstance
   // 激活
   active = true
@@ -95,8 +96,8 @@ export class Bot {
   rootDir = process.cwd()
   tmpDir = 'tmp/'
   isTS = fs.existsSync(resolve(this.rootDir, 'tsconfig.json'))
-  constructor(el: El) {
-    this.el = new El(el)
+  constructor(el: ElUserConfig) {
+    this.el = resolveElConfig(el)
     const setting = this.el.setting as MiraiApiHttpSetting
     this.mirai = new Mirai(setting)
     this.status = new Status(this)

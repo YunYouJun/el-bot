@@ -1,7 +1,7 @@
 import type { MessageType } from 'mirai-ts'
 import { check } from 'mirai-ts'
 import axios from 'axios'
-import nodeSchdule from 'node-schedule'
+import * as nodeSchdule from 'node-schedule'
 import type { Bot } from '../..'
 import { renderString } from '../../utils/index'
 import type { ReplyContent } from './utils'

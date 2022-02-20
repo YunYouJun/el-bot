@@ -12,6 +12,6 @@
     "email": "me@yunyoujun.cn"
   },
   "dependencies": {
-    "rss-feed-emitter": "^3.2.2"
+    "rss-feed-emitter": "^3.2.3"
   }
 }

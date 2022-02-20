@@ -9,7 +9,7 @@ import type Bot from 'el-bot'
 import type { EventType, MessageType } from 'mirai-ts'
 import { exec } from 'shelljs'
 import schedule from 'node-schedule'
-import { parse } from '../../utils/config'
+import { parseYaml } from '../../utils/config'
 import { handleError } from '../../utils/error'
 
 interface step {
@@ -105,7 +105,7 @@ export default function workflow(ctx: Bot) {
     const folder = './el/workflows'
     const files = fs.readdirSync(folder)
     files.forEach((file) => {
-      const workflow = parse(`${folder}/${file}`)
+      const workflow = parseYaml(`${folder}/${file}`)
       if (workflow)
         createWorkflow(ctx, workflow as WorkflowConfig)
     })

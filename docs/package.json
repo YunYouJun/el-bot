@@ -16,11 +16,11 @@
   },
   "license": "AGPL-3.0",
   "dependencies": {
-    "sass": "^1.49.0",
-    "vitepress": "^0.21.6",
-    "vitepress-theme-you": "^0.0.32"
+    "sass": "^1.49.8",
+    "vitepress": "^0.22.2",
+    "vitepress-theme-you": "^0.0.33"
   },
   "devDependencies": {
-    "@iconify-json/ri": "^1.0.2"
+    "@iconify-json/ri": "^1.1.0"
   }
 }

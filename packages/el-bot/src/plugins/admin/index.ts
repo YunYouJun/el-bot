@@ -18,7 +18,7 @@ export default function(ctx: Bot) {
       ),
     ]
 
-    masters.forEach(async(target) => {
+    masters && masters.forEach(async(target) => {
       const { messageId } = await mirai.api.sendFriendMessage(content, target)
       messageListMap.set(messageId, msg)
     })

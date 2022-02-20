@@ -5,7 +5,6 @@ export default function ping(ctx: Context) {
   ctx.middleware(async(session, next) => {
     if (session.content === '天王盖地虎')
       return '宝塔镇河妖'
-
     else
       return next()
   })

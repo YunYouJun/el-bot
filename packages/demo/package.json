@@ -22,15 +22,16 @@
     "url": "https://www.yunyoujun.cn"
   },
   "dependencies": {
-    "@nestjs/common": "^8.2.6",
-    "@nestjs/core": "^8.2.6",
-    "@nestjs/platform-express": "^8.2.6",
+    "@nestjs/common": "^8.3.1",
+    "@nestjs/core": "^8.3.1",
+    "@nestjs/platform-express": "^8.3.1",
     "el-bot": "workspace:*",
     "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
     "nodemon": "^2.0.15",
     "npm-run-all": "^4.1.5",
-    "ts-loader": "^9.2.6"
+    "ts-loader": "^9.2.6",
+    "typescript": "^4.5.5"
   }
 }

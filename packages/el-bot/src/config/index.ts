@@ -1,10 +1,9 @@
 import fs from 'fs'
 import path from 'path'
 import { createLogger } from '../bot/logger'
-import { El } from './el'
-import type { BotUserConfig } from './bot'
-import { BotConfig } from './bot'
-export { El, BotConfig }
+import type { BotConfig, BotUserConfig } from './bot'
+import type { ElUserConfig } from './el'
+export * from './el'
 
 const logger = createLogger('[config]')
 
@@ -77,7 +76,7 @@ export async function loadConfigFromFile(
  * 机器人全局配置
  * @param config
  */
-export function defineConfig(config: El): El {
+export function defineConfig(config: ElUserConfig): ElUserConfig {
   return config
 }
 
