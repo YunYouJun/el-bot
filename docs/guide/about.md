@@ -1,4 +1,18 @@
-# 关于我们
+# 关于 el-bot
+
+## 历史
+
+el-bot 在过去（v0.9.x 及之前）是一个自成一体的机器人框架。
+
+el-bot 的实现基于 mirai 的 [mirai-api-http](https://github.com/project-mirai/mirai-api-http)（我为此也编写了 SDK [mirai-ts](https://github.com/YunYouJun/mirai-ts)），
+
+但事实上，在长久的实践后我因为 mirai 经常出现的内存泄漏而不堪其扰，决定将其迁移至 go-cqhttp。
+
+而 [koishi](https://github.com/koishijs/koishi) 已经在这么做了。
+
+> koishi 目前则基于 [onebot](https://onebot.dev/) 协议的 [go-cqhttp](https://github.com/Mrs4s/go-cqhttp)。
+
+因此在未来我决定直接基于 koishi 做一些简化的工作，同时这也可以减少一些与之相同的重复工作。
 
 ## mirai & mirai-console & mirai-api-http & mirai-ts & el-bot 之间的关系
 
@@ -41,7 +55,7 @@ koishi 基于 coolq 的 CQHTTP ，而 el-bot 基于 mirai 的 [mirai-api-http](h
 
 > 详情见 [koishi#平台支持](https://github.com/koishijs/koishi#%E5%B9%B3%E5%8F%B0%E6%94%AF%E6%8C%81)
 
-el-bot 则自始自终没有打算兼容 coolq 且没有 coolq 的历史包袱，所以均直接使用 mirai-api-http 的原生 API，基于的 [mirai-ts](https://github.com/YunYouJun/mirai-ts) 所有 API 均与官方 URL 命名保持一致。
+el-bot 则并没有打算兼容 coolq 且没有 coolq 的历史包袱，所以均直接使用 mirai-api-http 的原生 API，基于的 [mirai-ts](https://github.com/YunYouJun/mirai-ts) 所有 API 均与官方 URL 命名保持一致。
 
 当前 koishi 相比 el-bot 的生态功能要完善许多，而 el-bot 则没有兼容包袱，所以无需额外安装 cqhttp-mirai 或 go-cqhttp 或 [mirai-native](https://github.com/iTXTech/mirai-native)，SDK 直接与 mirai-api-http 进行交互，新特性的支持也可能更快一些。
 
@@ -49,10 +63,10 @@ koishi 的自定义程度很高，有一定的学习成本，而我本身开发 
 
 譬如：
 
-- koishi 提供了 mongodb 与 mysql 的两者数据库插件，并对其进行了一层包裹，需要简单的学习，因此可以实现数据插入删除的兼容。而 el-bot 默认内置了 mongodb 作为数据库（可决定是否启用），并直接暴露 [MongoClient](https://github.com/mongodb/node-mongodb-native) 的对象以供用户操作，同时统一使用 mongodb 以避免多数据库造成的困惑。
+<!-- - koishi 提供了 mongodb 与 mysql 的两者数据库插件，并对其进行了一层包裹，需要简单的学习，因此可以实现数据插入删除的兼容。而 el-bot 默认内置了 mongodb 作为数据库（可决定是否启用），并直接暴露 [MongoClient](https://github.com/mongodb/node-mongodb-native) 的对象以供用户操作，同时统一使用 mongodb 以避免多数据库造成的困惑。
 - koishi 自己实现了 schedule 插件，el-bot 使用 [node-schedule](https://github.com/node-schedule/node-schedule) 实现。
 - koishi 自己实现了一套 cli，el-bot 则基于 [commander.js](https://github.com/tj/commander.js) 实现。
-- ...
+- ... -->
 
 ---
 
