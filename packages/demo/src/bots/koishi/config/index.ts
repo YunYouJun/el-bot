@@ -8,7 +8,8 @@ export const commonPlugins = [
   'status',
 ]
 
-export const selfId = '996955042'
+export const selfId = process.env.BOT_QQ || ''
+
 export const groups = {
   first: {
     name: '机器人测试群',

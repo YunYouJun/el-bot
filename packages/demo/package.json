@@ -33,6 +33,7 @@
     "@koishijs/plugin-insight": "^1.2.0",
     "@koishijs/plugin-logger": "^1.2.1",
     "@koishijs/plugin-manager": "^1.5.3",
+    "@koishijs/plugin-repeater": "^1.0.1",
     "@koishijs/plugin-status": "^5.3.1",
     "@nestjs/common": "^8.3.1",
     "@nestjs/core": "^8.3.1",

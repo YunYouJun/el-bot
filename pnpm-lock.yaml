@@ -72,6 +72,7 @@ importers:
       '@koishijs/plugin-insight': ^1.2.0
       '@koishijs/plugin-logger': ^1.2.1
       '@koishijs/plugin-manager': ^1.5.3
+      '@koishijs/plugin-repeater': ^1.0.1
       '@koishijs/plugin-status': ^5.3.1
       '@nestjs/common': ^8.3.1
       '@nestjs/core': ^8.3.1
@@ -97,6 +98,7 @@ importers:
       '@koishijs/plugin-insight': 1.2.0_0d00811bc77c296ae97e82d3e3e4f442
       '@koishijs/plugin-logger': 1.2.1_0d00811bc77c296ae97e82d3e3e4f442
       '@koishijs/plugin-manager': 1.5.3_260b885e4dd229e9aaa00d6da0a54606
+      '@koishijs/plugin-repeater': 1.0.1_koishi@4.3.1
       '@koishijs/plugin-status': 5.3.1_0d00811bc77c296ae97e82d3e3e4f442
       '@nestjs/common': 8.3.1_79cd8514619af24c470946ac6cf13dd1
       '@nestjs/core': 8.3.1_9c31adb2e992c9946393e4debc3e2469
@@ -730,6 +732,14 @@ packages:
       cross-spawn: 7.0.3
       koishi: 4.3.1
       semver: 7.3.5
+    dev: false
+
+  /@koishijs/plugin-repeater/1.0.1_koishi@4.3.1:
+    resolution: {integrity: sha512-vYgvMmj3Z3cLFxmasb0J0U6G2k0MH7gkd1orqeupoN7lC6wLxNQfQuVuS8PqYTnBEOCqKxGXC3pjlH8G2TDjOg==}
+    peerDependencies:
+      koishi: ^4.2.1
+    dependencies:
+      koishi: 4.3.1
     dev: false
 
   /@koishijs/plugin-status/5.3.1_0d00811bc77c296ae97e82d3e3e4f442:

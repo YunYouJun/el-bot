@@ -27,7 +27,7 @@
     "build:demo": "pnpm run build -C packages/demo",
     "build:api": "pnpm run build:api -C packages/el-bot",
     "dev": "run-p dev:*",
-    "dev:bot": "cd packages/demo && npm run dev",
+    "dev:bot": "cd packages/demo && npm run start:debug",
     "dev:lib": "pnpm run dev -C packages/el-bot",
     "docs:dev": "npm run dev -C docs",
     "docs:build": "pnpm run build -C docs",
