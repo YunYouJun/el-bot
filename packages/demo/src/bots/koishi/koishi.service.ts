@@ -51,6 +51,11 @@ export class KoishiService {
       console.log(e)
       this.logger.error('Some Error')
     }
+
+    // catch unhandledRejection
+    process.on('unhandledRejection', (reason, p) => {
+      console.error('Unhandled Rejection at:', p, 'reason:', reason)
+    })
     return this.app
   }
 
@@ -67,7 +72,7 @@ export class KoishiService {
     // 打断复读
     Repeater.apply(app, {
       onRepeat: (state, session) => {
-        if (state.times >= 3 && Math.random() > 0.5) {
+        if (state.times > 3 && Math.random() > 0.5) {
           if (session.userId && session.guildId)
             session.onebot?.setGroupBan(session.guildId, session.userId, 600).catch(() => this.logger.error('禁言失败！'))
 
