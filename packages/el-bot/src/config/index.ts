@@ -3,7 +3,9 @@ import path from 'path'
 import { createLogger } from '../bot/logger'
 import type { BotConfig, BotUserConfig } from './bot'
 import type { ElUserConfig } from './el'
+
 export * from './el'
+export * from './bot'
 
 const logger = createLogger('[config]')
 

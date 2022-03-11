@@ -6,7 +6,7 @@ import type commander from 'commander'
 import glob from 'glob'
 import { Logger } from '@yunyoujun/logger'
 import shell from 'shelljs'
-import { handleError } from 'el-bot/src/utils/error'
+import { utils } from 'el-bot'
 // 实例目录下的 package.json
 const pkg = require(getAbsolutePath('./package.json'))
 
@@ -53,7 +53,7 @@ export default async function(cli: commander.Command) {
       shell.cd(folder || (pkg.mcl ? pkg.mcl.folder : 'mcl'))
     }
     catch (err) {
-      handleError(err, logger)
+      utils.handleError(err, logger)
       logger.error('mcl 目录不存在')
     }
 
@@ -74,7 +74,7 @@ export default async function(cli: commander.Command) {
           process.stdin.pipe(miraiConsole.stdin)
         }
         catch (err) {
-          handleError(err, logger)
+          utils.handleError(err, logger)
         }
       }
       else {

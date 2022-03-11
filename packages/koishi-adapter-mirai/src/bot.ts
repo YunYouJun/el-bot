@@ -7,7 +7,7 @@ export interface BotConfig extends Bot.BaseConfig, MiraiOptions {}
 export class MiraiBot extends Bot<BotConfig> {
   $innerBot: Mirai
 
-  constructor(adapter: WebSocketClient, app: BotConfig) {
+  constructor(adapter: any, app: BotConfig) {
     super(adapter, app)
     this.$innerBot = new Mirai({ app, ...adapter.config })
   }

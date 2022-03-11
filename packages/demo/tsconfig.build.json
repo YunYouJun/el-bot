@@ -1,4 +1,8 @@
 {
   "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // do not build el-bot in dist
+    "paths": {}
+  },
   "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
 }

@@ -1,3 +1,5 @@
+export * as respondent from './respondent'
+
 export const commonPlugins = [
   'console',
   'dataview',
@@ -6,6 +8,8 @@ export const commonPlugins = [
   // 'logger',
   'manager',
   'status',
+  // https://koishi.js.org/plugins/teach/
+  'teach',
 ]
 
 export const selfId = process.env.BOT_QQ || ''

@@ -6,10 +6,13 @@ import AdapterOnebot from '@koishijs/plugin-adapter-onebot'
 import * as Forward from '@koishijs/plugin-forward'
 import * as Repeater from '@koishijs/plugin-repeater'
 
+// 快捷回复 https://koishi.js.org/plugins/common/respondent.html
+import * as Respondent from '@koishijs/plugin-respondent'
+
 // custom plugin
-import ping from './plugins/ping'
+import * as ping from './plugins/ping'
 // config
-import { commonPlugins, groups, selfId } from './config'
+import * as config from './config'
 
 @Injectable()
 export class KoishiService {
@@ -26,14 +29,13 @@ export class KoishiService {
     // 安装 onebot 适配器插件，并配置机器人
     app.plugin(AdapterOnebot, {
       protocol: 'ws',
-      selfId,
+      selfId: config.selfId,
       endpoint: 'ws://127.0.0.1:6700',
     })
 
-    commonPlugins.forEach((item) => {
+    config.commonPlugins.forEach((item) => {
       app.plugin(item)
     })
-    app.plugin(ping)
 
     this.logger.debug('Init Koishi Plugins')
   }
@@ -60,25 +62,30 @@ export class KoishiService {
   }
 
   loadCustomConfig(app: App) {
+    ping.apply(app)
     Forward.apply(app, {
       rules: [
         {
-          source: `onebot:${groups.first.id}`,
-          target: `onebot:${groups.second.id}`,
-          selfId,
+          source: `onebot:${config.groups.first.id}`,
+          target: `onebot:${config.groups.second.id}`,
+          selfId: config.selfId,
         },
       ],
     })
     // 打断复读
     Repeater.apply(app, {
       onRepeat: (state, session) => {
-        if (state.times > 3 && Math.random() > 0.5) {
+        // console.log(session)
+        // Logger.error('sess', '')
+        // 随着复读次数，禁言概率不断增加
+        if (state.times > 4 && Math.random() < (state.times / 10)) {
           if (session.userId && session.guildId)
-            session.onebot?.setGroupBan(session.guildId, session.userId, 600).catch(() => this.logger.error('禁言失败！'))
+            session.onebot?.setGroupBan(session.guildId, session.userId, state.times * 100).catch(() => this.logger.error('禁言失败！'))
 
           return '打断复读！'
         }
       },
     })
+    Respondent.apply(app, config.respondent.config)
   }
 }

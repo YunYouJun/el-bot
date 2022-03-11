@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 import { spawn } from 'child_process'
-import commander from 'commander'
+import { Command } from 'commander'
 import pkg from '../package.json'
 import registerInstallCommand from './install'
 import registerStartCommand from './start'
 
-const cli = new commander.Command('el')
+const cli = new Command('el')
 cli.version(pkg.version)
 
 registerInstallCommand(cli)
@@ -20,4 +20,4 @@ cli
     spawn('el', ['start', 'bot'], { stdio: 'inherit' })
   })
 
-cli.parse()
+cli.parse(process.argv)
