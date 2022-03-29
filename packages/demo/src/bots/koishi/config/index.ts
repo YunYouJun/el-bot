@@ -1,3 +1,5 @@
+import type { JrmsnOptions } from '../plugins/jrmsn'
+
 export * as respondent from './respondent'
 
 export const commonPlugins = [
@@ -22,5 +24,15 @@ export const groups = {
   second: {
     name: '测试群二号',
     id: 275834309,
+  },
+}
+
+export interface PluginOptions {
+  jrmsn: JrmsnOptions
+
+}
+export const plugins: PluginOptions = {
+  jrmsn: {
+    groups: [389401003],
   },
 }

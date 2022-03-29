@@ -10,6 +10,11 @@
 
 一个基于 [mirai-ts](https://github.com/YunYouJun/mirai-ts)，使用 TS/JS 编写，快速、可配置、可自定义插件的 QQ 机器人框架。
 
+由于 mirai 频繁的内存泄漏，我决定将其迁移至 [go-cqhttp](https://github.com/Mrs4s/go-cqhttp)。
+**正在重构开发中，因此它的很多代码可能已经失效，并将被移除。**
+
+在此之后，它的目标更倾向于成为一个方便快捷启动与配置的工具/模版。
+
 > el-bot 是一个非盈利的开源项目，仅供交流学习使用。请勿用于商业或非法用途，因使用而与腾讯公司产生的一切纠纷均与原作者无关。
 
 - 使用文档：<https://docs.bot.elpsy.cn>
@@ -31,19 +36,19 @@ npm install el-bot
 ```
 
 ```ts
-import { Bot } = from "el-bot";
+import { Bot } from 'el-bot'
 
 const bot = new Bot({
   qq: 114514,
   setting: {
-    host: "localhost",
+    host: 'localhost',
     port: 4859,
-    authKey: "el-psy-congroo",
-    enableWebsocket: true
-  }
+    authKey: 'el-psy-congroo',
+    enableWebsocket: true,
+  },
   // bot: ...
-});
-bot.start();
+})
+bot.start()
 ```
 
 So easy! Right?
@@ -79,15 +84,14 @@ npm install el-bot@latest
 
 ## Thanks
 
-感谢以下项目为 el-bot 提供的开发运行环境与带来的灵感。
-
+- [go-cqhttp](https://github.com/Mrs4s/go-cqhttp)
 - [mirai](https://github.com/mamoe/mirai)
 - [mirai-console](https://github.com/mamoe/mirai-console)
 - [mirai-api-http](https://github.com/mamoe/mirai-api-http)
 - [mirai-ts](https://github.com/YunYouJun/mirai-ts)
 - [koishi](https://github.com/koishijs/koishi)
 
-## 开发
+## 启动
 
 ```sh
 git clone https://github.com/YunYouJun/el-bot
@@ -101,11 +105,19 @@ pnpm i
 cp bot/.env.example .env
 ```
 
-启动 mcl，须已配置 [mirai-console-loader](https://github.com/iTXTech/mirai-console-loader)
+启动 cqhttp
 
-```sh
-npm run mcl
+```bash
+pnpm cqhttp
 ```
+
+### 运行 Demo
+
+```bash
+pnpm demo
+```
+
+## 开发
 
 开发测试（运行起来吧）
 

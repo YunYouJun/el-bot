@@ -8,7 +8,6 @@
     "dev": "run-p watch start",
     "lint": "eslint \"**/*.{ts,js}\"",
     "lint:fix": "eslint \"**/*.{ts,js}\" --fix",
-    "mcl": "cd mcl && ./mcl",
     "start": "cd dist && nodemon index.js",
     "start:bot": "el start bot",
     "start:prod": "npm run build && npm run start",

@@ -13,6 +13,7 @@ import * as Respondent from '@koishijs/plugin-respondent'
 import * as ping from './plugins/ping'
 // config
 import * as config from './config'
+import type { PluginOptions } from './config'
 
 @Injectable()
 export class KoishiService {
@@ -61,7 +62,14 @@ export class KoishiService {
     return this.app
   }
 
-  loadCustomConfig(app: App) {
+  async loadCustomConfig(app: App) {
+    // jrmsn.apply(app,)
+
+    for (const name in config.plugins) {
+      const plugin = await import(`./plugins/${name}`)
+      plugin.apply(app, config.plugins[name as (keyof PluginOptions)])
+    }
+
     ping.apply(app)
     Forward.apply(app, {
       rules: [

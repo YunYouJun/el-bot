@@ -26,6 +26,7 @@
     "build:bot": "pnpm run build -C packages/el-bot",
     "build:demo": "pnpm run build -C packages/demo",
     "build:api": "pnpm run build:api -C packages/el-bot",
+    "demo": "pnpm run dev -C packages/demo",
     "dev": "run-p dev:*",
     "dev:bot": "cd packages/demo && npm run start:debug",
     "dev:lib": "pnpm run dev -C packages/el-bot",
@@ -33,7 +34,6 @@
     "docs:build": "pnpm run build -C docs",
     "lint": "eslint \"**/*.{ts,js}\"",
     "lint:fix": "eslint \"**/*.{ts,js}\" --fix",
-    "mcl": "cd mcl && ./mcl",
     "cqhttp": "cd go-cqhttp && ./go-cqhttp faststart",
     "cqhttp:update": "cd go-cqhttp && ./go-cqhttp update",
     "start": "pnpm start -C packages/demo",
@@ -46,19 +46,19 @@
     ]
   },
   "devDependencies": {
-    "@antfu/eslint-config-ts": "^0.18.8",
-    "@types/node": "^17.0.21",
-    "eslint": "^8.10.0",
+    "@antfu/eslint-config-ts": "^0.18.9",
+    "@types/node": "^17.0.23",
+    "eslint": "^8.12.0",
     "esno": "^0.14.1",
     "husky": "7.0.4",
     "koishi-core": "^3.14.2",
-    "lint-staged": "^12.3.5",
+    "lint-staged": "^12.3.7",
     "nodemon": "^2.0.15",
     "npm-run-all": "^4.1.5",
     "ts-loader": "^9.2.8",
     "ts-node": "^10.7.0",
     "ts-node-dev": "^1.1.8",
-    "typescript": "^4.6.2"
+    "typescript": "^4.6.3"
   },
   "peerDependencies": {
     "koishi-core": "^3.14.2"

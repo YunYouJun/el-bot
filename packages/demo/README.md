@@ -13,3 +13,8 @@
 ```bash
 pnpm cqhttp
 ```
+
+```bash
+# dev
+pnpm dev
+```
