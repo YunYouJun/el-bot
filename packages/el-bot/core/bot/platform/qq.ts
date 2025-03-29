@@ -1,5 +1,6 @@
 import consola from 'consola'
 import { AvailableIntentsEventsEnum, createOpenAPI, createWebsocket, GetWsParam, IMessage, SessionEvents } from 'qq-guild-bot'
+import { createQQApi } from 'qq-sdk'
 
 export type EventType = keyof typeof SessionEvents | keyof typeof AvailableIntentsEventsEnum
 
@@ -25,10 +26,11 @@ export interface QQWebsocketClient extends ReturnType<typeof createWebsocket> {
 /**
  * QQ 机器人平台
  */
-export function createQqSDK(qqConfig: GetWsParam) {
+export function createQQSDK(qqConfig: GetWsParam) {
   const client = createOpenAPI(qqConfig)
   consola.success('🐧 已创建 QQ Client')
 
+  const api = createQQApi(qqConfig)
   const ws = createWebsocket(qqConfig) as QQWebsocketClient
 
   ws.on('READY', (_data) => {
@@ -37,6 +39,7 @@ export function createQqSDK(qqConfig: GetWsParam) {
   consola.success('🐧 已创建 QQ Websocket 链接')
 
   return {
+    api,
     client,
     ws,
   }

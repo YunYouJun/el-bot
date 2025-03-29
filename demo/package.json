@@ -16,8 +16,8 @@
   },
   "devDependencies": {
     "el-bot": "workspace:*",
-    "nodemon": "^3.1.7",
+    "nodemon": "^3.1.9",
     "qq-sdk": "workspace:*",
-    "tsup": "^8.3.0"
+    "tsup": "^8.4.0"
   }
 }

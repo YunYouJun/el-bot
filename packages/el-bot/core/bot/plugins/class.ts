@@ -1,14 +1,15 @@
+import type { Bot } from '..'
 import path from 'node:path'
 import process from 'node:process'
 import consola from 'consola'
 import colors from 'picocolors'
-import { type Bot, BotPlugin, logger } from '..'
+import { logger } from '..'
 
 import { isFunction } from '../../shared'
 import { merge } from '../../utils/config'
 import { handleError } from '../../utils/error'
 import { pluginLogger } from '../logger'
-import { getAllPlugins } from './utils'
+import { getAllPluginsFromDir } from './utils'
 
 export type PluginInstallFunction = (ctx: Bot, ...options: any[]) => any
 
@@ -87,24 +88,20 @@ export class Plugins {
   async loadConfig() {
     const botConfig = this.ctx.el.bot!
     if (botConfig.plugins) {
-      consola.start(`加载配置插件 - 共 ${colors.green(botConfig.plugins.length)} 个...`)
-      consola.log('')
+      consola.start(`加载配置插件[${colors.green(botConfig.plugins.length)}]`, colors.dim('el-bot.config.ts'))
 
-      for (const plugin of botConfig.plugins) {
+      for (let i = 0; i < botConfig.plugins.length; i++) {
+        const plugin = botConfig.plugins[i]
         const pkgName = plugin.pkg?.name || '未知'
         try {
           if (plugin) {
             await plugin.setup(this.ctx)
-            pluginLogger
-              .child({ plugin: pkgName })
-              .success(`加载成功`)
+            consola.log(`${i === botConfig.plugins.length - 1 ? '└─' : '├─'} ${colors.green(pkgName)} ${colors.blue(`v${plugin.pkg?.version}` || '未知版本')}`)
           }
         }
         catch (err: any) {
           handleError(err as Error)
-          pluginLogger
-            .child({ plugin: pkgName })
-            .error(`加载失败`)
+          consola.log(`${i === botConfig.plugins.length - 1 ? '└─' : '├─'} ${colors.red(pkgName)} ${colors.dim('加载失败')}`)
         }
       }
     }
@@ -117,29 +114,26 @@ export class Plugins {
   async loadCustom(pluginDir: string) {
     if (!pluginDir) {
       pluginLogger.warning('未配置自定义插件目录')
+      return
     }
-    else {
-      const absolutePluginDir = path.resolve(process.cwd(), pluginDir)
-      consola.info(`自定义插件目录: ${colors.cyan(absolutePluginDir)}`)
-      const customPlugins = await getAllPlugins(absolutePluginDir)
-      consola.start(`加载自定义插件 - 共 ${colors.green(customPlugins.length)} 个...`)
-      consola.log('')
 
-      for (const pluginItem of customPlugins) {
-        const pluginPath = path.resolve(absolutePluginDir, pluginItem.path)
-        const importedCustomPlugin = (await import(pluginPath)).default
-        let customPlugin: BotPlugin
-        if (typeof importedCustomPlugin === 'function') {
-          // TODO: 传入配置 options
-          customPlugin = importedCustomPlugin({})
-        }
-        else {
-          customPlugin = importedCustomPlugin
-        }
-        await customPlugin.setup(this.ctx)
-        pluginLogger.child({ plugin: pluginItem.name }).success(`加载成功`)
-      }
+    const absolutePluginDir = path.resolve(process.cwd(), pluginDir)
+    const customPlugins = await getAllPluginsFromDir(absolutePluginDir)
+    consola.start(`加载自定义插件[${colors.green(customPlugins.length)}]`, colors.dim(absolutePluginDir))
+
+    // for (const pluginItem of customPlugins) {
+    // get index
+    const pluginsPromiseArr = []
+    for (let i = 0; i < customPlugins.length; i++) {
+      const pluginItem = customPlugins[i]
+      const name = pluginItem.pkg?.name || '未知插件'
+      const version = `v${pluginItem.pkg?.version}` || '未知版本'
+      const description = pluginItem.pkg?.description || ''
+      consola.log(`${i === customPlugins.length - 1 ? '└─' : '├─'} ${colors.green(name)} ${colors.blue(version)} ${colors.dim(description)}`)
+
+      pluginsPromiseArr.push(pluginItem.setup(this.ctx))
     }
+    await Promise.all(pluginsPromiseArr)
   }
 
   /**

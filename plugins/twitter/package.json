@@ -2,6 +2,6 @@
   "name": "@el-bot/plugin-twitter",
   "version": "0.0.1",
   "dependencies": {
-    "rettiwt-api": "^4.1.1"
+    "rettiwt-api": "^4.2.0"
   }
 }

@@ -1,8 +1,22 @@
 {
   "name": "qq-sdk",
   "version": "1.0.0",
-  "main": "src/index.ts",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub"
+  },
   "dependencies": {
-    "axios": "^1.7.7"
+    "axios": "^1.8.4",
+    "qq-guild-bot": "^2.9.5"
+  },
+  "devDependencies": {
+    "unbuild": "^3.5.0"
   }
 }

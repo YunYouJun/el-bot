@@ -1,19 +1,19 @@
 import { consola, defineBotPlugin } from 'el-bot'
 import colors from 'picocolors'
+import { THREAD_FORMAT } from 'qq-sdk'
 
 export default defineBotPlugin({
-  pkg: {
-    name: 'qq',
-  },
   setup: async (ctx) => {
     const { qq } = ctx
     if (!qq)
       return
 
     const { client, ws } = qq
-
-    const { data } = await client.meApi.me()
-    consola.info('QQ 频道机器人', colors.green(data.username), colors.dim(data.union_openid))
+    // 不阻塞插件加载
+    setTimeout(async () => {
+      const { data } = await client.meApi.me()
+      consola.info('QQ 频道机器人', colors.green(data.username), colors.dim(data.union_openid))
+    }, 1)
 
     // const channelsRes = await client.channelApi.channels(ylfTestGuildID)
     // const channels = channelsRes.data as IChannel[]
@@ -21,13 +21,32 @@ export default defineBotPlugin({
     ws.on('GUILD_MESSAGES', (data) => {
       consola.info('GUILD_MESSAGES', data)
 
-      const channelId = data.msg.channel_id
-      // 主动消息不能在00:00:00 - 05:59:59 推送
-      client.messageApi
-        .postMessage(channelId, {
-          content: '2',
-          msg_id: data.msg.id,
+      if (data.msg.content === '1') {
+        const channelId = data.msg.channel_id
+        // 主动消息不能在00:00:00 - 05:59:59 推送
+        client.messageApi
+          .postMessage(channelId, {
+            content: '2',
+            msg_id: data.msg.id,
+          })
+      }
+
+      if (data.msg.content === '发帖') {
+        const channelId = data.msg.channel_id
+        // client.channelApi.channel(channelId)
+        client.request({
+          method: 'GET',
+          url: '/channels/:channelID/threads',
+          rest: {
+            channelID: channelId,
+          },
+          data: {
+            title: '你所热爱的',
+            content: '就是你的生活',
+            format: THREAD_FORMAT.FORMAT_MARKDOWN,
+          },
         })
+      }
 
       // 链接、文本列表模板
       // client.messageApi.postMessage(channelId, {

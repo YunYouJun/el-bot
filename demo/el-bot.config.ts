@@ -52,6 +52,8 @@ export default defineConfig({
      * 传递了无权限的 intents，websocket 会报错
      */
     intents: [
+      // @see https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/send-receive/event.html#%E5%8D%95%E8%81%8A%E6%B6%88%E6%81%AF
+
       // 默认权限
       AvailableIntentsEventsEnum.GUILDS,
       AvailableIntentsEventsEnum.GUILD_MEMBERS,

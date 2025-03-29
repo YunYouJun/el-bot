@@ -10,6 +10,7 @@ export interface BotPlugin {
      * 若 package.json 中不存在，则使用文件名
      */
     name?: string
+    version?: string
     description?: string
     keywords?: string[]
   }

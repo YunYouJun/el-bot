@@ -11,13 +11,13 @@
     "start": "vite-node src/index.ts",
     "start:prod": "nodemon dist/index.js"
   },
+  "dependencies": {
+    "axios": "^1.8.4"
+  },
   "devDependencies": {
     "el-bot": "workspace:*",
-    "nodemon": "^3.1.7",
+    "nodemon": "^3.1.9",
     "qq-sdk": "workspace:*",
-    "tsup": "^8.3.0"
-  },
-  "dependencies": {
-    "axios": "^1.7.7"
+    "tsup": "^8.4.0"
   }
 }

@@ -1,38 +1,38 @@
 import type mongoose from 'mongoose'
 import type { ElConfig, ElUserConfig } from '../config/el'
+// type
+import type { Plugin, PluginInstallFunction } from './plugins/class'
 import path from 'node:path'
 import process from 'node:process'
+import consola from 'consola'
 import fs from 'fs-extra'
 import { createHooks } from 'hookable'
 import { NCWebsocket, Send, Structs } from 'node-napcat-ts'
+
 import colors from 'picocolors'
 import { createOpenAPI } from 'qq-guild-bot'
-
+import yargs from 'yargs'
+import { BotServer, createServer } from '../../node/server'
+import { LiteCycleHook, NapcatMessage } from '../composition-api'
+import { setCurrentInstance } from '../composition-api/lifecycle'
 import { resolveElConfig } from '../config/el'
 import { connectDb } from '../db'
 import { isFunction } from '../shared'
-import { handleError } from '../utils/error'
-import { statement } from '../utils/misc'
-import { Command } from './command'
-import { Plugins } from './plugins'
-import { Sender } from './sender'
-import { Status } from './status'
 
-import { User } from './user'
+import { handleError } from '../utils/error'
 
 // shared
 
 // node
 
-// type
-import type { Plugin, PluginInstallFunction } from './plugins/class'
-import consola from 'consola'
-import yargs from 'yargs'
-import { BotServer, createServer } from '../../node/server'
-import { LiteCycleHook, NapcatMessage } from '../composition-api'
-import { setCurrentInstance } from '../composition-api/lifecycle'
+import { statement } from '../utils/misc'
+import { Command } from './command'
 import { logger } from './logger'
-import { createQqSDK, QQWebsocketClient } from './platform'
+import { createQQSDK, QQWebsocketClient } from './platform'
+import { Plugins } from './plugins'
+import { Sender } from './sender'
+import { Status } from './status'
+import { User } from './user'
 
 export * from './logger'
 export * from './plugins'
@@ -187,7 +187,7 @@ export class Bot {
 
     // init qq
     if (this.el.qq)
-      this.qq = createQqSDK(this.el.qq)
+      this.qq = createQQSDK(this.el.qq)
   }
 
   /**

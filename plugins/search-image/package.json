@@ -10,6 +10,6 @@
   },
   "license": "AGPL-3.0",
   "dependencies": {
-    "sagiri": "^4.1.0"
+    "sagiri": "^4.3.0"
   }
 }
