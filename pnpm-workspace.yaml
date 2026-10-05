@@ -39,6 +39,7 @@ catalog:
   '@nestjs/platform-express': ^12.1.2
   '@octokit/webhooks': ^14.2.0
   '@octokit/webhooks-methods': ^6.0.0
+  '@resvg/resvg-js': ^2.6.2
   '@types/fs-extra': ^11.0.4
   '@types/gradient-string': ^1.1.6
   '@types/html-to-text': ^9.0.4

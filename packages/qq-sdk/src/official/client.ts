@@ -1,4 +1,5 @@
-import type { QQCredentials, QQMarkdownReply } from './types'
+import type { QQCredentials, QQMarkdownReply, QQMediaReply, QQUploadedMedia } from './types'
+import { uploadC2CImage } from './media'
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -123,12 +124,19 @@ export class QQBotClient {
     return url.href
   }
 
-  /** Send a passive C2C text or Markdown reply with a caller-managed sequence. */
-  reply(openId: string, messageId: string, content: string | QQMarkdownReply, sequence: number): Promise<unknown> {
+  /** Upload PNG/JPEG bytes; no public file server or active message is required. */
+  uploadImage(openId: string, data: Uint8Array, fileName = 'image.png'): Promise<QQUploadedMedia> {
+    return uploadC2CImage((path, body) => this.request(path, body), openId, data, fileName)
+  }
+
+  /** Send a passive C2C text, Markdown or media reply with a caller-managed sequence. */
+  reply(openId: string, messageId: string, content: string | QQMarkdownReply | QQMediaReply, sequence: number): Promise<unknown> {
     return this.request(`/v2/users/${encodeURIComponent(openId)}/messages`, {
       ...(typeof content === 'string'
         ? { content, msg_type: 0 }
-        : { msg_type: 2, markdown: content.markdown, keyboard: content.keyboard }),
+        : 'media' in content
+          ? { msg_type: 7, media: content.media, keyboard: content.keyboard }
+          : { msg_type: 2, markdown: content.markdown, keyboard: content.keyboard }),
       msg_id: messageId,
       msg_seq: sequence,
     })

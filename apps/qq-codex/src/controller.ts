@@ -1,6 +1,7 @@
 import type { CodexClient, CodexDesktopClient, CodexSchema, ReviewTarget, RpcNotification, RpcRequest } from '@el-bot/codex'
 import type { C2CMessage, QQBotClient } from 'qq-sdk/official'
 import type {
+  CardImagePublisher,
   FailureCode,
   PendingApproval,
   RemoteConfig,
@@ -41,9 +42,9 @@ export class RemoteController {
     private codex: CodexClient,
     private save: (state: RemoteState) => Promise<void>,
     private onError: (error: unknown) => void,
-    integrations: { schema?: CodexSchema, desktop?: CodexDesktopClient } = {},
+    integrations: { schema?: CodexSchema, desktop?: CodexDesktopClient, images?: CardImagePublisher } = {},
   ) {
-    this.sender = new ReplySender(qq, config.messageFormat, onError)
+    this.sender = new ReplySender(qq, config.messageFormat, onError, integrations.images)
     this.management = new ManagementController(config, codex, integrations.schema, integrations.desktop, () => state.project, () => !!this.active || this.closed || this.stopping, (reply, text) => this.say(reply, text))
     if (config.ownerOpenId && state.owner && config.ownerOpenId !== state.owner) {
       throw new Error(

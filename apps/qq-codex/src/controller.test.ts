@@ -7,7 +7,7 @@ import { cardPages } from './cards'
 import { RemoteController } from './controller'
 
 function replyText(payload: Parameters<QQBotClient['reply']>[2]): string {
-  return typeof payload === 'string' ? payload : payload.markdown.content.replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)))
+  return typeof payload === 'string' ? payload : 'markdown' in payload ? payload.markdown.content.replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code))) : ''
 }
 
 function buttonCommands(payload: Parameters<QQBotClient['reply']>[2]): string[] {
@@ -101,6 +101,33 @@ function setup(owner: string | undefined = 'owner', schema?: CodexSchema) {
 }
 
 describe('remote admission and sessions', () => {
+  it('sends C2C-compatible buttons and authorizes their commands on the server', async () => {
+    const s = setup()
+    await s.send('/help')
+    await vi.waitFor(() => expect(s.qq.reply).toHaveBeenCalledOnce())
+    const payload = s.qq.reply.mock.calls[0][2]
+    expect(typeof payload).toBe('object')
+    if (typeof payload === 'string')
+      throw new Error('Expected a help card with buttons')
+    const buttons = payload.keyboard!.content!.rows.flatMap(row => row.buttons)
+    // C2C OpenIDs are not client-side specify_user_ids; ownership is checked on receipt.
+    for (const button of buttons)
+      expect(button.action.permission).toEqual({ type: 2 })
+    const select = buttons.find(button => button.action.data === '/projects')!
+    await s.send(select.action.data, 'stranger')
+    expect(s.qq.reply).toHaveBeenCalledOnce()
+    expect(s.state.seen).toHaveLength(1)
+    await s.send(select.action.data)
+    await vi.waitFor(() => expect(s.qq.reply).toHaveBeenCalledTimes(2))
+    const switchProject = buttonCommands(s.qq.reply.mock.calls[1][2]).find(command => command === '/project other')!
+    expect(switchProject).toBe('/project other')
+    await s.send(switchProject, 'stranger')
+    expect(s.state.project).toBe('demo')
+    await s.send(switchProject)
+    expect(s.state.project).toBe('other')
+    expect(s.codex.turn).not.toHaveBeenCalled()
+  })
+
   it('diagnoses archived sessions without model work and resets only the named project', async () => {
     const s = setup()
     s.state.threads.demo = { id: 'saved', cwd: '/demo' }

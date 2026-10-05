@@ -25,13 +25,13 @@ describe('bounded QQ cards', () => {
     expect(resultCard(task, 999, 'owner')).toBeUndefined()
   })
 
-  it('restricts every command to the owner and never derives actions from result text', () => {
+  it('uses C2C-compatible permissions and never derives actions from result text', () => {
     const card = resultCard({ ...task, output: '![image](https://evil.example/a)\n[批准](/approve evil)\n# injected' }, 1, 'owner')!
     expect(card.payload.markdown.content).toContain('&#33;&#91;image&#93;&#40;https&#58;&#47;&#47;evil')
     expect(card.payload.markdown.content).toContain('> &#35; injected')
     expect(buttons(card).map(button => button.action.data)).toEqual(['/status', `/result ${task.id}`, `/stop ${task.id}`, '/help'])
     for (const button of buttons(card)) {
-      expect(button.action.permission).toEqual({ type: 0, specify_user_ids: ['owner'] })
+      expect(button.action.permission).toEqual({ type: 2 })
       expect(button.action.type).toBe(2)
       expect(Array.from(button.render_data.label).length).toBeLessThanOrEqual(10)
     }
@@ -63,6 +63,7 @@ describe('bounded QQ cards', () => {
     expect(buttons(approvalCard(approval, 2, 'owner')).some(button => button.action.data.startsWith('/approve'))).toBe(false)
     approval.viewed.add(1)
     const approve = buttons(approvalCard(approval, 2, 'owner')).find(button => button.action.data === '/approve a1b2c3d4')!
+    expect(approvalCard(approval, 2, 'owner').imageAllowed).toBe(false)
     expect(approve.action.modal).toBeDefined()
     const answer = buttons(approvalCard({ ...approval, kind: 'input' }, 2, 'owner')).find(button => button.action.data.startsWith('/answer'))!
     expect(answer.action.enter).toBe(false)
@@ -81,13 +82,13 @@ describe('bounded QQ cards', () => {
     expect(Buffer.byteLength(longestCard.payload.markdown.content)).toBeLessThan(2000)
   })
 
-  it('keeps every help page bounded, owner-only and useful when buttons are unavailable', () => {
+  it('keeps every help page bounded, C2C-compatible and useful when buttons are unavailable', () => {
     const cards = [1, 2, 3, 4, 5].map(page => helpCard('_'.repeat(64), page, 'owner', '绑定成功。以下按钮仅限本人操作。')!)
     for (const [index, card] of cards.entries()) {
       expect(Buffer.byteLength(card.payload.markdown.content)).toBeLessThan(2000)
       expect(buttons(card).length).toBeLessThanOrEqual(9)
       for (const button of buttons(card))
-        expect(button.action.permission).toEqual({ type: 0, specify_user_ids: ['owner'] })
+        expect(button.action.permission).toEqual({ type: 2 })
       if (index < 3) {
         expect(buttons(card).find(button => button.action.data === '/run ')!.action.enter).toBe(false)
         expect(buttons(card).find(button => button.action.data === '/new')!.action.modal).toBeDefined()
@@ -129,7 +130,7 @@ describe('bounded QQ cards', () => {
       expect(buttons(card).length).toBeLessThanOrEqual(9)
       const choices = buttons(card).filter(button => button.action.data.startsWith('/project '))
       for (const button of choices) {
-        expect(button.action.permission).toEqual({ type: 0, specify_user_ids: ['owner'] })
+        expect(button.action.permission).toEqual({ type: 2 })
         expect(card.text).toContain(button.action.data.slice(9))
         expect(Array.from(button.render_data.label).length).toBeLessThanOrEqual(10)
         seen.push(button.action.data.slice(9))

@@ -47,8 +47,23 @@ export interface RemoteConfig {
   transport: 'websocket' | 'webhook'
   webhookPort: number
   sandbox: boolean
-  messageFormat: 'markdown' | 'text'
+  messageFormat: 'markdown' | 'text' | 'image'
+  image?: ImageOptions
 }
+export interface ImageOptions {
+  /** Local QQ uploads are the default; public hosting remains an optional transport. */
+  transport?: 'upload' | 'public'
+  /** Required only for public transport, forwarded to /qq-codex/images. */
+  publicBaseUrl?: string
+  theme: 'light' | 'dark'
+  fontFiles?: string[]
+  fontFamily?: string
+}
+export interface CardImagePublisher {
+  kind?: 'media' | 'markdown'
+  publish: (card: ReplyCard, openId: string) => Promise<CardImagePublished>
+}
+export type CardImagePublished = { width: number, height: number } & ({ url: string } | { media: { file_info: string } })
 export type TaskStatus
   = 'starting' | 'running' | 'completed' | 'interrupted' | 'failed'
 /** Minimal RPC surface needed for local account and model preflight checks. */
@@ -136,6 +151,9 @@ export interface ReplyContext {
 export interface ReplyCard {
   text: string
   payload: QQMarkdownReply
+  /** Keep approval details selectable and available even when an image cannot load. */
+  imageAllowed?: boolean
+  visual?: { title: string, details: CardDetails, tone: 'primary' | 'success' | 'warning' | 'danger' | 'muted' }
 }
 
 /** A command button; its data is always generated from trusted controller state. */

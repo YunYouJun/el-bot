@@ -52,7 +52,7 @@ function event() {
 }
 
 describe('official QQ REST and gateway', () => {
-  it('sends Markdown and owner-scoped command buttons without mutually exclusive text fields', async () => {
+  it('sends Markdown and C2C command buttons without mutually exclusive text fields', async () => {
     let received: unknown
     const { client } = await api(async (req, res) => {
       let body = ''
@@ -66,7 +66,7 @@ describe('official QQ REST and gateway', () => {
     })
     const payload: QQMarkdownReply = {
       markdown: { content: '# 任务状态\n\n已完成' },
-      keyboard: { content: { rows: [{ buttons: [{ id: 'status', render_data: { label: '刷新状态', style: 1 }, action: { type: 2, data: '/status', enter: true, permission: { type: 0, specify_user_ids: ['owner'] } } }] }] } },
+      keyboard: { content: { rows: [{ buttons: [{ id: 'status', render_data: { label: '刷新状态', style: 1 }, action: { type: 2, data: '/status', enter: true, permission: { type: 2 } } }] }] } },
     }
     await client.reply('owner', 'message', payload, 2)
     expect(received).toEqual({ msg_type: 2, markdown: payload.markdown, keyboard: payload.keyboard, msg_id: 'message', msg_seq: 2 })

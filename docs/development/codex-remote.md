@@ -24,7 +24,7 @@
 Codex 命令内置所需的工作区协议实现，运行时不依赖仓库、TypeScript、tsx，
 也不要求单独安装 `qq-sdk` 或 `@el-bot/codex`。原有机器人开发入口保留为 `el-bot dev [root]`。
 
-本文对应 `el-bot@1.0.0-beta.17`。预发布版使用 `next` 标签；安装后先检查版本与子命令：
+本文对应 `el-bot@1.0.0-rc.1`。预发布版使用 `next` 标签；安装后先检查版本与子命令：
 
 ```bash
 pnpm add -g el-bot@next
@@ -46,7 +46,7 @@ pnpm --filter el-bot pack --pack-destination ./dist
 安装生成的包，之后可在任意目录运行：
 
 ```bash
-pnpm add -g ./dist/el-bot-1.0.0-beta.17.tgz
+pnpm add -g ./dist/el-bot-1.0.0-rc.1.tgz
 el-bot --help
 el-bot codex --help
 ```
@@ -54,7 +54,7 @@ el-bot codex --help
 需要固定版本时：
 
 ```bash
-pnpm add -g el-bot@1.0.0-beta.17
+pnpm add -g el-bot@1.0.0-rc.1
 ```
 
 ## 三步开始
@@ -153,7 +153,7 @@ el-bot codex start --config /path/to/config.json --credentials /path/to/bot.env 
 如果 `codex` 不在 PATH，可以设置 `codexExecutable` 为可执行文件的绝对路径。
 `model` 可覆盖本机 Codex 的默认模型。不填写时沿用当前项目的本机配置；桌面应用中的模型名可能不适用于 CLI。
 若检查提示模型不在当前 ChatGPT 账户目录中，将遥控配置的 `model` 设置为检查建议的模型，再重新检查并启动。自定义模型服务及 API Key 账户不套用 ChatGPT 模型目录。
-`messageFormat` 默认是 `markdown`，已有配置无需迁移；设置为 `text` 可始终使用纯文本。
+`messageFormat` 默认是 `markdown`，已有配置无需迁移；设置为 `text` 可始终使用纯文本。`image` 开启[图片卡片](#图片卡片与本地预览)，默认直接上传本地 PNG 到 QQ，无需自建公网图片入口。
 
 凭据文件格式：
 
@@ -301,6 +301,7 @@ QQ 官方于 2026-04-23 向所有机器人开放单聊与群聊自定义 Markdow
 | 结构化问题 | 填写回答，将 `/answer ID ` 放入输入框后自行补齐 JSON；帮助菜单 |
 
 指令按钮发送与手动输入相同的 QQ 指令，仍经过本人校验、去重和单次审批。文档链接按钮直接打开网页。停止按钮绑定具体任务 ID，旧卡片不会误停新任务；批准请求过期或已处理后，旧按钮无效。
+单聊按钮使用 `action.permission.type: 2`，由服务端根据事件中的 `author.user_openid` 校验绑定人。C2C 的 `user_openid` 不能作为客户端 `specify_user_ids` 的用户 ID 使用，否则手机 QQ 可能提示「无权限操作」，指令不会发出。更新并重启服务后，手动发送 `/help` 或 `/status` 获取新卡片；旧卡片的按钮权限不会随服务更新。
 「输入任务」只填入 `/run `，不会自动开始执行。停止和批准带确认提示，服务端仍校验任务或请求是否有效。
 
 卡片展示发送时的快照，点击「刷新状态」会发送新的卡片。任务输出和审批参数以转义后的引用正文显示，保留原文，避免输出中的链接、图片或伪造按钮被当成操作；分页不会丢失文字或拆坏 Unicode 字符。
@@ -318,6 +319,63 @@ QQ 官方于 2026-04-23 向所有机器人开放单聊与群聊自定义 Markdow
 官方还提供蓝底白字（`4`）样式，见[发送单聊消息 API 的 RenderData](https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_messages.post.html)。
 这些是客户端预置样式，无法指定任意 RGB 颜色；[官方 Markdown 支持格式](https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/type/markdown.html)未提供正文文字颜色、背景色或 CSS 接口，也未承诺代码块语法高亮。
 实际呈现由 QQ 客户端决定。本次 macOS QQ 联调中，彩色状态符号、加粗字段和蓝色线框按钮正常显示；API 接受了样式 `3` / `4`，但客户端仍把它们显示为灰色线框。因此主操作选择已验证的蓝色线框。文档展示图用于说明预置样式，不保证每个客户端呈现完全一致。
+
+### 图片卡片与本地预览
+
+图片模式在本机将帮助、项目、任务状态和结果卡片渲染成 PNG，支持浅色 / 深色主题及彩色状态条。默认直接上传到 QQ，以富媒体消息展示图片，再发送一条带原生按钮的简短 Markdown 操作卡片；文字指令和文档链接保留为可复制、可点击内容。
+审批和结构化问题详情继续使用原生 Markdown，确保完整内容可核对、可复制，图片加载失败不会影响审批详情的送达判断。管理 API 的文字结果也沿用原有分页。
+
+先用包含 `render` 子命令的本地构建预览，不需要 QQ 凭据或 Codex 登录：
+
+```bash
+el-bot codex render --card result --theme dark --output ./result.png
+el-bot codex render --card help --page 1 --output ./help.png
+el-bot codex render --card result --text-file ./result.txt --output ./result-preview.png
+```
+
+输出为 PNG，已有文件不会被覆盖。`--font-file`、`--font-family` 可指定本机字体；Linux 主机需安装中文字体，例如 Noto Sans CJK，或提供对应字体文件。默认使用本机字体，不下载字体、不执行结果中的 HTML 或 Markdown 链接。
+
+要在 QQ 中展示，将配置改为：
+
+```json
+{
+  "messageFormat": "image",
+  "image": {
+    "transport": "upload",
+    "theme": "dark"
+  }
+}
+```
+
+此片段合并到已有配置，保留项目、传输方式、凭据和绑定。`theme` 可选 `light` / `dark`，默认 `light`；可额外配置 `fontFiles`（本地字体路径数组）和 `fontFamily`。
+
+只设置 `"messageFormat": "image"` 也可启用默认的浅色上传模式。`image.transport: "upload"` 按官方流程调用 `upload_prepare`，将本地 PNG 分片 PUT 到 QQ 提供的预签名地址，再调用 `upload_part_finish` 和 `files` 完成上传。使用返回的 `file_info` 发送 `msg_type: 7` 图片，随后发送按钮与可复制指令。全程使用 `srv_send_msg: false`，不发送主动消息。每张卡片通常占用两次被动回复；剩余预算不足两次时改用原生 Markdown，不上传图片，总发送尝试仍不超过 4 次。接口见[单聊预上传](https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_id_upload_prepare.post.html)、[分片完成](https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_id_upload_part_finish.post.html)、[上传结果](https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_users_user_openid_files.post.html)。
+
+真实 QQ 联调已验证本地 PNG 上传、平台图片链接可读取及 macOS QQ 富媒体图片展示。当前接口返回从 `1` 开始的分片编号，SDK 同时兼容文档中的从 `0` 开始编号。此机器人使用 `raw_url` 嵌入 Markdown 时，转存校验返回 `40034141`（图片转存失败）；富媒体消息接受键盘字段，但 macOS QQ 未展示按钮，所以直接上传模式分两条消息展示图片和操作卡片。`raw_url` 的有效期由平台决定，本次响应为 24 小时，不作为固定配置。
+
+状态刷新和帮助翻页按钮也已通过 macOS QQ 实机验证。QQ 会把长图缩为缩略图，点击图片可放大查看；可复制指令和文档链接仍在图片后的操作卡片中。
+
+上传模式不启动图片 HTTP 服务，也不接收 QQ 指令中的任意本地文件路径；只上传已经渲染的当前卡片。图片内容会传到 QQ 平台，临时链接有效期由响应 `ttl` 决定；不把预签名地址、`file_info` 或令牌写进运行日志、状态文件。每张 PNG 最大 2 MiB，高度最多 4000 像素，超限回退到 Markdown。链接过期后发送 `/status`、`/result` 或 `/help` 生成新图。使用 Webhook 接收事件时，事件入口仍需公网 HTTPS；WebSocket 接收加直接上传不需要入站公网端口。
+
+如需自行托管图片，可使用以下可选配置：
+
+```json
+{
+  "messageFormat": "image",
+  "webhookPort": 8788,
+  "image": {
+    "transport": "public",
+    "publicBaseUrl": "https://bot.example.com/qq-codex/images",
+    "theme": "dark"
+  }
+}
+```
+
+此模式在 `127.0.0.1:webhookPort` 提供 `/qq-codex/images/<随机编号>.png`，需 HTTPS 反向代理转发图片路径，按平台要求配置图片域名。只配置 `publicBaseUrl` 的旧配置自动选择 `public`，不会改变已有接入方式。代理应只开放所需路径，关闭访问日志和外部缓存。地址使用随机 192 位编号，10 分钟后过期，不包含用户、项目或任务 ID；缓存只在内存中保存，最多 64 张、16 MiB，达到上限时淘汰旧图，退出清除。图片包含任务内容，持有链接即可读取。
+
+`el-bot codex check` 只验证本机 PNG 渲染，不上传或发送图片。公网托管模式仍需验证反向代理与 Markdown 转存；它在一条 Markdown 消息中展示图片和按钮，并设置 `force_verify_image_resource: true`。API 成功响应不能保证所有客户端呈现一致。
+
+渲染、上传失败时，在发送前回退为 Markdown，不消耗回复序号。平台明确拒绝富媒体图片时回退到原生 Markdown；明确拒绝 Markdown 格式时逐级尝试无按钮 Markdown、纯文本。公网图片模式也可降级为无按钮图片；转存校验明确失败时跳过图片，直接使用 Markdown。所有尝试共享既有的 4 次被动回复预算；网络超时、额度、内容审核和未知发送错误仍不自动重发。默认 Markdown 模式不启动图片 HTTP 服务。
 
 ### 可以在频道使用吗？
 

@@ -15,6 +15,7 @@ el-bot codex --profile personal paths
 el-bot codex recover --project my-project
 el-bot codex api --experimental
 el-bot codex desktop-check
+el-bot codex render --card result --theme dark --output ./result.png
 el-bot dev /absolute/path/to/bot
 ```
 
@@ -33,6 +34,8 @@ AI 助手可以使用 `init --no-prompt` 和只读 `check`，见 [AI 快速接�
 审批使用 `/approval ID`、`/approve ID` 和 `/reject ID`；完整列表见 [QQ 命令](/development/codex-remote#qq-命令)。
 
 API 目录、桌面项目与聊天管理见 [Codex Desktop](/codex/desktop)。管理操作使用独立的 `/inspect`、`/confirm` 和 `/cancel`，完整查看后只执行一次。
+
+`codex render` 生成本地 PNG 卡片预览；设置图片模式后默认直接上传到 QQ，无需自建公网图片入口，见[图片卡片](/development/codex-remote#图片卡片与本地预览)。
 
 ## 旧框架的 QQ 文本终端
 

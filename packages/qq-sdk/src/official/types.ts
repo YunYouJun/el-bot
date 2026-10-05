@@ -41,7 +41,21 @@ export interface QQKeyboardButton {
 
 /** A custom Markdown reply; text content must be omitted in the REST request. */
 export interface QQMarkdownReply {
-  markdown: { content: string }
+  markdown: { content: string, force_verify_image_resource?: boolean }
+  keyboard?: QQKeyboard
+}
+
+/** Opaque upload result; raw_url is provided by chunk upload for images. */
+export interface QQUploadedMedia {
+  file_info: string
+  file_uuid?: string
+  ttl: number
+  raw_url?: string
+}
+
+/** A passive rich-media reply, using an upload result for this C2C recipient. */
+export interface QQMediaReply {
+  media: { file_info: string }
   keyboard?: QQKeyboard
 }
 

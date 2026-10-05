@@ -1,13 +1,17 @@
 import type { InitOptions, PathOptions } from './types'
 import { randomUUID } from 'node:crypto'
+import { readFile, writeFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
 import process from 'node:process'
 import { CodexSchema } from '@el-bot/codex'
 import { Command, Option } from 'commander'
 import consola from 'consola'
+import { helpCard, resultCard, statusCard } from './cards'
 import { readConfig } from './config'
 import { readCredentials } from './credentials'
 import { configureDesktop } from './desktop-setup'
 import { diagnose, formatDiagnostics } from './diagnostics'
+import { renderCardImage } from './image'
 import { initialize } from './init'
 import { resolvePaths } from './paths'
 import { checkDesktop, checkLocal, checkQQ, instanceIdentity, startRemote } from './runtime'
@@ -133,6 +137,29 @@ export function registerCodexCommand(program: Command): Command {
       if (opts.method && !schema.methods.includes(opts.method))
         throw new Error('本机 Codex 未提供这个 API。')
       process.stdout.write(`${JSON.stringify(opts.method ? { params: schema.params(opts.method), definitions: schema.schema.definitions } : schema.methods, null, 2)}\n`)
+    })
+  program.command('render')
+    .description('生成本地卡片 PNG 预览；不连接 QQ、不运行模型、不覆盖已有图片')
+    .requiredOption('-o, --output <file>', '输出 PNG 路径')
+    .addOption(new Option('--card <type>', '预览卡片类型').choices(['status', 'result', 'help']).default('status'))
+    .addOption(new Option('--theme <name>', '图片主题').choices(['light', 'dark']).default('light'))
+    .option('--text-file <file>', '读取 UTF-8 结果文字；仅配合 result')
+    .option('--font-file <file>', '额外加载本机字体文件')
+    .option('--font-family <name>', '字体族名称')
+    .option('--page <number>', '帮助或结果页码', '1')
+    .action(async (opts: { output: string, card: string, theme: 'light' | 'dark', textFile?: string, fontFile?: string, fontFamily?: string, page: string }) => {
+      if (opts.textFile && opts.card !== 'result')
+        throw new Error('--text-file 仅用于 result 卡片')
+      const output = opts.textFile ? await readFile(resolve(opts.textFile), 'utf8') : '图片展示已启用。\n中文、代码与操作指令保持原文。\nconst status = "completed"'
+      if (output.length > 100000)
+        throw new Error('预览结果最多 100000 个字符')
+      const page = Number(opts.page)
+      const card = opts.card === 'help' ? helpCard('demo', page, 'preview') : opts.card === 'result' ? resultCard({ id: 'preview', project: 'demo', status: 'completed', output, createdAt: new Date().toISOString() }, page, 'preview') : statusCard('demo', { id: 'preview', project: 'demo', status: 'running', output: '', createdAt: new Date().toISOString() }, [], page, 'preview')
+      if (!card)
+        throw new Error('卡片页码无效')
+      const image = await renderCardImage(card, { theme: opts.theme, ...(opts.fontFile ? { fontFiles: [resolve(opts.fontFile)] } : {}), fontFamily: opts.fontFamily })
+      await writeFile(resolve(opts.output), image.png, { flag: 'wx', mode: 0o600 })
+      consola.success(`已生成 ${image.width}×${image.height} PNG：${resolve(opts.output)}。未发送 QQ 消息。`)
     })
   program.action(async () => {
     const opts = program.opts<{ check?: boolean, checkQq?: boolean }>()

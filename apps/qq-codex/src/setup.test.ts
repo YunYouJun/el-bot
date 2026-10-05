@@ -23,6 +23,26 @@ afterEach(async () => {
 })
 
 describe('cLI configuration and credentials', () => {
+  it('validates image mode, public image URLs, themes and local font files', async () => {
+    const config = join(directory, 'image.json')
+    const base = { projects: { demo: directory }, messageFormat: 'image' }
+    await writeFile(config, JSON.stringify(base))
+    expect((await readConfig(config)).image).toEqual({ transport: 'upload', theme: 'light' })
+    await writeFile(config, JSON.stringify({ ...base, image: { transport: 'upload', theme: 'dark' } }))
+    expect((await readConfig(config)).image).toEqual({ transport: 'upload', theme: 'dark' })
+    for (const image of [{ transport: 'public' }, { transport: 'invalid' }, { transport: 'upload', publicBaseUrl: 'https://bot.example/qq-codex/images' }, { theme: 'invalid' }, 'invalid']) {
+      await writeFile(config, JSON.stringify({ ...base, image }))
+      await expect(readConfig(config)).rejects.toThrow('image')
+    }
+    for (const publicBaseUrl of ['http://bot.example/qq-codex/images', 'https://user:secret@bot.example/qq-codex/images', 'https://bot.example/qq-codex/images?secret=x', 'https://bot.example/wrong']) {
+      await writeFile(config, JSON.stringify({ ...base, image: { publicBaseUrl } }))
+      await expect(readConfig(config)).rejects.toThrow('publicBaseUrl')
+    }
+    await writeFile(config, JSON.stringify({ ...base, image: { publicBaseUrl: 'https://bot.example/qq-codex/images/', theme: 'dark' } }))
+    expect((await readConfig(config)).image).toEqual({ transport: 'public', publicBaseUrl: 'https://bot.example/qq-codex/images', theme: 'dark' })
+    await writeFile(config, JSON.stringify({ ...base, image: { publicBaseUrl: 'https://bot.example/qq-codex/images', fontFiles: ['missing.ttf'] } }))
+    await expect(readConfig(config)).rejects.toThrow()
+  })
   it('initializes private, usable files without leaking credentials or resetting existing setup', async () => {
     const paths = resolvePaths({}, directory, directory)
     vi.stubEnv('QQ_BOT_APP_ID', '12345')

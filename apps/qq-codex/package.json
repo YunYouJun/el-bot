@@ -24,6 +24,7 @@
   "dependencies": {
     "@el-bot/codex": "workspace:*",
     "@hono/node-server": "catalog:",
+    "@resvg/resvg-js": "catalog:",
     "commander": "catalog:",
     "consola": "catalog:",
     "dotenv": "catalog:",

@@ -5,7 +5,7 @@ import { BUTTON_STYLES, DOCUMENTATION_LINKS, HELP_BUTTON, HELP_PAGES, TASK_STATU
 import { failureText } from './failures'
 import { pages } from './text'
 
-function escapeMarkdown(text: string): string {
+export function escapeMarkdown(text: string): string {
   // QQ interprets backslash-parentheses as math. Entities preserve literal punctuation instead.
   return text.replace(/[&\\`*_{}[\]()#+\-.!|~<>$:/="']/g, character => `&#${character.codePointAt(0)};`)
 }
@@ -19,7 +19,7 @@ export function cardPages(text: string): string[] {
   return pages(text, 900, character => Buffer.byteLength(escapeMarkdown(character)) + (character === '\n' ? 2 : 0))
 }
 
-function keyboard(buttons: CardButton[], owner: string): QQKeyboard {
+function keyboard(buttons: CardButton[]): QQKeyboard {
   const rendered = buttons.slice(0, 9).map((button, index) => ({
     id: String(index),
     render_data: { label: Array.from(button.label).slice(0, 10).join(''), style: BUTTON_STYLES[button.tone ?? 'secondary'], ...('url' in button ? { visited_label: button.label } : {}) },
@@ -27,7 +27,8 @@ function keyboard(buttons: CardButton[], owner: string): QQKeyboard {
       ...('url' in button
         ? { type: 0 as const, data: button.url }
         : { type: 2 as const, data: button.command, enter: button.enter ?? true, ...(button.confirmation ? { modal: { content: button.confirmation, confirm_text: '确认', cancel_text: '取消' } } : {}) }),
-      permission: { type: 0 as const, specify_user_ids: [owner] },
+      // C2C OpenIDs do not match the client's specify_user_ids. The controller checks ownership.
+      permission: { type: 2 as const },
       unsupport_tips: 'url' in button ? '请打开消息中的文档链接。' : '请使用消息中的文字指令。',
     },
   }))
@@ -37,7 +38,7 @@ function keyboard(buttons: CardButton[], owner: string): QQKeyboard {
   return { content: { rows } }
 }
 
-function card(title: string, details: CardDetails, buttons: CardButton[], owner: string): ReplyCard {
+function card(title: string, details: CardDetails, buttons: CardButton[], _owner: string): ReplyCard {
   const fields = details.fields ?? []
   const links = details.links ?? []
   const text = [title, ...fields.map(field => `${field.label}：${field.value}`), details.section, details.body, ...links.map(link => `${link.label}：${link.url}`), details.footnote].filter(Boolean).join('\n')
@@ -52,9 +53,10 @@ function card(title: string, details: CardDetails, buttons: CardButton[], owner:
   ].join('\n\n')
   return {
     text,
+    visual: { title, details, tone: title.startsWith('✅') ? 'success' : title.startsWith('🔴') ? 'danger' : title.startsWith('🟡') ? 'warning' : title.startsWith('⏹') ? 'muted' : 'primary' },
     payload: {
       markdown: { content: markdown },
-      keyboard: keyboard(buttons, owner),
+      keyboard: keyboard(buttons),
     },
   }
 }
@@ -182,10 +184,12 @@ export function approvalCard(approval: PendingApproval, page: number, owner: str
     HELP_BUTTON,
   ]
   const command = approval.kind === 'input' ? `/answer ${approval.token} {"问题ID":"回答"}` : `/approve ${approval.token} 或 /reject ${approval.token}`
-  return card(`🟡 ${approval.kind === 'input' ? '待回答' : '待审批'} ${approval.token} (${page}/${approval.pages.length})`, {
+  const rendered = card(`🟡 ${approval.kind === 'input' ? '待回答' : '待审批'} ${approval.token} (${page}/${approval.pages.length})`, {
     fields: [{ label: '范围', value: '仅本次请求' }, { label: '查看进度', value: `(${new Set([...approval.viewed, page]).size}/${approval.pages.length})` }],
     section: approval.kind === 'input' ? '问题详情' : '审批详情',
     body: approval.pages[page - 1],
     footnote: `/approval ${approval.token} 页码\n${command}\n/help 帮助`,
   }, buttons, owner)
+  rendered.imageAllowed = false
+  return rendered
 }

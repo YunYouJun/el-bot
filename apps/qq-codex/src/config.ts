@@ -90,8 +90,51 @@ export async function readConfig(filename: string): Promise<RemoteConfig> {
   }
   if (raw.sandbox !== undefined && typeof raw.sandbox !== 'boolean')
     throw new Error('sandbox must be a boolean')
-  if (raw.messageFormat !== undefined && raw.messageFormat !== 'markdown' && raw.messageFormat !== 'text')
-    throw new Error('messageFormat must be markdown or text')
+  if (raw.messageFormat !== undefined && !['markdown', 'text', 'image'].includes(String(raw.messageFormat)))
+    throw new Error('messageFormat must be markdown, text or image')
+  let image: RemoteConfig['image']
+  if (raw.image !== undefined || raw.messageFormat === 'image') {
+    const settings = raw.image ?? {}
+    if (!isRecord(settings))
+      throw new Error('image must be an object')
+    const transport = settings.transport ?? (settings.publicBaseUrl === undefined ? 'upload' : 'public')
+    if (transport !== 'upload' && transport !== 'public')
+      throw new Error('image.transport must be upload or public')
+    let publicBaseUrl: string | undefined
+    if (transport === 'public') {
+      let url: URL
+      try {
+        if (typeof settings.publicBaseUrl !== 'string')
+          throw new Error('Missing URL')
+        url = new URL(settings.publicBaseUrl)
+      }
+      catch {
+        throw new Error('image.publicBaseUrl must be a public HTTPS URL')
+      }
+      if (url.protocol !== 'https:' || url.href.length > 512 || url.username || url.password || url.search || url.hash || /[()\s]/.test(url.href) || !url.pathname.replace(/\/$/, '').endsWith('/qq-codex/images'))
+        throw new Error('image.publicBaseUrl must end in /qq-codex/images without credentials, query or fragment')
+      publicBaseUrl = url.href.replace(/\/$/, '')
+    }
+    else if (settings.publicBaseUrl !== undefined) {
+      throw new Error('image.publicBaseUrl requires public transport')
+    }
+    if (settings.theme !== undefined && !['light', 'dark'].includes(String(settings.theme)))
+      throw new Error('image.theme must be light or dark')
+    if (settings.fontFamily !== undefined && (typeof settings.fontFamily !== 'string' || !settings.fontFamily || settings.fontFamily.length > 200))
+      throw new Error('image.fontFamily must be a nonempty font family name')
+    const fontFiles: string[] = []
+    if (settings.fontFiles !== undefined) {
+      if (!Array.isArray(settings.fontFiles) || settings.fontFiles.length > 8 || !settings.fontFiles.every(file => typeof file === 'string'))
+        throw new Error('image.fontFiles must contain at most eight local font files')
+      for (const file of settings.fontFiles) {
+        const font = await realpath(resolve(dirname(filename), file))
+        if (!(await stat(font)).isFile())
+          throw new Error('image.fontFiles must reference local files')
+        fontFiles.push(font)
+      }
+    }
+    image = { transport, ...(publicBaseUrl ? { publicBaseUrl } : {}), theme: (settings.theme ?? 'light') as 'light' | 'dark', ...(fontFiles.length ? { fontFiles } : {}), ...(settings.fontFamily ? { fontFamily: settings.fontFamily as string } : {}) }
+  }
   const webhookPort = raw.webhookPort ?? 8788
   if (
     !Number.isInteger(webhookPort)
@@ -117,6 +160,7 @@ export async function readConfig(filename: string): Promise<RemoteConfig> {
     transport: raw.transport ?? 'websocket',
     webhookPort,
     sandbox: raw.sandbox ?? false,
-    messageFormat: raw.messageFormat ?? 'markdown',
+    messageFormat: (raw.messageFormat ?? 'markdown') as RemoteConfig['messageFormat'],
+    image,
   }
 }

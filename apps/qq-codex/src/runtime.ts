@@ -1,4 +1,5 @@
 import type { BotCredentials, RemoteConfig } from './types'
+import { once } from 'node:events'
 import { homedir } from 'node:os'
 import { resolve } from 'node:path'
 import process from 'node:process'
@@ -12,7 +13,11 @@ import {
   QQBotClient,
   QQGateway,
 } from 'qq-sdk/official'
+import { statusCard } from './cards'
 import { RemoteController } from './controller'
+import { renderCardImage } from './image'
+import { CardImageStore } from './image-store'
+import { CardImageUploader } from './image-upload'
 import { checkCodexReadiness } from './readiness'
 import { inspectSessions, sessionSummary } from './sessions'
 import { bindInstance, StateStore } from './store'
@@ -40,6 +45,10 @@ export async function checkDesktop(config: RemoteConfig): Promise<void> {
 
 /** Check local Codex authentication without starting a model turn. */
 export async function checkLocal(config: RemoteConfig, statePath?: string): Promise<void> {
+  if (config.messageFormat === 'image' && config.image) {
+    await renderCardImage(statusCard(config.defaultProject, undefined, [], 1, 'local-check')!, config.image)
+    consola.success(config.image.publicBaseUrl ? '本机图片渲染通过；公网图片入口需另行核验。' : '本机图片渲染通过；发送时直接上传到 QQ，无需公网图片入口。未上传图片、未发送消息。')
+  }
   const codex = createCodexClient(config)
   try {
     await codex.start()
@@ -78,8 +87,11 @@ export async function startRemote(config: RemoteConfig, statePath: string, crede
   const qq = new QQBotClient({ appId, secret, sandbox: config.sandbox })
   const store = new StateStore(statePath)
   const unlock = await store.lock()
+  const imageStore = config.messageFormat === 'image' && config.image?.publicBaseUrl ? new CardImageStore({ ...config.image, publicBaseUrl: config.image.publicBaseUrl }) : undefined
+  const images = imageStore ?? (config.messageFormat === 'image' && config.image ? new CardImageUploader(qq, config.image) : undefined)
   let controller: RemoteController | undefined
   let stopTransport = () => {}
+  let stopHttp = () => {}
   let shuttingDown = false
   const signals = new Map<NodeJS.Signals, () => void>()
   const shutdown = async () => {
@@ -88,10 +100,12 @@ export async function startRemote(config: RemoteConfig, statePath: string, crede
     shuttingDown = true
     for (const [signal, handler] of signals) process.off(signal, handler)
     stopTransport()
+    stopHttp()
     if (controller)
       await controller.close()
     else await codex.close()
     await desktop?.close()
+    imageStore?.close()
     await unlock()
   }
   try {
@@ -113,7 +127,7 @@ export async function startRemote(config: RemoteConfig, statePath: string, crede
         (error instanceof Error ? error.message : 'Protocol operation failed')
           .split(secret).join('[redacted]'),
       ),
-      { schema, desktop },
+      { schema, desktop, images },
     )
     await store.save(state)
     await codex.start()
@@ -128,28 +142,29 @@ export async function startRemote(config: RemoteConfig, statePath: string, crede
         `Pair within 10 minutes by sending this privately to your bot:\n/pair ${remote.pairingCode}`,
       )
     }
-    if (config.transport === 'webhook') {
+    if (config.transport === 'webhook' || imageStore) {
       const app = new Hono()
-      app.use('/qq/events', bodyLimit({ maxSize: 1024 * 1024 }))
-      const handler = createQQWebhookHandler({
-        appId,
-        secret,
-        onMessage: message => remote.accept(message),
-      })
-      app.post('/qq/events', c => handler(c.req.raw))
+      if (imageStore)
+        app.route('/', imageStore.app)
+      if (config.transport === 'webhook') {
+        app.use('/qq/events', bodyLimit({ maxSize: 1024 * 1024 }))
+        const handler = createQQWebhookHandler({ appId, secret, onMessage: message => remote.accept(message) })
+        app.post('/qq/events', c => handler(c.req.raw))
+      }
       const server = serve({
         fetch: app.fetch,
         hostname: '127.0.0.1',
         port: config.webhookPort,
       })
-      stopTransport = () => {
+      stopHttp = () => {
         server.close()
       }
+      await once(server, 'listening')
       consola.success(
-        `QQ webhook listening at http://127.0.0.1:${config.webhookPort}/qq/events. Configure your HTTPS reverse proxy and QQ callback URL.`,
+        `QQ HTTP service listening at http://127.0.0.1:${config.webhookPort}. Configure your HTTPS reverse proxy for the enabled endpoints.`,
       )
     }
-    else {
+    if (config.transport !== 'webhook') {
       const gateway = new QQGateway(qq, {
         onMessage: message => remote.accept(message),
         onError: error => consola.warn(error.message),

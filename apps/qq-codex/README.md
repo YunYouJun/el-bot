@@ -42,6 +42,9 @@ Codex 帮助、AI 接入、实例恢复与 Desktop 管理文档提供完整配�
 版本 API 目录、共享 app-server 与桌面 MCP 管理见 [Codex Desktop 接入](../../docs/codex/desktop.md)。
 `el-bot codex api --experimental` 只生成本机协议；`desktop-init` 配置真实宿主管道与专用聊天，`desktop-check` 只读验证目录与项目列表。
 管理写操作在 QQ 中先 `/inspect ID` 查看全部页，再 `/confirm ID`，不会自动重放。
+
+图片卡片支持浅色 / 深色 PNG 和原生操作按钮。使用包含新命令的构建运行 `el-bot codex render --card result --theme dark --output ./result.png` 本地预览。
+配置 `messageFormat: "image"` 后默认将本地 PNG 直接上传到 QQ，以富媒体图片和紧随其后的操作卡片展示，不需要自建公网图片入口；`image.theme` 可设为 `dark`。每张通常占用两次被动回复，预算不足时使用 Markdown；审批详情始终保留可复制的 Markdown。可选的公网托管模式与限制见[图片卡片](../../docs/development/codex-remote.md#图片卡片与本地预览)。
 `/thread use ID` 绑定当前项目已有会话，`/thread fork` 复制历史；`/review` 审查代码，`/steer` 补充当前任务要求，沿用单任务与逐次审批机制。
 
 AI 助手接入见[可复制提示词](../../docs/codex/ai-setup.md)，功能展示见[示例对话](../../docs/codex/index.md)。
