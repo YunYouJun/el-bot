@@ -45,7 +45,7 @@ description: 从 QQ 私聊安排 Codex 任务，管理桌面项目、聊天、�
 - [管理 Codex Desktop 与版本 API](/codex/desktop)
 - [实例隔离、诊断与恢复](/codex/instances)
 
-安装 `el-bot@next`，或固定 `el-bot@1.0.0-rc.1`；完整步骤见[安装文档](/development/codex-remote#安装-cli)。不需要 YunLeFun 账户。
+安装 `el-bot@next`，或固定 `el-bot@1.0.0-rc.2`；完整步骤见[安装文档](/development/codex-remote#安装-cli)。不需要 YunLeFun 账户。
 
 ## 本地运行的边界
 

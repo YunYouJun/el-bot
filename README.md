@@ -54,7 +54,7 @@ pnpm cli codex start
 
 复制 [AI 快速接入提示词](docs/codex/ai-setup.md#复制给你的-ai-助手)，提供自己的项目路径，
 让本机 Codex、Claude Code 等助手检查环境、执行 `init --no-prompt` 和连接检查。
-AppSecret 在本机填写，QQ 登录与绑定由本人完成。使用 `el-bot@next`，或固定 `el-bot@1.0.0-rc.1`；先检查 `el-bot codex --help`。
+AppSecret 在本机填写，QQ 登录与绑定由本人完成。使用 `el-bot@next`，或固定 `el-bot@1.0.0-rc.2`；先检查 `el-bot codex --help`。
 新实例可用 `--profile personal` 隔离配置、凭据、状态和 Codex 目录，见[实例隔离与恢复](https://docs.bot.elpsy.cn/codex/instances)。无需 YunLeFun 账户。
 
 文档构建自动生成 `llms.txt`、`llms-full.txt` 和原始 Markdown，方便 AI 读取同版本接入说明。

@@ -24,7 +24,7 @@
 Codex 命令内置所需的工作区协议实现，运行时不依赖仓库、TypeScript、tsx，
 也不要求单独安装 `qq-sdk` 或 `@el-bot/codex`。原有机器人开发入口保留为 `el-bot dev [root]`。
 
-本文对应 `el-bot@1.0.0-rc.1`。预发布版使用 `next` 标签；安装后先检查版本与子命令：
+本文对应 `el-bot@1.0.0-rc.2`。预发布版使用 `next` 标签；安装后先检查版本与子命令：
 
 ```bash
 pnpm add -g el-bot@next
@@ -46,7 +46,7 @@ pnpm --filter el-bot pack --pack-destination ./dist
 安装生成的包，之后可在任意目录运行：
 
 ```bash
-pnpm add -g ./dist/el-bot-1.0.0-rc.1.tgz
+pnpm add -g ./dist/el-bot-1.0.0-rc.2.tgz
 el-bot --help
 el-bot codex --help
 ```
@@ -54,7 +54,7 @@ el-bot codex --help
 需要固定版本时：
 
 ```bash
-pnpm add -g el-bot@1.0.0-rc.1
+pnpm add -g el-bot@1.0.0-rc.2
 ```
 
 ## 三步开始
@@ -209,6 +209,7 @@ pnpm cli codex start
 | `context`：上下文或会话预算达到上限 | 保留必要背景，发送 `/new`，用较短提示开始 |
 | `network`：模型连接失败 | 检查本机网络、代理和模型服务 |
 | `timeout` / `connection`：本机连接不可用 | 检查 Codex 进程，重启遥控服务 |
+| `stop-unconfirmed`：无法确认命令终止 | 服务已停止接收新任务；在本机检查并结束该任务的命令进程，核对 Codex 终端控制接口支持后重启。不能将此状态视为命令已停止 |
 | `unknown`：未识别原因 | 运行 `el-bot codex check --all`，核对本机账户、模型与项目配置 |
 
 登录信息可读取不代表访问令牌一定有效；切换 Codex 账户后，已有遥控进程可能仍持有旧凭据，需要重新登录并重启。
@@ -402,6 +403,9 @@ Codex 使用 `workspace-write` 沙箱、`on-request` 审批策略和用户审批
 停止任务会拒绝未处理的请求。暂不支持的额外权限请求、MCP elicitation 和未知工具请求会被拒绝，不会自动放行。
 
 `/stop` 在任务启动阶段也有效；如果正在等待 `thread/start`，完成握手后不会再提交提示词。
+RC.2 在中断轮次后，按当前任务的命令编号列出并终止仍运行的终端，确认它们不再运行后才报告「已中断」。等待确认期间不接收新任务；确认失败则返回 `stop-unconfirmed` 并暂停执行入口，不清理其他任务的终端。
+
+此停止逻辑内部使用 `thread/backgroundTerminals/list` 与 `thread/backgroundTerminals/terminate`，已在 Codex CLI 0.154.0 验证。它需要在握手中启用实验协议能力，但不会因此开放通用实验管理 API；后者仍要求显式配置 `experimentalApi`。宿主不支持终端控制时，停止会明确失败。该确认覆盖 Codex 跟踪的命令终端，不能保证停止命令自行分离或转交给外部服务的工作。
 Codex 进程退出或请求超时后，服务停止接收新的执行任务，仍允许查询已有结果。修复本机配置并重启后再继续。
 
 ## 消息、状态与重启
