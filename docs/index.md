@@ -42,7 +42,7 @@ el-bot codex start
 需要 Node.js 22.18+、已登录的 Codex CLI 和 QQ 官方机器人。首次启动后，在 QQ 私聊发送终端显示的 `/pair ...` 绑定码。
 
 ::: info 当前发布状态
-使用 `pnpm add -g el-bot@next` 安装，或固定 `el-bot@1.0.0-beta.17`。完整步骤见[安装文档](/development/codex-remote#安装-cli)，多实例与归档恢复见[实例隔离与恢复](/codex/instances)。
+使用 `pnpm add -g el-bot@next` 安装，或固定 `el-bot@1.0.0-rc.1`。完整步骤见[安装文档](/development/codex-remote#安装-cli)，多实例与归档恢复见[实例隔离与恢复](/codex/instances)。
 :::
 
 ## 让 AI 帮你完成接入

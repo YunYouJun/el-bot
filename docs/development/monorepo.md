@@ -117,9 +117,9 @@ npm trust github el-bot --repo YunYouJun/el-bot --file release.yml --allow-publi
 1. 提交并推送本次代码，确保默认分支 `dev` 的 CI 通过，且工作区干净。
 2. 运行 `pnpm release`，在交互中选择尚未发布的版本；该命令只更新 `packages/el-bot/package.json`，生成 Conventional Commit、`v<版本>` 标签并推送。
 3. 标签触发工作流：校验标签与包版本一致、确认 npm 不存在该版本，然后执行 lint、构建、类型检查、测试、文档构建和安装包测试。
-4. prerelease 版本（例如 `1.0.0-beta.17`）发布到 `next`，正式版本发布到 `latest`；npm 发布成功后生成 GitHub Release。
+4. prerelease 版本（例如 `1.0.0-rc.1`）发布到 `next`，正式版本发布到 `latest`；npm 发布成功后生成 GitHub Release。
 
-本次版本为 `1.0.0-beta.17`，对应标签 `v1.0.0-beta.17` 和 npm `next`。已存在的 npm 版本不能覆盖，后续发布须选择新版本。
+本次版本为 `1.0.0-rc.1`，对应标签 `v1.0.0-rc.1` 和 npm `next`。已存在的 npm 版本不能覆盖，后续发布须选择新版本。
 若其他包后续需要独立发布，应分别配置 Trusted Publisher 和版本流程；当前工作流只发布 `el-bot`。
 
 本地可检查安装包，但不能证明 GitHub OIDC 已获 npm 授权：

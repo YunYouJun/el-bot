@@ -22,7 +22,7 @@ el-bot codex start
 无需安装 Java、Mirai 或 NapCat。首次启动后，在 QQ 私聊发送终端显示的绑定码。
 
 ::: info 发布状态
-使用 `pnpm add -g el-bot@next` 安装，或固定 `el-bot@1.0.0-beta.17`，见[安装文档](/development/codex-remote#安装-cli)。新实例使用 `--profile`，见[实例隔离与恢复](/codex/instances)。
+使用 `pnpm add -g el-bot@next` 安装，或固定 `el-bot@1.0.0-rc.1`，见[安装文档](/development/codex-remote#安装-cli)。新实例使用 `--profile`，见[实例隔离与恢复](/codex/instances)。
 预发布版发布后安装 `el-bot@next`，正式版安装 `el-bot@latest`。
 :::
 

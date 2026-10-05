@@ -15,7 +15,7 @@ head:
 QQ 平台登录、密钥填写和首次 `/pair` 绑定由你在自己的设备上完成。
 
 ::: info 版本与实例
-使用 `el-bot@next`，或固定 `el-bot@1.0.0-beta.17`。先检查版本和子命令，再按[安装说明](/development/codex-remote#安装-cli)继续。
+使用 `el-bot@next`，或固定 `el-bot@1.0.0-rc.1`。先检查版本和子命令，再按[安装说明](/development/codex-remote#安装-cli)继续。
 新实例推荐使用 `--profile personal`；独立 Codex 登录、AppID 校验与恢复见[实例隔离与恢复](/codex/instances)。无需 YunLeFun 账户。
 :::
 
