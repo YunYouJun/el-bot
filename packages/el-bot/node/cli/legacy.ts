@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process'
+import { realpath } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
 import process from 'node:process'
@@ -11,8 +12,13 @@ import process from 'node:process'
  */
 export async function runLegacy(args: string[]): Promise<void> {
   const require = createRequire(import.meta.url)
-  const entry = resolve(dirname(require.resolve('el-bot')), 'bin/legacy.ts')
-  const child = spawn(process.execPath, [require.resolve('vite-node/cli'), '--script', entry, ...args], { stdio: 'inherit' })
+  // Normalize Windows short paths before Vite resolves its environment module.
+  const [entry, executable, cwd] = await Promise.all([
+    realpath(resolve(dirname(require.resolve('el-bot')), 'bin/legacy.ts')),
+    realpath(require.resolve('vite-node/cli')),
+    realpath(process.cwd()),
+  ])
+  const child = spawn(process.execPath, [executable, '--script', entry, ...args], { cwd, stdio: 'inherit' })
   const interrupt = () => {
     child.kill('SIGINT')
   }

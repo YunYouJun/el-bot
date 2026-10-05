@@ -132,3 +132,8 @@ npm publish ./dist/el-bot-<版本>.tgz --dry-run --access public --tag next --ig
 
 只有真实 GitHub Actions 发布成功，并能在 registry 查询新版本，才算发布链路验证完成。
 参考：[npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/)、[npm trust](https://docs.npmjs.com/cli/v11/commands/npm-trust/)。
+
+### 旧依赖的已知限制
+
+本次升级固定了旧依赖链中可兼容升级的 `form-data`、`qs` 和 `js-yaml` 修复版。工作区的旧 `plugins/feeder` 仍使用停止维护的 `rss-feed-emitter` / `request`，存在 `request`、`tough-cookie`、`uuid` 上游告警；该插件不包含在本次 `el-bot` 发布包中。
+旧框架的文件匹配依赖 `fast-glob` / `micromatch`，其 `braces` 依赖仍有[深层模式导致栈耗尽的告警](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)，截至本次发布没有上游修复版。勿将不可信输入直接用作文件匹配模式。Codex 遥控入口不使用该匹配链路；本次发布并不声明整个旧框架已清除全部审计告警。
