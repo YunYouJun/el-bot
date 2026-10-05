@@ -25,6 +25,13 @@
     "el-bot-web": "https://github.com/ElpsyCN/el-bot-web"
   },
   "scripts": {
+    "icons:generate": "pnpm --filter @el-bot/client icons:generate",
+    "icons:check": "pnpm --filter @el-bot/client icons:check",
+    "client:dev": "pnpm --filter @el-bot/client desktop:dev",
+    "client:build": "pnpm --filter @el-bot/client desktop:build",
+    "menubar:dev": "pnpm client:dev",
+    "menubar:build": "pnpm client:build",
+    "clients:build": "./script/build_clients.sh",
     "build": "pnpm --filter \"./packages/*\" --filter \"./apps/*\" -r --if-present run build",
     "build:lib": "pnpm build",
     "build:demo": "pnpm -C demo run build",

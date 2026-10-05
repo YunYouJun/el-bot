@@ -1,0 +1,18 @@
+{
+  "name": "@el-bot/client",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "icons:generate": "node scripts/generate-icons.mjs",
+    "icons:check": "node scripts/generate-icons.mjs --check",
+    "dev": "vite --host 127.0.0.1 --port 1420",
+    "build": "vue-tsc --noEmit && vite build",
+    "typecheck": "vue-tsc --noEmit",
+    "tauri": "tauri",
+    "desktop:dev": "pnpm icons:generate && tauri dev",
+    "desktop:build": "pnpm icons:generate && tauri build"
+  },
+  "dependencies": { "@tauri-apps/api": "catalog:", "@yunlefun/ui": "catalog:", "@yunlefun/vue": "catalog:", "vue": "catalog:" },
+  "devDependencies": { "@resvg/resvg-js": "catalog:", "@tauri-apps/cli": "catalog:", "@vitejs/plugin-vue": "catalog:", "sass": "catalog:", "typescript": "catalog:", "vite": "catalog:", "vue-tsc": "catalog:" }
+}

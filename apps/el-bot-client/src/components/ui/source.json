@@ -1,0 +1,10 @@
+{
+  "repository": "https://github.com/YunLeFun/design",
+  "registry": "ylf-agent",
+  "files": {
+    "agent.ts": "395d7637d907c72d0b5c1ab931a963a5594af17c817ae52908d370c6a7009e66",
+    "YlfAgentStatus.vue": "861b7bdba7af4dc1827d40a5d72923fa2b1ab879eb75d49e0d27cd9a6c9dc54e",
+    "YlfAgentCard.vue": "f4c195870917775799f37c7b5a5bff124a6883a7a04686a2c35c5f7ec5fa5aa9",
+    "YlfAgentTask.vue": "182913ed8d5881b4d1daeb59ed194cc4ae40c0f7ca3107d28696988835d7467b"
+  }
+}

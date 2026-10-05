@@ -40,6 +40,8 @@ catalog:
   '@octokit/webhooks': ^14.2.0
   '@octokit/webhooks-methods': ^6.0.0
   '@resvg/resvg-js': ^2.6.2
+  '@tauri-apps/api': ^2.12.1
+  '@tauri-apps/cli': ^2.12.1
   '@types/fs-extra': ^11.0.4
   '@types/gradient-string': ^1.1.6
   '@types/html-to-text': ^9.0.4
@@ -53,6 +55,9 @@ catalog:
   '@types/xml2js': ^0.4.14
   '@types/yargs': ^17.0.35
   '@unocss/eslint-plugin': ^66.10.5
+  '@vitejs/plugin-vue': ^6.0.9
+  '@yunlefun/ui': 0.0.6
+  '@yunlefun/vue': 0.4.2
   ajv: ^8.20.0
   axios: ^1.20.0
   bumpp: ^12.3.0

@@ -10,7 +10,7 @@ export default defineConfig({
     ['link', { rel: 'describedby', href: '/llms.txt' }],
   ],
   themeConfig: {
-    logo: '/favicon.svg',
+    logo: '/brand/el-bot-mark.svg',
     socialLinks: [{ icon: 'github', link: 'https://github.com/YunYouJun/el-bot' }],
     editLink: { pattern: 'https://github.com/YunYouJun/el-bot/edit/dev/docs/:path', text: '编辑此页' },
     search: { provider: 'local' },
@@ -134,6 +134,7 @@ export default defineConfig({
       "/development/": [
         { text: "工作区与发布", link: "/development/monorepo" },
         { text: "QQ 遥控 Codex", link: "/development/codex-remote" },
+        { text: "本机桌面客户端", link: "/development/client-tool" },
         { text: "AI 快速接入", link: "/codex/ai-setup" },
         { text: "管理 Codex Desktop", link: "/codex/desktop" },
         { text: "实例隔离与恢复", link: "/codex/instances" },

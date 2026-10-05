@@ -1,0 +1,40 @@
+[
+  {
+    "name": "el-bot-mark",
+    "product": "el-bot",
+    "variant": "mark",
+    "title": "el-bot",
+    "titleZh": "el-bot 机器人",
+    "description": "透明画布上的机器人主体，保留天线和双竖眼的识别特征。",
+    "category": "utility",
+    "style": "color",
+    "tags": ["bot", "机器人", "qq", "codex", "desktop", "mark"],
+    "website": "https://docs.bot.elpsy.cn/",
+    "source": {
+      "repository": "YunYouJun/el-bot",
+      "ref": "dev",
+      "path": "assets/brand/el-bot-mark.svg",
+      "url": "https://github.com/YunYouJun/el-bot/blob/dev/assets/brand/el-bot-mark.svg",
+      "sync": true
+    }
+  },
+  {
+    "name": "el-bot-app-icon",
+    "product": "el-bot",
+    "variant": "app-icon",
+    "title": "el-bot",
+    "titleZh": "el-bot 机器人",
+    "description": "满幅蓝色背景与白色机器人主体组成的无遮罩方形应用图标。",
+    "category": "utility",
+    "style": "color",
+    "tags": ["bot", "机器人", "qq", "codex", "desktop", "app-icon"],
+    "website": "https://docs.bot.elpsy.cn/",
+    "source": {
+      "repository": "YunYouJun/el-bot",
+      "ref": "dev",
+      "path": "assets/brand/el-bot-app-icon.svg",
+      "url": "https://github.com/YunYouJun/el-bot/blob/dev/assets/brand/el-bot-app-icon.svg",
+      "sync": true
+    }
+  }
+]
