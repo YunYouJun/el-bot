@@ -16,7 +16,7 @@ describe('local card image rendering and delivery leases', () => {
     expect(image.png.readUInt32BE(20)).toBe(image.height)
     expect(image.width).toBe(720)
     expect(image.height).toBeLessThanOrEqual(4000)
-  })
+  }, 15000) // Native font discovery can be slow on a cold Windows runner.
 
   it('wraps Unicode without losing text and escapes hostile SVG and remote images', () => {
     const output = '<image href="https://evil.example"/><script>alert(1)</script>\n中文👩‍💻'.repeat(4)
