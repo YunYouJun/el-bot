@@ -1,4 +1,4 @@
-import { logger } from 'packages/el-bot'
+import { logger } from 'el-bot'
 
 /**
  * @deprecated

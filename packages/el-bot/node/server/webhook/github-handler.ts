@@ -20,12 +20,12 @@ export interface handler extends EventEmitter {
  */
 export function githubHandler(ctx: Bot) {
   const config = {
-    secret: ctx.el.webhook?.secret || 'el-psy-congroo',
+    secret: ctx.el.server.webhooks.octokit.secret || 'el-psy-congroo',
   }
 
   const handler = new octokit.Webhooks(config)
   const middleware = octokit.createNodeMiddleware(handler, {
-    path: ctx.el.webhook?.path || '/webhook',
+    path: ctx.el.server.webhooks.octokit.middlewareOptions?.path || '/webhook',
   })
 
   handler.onError((err) => {

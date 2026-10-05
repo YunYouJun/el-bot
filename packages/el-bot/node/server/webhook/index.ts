@@ -1,13 +1,14 @@
+import type { Hono } from 'hono'
+import type { Bindings } from '../hono'
 import { Buffer } from 'node:buffer'
 import { createNodeMiddleware } from '@octokit/webhooks'
 import consola from 'consola'
-import { BotServer } from '../hono'
-import { createOctokitWebhooks } from './octokit'
-import { WebhooksOptions } from './types'
-
 // import * as octokit from '@octokit/webhooks'
 // import { githubHandler } from './github-handler'
 import colors from 'picocolors'
+import { createOctokitWebhooks } from './octokit'
+
+import { WebhooksOptions } from './types'
 
 export * from './types'
 
@@ -16,7 +17,7 @@ export * from './types'
  * - github
  * @param app
  */
-export function createWebhooks(app: BotServer, options: WebhooksOptions) {
+export function createWebhooks(app: Hono<{ Bindings: Bindings }>, options: WebhooksOptions) {
   const path = options.octokit.middlewareOptions?.path || '/api/github/webhooks'
   consola.success(`🪝  Webhooks enabled: ${colors.green(`http://localhost:${options.port}${path}`)}`)
 
@@ -29,7 +30,7 @@ export function createWebhooks(app: BotServer, options: WebhooksOptions) {
    */
   const middleware = createNodeMiddleware(webhooks, options.octokit.middlewareOptions)
   // for post return
-  app.post('/api/github/webhooks', async (ctx) => {
+  app.post(path, async (ctx) => {
     const req = ctx.env.incoming
     const res = ctx.env.outgoing
     // console.log('before ctx.body', ctx.body)
@@ -43,4 +44,5 @@ export function createWebhooks(app: BotServer, options: WebhooksOptions) {
       return ctx.body('GitHub Webhook')
     }
   })
+  return webhooks
 }

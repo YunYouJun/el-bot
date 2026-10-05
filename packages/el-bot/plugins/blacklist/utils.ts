@@ -1,7 +1,7 @@
-import { Friend } from '../../db/schemas/friend.schema'
+import { Friend } from '../../core/db/schemas/friend.schema'
 // import mongoose from "mongoose";
 // const Friend = mongoose.models.Friend;
-import { Group } from '../../db/schemas/group.schema'
+import { Group } from '../../core/db/schemas/group.schema'
 
 type BlockType = 'qq' | 'user' | 'friend' | 'group'
 

@@ -1,140 +1,83 @@
 # 快捷指南
 
-## 介绍
+el-bot 提供 QQ 机器人框架和统一 CLI。先根据用途选择入口：
 
-[![npm](https://img.shields.io/npm/v/el-bot?logo=npm)](https://www.npmjs.com/package/el-bot)&nbsp;
-[![GitHub package.json dependency version (subfolder of monorepo)](https://img.shields.io/github/package-json/dependency-version/YunYouJun/el-bot/mirai-ts?filename=packages%2Fel-bot%2Fpackage.json&logo=typescript)](https://github.com/YunYouJun/mirai-ts)&nbsp;
-[![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/ElpsyCN/el-bot)](https://github.com/ElpsyCN/el-bot)&nbsp;
-[![QQ Group](https://img.shields.io/badge/QQ%20Group-707408530-12B7F5?logo=tencent-qq)](https://shang.qq.com/wpa/qunwpa?idkey=5b0eef3e3256ce23981f3b0aa2457175c66ca9194efd266fd0e9a7dbe43ed653)&nbsp;
-[![Telegram](https://img.shields.io/badge/Telegram-elpsy__cn-blue?logo=telegram)](https://t.me/elpsy_cn)&nbsp;
-[![GitHub](https://img.shields.io/github/license/YunYouJun/el-bot)](https://github.com/YunYouJun/el-bot/blob/master/LICENSE)
+| 需求 | 接入方式 |
+| --- | --- |
+| 用 QQ 遥控本机 Codex | [完整安装与接入](/development/codex-remote)，使用 QQ 官方机器人 |
+| 让本机 AI 助手帮忙配置 | [AI 快速接入](/codex/ai-setup)，复制提示词后提供项目路径 |
+| 编写 QQ 机器人、加载自定义插件 | 以下框架指南，默认使用 NapCat |
 
-> 这是啥？
+## QQ 遥控 Codex
 
-一个基于 [mirai-ts](https://github.com/YunYouJun/mirai-ts)，运行于 Node.js，使用 TypeScript 编写实现的优雅、可配置的 QQ 机器人框架。
-
-~~适合于认为 JavaScript/TypeScript 是世界上最好的语言的用户~~
-
-[一份无关紧要的开发历程](https://www.yunyoujun.cn/note/make-el-bot/)
-
-### Feature
-
-el-bot 展示了整个 mirai-ts 的使用流程，并内置了一些如自动应答、转发、命令行、RSS 等常用功能（默认插件），开箱即用。
-
-你只需要一些自定义的配置，而不再需要编写繁琐的脚本内容。
-
-但这并不是束缚，在插件系统中你仍然可以调用机器人所有的上下文，并通过编写插件的形式快速实现你想要的功能。
-
-**el-bot 有什么好处？**
-
-- 使用 JavaScript 这一解释型语言，所以可以较为方便地实现运行时动态加载插件。
-- 使用函数式编程的思想，专注于实现常用的小功能，并很容易插入你自定义的插件。
-- 优雅的控制台信息显示。
-- 她还提供了一些常用的脚本，譬如启动与自动登录 mirai-console，webhook 等。
-
-::: warning
-由于种种原因，本项目将不再提供安装 [mirai](https://github.com/mamoe/mirai) 的脚本与方法，你应当具有自行安装并启动 mirai 的能力。
-:::
-
-## 开始
-
-首先，你必须得有 [Java](https://www.java.com/zh_CN/) 与 [Node.js](https://nodejs.org/zh-cn/download/) 环境。
-
-::: tip
-你也可以直接参考或使用 [el-bot-template](https://github.com/ElpsyCN/el-bot-template)。（推荐，仅阅读 README 即可快读开始。）
-即便你不用它，你也可以参考一下它的 [package.json](https://github.com/ElpsyCN/el-bot-template/blob/master/package.json) 配置启动脚本。
-:::
-
-<chat-panel title="聊天记录">
-  <chat-message :id="910426929" nickname="云游君" >El Psy Congroo</chat-message>
-  <chat-message :id="712727945" nickname="小云" >Link Start!</chat-message>
-</chat-panel>
-
-## 安装
-
-mirai 1.0 版本以上推荐使用官方启动器 [mirai-console-loader](https://github.com/iTXTech/mirai-console-loader) 自行启动 [mirai](https://github.com/mamoe/mirai) 与 [mirai-api-http](https://github.com/mamoe/mirai-api-http) 插件。
+安装包含新版 CLI 的 `el-bot` 后运行：
 
 ```bash
-npm install el-bot
-# yarn add el-bot
+el-bot codex init --project /absolute/path/to/my-project --name my-project
+el-bot codex check --all
+el-bot codex start
 ```
 
-::: tip
+需要 Node.js 22.18+、已登录的 Codex CLI，以及 QQ 官方机器人的 AppID / AppSecret。
+无需安装 Java、Mirai 或 NapCat。首次启动后，在 QQ 私聊发送终端显示的绑定码。
 
-因为国内速度较慢，你可以考虑切换为淘宝镜像源（但包的同步，可能有所延迟）：
-
-```bash
-npm config set registry https://registry.npm.taobao.org
-```
-
+::: info 发布状态
+使用 `pnpm add -g el-bot@next` 安装，或固定 `el-bot@1.0.0-beta.17`，见[安装文档](/development/codex-remote#安装-cli)。新实例使用 `--profile`，见[实例隔离与恢复](/codex/instances)。
+预发布版发布后安装 `el-bot@next`，正式版安装 `el-bot@latest`。
 :::
 
-目录结构请参考 [el-bot-template](https://github.com/ElpsyCN/el-bot-template) ![GitHub package.json version](https://img.shields.io/github/package-json/v/elpsycn/el-bot-template) 或直接使用它生成你的机器人。
+## 机器人框架
 
-> 0.8.0 新增：`setting` 可以是 mirai-api-http `setting.yml` 的路径
-> 如 `setting: './mcl/config/net.mamoe.mirai-api-http/setting.yml'`
-
-```js
-// index.js
-const Bot = require("el-bot");
-
-const bot = new Bot({
-  qq: 114514,
-  // 推荐
-  setting: './mcl/config/net.mamoe.mirai-api-http/setting.yml',
-  // 您也可以按照其格式，手动书写对应 JSON
-  // bot: ...
-});
-bot.start();
-```
-
-So easy! Right?
-
-## 配置
-
-你可以使用 JSON 编写配置文件，也可以考虑一下简洁而强大的 [YAML](https://baike.baidu.com/item/YAML/1067697)。
-
-> [YAML 语言教程](https://www.ruanyifeng.com/blog/2016/07/yaml.html)
-
-`YAML` 是一种专攻配置的语言，可读性高（JSON 有时确实让人眼花缭乱不是么？）。（
-
-> `mirai-api-http` 同样也使用该语言配置 `setting.yml`。
-
-当然你还可以自由组合你的配置。（**编写配置时，请务必注意你的层级和缩进。**）
-
-譬如：
+框架默认使用 [NapCatQQ](https://napneko.github.io/) 连接 QQ。先配置并启动 NapCat 的正向 WebSocket 服务，
+再在自己的 ESM 项目中安装框架：
 
 ```bash
-.
-└── el
-    ├── index.js
-    └── index.yml
+pnpm add el-bot
 ```
 
-```js
-require("dotenv").config();
-const { resolve } = require("path");
-const { utils } = require("el-bot");
+在项目目录创建 `el-bot.config.ts`，连接信息与 NapCat 的设置一致：
 
-module.exports = {
-  qq: parseInt(process.env.BOT_QQ),
-  setting: {
-    enableWebsocket: true
+```ts
+import { defineConfig } from 'el-bot'
+
+export default defineConfig({
+  napcat: {
+    protocol: 'ws',
+    host: '127.0.0.1',
+    port: 3001,
+    accessToken: '', // 在本机配置，与 NapCat 一致
   },
-  // 0.8.0 后 config 字段被重命名为 bot
   bot: {
-    plugins: utils.config.parse(resolve(__dirname, "./index.yml"))
-  }
-};
+    master: [], // 填写自己的 QQ 账号
+    plugins: [],
+    pluginDir: 'plugins',
+  },
+})
 ```
 
-阅读后续内容以使用更多的特性吧。
-
-## 升级
+从配置所在目录启动：
 
 ```bash
-npm install el-bot@latest
-# yarn add el-bot@latest
+pnpm exec el-bot dev .
 ```
 
-el-bot 只是一个依赖库，意味着你可以基于此以任意的方式定制你的机器人。
+也可以在 TypeScript 入口中调用框架：
+
+```ts
+import { createBot } from 'el-bot'
+
+const bot = await createBot()
+await bot.start()
+```
+
+该 API 从当前目录读取 `el-bot.config.ts`，在支持 TypeScript 的运行器中使用。
+插件接入见[扩展功能](/guide/extend)。当前部分插件仍依赖 Mirai，应核对各插件的适配要求；
+旧版 Mirai 配置不能直接当作 NapCat 配置使用，迁移范围见[工作区文档](/development/monorepo#依赖与兼容性)。
+
+## 升级与迁移
+
+升级前保留自己的配置、插件与状态。框架更新使用 `pnpm update el-bot`；Codex CLI 更新后先运行
+`el-bot codex --help` 与 `el-bot codex paths`，确认命令和文件路径，再做连接检查。
+此前独立 QQ Codex 包由统一 CLI 替代，沿用原有配置及 `--state` 路径即可保留绑定和会话。
+
+[CLI 命令](/guide/cli) · [版本发布](https://github.com/YunYouJun/el-bot/releases) · [参与开发](/development/monorepo)

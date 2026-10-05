@@ -1,17 +1,17 @@
-import { VPTheme } from "vitepress-theme-you";
+import type { Theme } from 'vitepress'
+import DefaultTheme from 'vitepress/theme'
+import CodexShowcase from '../components/codex/CodexShowcase.vue'
+import ChatAvatar from '../components/ChatAvatar.vue'
+import ChatMessage from '../components/ChatMessage.vue'
+import ChatPanel from '../components/ChatPanel.vue'
+import './custom.scss'
 
-import "./custom.scss";
-
-import ChatAvatar from "../components/ChatAvatar.vue";
-import ChatMessage from "../components/ChatMessage.vue";
-import ChatPanel from "../components/ChatPanel.vue";
-
-import 'uno.css'
-
-export default Object.assign({}, VPTheme, {
+export default {
+  extends: DefaultTheme,
   enhanceApp({ app }) {
-    app.component("ChatAvatar", ChatAvatar);
-    app.component("ChatMessage", ChatMessage);
-    app.component("ChatPanel", ChatPanel);
+    app.component('CodexShowcase', CodexShowcase)
+    app.component('ChatAvatar', ChatAvatar)
+    app.component('ChatMessage', ChatMessage)
+    app.component('ChatPanel', ChatPanel)
   },
-})
+} satisfies Theme

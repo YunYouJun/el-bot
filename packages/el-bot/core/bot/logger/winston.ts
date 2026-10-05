@@ -56,7 +56,7 @@ export function createLogger() {
         const printedMessage = message instanceof Object ? JSON.stringify(message, null, 2) : message
         const content = [
           namespace,
-          chalk.yellow(`[${dayjs(timestamp).format('HH:mm:ss')}]`),
+          chalk.yellow(`[${dayjs(String(timestamp)).format('HH:mm:ss')}]`),
           `${pluginPrefix}[${level}]${printedMessage}`,
         ]
         return content.join(' ')

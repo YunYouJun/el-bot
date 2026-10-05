@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "private": true,
-  "description": "这只是一个开发用的测试机器人。",
+  "description": "\u8fd9\u53ea\u662f\u4e00\u4e2a\u5f00\u53d1\u7528\u7684\u6d4b\u8bd5\u673a\u5668\u4eba\u3002",
   "author": {
     "name": "YunYouJun",
     "email": "me@yunyoujun.cn",
@@ -18,23 +18,22 @@
     "start:prod": "nodemon dist/main",
     "build": "nest build",
     "lint": "eslint .",
-    "dev": "npm run start:dev",
+    "dev": "pnpm start:dev",
     "test": "ts-node src/index.ts"
   },
   "dependencies": {
-    "@nestjs/common": "^11.0.12",
-    "@nestjs/core": "^11.0.12",
-    "@nestjs/platform-express": "^11.0.12",
-    "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.1",
+    "@nestjs/common": "catalog:",
+    "@nestjs/core": "catalog:",
+    "@nestjs/platform-express": "catalog:",
+    "class-transformer": "catalog:",
+    "class-validator": "catalog:",
     "el-bot": "workspace:*",
-    "reflect-metadata": "^0.2.2"
+    "reflect-metadata": "catalog:"
   },
   "devDependencies": {
-    "@nestjs/cli": "^11.0.5",
-    "nodemon": "^3.1.9",
-    "npm-run-all": "^4.1.5",
-    "ts-loader": "^9.5.2",
-    "typescript": "^5.8.2"
+    "@nestjs/cli": "catalog:",
+    "nodemon": "catalog:",
+    "ts-loader": "catalog:",
+    "typescript": "catalog:"
   }
 }

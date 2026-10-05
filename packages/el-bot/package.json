@@ -1,8 +1,8 @@
 {
   "name": "el-bot",
   "type": "module",
-  "version": "1.0.0-beta.16",
-  "description": "A quick qq bot framework for mirai.",
+  "version": "1.0.0-beta.17",
+  "description": "QQ bot framework and local Codex remote control CLI",
   "author": {
     "name": "云游君",
     "email": "me@yunyoujun.cn",
@@ -12,7 +12,8 @@
   "homepage": "https://docs.bot.elpsy.cn/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YunYouJun/el-bot"
+    "url": "git+https://github.com/YunYouJun/el-bot.git",
+    "directory": "packages/el-bot"
   },
   "bugs": {
     "url": "https://github.com/YunYouJun/el-bot/issues"
@@ -25,83 +26,101 @@
     "qq",
     "framework"
   ],
+  "imports": {
+    "#qq-sdk": {
+      "types": "./dist/qq-sdk.d.mts",
+      "default": "./dist/qq-sdk.mjs"
+    }
+  },
   "exports": {
-    ".": "./index.ts"
+    ".": "./index.ts",
+    "./nest": "./core/nest/index.ts"
   },
   "main": "./index.ts",
   "types": "./index.ts",
   "bin": {
-    "el": "bin/el-bot.ts",
-    "el-bot": "bin/el-bot.ts"
+    "el": "./dist/cli.mjs",
+    "el-bot": "./dist/cli.mjs"
   },
   "files": [
     "bin",
     "core",
+    "dist",
     "index.ts",
     "node",
     "plugins",
     "types"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=22.18.0"
   },
   "mcl": {
     "folder": "mcl"
   },
   "scripts": {
-    "build:api": "npx typedoc",
-    "dev": "npm run watch",
-    "release": "bumpp && npm publish"
+    "build:api": "typedoc",
+    "dev": "vite-node --watch bin/legacy.ts",
+    "release": "pnpm -w release",
+    "build": "tsdown",
+    "prepack": "pnpm build"
   },
   "dependencies": {
-    "@hono/node-server": "^1.14.0",
-    "@octokit/webhooks": "^13.8.0",
-    "@octokit/webhooks-methods": "^5.1.1",
-    "c12": "^3.0.2",
-    "commander": "^13.1.0",
-    "consola": "^3.4.2",
-    "dayjs": "^1.11.13",
-    "download": "^8.0.0",
-    "events": "^3.3.0",
-    "fast-glob": "^3.3.3",
-    "fs-extra": "^11.3.0",
-    "gradient-string": "^3.0.0",
-    "hono": "^4.7.5",
-    "hookable": "^5.5.3",
-    "html-to-text": "^9.0.5",
-    "js-yaml": "^4.1.0",
-    "mirai-ts": "^2.4.8",
-    "mongoose": "^8.13.1",
-    "node-napcat-ts": "^0.4.9",
-    "node-schedule": "^2.1.1",
-    "picocolors": "^1.1.1",
-    "progress": "^2.0.3",
-    "qq-guild-bot": "^2.9.5",
-    "qrcode": "^1.5.4",
-    "rss-parser": "^3.13.0",
-    "shelljs": "^0.9.2",
-    "vite-node": "^3.0.9",
-    "winston": "^3.17.0",
-    "yargs": "^17.7.2"
+    "@hono/node-server": "catalog:",
+    "@nestjs/common": "catalog:",
+    "@octokit/webhooks": "catalog:",
+    "@octokit/webhooks-methods": "catalog:",
+    "ajv": "catalog:",
+    "axios": "catalog:",
+    "c12": "catalog:",
+    "chalk": "catalog:",
+    "commander": "catalog:",
+    "consola": "catalog:",
+    "dayjs": "catalog:",
+    "dotenv": "catalog:",
+    "enquirer": "catalog:",
+    "events": "catalog:",
+    "fast-glob": "catalog:",
+    "fs-extra": "catalog:",
+    "gradient-string": "catalog:",
+    "hono": "catalog:",
+    "hookable": "catalog:",
+    "html-to-text": "catalog:",
+    "js-yaml": "catalog:",
+    "mirai-ts": "catalog:",
+    "mongoose": "catalog:",
+    "node-napcat-ts": "catalog:",
+    "node-schedule": "catalog:",
+    "picocolors": "catalog:",
+    "progress": "catalog:",
+    "qq-guild-bot": "catalog:",
+    "qrcode": "catalog:",
+    "rss-parser": "catalog:",
+    "shelljs": "catalog:",
+    "tweetnacl": "catalog:",
+    "vite-node": "catalog:",
+    "winston": "catalog:",
+    "ws": "catalog:",
+    "yargs": "catalog:"
   },
   "devDependencies": {
-    "@types/download": "^8.0.5",
-    "@types/fs-extra": "^11.0.4",
-    "@types/gradient-string": "^1.1.6",
-    "@types/html-to-text": "^9.0.4",
-    "@types/js-yaml": "^4.0.9",
-    "@types/node": "^22.13.14",
-    "@types/node-schedule": "^2.1.7",
-    "@types/progress": "^2.0.7",
-    "@types/qrcode": "^1.5.5",
-    "@types/shelljs": "^0.8.15",
-    "@types/xml2js": "^0.4.14",
-    "@types/yargs": "^17.0.33",
-    "cross-env": "^7.0.3",
-    "dotenv": "^16.4.7",
-    "tsup": "^8.4.0",
-    "typedoc": "^0.28.1",
-    "typescript": "^5.8.2"
+    "@el-bot/qq-codex": "workspace:*",
+    "@types/fs-extra": "catalog:",
+    "@types/gradient-string": "catalog:",
+    "@types/html-to-text": "catalog:",
+    "@types/js-yaml": "catalog:",
+    "@types/node": "catalog:",
+    "@types/node-schedule": "catalog:",
+    "@types/progress": "catalog:",
+    "@types/qrcode": "catalog:",
+    "@types/shelljs": "catalog:",
+    "@types/xml2js": "catalog:",
+    "@types/yargs": "catalog:",
+    "cross-env": "catalog:",
+    "qq-sdk": "workspace:*",
+    "tsdown": "catalog:",
+    "typedoc": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:"
   },
   "directories": {
     "lib": "https://github.com/YunYouJun/mirai-ts"
@@ -112,5 +131,9 @@
     "el-bot-docs": "https://github.com/ElpsyCN/el-bot-docs",
     "el-bot-template": "https://github.com/ElpsyCN/el-bot-template",
     "el-bot-web": "https://github.com/ElpsyCN/el-bot-web"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }

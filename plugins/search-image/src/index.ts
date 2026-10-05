@@ -9,14 +9,14 @@ import * as sagiri from 'sagiri'
  */
 interface SearchImageOptions {
   token: string
-  options?: sagiri.Options
+  options?: Parameters<typeof sagiri.default>[1]
 }
 
 /**
  *
  * @param result 格式化结果
  */
-function formatResult(result: sagiri.SagiriResult): MessageType.MessageChain {
+function formatResult(result: Awaited<ReturnType<ReturnType<typeof sagiri.default>>>[number]): MessageType.MessageChain {
   if (!result)
     return []
   const msgChain = [

@@ -1,0 +1,35 @@
+{
+  "name": "@el-bot/codex",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Local Codex app-server client for el-bot",
+  "license": "AGPL-3.0",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "prepack": "pnpm build"
+  },
+  "dependencies": {
+    "ajv": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "publint": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  }
+}

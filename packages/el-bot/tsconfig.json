@@ -1,12 +1,19 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "lib": ["ESNext"],
+    "lib": [
+      "ESNext"
+    ],
     "baseUrl": ".",
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "paths": {
-      "el-bot": ["index.ts"]
+      "el-bot": [
+        "index.ts"
+      ],
+      "#qq-sdk": [
+        "../qq-sdk/src/index.ts"
+      ]
     },
     "resolveJsonModule": true,
     "types": [

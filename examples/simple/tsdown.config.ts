@@ -1,9 +1,10 @@
-import { defineConfig } from 'tsup'
+import { defineConfig } from 'tsdown'
 
 export default defineConfig({
   entry: ['src/index.ts'],
   clean: true,
+  fixedExtension: false,
   // dts: true,
   format: ['esm'],
-  shims: false,
+  deps: { neverBundle: ['el-bot', 'qq-sdk'] },
 })

@@ -2,10 +2,10 @@ import type { MessageType } from 'mirai-ts'
 import type nodeSchdule from 'node-schedule'
 import type * as Config from '../../types/config'
 import axios from 'axios'
-import { Send } from 'node-napcat-ts'
+import { SendMessageSegment } from 'node-napcat-ts'
 import { renderString } from '../../core/utils'
 
-export type ReplyContent = string | Send[keyof Send][]
+export type ReplyContent = string | SendMessageSegment[]
 
 interface BaseAnswerOptions {
   /**

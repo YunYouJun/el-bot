@@ -12,6 +12,6 @@
     "db": true
   },
   "dependencies": {
-    "rss-feed-emitter": "^3.2.3"
+    "rss-feed-emitter": "catalog:"
   }
 }

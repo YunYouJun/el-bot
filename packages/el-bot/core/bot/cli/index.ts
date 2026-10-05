@@ -1,4 +1,4 @@
-import type commander from 'commander'
+import type { Command as CliCommand } from 'commander'
 /**
  * 面向开发者的终端
  * @packageDocumentation
@@ -14,7 +14,7 @@ import { aboutInfo } from './utils'
  * 处理全局选项
  */
 export async function processOptions(
-  program: commander.Command,
+  program: CliCommand,
   ctx: Bot,
   msg: MessageType.ChatMessage,
 ) {

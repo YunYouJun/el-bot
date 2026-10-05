@@ -1,12 +1,12 @@
 import type { Bot } from 'el-bot'
 import type * as Config from '../../types/config'
-import { renderString } from '../../utils'
+import { renderString } from '../../core/utils'
 
 interface ReportOptions {
   /**
    * 报告事件类型
    */
-  type: string
+  type: Parameters<NonNullable<Bot['webhook']>['on']>[0]
   /**
    * 报告对象
    */

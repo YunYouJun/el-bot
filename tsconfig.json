@@ -1,34 +1,36 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    /* Visit https://aka.ms/tsconfig.json to read more about this file */
-
-    /* Basic Options */
-    "target": "ESNext",
-    "lib": [
-      "ESNext"
-    ],
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "baseUrl": ".",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
     "paths": {
-      "el-bot": ["packages/el-bot/index.ts"],
-      "qq-sdk": ["packages/qq-sdk/src/index.ts"]
+      "el-bot": [
+        "packages/el-bot/index.ts"
+      ],
+      "qq-sdk": [
+        "packages/qq-sdk/src/index.ts"
+      ],
+      "@el-bot/codex": [
+        "packages/codex/src/index.ts"
+      ],
+      "qq-sdk/official": [
+        "packages/qq-sdk/src/official/index.ts"
+      ],
+      "#qq-sdk": [
+        "packages/qq-sdk/src/index.ts"
+      ]
     },
-    // custom
-    "resolveJsonModule": true,
     "allowJs": true,
-    "strict": true,
     "noUnusedLocals": true,
-    "declaration": true,
-    "outDir": "./dist",
-    "removeComments": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "forceConsistentCasingInFileNames": true
   },
-  "include": ["**/*.ts"],
-  "exclude": ["dist", "node_modules", "**/*.spec.ts"]
+  "include": [
+    "**/*.ts"
+  ],
+  "exclude": [
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/*.spec.ts"
+  ]
 }

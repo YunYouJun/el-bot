@@ -1,4 +1,18 @@
 {
   "name": "@el-bot/cli",
-  "version": "0.0.1"
+  "type": "module",
+  "version": "0.0.1",
+  "dependencies": {
+    "axios": "catalog:",
+    "commander": "catalog:",
+    "el-bot": "workspace:*",
+    "fs-extra": "catalog:",
+    "progress": "catalog:",
+    "shelljs": "catalog:"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "catalog:",
+    "@types/progress": "catalog:",
+    "@types/shelljs": "catalog:"
+  }
 }

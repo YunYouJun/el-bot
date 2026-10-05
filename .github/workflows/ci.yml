@@ -2,31 +2,64 @@ name: CI
 
 on:
   push:
-    branches:
-      - master
-      - dev
+    branches: [master, dev]
+  pull_request:
+    branches: [master, dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
+  lint:
+    name: Lint and full typecheck
     runs-on: ubuntu-latest
-
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
-          run_install: true
-
-      - name: Use Node.js LTS
-        uses: actions/setup-node@v4
-        with:
-          node-version: 'lts/*'
-          registry-url: https://registry.npmjs.org/
+          node-version-file: .node-version
           cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
 
-      - name: Lint
-        run: pnpm lint
+  test:
+    name: Build and test packages
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm typecheck:packages
+      - run: pnpm test
+      - run: pnpm test:cli
 
-      - name: TypeCheck
-        run: pnpm typecheck
+  docs:
+    name: Build docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm docs:build

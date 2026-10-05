@@ -6,35 +6,112 @@ on:
       - 'v*'
 
 permissions:
-  contents: write
-  id-token: write
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      archive: ${{ steps.release.outputs.archive }}
+      dist_tag: ${{ steps.release.outputs.dist_tag }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         with:
-          fetch-depth: 0
+          persist-credentials: false
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
-          run_install: true
+          node-version-file: .node-version
+          package-manager-cache: false
 
-      # after pnpm
-      - name: Use Node.js LTS
-        uses: actions/setup-node@v4
+      - name: Validate release tag and unpublished version
+        id: release
+        env:
+          RELEASE_REF: ${{ github.ref_name }}
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict'
+          import { appendFile, readFile } from 'node:fs/promises'
+          const { name, version } = JSON.parse(await readFile('packages/el-bot/package.json', 'utf8'))
+          assert.equal(name, 'el-bot')
+          assert.match(version, /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/)
+          assert.equal(process.env.RELEASE_REF, `v${version}`, 'Git tag must match packages/el-bot/package.json')
+          const response = await fetch(`https://registry.npmjs.org/${name}/${version}`, { signal: AbortSignal.timeout(15000) })
+          assert.equal(response.status, 404, response.ok ? `${name}@${version} is already published` : `Registry check failed: HTTP ${response.status}`)
+          const distTag = version.includes('-') ? 'next' : 'latest'
+          await appendFile(process.env.GITHUB_OUTPUT, `archive=./dist/${name}-${version}.tgz\ndist_tag=${distTag}\n`)
+          NODE
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm build
+      - run: pnpm typecheck
+      - run: pnpm typecheck:packages
+      - run: pnpm test
+      - run: pnpm docs:build
+      - run: pnpm --filter el-bot pack --pack-destination ./dist
+      - name: Test the exact package that will be published
+        env:
+          RELEASE_ARCHIVE: ${{ steps.release.outputs.archive }}
+        run: pnpm test:cli "$RELEASE_ARCHIVE"
+
+      - uses: actions/upload-artifact@v7
         with:
-          node-version: 'lts/*'
+          name: npm-package
+          path: ${{ steps.release.outputs.archive }}
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
           registry-url: https://registry.npmjs.org/
-          cache: pnpm
-
-      - run: cd packages/el-bot && npm publish --access public
+          package-manager-cache: false
+      - name: Use an npm CLI with trusted publishing support
+        run: npm install --global npm@11.16.0 --ignore-scripts --no-audit --no-fund
+      - uses: actions/download-artifact@v8
+        with:
+          name: npm-package
+          path: dist
+      - name: Publish through npm OIDC
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-          NPM_CONFIG_PROVENANCE: true
+          RELEASE_ARCHIVE: ${{ needs.build.outputs.archive }}
+          RELEASE_DIST_TAG: ${{ needs.build.outputs.dist_tag }}
+        run: npm publish "$RELEASE_ARCHIVE" --access public --tag "$RELEASE_DIST_TAG" --provenance --ignore-scripts
 
-      - run: npx changelogithub
+  github-release:
+    needs: [build, publish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Create GitHub release notes
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_REF: ${{ github.ref_name }}
+          RELEASE_DIST_TAG: ${{ needs.build.outputs.dist_tag }}
+        run: |
+          args=(--verify-tag --generate-notes)
+          if [ "$RELEASE_DIST_TAG" != latest ]; then
+            args+=(--prerelease)
+          fi
+          gh release create "$RELEASE_REF" "${args[@]}"

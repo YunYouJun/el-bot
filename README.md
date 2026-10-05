@@ -8,13 +8,56 @@
 [![GitHub](https://img.shields.io/github/license/YunYouJun/el-bot)](https://github.com/YunYouJun/el-bot/blob/master/LICENSE)
 ![node-current](https://img.shields.io/node/v/el-bot)
 
-一个基于 Bun，使用 TS 编写，快速、可配置、可自定义插件的 QQ 机器人框架。
+一个基于 Node.js、使用 TypeScript 编写的可配置 QQ 机器人框架，采用 pnpm monorepo 管理。
 
 > el-bot 是一个非盈利的开源项目，仅供交流学习使用。请勿用于商业或非法用途。
 > 本项目为个人学习项目，与腾讯公司并无关联。
 
 - 使用文档：<https://docs.bot.elpsy.cn>
 - API 文档：<https://www.yunyoujun.cn/el-bot/>
+
+## QQ 遥控 Codex
+
+通过 `el-bot codex` 子命令遥控本机 Codex，随 `el-bot` 包提供，支持 QQ 官方私聊绑定、项目/会话切换、任务停止、审批和结果查询。
+
+源码中可以直接运行：
+
+```bash
+pnpm install
+pnpm build
+pnpm cli codex init --project /absolute/path/to/project
+pnpm cli codex check --all
+pnpm cli codex start
+```
+
+`init` 交互填写 AppID / AppSecret，默认配置位于 `~/.el-bot`，密钥隐藏输入且不会写入仓库。
+可通过 `pnpm --filter el-bot pack --pack-destination ./dist` 生成独立安装包；
+安装后直接使用 `el-bot codex init`、`el-bot codex check`、`el-bot codex start`，无需克隆仓库。
+当前改动不代表新包已发布到 npm。
+
+完整安装、迁移和命令说明见 [QQ 遥控 Codex](docs/development/codex-remote.md)。
+
+在 QQ 中的使用示例：
+
+```text
+/project my-project
+检查 README 的安装步骤，修正文档里的过期命令
+/status
+/result
+继续补充 Windows 用户的安装说明
+```
+
+每个项目保留独立会话，需要升级权限时使用 `/approval` 查看请求，再逐次 `/approve` 或 `/reject`。
+查看[功能展示](docs/codex/index.md)了解任务、审批和续聊流程。
+
+### 让 AI 帮你接入
+
+复制 [AI 快速接入提示词](docs/codex/ai-setup.md#复制给你的-ai-助手)，提供自己的项目路径，
+让本机 Codex、Claude Code 等助手检查环境、执行 `init --no-prompt` 和连接检查。
+AppSecret 在本机填写，QQ 登录与绑定由本人完成。使用 `el-bot@next`，或固定 `el-bot@1.0.0-beta.17`；先检查 `el-bot codex --help`。
+新实例可用 `--profile personal` 隔离配置、凭据、状态和 Codex 目录，见[实例隔离与恢复](https://docs.bot.elpsy.cn/codex/instances)。无需 YunLeFun 账户。
+
+文档构建自动生成 `llms.txt`、`llms-full.txt` 和原始 Markdown，方便 AI 读取同版本接入说明。
 
 ## ⚠️ BREAKING CHANGES (REFACTORING)
 
@@ -23,8 +66,9 @@
 - QQ
   - 迁移 [mirai](https://github.com/mamoe/mirai) 至 [NapCatQQ](https://github.com/NapNeko/NapCatQQ)
   - 迁移 [mirai-ts](https://github.com/YunYouJun/mirai-ts) 至 [node-napcat-ts](https://github.com/huankong-team/node-napcat-ts)
-- 使用 TypeScript 作为一等公民，使用 Bun 作为默认运行时，不再支持 JS（如需要，可自行编译）
-- 使用 [bun](https://bun.sh/) 替代 pnpm
+- 使用 Node.js 与 TypeScript，pnpm 统一管理工作区和依赖目录。
+- 工程约定参考 [starter-monorepo](https://github.com/YunYouJun/starter-monorepo)：共享依赖 catalog、tsdown、Vitest 和 ESLint。
+- QQ 官方机器人遥控 Codex 随统一 CLI 提供；私有 `apps/qq-codex` 模块不单独发布，使用步骤与社区参考见[接入文档](./docs/development/codex-remote.md)。
 
 ## 开始
 
@@ -32,18 +76,12 @@
 
 - [NapCatQQ](https://github.com/NapNeko/NapCatQQ)
 
-### 安装 Bun
+### 环境与安装
 
-```bash
-# Windows
-powershell -c "irm bun.sh/install.ps1 | iex"
-# Linux/macOS
-curl -fsSL https://bun.sh/install | bash
-```
+仓库开发使用 Node.js 24（见 `.node-version`）和 pnpm 11.24.0（见 `packageManager`）。
 
 ```sh
-npm install el-bot
-# pnpm i el-bot
+pnpm add el-bot
 ```
 
 ### 初始化文件
@@ -51,19 +89,11 @@ npm install el-bot
 > 你也可以直接参考 [el-bot-template](https://github.com/ElpsyCN/el-bot-template)。
 
 ```ts
-import { Bot } from 'el-bot'
+import { createBot } from 'el-bot'
 
-const bot = new Bot({
-  qq: 114514,
-  setting: {
-    host: 'localhost',
-    port: 4859,
-    authKey: 'el-psy-congroo',
-    enableWebsocket: true,
-  },
-  // bot: ...
-})
-bot.start()
+// Load el-bot.config.ts from the current directory.
+const bot = await createBot()
+await bot.start()
 ```
 
 So easy! Right?
@@ -77,13 +107,13 @@ So easy! Right?
 ### 启动
 
 ```bash
-npx el-bot
+pnpm exec el-bot
 ```
 
 ### 升级
 
 ```sh
-npm install el-bot@latest
+pnpm add el-bot@latest
 ```
 
 相关变动请参见 [Releases](https://github.com/YunYouJun/el-bot/releases)。
@@ -116,36 +146,24 @@ npm install el-bot@latest
 - [mirai-ts](https://github.com/YunYouJun/mirai-ts)
 - [koishi](https://github.com/koishijs/koishi)
 
-## 启动
-
-配置测试机器人（看情况配置吧）
-
-```sh
-cp bot/.env.example .env
-```
-
 ## 参与开发
-
-开发测试（运行起来吧）
 
 ```sh
 git clone https://github.com/YunYouJun/el-bot
 cd el-bot
-pnpm i
+pnpm install
+pnpm build
+pnpm test
+pnpm lint
+pnpm typecheck:packages
 ```
 
-```sh
-# 启动 demo
-pnpm demo
+- `pnpm dev`：启动需要本地机器人配置的 demo。
+- `pnpm dev:lib`：监听 QQ SDK 与脚手架构建。
+- `pnpm typecheck`：完整检查，包括仍在迁移的旧插件和示例，保持完整覆盖。
+- `pnpm docs:dev` / `pnpm docs:build`：开发 / 构建文档站。
 
-npm run dev:bot
-```
-
-开发 el-bot 库
-
-```sh
-npm run dev:lib
-```
+目录职责、新增包和迁移范围见 [Monorepo 开发](./docs/development/monorepo.md)。
 
 ## CHANGELOG
 

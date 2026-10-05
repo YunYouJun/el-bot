@@ -1,11 +1,11 @@
 import { resolve } from 'node:path'
 import process from 'node:process'
 import { createLogger, utils } from 'el-bot'
+import fs from 'fs-extra'
 import shell from 'shelljs'
 
 // 实例目录下的 package.json
-// eslint-disable-next-line ts/no-require-imports
-const pkg = require(getAbsolutePath('./package.json'))
+const pkg = fs.readJsonSync(getAbsolutePath('./package.json'))
 
 const logger = createLogger().child({ label: '🚀' })
 

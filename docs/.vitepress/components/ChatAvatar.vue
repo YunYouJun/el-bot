@@ -1,16 +1,3 @@
-<template>
-  <div style="display: inline-block">
-    <img
-      v-if="props.avatar || props.id"
-      class="avatar"
-      :src="props.avatar || getAvatarById(props.id, props.type, props.size)"
-    />
-    <div v-else class="avatar" :style="`background-color:${color}`">
-      {{ props.nickname[0] }}
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 interface ChatAvatarProps {
   avatar?: string;
@@ -30,7 +17,7 @@ const props = withDefaults(defineProps<ChatAvatarProps>(), {
   color: "steelblue",
 });
 
-const getAvatarById = (id, type, size) => {
+const getAvatarById = (id: number | null, type: string, size: number) => {
   let url = "https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/avatar/none.jpg";
   if (type === "qq") {
     url = `https://q1.qlogo.cn/g?b=qq&nk=${id}&s=${size}`;
@@ -41,7 +28,23 @@ const getAvatarById = (id, type, size) => {
 };
 </script>
 
-<style>
+<template>
+  <div style="display: inline-block">
+    <img
+      v-if="props.avatar || props.id"
+      class="avatar"
+      :alt="props.nickname"
+      :src="props.avatar || getAvatarById(props.id, props.type, props.size)"
+    />
+    <div v-else class="avatar" :style="`background-color:${color}`">
+      {{ props.nickname[0] }}
+    </div>
+  </div>
+</template>
+
+
+
+<style scoped>
 .avatar {
   display: inline-flex;
   width: 2.5rem;

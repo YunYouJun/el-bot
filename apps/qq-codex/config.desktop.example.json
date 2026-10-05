@@ -1,0 +1,21 @@
+{
+  "projects": {
+    "el-bot": "/absolute/path/to/el-bot"
+  },
+  "defaultProject": "el-bot",
+  "transport": "websocket",
+  "webhookPort": 8788,
+  "sandbox": false,
+  "messageFormat": "markdown",
+  "codexConnection": "desktop",
+  "experimentalApi": true,
+  "management": {
+    "enabled": true,
+    "allowedMethods": []
+  },
+  "desktop": {
+    "server": "/absolute/path/to/codex-app-tools/server.mjs",
+    "pipePath": "/absolute/path/from/the/running/desktop/host.sock",
+    "threadId": "dedicated-existing-desktop-chat-id"
+  }
+}

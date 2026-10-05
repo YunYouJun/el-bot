@@ -2,22 +2,24 @@
   "name": "@el-bot/demo",
   "type": "module",
   "version": "0.1.0",
+  "private": true,
   "description": "A dev demo for el-bot.",
   "scripts": {
-    "dev": "bun run watch",
-    "dev:hmr": "bun --hot bot/index.ts",
+    "dev": "pnpm watch",
+    "dev:hmr": "vite-node --watch bot/index.ts",
     "dev:v": "vite-node -w ../packages/el-bot/bin/el-bot.ts",
-    "build": "tsup",
+    "build": "tsdown bot/index.ts --format esm",
     "pm2": "pm2 start pm2.config.cjs",
     "start": "vite-node bot/index.ts",
     "start:cli": "el-bot",
     "start:prod": "nodemon dist/index.js",
-    "watch": "bun --watch bot/index.ts"
+    "watch": "vite-node --watch bot/index.ts"
   },
   "devDependencies": {
     "el-bot": "workspace:*",
-    "nodemon": "^3.1.9",
+    "nodemon": "catalog:",
     "qq-sdk": "workspace:*",
-    "tsup": "^8.4.0"
+    "tsdown": "catalog:",
+    "vite-node": "catalog:"
   }
 }

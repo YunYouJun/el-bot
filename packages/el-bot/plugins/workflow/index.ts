@@ -1,16 +1,16 @@
 import type { Bot } from 'el-bot'
-import fs from 'fs-extra'
+import type { EventType, MessageType } from 'mirai-ts'
 
 /**
  * ref github actions
  * https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow
  */
 
-import type { EventType, MessageType } from 'mirai-ts'
+import fs from 'fs-extra'
 import schedule from 'node-schedule'
 import * as shelljs from 'shelljs'
-import { parseYaml } from '../../utils/config'
-import { handleError } from '../../utils/error'
+import { parseYaml } from '../../core/utils/config'
+import { handleError } from '../../core/utils/error'
 
 interface step {
   name?: string
@@ -25,10 +25,10 @@ interface Job {
 
 type Jobs = Record<string, Job>
 
-type MessageAndEventType =
-  | 'message'
-  | EventType.EventType
-  | MessageType.ChatMessageType
+type MessageAndEventType
+  = | 'message'
+    | EventType.EventType
+    | MessageType.ChatMessageType
 
 /**
  * 定时格式

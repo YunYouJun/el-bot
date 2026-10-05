@@ -1,5 +1,9 @@
-import Bot from 'el-bot'
-import el from './el.config'
+import { createBot } from 'el-bot'
+import config from './el.config'
 
-const bot = new Bot(el)
-bot.start()
+async function main() {
+  const bot = await createBot(config)
+  await bot.start()
+}
+
+main().catch(console.error)

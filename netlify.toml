@@ -1,16 +1,16 @@
 [build]
 publish = "docs/.vitepress/dist"
-command = "npx pnpm i --store=node_modules/.pnpm-store && npx pnpm run docs:build"
+command = "pnpm install --frozen-lockfile && pnpm docs:build"
 
 [build.environment]
 # bypass npm auto install
 NPM_FLAGS = "--version"
-NODE_VERSION = "16"
+NODE_VERSION = "24.18.0"
 
 [[redirects]]
 from = "/*"
-to = "/index.html"
-status = 200
+to = "/404.html"
+status = 404
 
 [[headers]]
 for = "/manifest.webmanifest"

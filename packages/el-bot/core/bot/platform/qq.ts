@@ -1,6 +1,6 @@
 import consola from 'consola'
 import { AvailableIntentsEventsEnum, createOpenAPI, createWebsocket, GetWsParam, IMessage, SessionEvents } from 'qq-guild-bot'
-import { createQQApi } from 'qq-sdk'
+import { createQQApi } from '#qq-sdk'
 
 export type EventType = keyof typeof SessionEvents | keyof typeof AvailableIntentsEventsEnum
 

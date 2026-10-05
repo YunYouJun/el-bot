@@ -9,18 +9,18 @@ dotenv.config({
 })
 
 export default defineConfig({
-  qq: Number.parseInt(process.env.BOT_QQ || ''),
-  setting: './mcl/config/net.mamoe.mirai-api-http/setting.yml',
+  mirai: { qq: Number(process.env.BOT_QQ), setting: { verifyKey: process.env.MIRAI_VERIFY_KEY } },
   db: {
     enable: process.env.EL_DB_ENABLE === 'true',
     uri: process.env.BOT_DB_URI,
     analytics: true,
   },
   bot: botConfig,
-  webhook: {
-    enable: true,
-    path: '/webhook',
+  server: {
     port: 7777,
-    secret: 'el-psy-congroo',
+    webhooks: {
+      enable: Boolean(process.env.GITHUB_WEBHOOK_SECRET),
+      octokit: { secret: process.env.GITHUB_WEBHOOK_SECRET ?? '', middlewareOptions: { path: '/webhook' } },
+    },
   },
 })

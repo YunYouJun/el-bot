@@ -1,21 +1,18 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "allowJs": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "strict": true,
-    "outDir": "dist",
-    "sourceMap": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true
+    "noEmit": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
   "include": [
-    "index.ts",
-    "package.json",
-    "plugins/**/*",
-    "plugins/**/*/package.json"
+    "**/*.ts"
   ],
-  "exclude": ["node_modules", "dist", "mcl"]
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

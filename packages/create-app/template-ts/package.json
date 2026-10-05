@@ -1,5 +1,6 @@
 {
   "name": "el-bot-typescript-starter",
+  "type": "module",
   "version": "0.0.1",
   "author": {
     "name": "YunYouJun",
@@ -8,23 +9,16 @@
   },
   "license": "AGPL-3.0",
   "scripts": {
-    "prebuild": "npm run clean",
-    "build": "tsc",
-    "clean": "rm -rf dist",
-    "dev": "run-p watch start",
-    "lint": "eslint \"**/*.{ts,js}\"",
-    "lint:fix": "eslint \"**/*.{ts,js}\" --fix",
-    "start": "cd dist && nodemon index.js",
-    "start:bot": "el start bot",
-    "start:prod": "npm run build && npm run start",
-    "watch": "tsc -w --incremental"
+    "dev": "tsx watch index.ts",
+    "start": "tsx index.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "el-bot": "workspace:^0.9.0-beta.5"
+    "el-bot": "^1.0.0-beta.16"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9",
-    "npm-run-all": "^4.1.5",
-    "typescript": "^5.8.2"
+    "@types/node": "^24.19.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
   }
 }

@@ -1,6 +1,6 @@
 import { Module, OnModuleInit } from '@nestjs/common'
 import consola from 'consola'
-import { ElBotModule } from 'el-bot'
+import { ElBotModule } from 'el-bot/nest'
 import { BotsService } from './bots.service'
 // import { ElModule } from './el/el.module'
 

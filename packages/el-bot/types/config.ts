@@ -27,3 +27,5 @@ export interface Target {
  * @example 'master' 监听主人
  */
 export type ListenTarget = Target | (BaseListenType | number)[]
+
+export type Listen = BaseListenType | ListenTarget

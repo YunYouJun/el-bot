@@ -1,22 +1,47 @@
 {
   "name": "qq-sdk",
+  "type": "module",
   "version": "1.0.0",
+  "description": "QQ 官方机器人 API 与回调验证工具",
+  "license": "AGPL-3.0",
+  "sideEffects": false,
   "exports": {
-    ".": "./dist/index.mjs",
-    "./package.json": "./package.json"
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json",
+    "./official": {
+      "types": "./dist/official.d.mts",
+      "import": "./dist/official.mjs"
+    }
   },
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22.18.0"
+  },
   "scripts": {
-    "build": "unbuild",
-    "dev": "unbuild --stub"
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "prepack": "pnpm build"
   },
   "dependencies": {
-    "axios": "^1.8.4",
-    "qq-guild-bot": "^2.9.5"
+    "axios": "catalog:",
+    "qq-guild-bot": "catalog:",
+    "tweetnacl": "catalog:",
+    "ws": "catalog:"
   },
   "devDependencies": {
-    "unbuild": "^3.5.0"
+    "@types/node": "catalog:",
+    "@types/ws": "catalog:",
+    "publint": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
   }
 }

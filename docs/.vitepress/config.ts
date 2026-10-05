@@ -1,60 +1,38 @@
-import type { UserConfig } from "vitepress";
-// @ts-ignore
-import baseConfig from 'vitepress-theme-you/config'
+import { defineConfig } from 'vitepress'
 
-const config: UserConfig = {
-  extends: baseConfig,
-
+export default defineConfig({
+  lang: 'zh-CN',
+  title: 'El Bot',
+  description: '可扩展的 QQ 机器人与 Codex 遥控工具',
+  lastUpdated: true,
   head: [
-    ["link", { rel: "icon", href: "/favicon.svg" }],
-    ["link", { rel: "manifest", href: "/manifest.json" }],
-    ["meta", { name: "theme-color", content: "steelblue" }],
-    ["meta", { name: "apple-mobile-web-app-capable", content: "yes" }],
-    [
-      "meta",
-      { name: "apple-mobile-web-app-status-bar-style", content: "steelblue" },
-    ],
-    ["link", { rel: "apple-touch-icon", href: "/logo.png" }],
-    [
-      "link",
-      {
-        rel: "mask-icon",
-        href: "/logo.png",
-        color: "steelblue",
-      },
-    ],
-    [
-      "meta",
-      {
-        name: "msapplication-TileImage",
-        content: "/logo.png",
-      },
-    ],
-    ["meta", { name: "msapplication-TileColor", content: "steelblue" }],
+    ['link', { rel: 'icon', href: '/favicon.svg' }],
+    ['link', { rel: 'describedby', href: '/llms.txt' }],
   ],
-  title: "El Bot Docs",
   themeConfig: {
-    iconClass: 'i-ri-robot-line',
-    repo: "YunYouJun/el-bot",
-    docsDir: "docs",
-
-    editLinks: true,
-    editLinkText: "帮助改善此页面！( ￣□￣)/",
-
-    algolia: {
-      apiKey: "978ef82b43148b59dc771ea53b7a56af",
-      indexName: "elpsy",
-    },
-
-    smoothScroll: true,
-    collapsable: false,
+    logo: '/favicon.svg',
+    socialLinks: [{ icon: 'github', link: 'https://github.com/YunYouJun/el-bot' }],
+    editLink: { pattern: 'https://github.com/YunYouJun/el-bot/edit/dev/docs/:path', text: '编辑此页' },
+    search: { provider: 'local' },
+    outline: { label: '本页目录' },
+    footer: { message: 'AGPL-3.0 Licensed', copyright: 'Copyright © 2020-present YunYouJun' },
     nav: [
+      {
+        text: "遥控 Codex",
+        activeMatch: "^/(codex/|development/codex-remote)",
+        items: [
+          { text: "功能展示", link: "/codex/" },
+          { text: "安装与接入", link: "/development/codex-remote" },
+          { text: "AI 快速接入", link: "/codex/ai-setup" },
+          { text: "管理 Codex Desktop", link: "/codex/desktop" },
+          { text: "实例隔离与恢复", link: "/codex/instances" },
+        ],
+      },
       { text: "指南", link: "/guide/" },
       { text: "API", link: "/api/" },
       { text: "插件", link: "/plugins/" },
       {
         text: "生态",
-        ariaLabel: "Ecosystem",
         items: [
           { text: "el-bot", link: "https://github.com/YunYouJun/el-bot/" },
           {
@@ -74,6 +52,14 @@ const config: UserConfig = {
       },
     ],
     sidebar: {
+      "/codex/": [
+        { text: "功能展示", link: "/codex/" },
+        { text: "安装与接入", link: "/development/codex-remote" },
+        { text: "AI 快速接入", link: "/codex/ai-setup" },
+        { text: "管理 Codex Desktop", link: "/codex/desktop" },
+        { text: "实例隔离与恢复", link: "/codex/instances" },
+        { text: "CLI 与机器人命令", link: "/guide/cli" },
+      ],
       "/guide/": [
         {
           text: "快捷指南",
@@ -111,7 +97,7 @@ const config: UserConfig = {
       "/api/": [
         {
           text: "API",
-          children: [
+          items: [
             {
               text: "核心 API",
               link: "/api/index",
@@ -130,7 +116,7 @@ const config: UserConfig = {
       "/plugins/": [
         {
           text: "插件",
-          children: [
+          items: [
             {
               text: "使用说明",
               link: "/plugins/",
@@ -143,13 +129,14 @@ const config: UserConfig = {
         },
       ],
       // fallback
+      "/development/": [
+        { text: "工作区与发布", link: "/development/monorepo" },
+        { text: "QQ 遥控 Codex", link: "/development/codex-remote" },
+        { text: "AI 快速接入", link: "/codex/ai-setup" },
+        { text: "管理 Codex Desktop", link: "/codex/desktop" },
+        { text: "实例隔离与恢复", link: "/codex/instances" },
+      ],
       "/": [],
     },
   },
-}
-
-export default config;
-
-// todo
-// google-analytics
-// UA-168287495-1
+})

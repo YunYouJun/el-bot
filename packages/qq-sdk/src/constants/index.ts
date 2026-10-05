@@ -9,3 +9,19 @@ export const QQAvailableIntentsEvents = {
    */
   GROUP_AT_MESSAGE_CREATE: 'GROUP_AT_MESSAGE_CREATE',
 }
+
+export const DOMAINS = {
+  /**
+   * 获取调用凭证
+   * 不区分正式环境、沙箱环境
+   */
+  TOKEN: 'https://api.bot.qq.com',
+  /**
+   * 正式环境
+   */
+  PRODUCTION: 'https://api.bot.qq.com',
+  /**
+   * 沙箱环境地址只会收到在开发者平台配置的沙箱频道、沙箱私信QQ号、沙箱群、沙箱单聊QQ号的事件，且调用openapi仅能操作沙箱环境
+   */
+  SANDBOX: 'https://sandbox.api.bot.qq.com',
+}

@@ -22,7 +22,7 @@ import { createWebhooks } from './webhook'
 export type Bindings = HttpBindings
 export type BotServer = Hono<{
   Bindings: Bindings
-}>
+}> & { webhooks?: import('@octokit/webhooks').Webhooks, close: () => void }
 
 /**
  * @see https://hono.dev
@@ -37,20 +37,26 @@ export function createHonoServer(options: BotServerOptions) {
   app.use(poweredBy())
 
   // github webhooks: /api/github/webhooks
-  if (options.webhooks?.enable)
-    createWebhooks(app, options.webhooks)
+  const webhooks = options.webhooks?.enable
+    ? createWebhooks(app, options.webhooks)
+    : undefined
 
   app.get('/', (c) => {
     return c.text('Hono is running! I\'m el-bot server!')
   })
 
   const port = options.port || 7777
-  serve({
+  const server = serve({
     fetch: app.fetch,
     port,
   })
   const url = `http://localhost:${port}`
   consola.success(`🔥 Hono is running:  ${colors.green(url)}`)
 
-  return app
+  return Object.assign(app, {
+    webhooks,
+    close: () => {
+      server.close()
+    },
+  })
 }

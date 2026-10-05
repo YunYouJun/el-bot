@@ -1,4 +1,4 @@
-import type { Config } from 'el-bot'
+import type * as Config from '../../types/config'
 
 export interface TeachOptions {
   listen: Config.Listen

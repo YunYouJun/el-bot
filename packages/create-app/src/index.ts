@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
 
-/* eslint-env node */
-
 import { exec } from 'node:child_process'
 import path from 'node:path'
 import process from 'node:process'
-import { prompt } from 'enquirer'
+import { fileURLToPath } from 'node:url'
+import enquirer from 'enquirer'
 import fs from 'fs-extra'
 import c from 'picocolors'
 
 const argv = process.argv.slice(2)
 
 const cwd = process.cwd()
+const { prompt } = enquirer
 const templateUrl = 'https://github.com/elpsycn/el-bot-template'
 
 const TEMPLATES = [
@@ -91,7 +91,7 @@ async function init() {
   }
 
   async function generateTemplate() {
-    const templateDir = path.join(__dirname, `../template-${answers.type}`)
+    const templateDir = fileURLToPath(new URL(`../template-${answers.type}`, import.meta.url))
     const write = (file: string, content?: string) => {
       const targetPath = renameFiles[file]
         ? path.join(root, renameFiles[file])
@@ -107,7 +107,7 @@ async function init() {
       write(file)
 
     // 替换 package.json name
-    const pkg = await import(path.join(templateDir, 'package.json'))
+    const pkg = fs.readJsonSync(path.join(templateDir, 'package.json'))
     pkg.name = path.basename(root)
     write('package.json', JSON.stringify(pkg, null, 2))
   }
@@ -116,8 +116,8 @@ async function init() {
   if (root !== cwd)
     console.log(`  cd ${path.relative(cwd, root)}`)
 
-  console.log('  npm install (or `yarn`)')
-  console.log('  npm run dev (or `yarn dev`)')
+  console.log('  pnpm install')
+  console.log('  pnpm dev')
   console.log()
 }
 

@@ -1,4 +1,42 @@
-# 终端命令
+# CLI 与机器人命令
+
+## 本机 CLI
+
+在本机终端中使用统一的 `el-bot` 命令，`el` 是别名：
+
+```bash
+el-bot --help
+el-bot --version
+el-bot codex init --project /absolute/path/to/my-project --name my-project
+el-bot codex check --all
+el-bot codex start
+el-bot codex paths
+el-bot codex --profile personal paths
+el-bot codex recover --project my-project
+el-bot codex api --experimental
+el-bot codex desktop-check
+el-bot dev /absolute/path/to/bot
+```
+
+`codex` 连接 QQ 官方机器人与本机 Codex；`dev` 启动自定义机器人框架。
+Codex 所有路径参数放在 `codex` 后，例如 `el-bot codex check --all --config /path/to/config.json`。
+`el-bot codex` 不带子命令会启动服务；`el-bot` 不带参数保留从当前目录启动旧框架的行为。
+查看帮助时使用显式 `--help`，避免意外启动服务。
+
+Codex 子命令从 `1.0.0-beta.17` 起提供，使用 `pnpm add -g el-bot@next` 安装，见[完整接入](/development/codex-remote)。
+AI 助手可以使用 `init --no-prompt` 和只读 `check`，见 [AI 快速接入](/codex/ai-setup)。
+新实例使用 `--profile` 隔离，归档检测与恢复见[实例隔离与恢复](/codex/instances)。
+
+## QQ 中的 Codex 命令
+
+绑定后，在 QQ 私聊中直接发送任务，或使用 `/project`、`/status`、`/result`、`/stop`。
+审批使用 `/approval ID`、`/approve ID` 和 `/reject ID`；完整列表见 [QQ 命令](/development/codex-remote#qq-命令)。
+
+API 目录、桌面项目与聊天管理见 [Codex Desktop](/codex/desktop)。管理操作使用独立的 `/inspect`、`/confirm` 和 `/cancel`，完整查看后只执行一次。
+
+## 旧框架的 QQ 文本终端
+
+以下 `el echo`、`el plugins` 等是已有框架 CLI 插件的聊天命令，与本机 `el-bot codex` 子命令分别使用。
 
 > 这里的终端并非指传统的终端命令行。而是你和机器人文本信息的命令交互。  
 > 本质是将终端命令从控制台移到了 QQ。
@@ -20,7 +58,7 @@ el <command> [options]
 </chat-message>
 </chat-panel>
 
-## Options
+### Options
 
 <chat-panel title="聊天记录">
   <chat-message :id="910426929" nickname="云游君">el -a</chat-message>
@@ -31,7 +69,7 @@ el <command> [options]
 - `--help`, `-h`: 显示帮助信息
 - `--about`,`-a`: 关于
 
-## Commands
+### Commands
 
 <chat-panel title="聊天记录">
   <chat-message :id="910426929" nickname="云游君">el echo 早</chat-message>

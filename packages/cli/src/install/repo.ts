@@ -1,7 +1,9 @@
+import { basename, join } from 'node:path'
+import { Readable, Transform } from 'node:stream'
+import { pipeline } from 'node:stream/promises'
 import axios from 'axios'
-import download from 'download'
+import { createLogger } from 'el-bot'
 import fs from 'fs-extra'
-import { createLogger } from 'packages/el-bot'
 import ProgressBar from 'progress'
 
 const logger = createLogger().child({ label: '📦' })
@@ -52,34 +54,30 @@ export default class Repo {
         return
     }
 
-    const filename = this.browser_download_url.split('/').pop()
-    const path = `${dest}/${filename}`
-
-    if (fs.existsSync(path)) {
-      logger.error(`${path} 已存在！`)
-      return
-    }
-
+    const filename = basename(new URL(this.browser_download_url).pathname)
+    if (!filename)
+      throw new Error('Release URL has no filename')
+    const path = join(dest, filename)
+    await fs.ensureDir(dest)
+    const response = await fetch(this.browser_download_url, { signal: AbortSignal.timeout(120000) })
+    if (!response.ok || !response.body)
+      throw new Error(`Release download failed: HTTP ${response.status}`)
+    const file = await fs.open(path, 'wx')
     try {
-      download(this.browser_download_url, path)
-        .on('response', (res) => {
-          const bar = new ProgressBar(
-            `下载至 ${dest} [:bar] :percent (:rate KB/s :total KB) :etas`,
-            {
-              complete: '=',
-              incomplete: ' ',
-              width: 20,
-              total: 0,
-            },
-          )
-
-          bar.total = Number.parseInt(res.headers['content-length'] || '', 10) / 1000
-          res.on('data', (data: any) => bar.tick(data.length / 8000))
-        })
-        .then(() => logger.success('下载完成'))
+      const total = Number(response.headers.get('content-length'))
+      const bar = total > 0 ? new ProgressBar('Downloading [:bar] :percent :etas', { total, width: 20 }) : undefined
+      const progress = new Transform({
+        transform(chunk, _encoding, callback) {
+          bar?.tick(chunk.length)
+          callback(null, chunk)
+        },
+      })
+      await pipeline(Readable.fromWeb(response.body), progress, fs.createWriteStream(path, { fd: file }))
+      logger.success('下载完成')
     }
-    catch (err: any) {
-      logger.error(err.message)
+    catch (error) {
+      await fs.remove(path)
+      throw error
     }
   }
 }

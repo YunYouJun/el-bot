@@ -1,0 +1,41 @@
+{
+  "name": "@el-bot/qq-codex",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "通过 QQ 官方机器人遥控本机 Codex 的命令行工具",
+  "license": "AGPL-3.0",
+  "homepage": "https://docs.bot.elpsy.cn/development/codex-remote",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YunYouJun/el-bot.git",
+    "directory": "apps/qq-codex"
+  },
+  "exports": {
+    "./cli": "./src/cli.ts"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@el-bot/codex": "workspace:*",
+    "@hono/node-server": "catalog:",
+    "commander": "catalog:",
+    "consola": "catalog:",
+    "dotenv": "catalog:",
+    "enquirer": "catalog:",
+    "hono": "catalog:",
+    "qq-sdk": "workspace:*",
+    "tweetnacl": "catalog:",
+    "ws": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
+  }
+}

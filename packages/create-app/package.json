@@ -1,5 +1,6 @@
 {
   "name": "@el-bot/create-app",
+  "type": "module",
   "version": "0.0.3",
   "description": "Create El Bot",
   "author": {
@@ -9,18 +10,32 @@
   },
   "license": "AGPL-3.0",
   "homepage": "https://github.com/YunYouJun/el-bot/blob/dev/packages/create-app#readme",
-  "main": "index.js",
   "bin": {
-    "create-el-bot": "dist/index.js"
+    "create-el-bot": "dist/index.mjs"
+  },
+  "files": [
+    "dist",
+    "template-ts"
+  ],
+  "engines": {
+    "node": ">=22.18.0"
   },
   "scripts": {
-    "build": "tsup"
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "prepack": "pnpm build"
   },
   "dependencies": {
-    "enquirer": "^2.4.1",
-    "picocolors": "^1.1.1"
+    "enquirer": "catalog:",
+    "fs-extra": "catalog:",
+    "picocolors": "catalog:"
   },
   "devDependencies": {
-    "tsup": "^8.4.0"
+    "@types/fs-extra": "catalog:",
+    "@types/node": "catalog:",
+    "publint": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
   }
 }

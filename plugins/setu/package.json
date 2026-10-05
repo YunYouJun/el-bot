@@ -1,7 +1,8 @@
 {
   "name": "@el-bot/plugin-setu",
+  "type": "module",
   "version": "0.2.0",
-  "description": "发点色图",
+  "description": "\u53d1\u70b9\u8272\u56fe",
   "author": "YunYouJun",
   "license": "AGPL-3.0",
   "exports": {
@@ -11,13 +12,18 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "prepublishOnly": "npm run build",
-    "build": "tsup",
-    "test": "echo '来点色图'"
+    "build": "tsdown",
+    "test": "echo '\u6765\u70b9\u8272\u56fe'"
   },
   "publishConfig": {
     "access": "public"
   },
+  "dependencies": {
+    "axios": "catalog:",
+    "mirai-ts": "catalog:"
+  },
   "devDependencies": {
-    "el-bot": "workspace:*"
+    "el-bot": "workspace:*",
+    "tsdown": "catalog:"
   }
 }

@@ -1,6 +1,6 @@
-import { Logger } from '@yunyoujun/logger'
+import consola from 'consola'
 
-const logger = new Logger({ prefix: '[decorators]' })
+const logger = consola.withTag('decorators')
 
 export function displayCall(
   target: any,

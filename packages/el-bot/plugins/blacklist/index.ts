@@ -16,7 +16,7 @@ export default async function (ctx: Bot) {
         = check.isChatMessage(msg) && blacklist.friends.has(msg.sender.id)
       const isGroupBlocked
         = msg.type === 'GroupMessage'
-        && blacklist.groups.has(msg.sender.group.id)
+          && blacklist.groups.has(msg.sender.group.id)
 
       if (isFriendBlocked || isGroupBlocked)
         mirai.active = false

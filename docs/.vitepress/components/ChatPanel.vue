@@ -1,3 +1,15 @@
+<script lang="ts" setup>
+interface ChatPanelProps {
+  controls?: boolean;
+  title?: string;
+}
+
+const props = withDefaults(defineProps<ChatPanelProps>(), {
+  controls: true,
+  title: "聊天记录",
+});
+</script>
+
 <template>
   <div class="chat-panel">
     <template v-if="props.controls">
@@ -12,19 +24,9 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-interface ChatPanelProps {
-  controls?: boolean;
-  title?: string;
-}
 
-const props = withDefaults(defineProps<ChatPanelProps>(), {
-  controls: true,
-  title: "聊天记录",
-});
-</script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .chat-panel {
   position: relative;
   border-radius: 0.5rem;

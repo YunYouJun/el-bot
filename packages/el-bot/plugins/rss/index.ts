@@ -1,7 +1,8 @@
+import type { Bot } from 'el-bot'
 import type { CustomFields } from 'rss-parser'
 import consola from 'consola'
 import dayjs from 'dayjs'
-import { type Bot, defineBotPlugin } from 'el-bot'
+import { defineBotPlugin } from 'el-bot'
 import fs from 'fs-extra'
 import { htmlToText } from 'html-to-text'
 
@@ -171,19 +172,11 @@ export default defineBotPlugin<RssOptions>((options) => {
   return {
     extendCli(cli) {
       cli
-        .command('rss', 'RSS 订阅', (args) => {
-          return args
-            .option('trigger', {
-              alias: 't',
-              type: 'boolean',
-              describe: '立即触发 RSS 抓取',
-            })
-            .option('list', {
-              alias: 'l',
-              type: 'string',
-              describe: '订阅列表',
-            })
-        }, ({ trigger, list }) => {
+        .command('rss')
+        .description('RSS 订阅')
+        .option('-t, --trigger', '立即触发 RSS 抓取')
+        .option('-l, --list <list>', '订阅列表')
+        .action(({ trigger, list }: { trigger?: boolean, list?: string }) => {
           consola.info(trigger, list)
         // const content = triggerRss(ctx, rssOptions)
         // const msg = mirai.curMsg as MessageType.GroupMessage

@@ -1,5 +1,5 @@
 import fs from 'fs-extra'
-import yaml from 'js-yaml'
+import * as yaml from 'js-yaml'
 
 /**
  * 单纯 typeof [] 会返回 object

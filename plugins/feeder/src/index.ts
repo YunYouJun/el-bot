@@ -1,5 +1,6 @@
 import type { Bot } from 'el-bot'
 import type { MessageType } from 'mirai-ts'
+import type { EventEmitter } from 'node:events'
 import type { IFeeder } from './feeder.scheme'
 import consola from 'consola'
 import RssFeedEmitter from 'rss-feed-emitter'
@@ -7,7 +8,7 @@ import { Feeder } from './feeder.scheme'
 
 const feeder = new RssFeedEmitter({
   skipFirstLoad: true,
-})
+}) as RssFeedEmitter & EventEmitter
 
 export default async function (ctx: Bot) {
   const { cli } = ctx
@@ -82,7 +83,7 @@ export default async function (ctx: Bot) {
       }
     })
 
-  feeder.on('new-item', (item) => {
+  feeder.on('new-item', (item: { title: string, link: string, url: string }) => {
     consola.info(item.url)
   })
 
@@ -91,14 +92,14 @@ export default async function (ctx: Bot) {
    * @param userFeedConfig
    */
   function subscribe(userFeedConfig: IFeeder) {
-    const index = userFeedConfig._id
+    const index = String(userFeedConfig._id)
     feeder.add({
       url: userFeedConfig.url,
       refresh: userFeedConfig.refresh || 1000,
       eventName: index,
-    } as any)
+    })
 
-    feeder.on(index, (item) => {
+    feeder.on(index, (item: { title: string, link: string, url: string }) => {
       const content = `${item.title}: ${item.link}`
       userFeedConfig.targets.forEach((subscriber) => {
         if (subscriber.groupId)

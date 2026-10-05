@@ -41,6 +41,7 @@ build/Release
 
 # Dependency directories
 node_modules/
+.pnpm-store/
 jspm_packages/
 
 # TypeScript v1 declaration files
@@ -72,3 +73,11 @@ typings/
 .cache
 
 dist
+
+# Local QQ credentials, pairing and Codex session state
+.el-bot/
+
+# AI-readable docs generated from Markdown before VitePress runs
+docs/public/ai/
+docs/public/llms.txt
+docs/public/llms-full.txt

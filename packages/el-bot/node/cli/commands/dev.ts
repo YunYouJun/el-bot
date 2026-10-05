@@ -1,7 +1,7 @@
+import type { Bot } from '../../../core'
 import { exec } from 'node:child_process'
 import consola from 'consola'
 import { Argv } from 'yargs'
-import { Bot, createBot } from '../../../core'
 import { commonOptions } from '../options'
 
 import { bindShortcut } from '../utils'
@@ -26,6 +26,7 @@ export function registerDevCommand(cli: Argv) {
         .strict()
         .help(),
     async ({ root }) => {
+      const { createBot } = await import('../../../core')
       consola.start('Link Start ...')
       consola.log('')
 

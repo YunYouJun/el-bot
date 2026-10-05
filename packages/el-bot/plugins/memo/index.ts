@@ -55,26 +55,12 @@ export const tooltip = `
 function initCli(ctx: Bot) {
   const { cli } = ctx
   cli
-    .command('memo', '备忘录', (args) => {
-      return args
-        .option('format', {
-          alias: 'f',
-          type: 'string',
-          description: '格式提示',
-        })
-        .option('time', {
-          alias: 't',
-          type: 'array',
-          description: '时间，cron 或 date 格式',
-        })
-        .option('content', {
-          alias: 'c',
-          type: 'string',
-          description: '提示内容',
-        })
-        .strict()
-        .help()
-    }, ({ format, time, content }) => {
+    .command('memo')
+    .description('备忘录')
+    .option('-f, --format', '格式提示')
+    .option('-t, --time <time...>', '时间，cron 或 date 格式')
+    .option('-c, --content <content>', '提示内容')
+    .action(({ format, time, content }: { format?: boolean, time?: string[], content?: string }) => {
       consola.info('memo', format, time, content)
       if (format) {
         // ctx.reply()

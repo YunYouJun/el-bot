@@ -1,9 +1,9 @@
+import type { MiraiApiHttpSetting } from 'mirai-ts'
 import type { WebhooksOptions } from '../../node/server/webhook'
 import type { BotConfig, BotUserConfig } from './bot'
 import { resolve } from 'node:path'
 import process from 'node:process'
 import fs from 'fs-extra'
-// import type { MiraiApiHttpSetting } from 'mirai-ts'
 import { NCWebsocketOptions } from 'node-napcat-ts'
 import { GetWsParam } from 'qq-guild-bot'
 
@@ -39,7 +39,8 @@ export interface reportConfig {
   target?: Target
 }
 
-const pkg = JSON.parse(fs.readFileSync(resolve(process.cwd(), 'package.json'), 'utf-8'))
+const packagePath = resolve(process.cwd(), 'package.json')
+const pkg = fs.existsSync(packagePath) ? fs.readJsonSync(packagePath) : {}
 
 export interface BotServerOptions {
   /**
@@ -81,6 +82,7 @@ export interface ElConfig<T = BotConfig> {
    * @see indents https://bot.q.qq.com/wiki/develop/api/gateway/intents.html#%E4%BA%8B%E4%BB%B6%E8%AE%A2%E9%98%85-intents
    */
   qq?: GetWsParam
+  mirai?: { qq: number, setting?: Partial<MiraiApiHttpSetting> }
 
   /**
    * 服务器配置

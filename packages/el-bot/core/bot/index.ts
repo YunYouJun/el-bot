@@ -1,17 +1,19 @@
+import type { MessageType } from 'mirai-ts'
 import type mongoose from 'mongoose'
 import type { ElConfig, ElUserConfig } from '../config/el'
 // type
 import type { Plugin, PluginInstallFunction } from './plugins/class'
 import path from 'node:path'
 import process from 'node:process'
+import { Command as CliCommand } from 'commander'
 import consola from 'consola'
 import fs from 'fs-extra'
-import { createHooks } from 'hookable'
-import { NCWebsocket, Send, Structs } from 'node-napcat-ts'
 
+import { createHooks } from 'hookable'
+import Mirai from 'mirai-ts'
+import { NCWebsocket, SendMessageSegment, Structs } from 'node-napcat-ts'
 import colors from 'picocolors'
 import { createOpenAPI } from 'qq-guild-bot'
-import yargs from 'yargs'
 import { BotServer, createServer } from '../../node/server'
 import { LiteCycleHook, NapcatMessage } from '../composition-api'
 import { setCurrentInstance } from '../composition-api/lifecycle'
@@ -70,7 +72,18 @@ export class Bot {
    * 全局配置
    */
   el: ElConfig
-  // mirai: MiraiInstance
+  private miraiInstance?: Mirai
+
+  get mirai(): Mirai {
+    if (!this.el.mirai)
+      throw new Error('This legacy plugin requires explicit mirai configuration')
+    return this.miraiInstance ??= new Mirai(this.el.mirai.setting)
+  }
+
+  get webhook() {
+    return this.server?.webhooks
+  }
+
   // 激活
   active = true
   /**
@@ -126,13 +139,7 @@ export class Bot {
   /**
    * 面向开发者的指令系统
    */
-  cli = yargs()
-    .scriptName('el')
-    .usage('Usage: $0 <command> [options]')
-    .version()
-    .alias('h', 'help')
-    .alias('v', 'version')
-    .help()
+  cli = new CliCommand('el').exitOverride()
 
   /**
    * 面向用户的指令系统
@@ -193,7 +200,17 @@ export class Bot {
   /**
    * 机器人当前消息 快捷回复
    */
-  reply(rawMsg: NapcatMessage, msg: Send[keyof Send][] | string, quote = false) {
+  reply(message: string | MessageType.MessageChain): ReturnType<Mirai['reply']>
+  reply(rawMsg: NapcatMessage, msg: SendMessageSegment[] | string, quote?: boolean): Promise<unknown> | undefined
+  reply(rawMsg: NapcatMessage | string | MessageType.MessageChain, msg?: SendMessageSegment[] | string, quote = false) {
+    if (typeof rawMsg === 'string' || Array.isArray(rawMsg)) {
+      const current = this.mirai.curMsg
+      if (!current)
+        throw new Error('No current Mirai message to reply to')
+      return this.mirai.reply(rawMsg, current, quote)
+    }
+    if (msg === undefined)
+      throw new Error('Reply content is required')
     const napcat = this.napcat
 
     // 文本消息
@@ -235,23 +252,28 @@ export class Bot {
     if (this.el.db?.enable)
       await connectDb(this, this.el.db)
 
-    try {
-      await this.napcat.connect()
-      const data = await this.napcat.get_version_info()
-      consola.success(`${data.app_name} ${colors.yellow(data.app_version)} ${colors.cyan(data.protocol_version)} connected!`)
+    if (this.el.mirai) {
+      await this.mirai.link(this.el.mirai.qq)
     }
-    catch (err: any) {
-      consola.error('NapCat by SDK 连接失败')
-      handleError(err)
-    }
+    else {
+      try {
+        await this.napcat.connect()
+        const data = await this.napcat.get_version_info()
+        consola.success(`${data.app_name} ${colors.yellow(data.app_version)} ${colors.cyan(data.protocol_version)} connected!`)
+      }
+      catch (err: any) {
+        consola.error('NapCat by SDK 连接失败')
+        handleError(err)
+      }
 
-    // get login info
-    try {
-      const data = await this.napcat.get_login_info()
-      consola.info('当前登录账号:', `${colors.yellow(data.nickname)}(${colors.cyan(data.user_id)})`)
-    }
-    catch (err) {
-      handleError(err)
+      // get login info
+      try {
+        const data = await this.napcat.get_login_info()
+        consola.info('当前登录账号:', `${colors.yellow(data.nickname)}(${colors.cyan(data.user_id)})`)
+      }
+      catch (err) {
+        handleError(err)
+      }
     }
 
     // reset
@@ -268,6 +290,9 @@ export class Bot {
     consola.log('')
     consola.success('插件加载完成')
     consola.log('')
+
+    if (this.el.mirai)
+      this.mirai.listen()
 
     // 监听并解析用户指令
     this._command.listen()
@@ -307,6 +332,9 @@ export class Bot {
    */
   async stop() {
     this.napcat.disconnect()
+    if (this.miraiInstance)
+      await this.miraiInstance.release()
+    this.server?.close()
 
     // 关闭数据库连接
     if (this.db) {
