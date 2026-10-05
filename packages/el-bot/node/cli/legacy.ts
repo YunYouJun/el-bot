@@ -14,7 +14,7 @@ export async function runLegacy(args: string[]): Promise<void> {
   const require = createRequire(import.meta.url)
   // Normalize Windows short paths before Vite resolves its environment module.
   const [entry, executable, cwd] = await Promise.all([
-    realpath(resolve(dirname(require.resolve('el-bot')), 'bin/legacy.ts')),
+    realpath(resolve(dirname(require.resolve('el-bot')), '../bin/legacy.ts')),
     realpath(require.resolve('vite-node/cli')),
     realpath(process.cwd()),
   ])

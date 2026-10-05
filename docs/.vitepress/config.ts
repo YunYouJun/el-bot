@@ -26,6 +26,7 @@ export default defineConfig({
           { text: "AI 快速接入", link: "/codex/ai-setup" },
           { text: "管理 Codex Desktop", link: "/codex/desktop" },
           { text: "实例隔离与恢复", link: "/codex/instances" },
+          { text: "RC 验收与支持范围", link: "/codex/rc" },
         ],
       },
       { text: "指南", link: "/guide/" },
@@ -58,6 +59,7 @@ export default defineConfig({
         { text: "AI 快速接入", link: "/codex/ai-setup" },
         { text: "管理 Codex Desktop", link: "/codex/desktop" },
         { text: "实例隔离与恢复", link: "/codex/instances" },
+        { text: "RC 验收与支持范围", link: "/codex/rc" },
         { text: "CLI 与机器人命令", link: "/guide/cli" },
       ],
       "/guide/": [

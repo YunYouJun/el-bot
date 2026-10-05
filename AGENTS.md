@@ -21,7 +21,8 @@ pnpm docs:build
 ```
 
 - `build` runs declared build scripts under `packages/*` and `apps/*`. `qq-sdk`, `@el-bot/codex` and
-  `@el-bot/create-app` use tsdown. `el-bot` builds its CLI with tsdown and retains TypeScript framework source.
+  `@el-bot/create-app` use tsdown. `el-bot` builds its framework, Nest adapter and CLI with tsdown;
+  TypeScript source remains only for the legacy launcher and plugin loader.
 - `dev:lib` watches only `qq-sdk` and `@el-bot/create-app`; it does not launch a bot.
 - `typecheck` scans the full repository, including legacy plugins and examples.
   Keep this check visible; do not suppress existing errors to make CI pass.
@@ -57,6 +58,7 @@ Keep credentials and runtime state out of Git.
 
 - Release only `el-bot` through `.github/workflows/release.yml` using npm OIDC.
 - Build and smoke-test the exact tarball before the publish job; npm must not publish raw catalog/workspace manifests.
+- Verify installed framework/Nest imports and CLI JSON output, including Node.js 22.18.0 compatibility.
 - The Git tag must equal `v<packages/el-bot/package.json version>` and that version must not already exist on npm.
 - Prereleases use the `next` npm tag, stable releases use `latest`.
 - `pnpm release` bumps, commits, tags and pushes; do not run it as a validation command.

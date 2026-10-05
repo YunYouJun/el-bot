@@ -8,7 +8,7 @@
 | 目录 | 用途 |
 | --- | --- |
 | `apps/qq-codex` | 私有 QQ 遥控实现模块，向统一 CLI 注册 `codex` 子命令 |
-| `packages/el-bot` | 机器人框架与统一 `el-bot` CLI；CLI 构建为 JavaScript，框架保留 TypeScript 源码 |
+| `packages/el-bot` | 机器人框架、Nest 适配器与统一 CLI，发布编译后的 ESM 和类型声明；旧启动器保留 TypeScript |
 | `packages/qq-sdk` | QQ 官方 API 和 webhook 验证，tsdown 构建 ESM 与类型声明 |
 | `packages/codex` | app-server / proxy、版本 schema 和 Desktop MCP 客户端 |
 | `packages/create-app` | 项目脚手架，tsdown 构建 Node CLI，随包携带模板 |
@@ -134,6 +134,10 @@ npm publish ./dist/el-bot-<版本>.tgz --dry-run --access public --tag next --ig
 参考：[npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/)、[npm trust](https://docs.npmjs.com/cli/v11/commands/npm-trust/)。
 
 ### 旧依赖的已知限制
+
+库与 Nest 入口编译为 ESM，并在真实安装后的消费者项目中执行导入和严格 TypeScript 检查。
+`mirai-ts@2.4.8` 的导出路径与 tarball 不一致，NapCat 的 ESM 产物缺少 JSON import attribute，构建时将这两项运行代码打包以兼容普通 Node.js。
+发布包同时携带公开声明所需的 `@types/ws`、`@types/node-schedule`，并按上游 Axios 定义补充 `resty-client@0.0.5` 漏发的两个类型；不关闭消费者类型检查。
 
 本次升级固定了旧依赖链中可兼容升级的 `form-data`、`qs` 和 `js-yaml` 修复版。工作区的旧 `plugins/feeder` 仍使用停止维护的 `rss-feed-emitter` / `request`，存在 `request`、`tough-cookie`、`uuid` 上游告警；该插件不包含在本次 `el-bot` 发布包中。
 旧框架的文件匹配依赖 `fast-glob` / `micromatch`，其 `braces` 依赖仍有[深层模式导致栈耗尽的告警](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)，截至本次发布没有上游修复版。勿将不可信输入直接用作文件匹配模式。Codex 遥控入口不使用该匹配链路；本次发布并不声明整个旧框架已清除全部审计告警。

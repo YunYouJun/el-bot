@@ -20,7 +20,7 @@ export interface EventTypesMap {
  * fix qq-guild-bot types
  */
 export interface QQWebsocketClient extends ReturnType<typeof createWebsocket> {
-  on: <T extends EventType>(eventName: T, callback: (data: EventTypesMap[T]) => void) => void
+  on: <T extends EventType>(eventName: T, callback: (data: EventTypesMap[T]) => void) => this
 }
 
 /**

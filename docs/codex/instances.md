@@ -29,6 +29,7 @@ el-bot codex --profile personal paths
 ```bash
 CODEX_HOME="$HOME/.el-bot/codex/personal/codex" codex login
 el-bot codex --profile personal check --all
+el-bot codex --profile personal check --all --json
 el-bot codex --profile personal start
 ```
 
@@ -59,6 +60,12 @@ el-bot codex --profile personal check --all
 检查会读取会话并分页查询归档列表，区分可续聊、已归档、丢失和项目路径变化。启动时提示不可续聊的项目，但保留 QQ 查询与恢复入口；每次续聊前再次检查，不会自动取消归档或重放任务。
 在 QQ 中发送 `/diagnose [项目]`，可以只读查询对应项目的会话状态，不调用模型。连接断开时，会提示在本机检查和重启。
 `check --all` 另外验证本机账户、模型预检、QQ 鉴权和网关访问；它不启动模型任务或 QQ 长连接。最终是否接通仍需用户在 QQ 发送测试任务并收到结果。
+
+检查会汇总各项结果：归档会话或本机 Codex 失败不会遮住独立的 QQ 检查；AppID / 环境身份不匹配则阻止连接。
+`PASS` 表示预检通过，`FAIL` 表示需要处理，`SKIP` 表示前置条件不满足。任一失败的退出码为 `1`。
+`--json` 输出 `version`、`ok` 和 `checks`；每项包含 `id`、`status`、`summary`，失败时提供 `actions`。
+修复命令保留本次 profile 和配置 / 凭据 / 状态路径，适合交给 AI 继续排错。报告不包含密钥、主人 ID、会话 ID 或原始服务端错误；本机路径仍应视为私人信息。
+只有显式运行 `recover` 才改变续聊索引；诊断不会重置绑定、自动取消归档或重试任务。
 
 ## 明确恢复，不丢历史
 

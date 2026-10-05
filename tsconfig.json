@@ -8,6 +8,9 @@
       "el-bot": [
         "packages/el-bot/index.ts"
       ],
+      "el-bot/nest": [
+        "packages/el-bot/core/nest/index.ts"
+      ],
       "qq-sdk": [
         "packages/qq-sdk/src/index.ts"
       ],

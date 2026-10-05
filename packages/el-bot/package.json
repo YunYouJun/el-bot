@@ -33,11 +33,19 @@
     }
   },
   "exports": {
-    ".": "./index.ts",
-    "./nest": "./core/nest/index.ts"
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    },
+    "./nest": {
+      "types": "./dist/nest.d.mts",
+      "import": "./dist/nest.mjs",
+      "default": "./dist/nest.mjs"
+    }
   },
-  "main": "./index.ts",
-  "types": "./index.ts",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "bin": {
     "el": "./dist/cli.mjs",
     "el-bot": "./dist/cli.mjs"
@@ -69,6 +77,8 @@
     "@nestjs/common": "catalog:",
     "@octokit/webhooks": "catalog:",
     "@octokit/webhooks-methods": "catalog:",
+    "@types/node-schedule": "catalog:",
+    "@types/ws": "catalog:",
     "ajv": "catalog:",
     "axios": "catalog:",
     "c12": "catalog:",
@@ -109,7 +119,6 @@
     "@types/html-to-text": "catalog:",
     "@types/js-yaml": "catalog:",
     "@types/node": "catalog:",
-    "@types/node-schedule": "catalog:",
     "@types/progress": "catalog:",
     "@types/qrcode": "catalog:",
     "@types/shelljs": "catalog:",

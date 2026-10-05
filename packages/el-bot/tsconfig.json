@@ -4,6 +4,8 @@
     "lib": [
       "ESNext"
     ],
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
     "baseUrl": ".",
     "module": "ESNext",
     "moduleResolution": "Bundler",

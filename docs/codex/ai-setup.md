@@ -46,7 +46,8 @@ QQ 平台登录、密钥填写和首次 `/pair` 绑定由你在自己的设备�
    不把密钥写入聊天、命令参数、项目文件或 Git。只报告路径和脱敏结果。
    profile 使用独立 Codex 目录；设置 paths 中的 CODEX_HOME 后让我自己执行 codex login，不复制已有登录文件。
 5. 检查 codex check；登录或凭据未完成就保留进度并提示我。完成后执行 codex check --all。
-   这些检查不启动模型任务、不发送 QQ 消息。错误时给出下一步：例如出口 IP 白名单、登录状态或遥控配置的 model。
+   优先执行 check --all --json，读取所有 checks 的 status、summary 和 actions；退出码 1 不代表所有项目都失败。
+   这些检查不启动模型任务、不发送 QQ 消息。按报告处理出口 IP 白名单、独立 Codex 目录登录、model 或指定项目会话；不删除状态或自动执行 recover。
 6. 引导我在 q.qq.com 启用 WebSocket、设置出口 IP 白名单，并让测试 QQ 能添加机器人。
    如果原来使用 Webhook，说明切换会影响旧服务，让我决定是否切换或使用另一机器人。
 7. 本地与 QQ 检查通过后，在我可见的终端运行 codex start，保持前台运行。

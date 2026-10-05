@@ -68,8 +68,34 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  publish:
+  compatibility:
     needs: build
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.18.0
+          package-manager-cache: false
+      - uses: actions/download-artifact@v8
+        with:
+          name: npm-package
+          path: dist
+      - name: Verify the exact tarball on the minimum supported Node version
+        env:
+          RELEASE_ARCHIVE: ${{ needs.build.outputs.archive }}
+        run: pnpm test:cli "$RELEASE_ARCHIVE"
+
+  publish:
+    needs: [build, compatibility]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

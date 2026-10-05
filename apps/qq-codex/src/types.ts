@@ -96,6 +96,28 @@ export interface SessionCheck {
   project: string
   status: 'ready' | 'new' | 'archived' | 'missing' | 'project-changed' | 'unavailable'
 }
+
+/** Fixed, credential-free diagnostic results suitable for humans and AI setup. */
+export interface DiagnosticCheck {
+  id: string
+  status: 'pass' | 'fail' | 'skip'
+  summary: string
+  actions?: string[]
+}
+
+export interface DiagnosticReport {
+  version: 1
+  ok: boolean
+  checks: DiagnosticCheck[]
+}
+
+export interface DiagnosticOptions {
+  paths: CliPaths
+  includeCodex: boolean
+  includeQQ: boolean
+  loadConfig: () => Promise<RemoteConfig>
+  loadCredentials: () => Promise<BotCredentials>
+}
 export interface PendingApproval {
   token: string
   request: RpcRequest

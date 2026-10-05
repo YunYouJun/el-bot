@@ -7,6 +7,7 @@ import consola from 'consola'
 import { readConfig } from './config'
 import { readCredentials } from './credentials'
 import { configureDesktop } from './desktop-setup'
+import { diagnose, formatDiagnostics } from './diagnostics'
 import { initialize } from './init'
 import { resolvePaths } from './paths'
 import { checkDesktop, checkLocal, checkQQ, instanceIdentity, startRemote } from './runtime'
@@ -65,17 +66,18 @@ export function registerCodexCommand(program: Command): Command {
     .description('检查配置和本机 Codex；不会启动模型任务')
     .addOption(new Option('--qq', '仅检查 QQ 鉴权和网关访问').conflicts('all'))
     .addOption(new Option('--all', '同时检查本机 Codex 与 QQ API').conflicts('qq'))
-    .action(async (opts: { qq?: boolean, all?: boolean }, command: Command) => {
-      const settings = await config(command)
-      const paths = resolvePaths(options(command))
-      if (opts.qq || opts.all) {
-        const state = await new StateStore(paths.state).load(settings.defaultProject)
-        bindInstance(state, instanceIdentity(settings, await credentials(command), paths.profile))
-      }
-      if (!opts.qq)
-        await checkLocal(settings, paths.state)
-      if (opts.qq || opts.all)
-        await checkQQ(settings, await credentials(command))
+    .option('--json', '输出结构化诊断与修复建议，便于 AI 接入')
+    .action(async (opts: { qq?: boolean, all?: boolean, json?: boolean }, command: Command) => {
+      const report = await diagnose({
+        paths: resolvePaths(options(command)),
+        includeCodex: !opts.qq,
+        includeQQ: !!(opts.qq || opts.all),
+        loadConfig: () => config(command),
+        loadCredentials: () => credentials(command),
+      })
+      process.stdout.write(opts.json ? `${JSON.stringify(report, null, 2)}\n` : formatDiagnostics(report))
+      if (!report.ok)
+        process.exitCode = 1
     })
   program.command('start')
     .description('启动遥控服务；首次启动在终端显示 QQ 私聊绑定码')

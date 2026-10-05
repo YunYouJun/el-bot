@@ -12,6 +12,7 @@ const pages = [
   { source: 'development/codex-remote.md', name: '完整接入', description: '安装、配置、QQ 命令、权限和排错' },
   { source: 'codex/desktop.md', name: '管理 Codex Desktop', description: '桌面项目与工具、共享后端、版本 API 和单次管理确认' },
   { source: 'codex/instances.md', name: '实例隔离与恢复', description: 'profile、AppID 校验、独立 Codex 登录、归档检测和恢复' },
+  { source: 'codex/rc.md', name: 'RC 验收与支持范围', description: '候选版安装、汇总诊断、真实验收与实验功能边界' },
   { source: 'development/monorepo.md', name: '开发与发布', description: '工作区、迁移、验证和 npm OIDC' },
 ]
 

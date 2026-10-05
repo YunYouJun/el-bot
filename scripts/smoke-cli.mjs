@@ -53,6 +53,27 @@ try {
   assert.equal(manifest.bin['el-bot'], './dist/cli.mjs')
   assert.equal(manifest.bin.el, manifest.bin['el-bot'])
   assert.equal(manifest.imports['#qq-sdk'].default, './dist/qq-sdk.mjs')
+  assert.equal(manifest.exports['.'].import, './dist/index.mjs')
+  assert.equal(manifest.exports['.'].types, './dist/index.d.mts')
+  assert.equal(manifest.exports['./nest'].import, './dist/nest.mjs')
+  await writeFile(join(consumer, 'import.mjs'), `
+    import assert from 'node:assert/strict'
+    import { Bot, createBot, defineBotPlugin, defineConfig } from 'el-bot'
+    import { ElBotModule, ElBotService } from 'el-bot/nest'
+    for (const value of [Bot, createBot, defineBotPlugin, defineConfig, ElBotModule, ElBotService])
+      assert.equal(typeof value, 'function')
+    assert.equal(defineConfig({ debug: true }).debug, true)
+  `)
+  run(process.execPath, ['import.mjs'], consumer)
+  run(process.execPath, [pnpm, '--ignore-workspace', 'add', '--save-dev', `typescript@${manifest.devDependencies.typescript}`, `@types/node@${manifest.devDependencies['@types/node']}`, '--ignore-scripts'], consumer)
+  await writeFile(join(consumer, 'consumer.ts'), `
+    import { createBot, defineConfig, type Bot } from 'el-bot'
+    import { ElBotModule, ElBotService } from 'el-bot/nest'
+    const config = defineConfig({ debug: true })
+    const create: (options?: Parameters<typeof createBot>[0]) => Promise<Bot> = createBot
+    void [config, create, ElBotModule, ElBotService]
+  `)
+  run(process.execPath, [join(consumer, 'node_modules/typescript/bin/tsc'), '--strict', '--noEmit', '--module', 'NodeNext', '--target', 'ES2022', '--types', 'node', 'consumer.ts'], consumer)
   run(process.execPath, ['--input-type=module', '-e', 'import("./node_modules/el-bot/dist/qq-sdk.mjs").then(sdk => { if (typeof sdk.createQQApi !== "function") process.exit(1) })'], consumer)
   const cli = join(installed, 'dist/cli.mjs')
   const help = run(process.execPath, [cli, '--help'], consumer)
@@ -63,6 +84,7 @@ try {
   for (const command of ['init', 'check', 'start', 'paths', 'recover', 'api', 'desktop-init', 'desktop-check']) assert(codexHelp.includes(command))
   assert(codexHelp.includes('--profile'))
   assert(run(process.execPath, [cli, 'codex', 'init', '--help'], consumer).includes('--project'))
+  assert(run(process.execPath, [cli, 'codex', 'check', '--help'], consumer).includes('--json'))
   assert(run(process.execPath, [cli, 'codex', 'api', '--help'], consumer).includes('--experimental'))
   assert(run(process.execPath, [cli, 'codex', 'desktop-init', '--help'], consumer).includes('--thread-id'))
   assert(run(process.execPath, [cli, 'dev', '--help'], consumer).includes('--port'))
@@ -83,6 +105,10 @@ try {
   run(process.execPath, [cli, 'codex', 'start', '--check', ...paths], consumer, false)
   run(process.execPath, [cli, 'codex', 'unknown-command'], consumer, false)
   run(process.execPath, [cli, 'codex', 'check', '--config', join(temporary, 'missing.json')], consumer, false)
+  const diagnostic = JSON.parse(run(process.execPath, [cli, 'codex', 'check', '--all', '--json', '--config', join(temporary, 'missing.json')], consumer, false))
+  assert.equal(diagnostic.ok, false)
+  assert.equal(diagnostic.checks[0].id, 'config')
+  assert.equal(diagnostic.checks[0].status, 'fail')
   const isolatedPaths = JSON.parse(run(process.execPath, [cli, 'codex', '--profile', 'package-smoke', 'paths'], consumer))
   run(process.execPath, [cli, 'codex', '--profile', 'package-smoke', 'init', '--no-prompt', '--project', consumer], consumer)
   assert.equal(JSON.parse(await readFile(isolatedPaths.config, 'utf8')).codexHome, isolatedPaths.codexHome)
@@ -110,7 +136,7 @@ try {
   assert.equal(await readFile(isolatedPaths.state, 'utf8'), snapshot)
   run(process.execPath, [cli, 'codex', '--profile', '../bad', 'paths'], consumer, false)
   run(process.execPath, [cli, 'codex', 'desktop-check', ...paths], consumer, false)
-  console.log('Packed CLI: clean installation, help, version, setup, paths, credential redaction and argument validation passed.')
+  console.log('Packed package: framework and Nest imports, CLI installation, JSON diagnostics, setup, recovery and credential redaction passed.')
 }
 finally {
   await rm(temporary, { recursive: true, force: true })
