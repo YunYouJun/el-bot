@@ -33,7 +33,7 @@ el-bot codex start
 `/help 2` 查看项目与会话，`/help 3` 查看审批与回答；`/projects [页码]` 点选项目。
 任务卡片上可随时打开「帮助菜单」；「输入任务」仅填写草稿，「新建会话」先确认，历史结果保留。
 帮助卡片提供「文档站点」「使用帮助」跳转按钮，正文另含 AI 接入指南；无按钮权限时保留文字网址。
-Codex 帮助、AI 接入、实例恢复与 Desktop 管理文档提供完整配置步骤；卡片内的五页帮助可直接在 QQ 查看。
+Codex 帮助、AI 接入、实例恢复与 Desktop 管理文档提供完整配置步骤；五类帮助可直接在 QQ 查看。图片模式每页最多四条命令，命令、参数、说明分开排版；`/help 1 2` 查看第一类的第二页。
 仍可手动发送 `/project 名称`、`/status`、`/stop` 或直接发送任务。
 不要把凭据文件或状态放在公开仓库中。服务需持续运行，不会自动设置开机启动。
 
@@ -43,7 +43,7 @@ Codex 帮助、AI 接入、实例恢复与 Desktop 管理文档提供完整配�
 `el-bot codex api --experimental` 只生成本机协议；`desktop-init` 配置真实宿主管道与专用聊天，`desktop-check` 只读验证目录与项目列表。
 管理写操作在 QQ 中先 `/inspect ID` 查看全部页，再 `/confirm ID`，不会自动重放。
 
-图片卡片支持浅色 / 深色 PNG 和原生操作按钮。使用包含新命令的构建运行 `el-bot codex render --card result --theme dark --output ./result.png` 本地预览。
+图片卡片支持浅色 / 深色 PNG 和原生操作按钮。运行 `el-bot codex render --card result --theme dark --output ./result.png` 本地预览；帮助预览可用 `--card help --page 1 --part 2` 指定分类与页码。
 配置 `messageFormat: "image"` 后默认将本地 PNG 直接上传到 QQ，以富媒体图片和紧随其后的操作卡片展示，不需要自建公网图片入口；`image.theme` 可设为 `dark`。每张通常占用两次被动回复，预算不足时使用 Markdown；审批详情始终保留可复制的 Markdown。可选的公网托管模式与限制见[图片卡片](../../docs/development/codex-remote.md#图片卡片与本地预览)。
 `/thread use ID` 绑定当前项目已有会话，`/thread fork` 复制历史；`/review` 审查代码，`/steer` 补充当前任务要求，沿用单任务与逐次审批机制。
 

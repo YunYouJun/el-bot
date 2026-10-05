@@ -89,6 +89,7 @@ export class QQGateway {
       socket.on('error', () =>
         this.options.onError(new Error('QQ gateway connection failed')))
       socket.once('close', () => {
+        this.options.onDisconnect?.()
         clearInterval(this.heartbeat)
         clearTimeout(this.helloTimeout)
         this.scheduleReconnect()

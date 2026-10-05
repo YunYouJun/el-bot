@@ -181,10 +181,22 @@ export interface CardDetails {
   section?: string
   footnote: string
   links?: LinkButton[]
+  /** Structured documentation is supplied only by the fixed help catalog. */
+  help?: { commands: HelpCommand[], intro?: string, notes: string[], footer: string }
+}
+
+export interface HelpCommand {
+  command: string
+  relatedCommands?: string[]
+  parameters?: string
+  description: string
 }
 
 /** Fixed command documentation; user output never supplies menu actions. */
 export interface HelpPage {
   title: string
   body: string
+  commands: HelpCommand[]
+  intro?: string
+  notes: string[]
 }

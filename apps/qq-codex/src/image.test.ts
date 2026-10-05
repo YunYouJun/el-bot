@@ -1,6 +1,7 @@
 import { Buffer } from 'node:buffer'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { resultCard, statusCard } from './cards'
+import { helpCard, resultCard, statusCard } from './cards'
+import { HELP_PAGES } from './constants'
 import { cardSvg, imageLines, renderCardImage } from './image'
 import { CardImageStore } from './image-store'
 
@@ -21,6 +22,11 @@ describe('local card image rendering and delivery leases', () => {
   it('wraps Unicode without losing text and escapes hostile SVG and remote images', () => {
     const output = '<image href="https://evil.example"/><script>alert(1)</script>\n中文👩‍💻'.repeat(4)
     expect(imageLines('中文👩‍💻'.repeat(30), 26, 120).join('')).toBe('中文👩‍💻'.repeat(30))
+    const commandLines = imageLines('先查看详情，再 /confirm ID 确认；取消用 /cancel ID。', 23, 290)
+    expect(commandLines.join('')).toBe('先查看详情，再 /confirm ID 确认；取消用 /cancel ID。')
+    expect(commandLines.some(line => line.includes('/confirm'))).toBe(true)
+    expect(commandLines.some(line => line.includes('/cancel'))).toBe(true)
+    expect(imageLines('a'.repeat(100), 23, 120).length).toBeGreaterThan(1)
     const card = resultCard({ id: 'test', project: 'demo', status: 'failed', output, createdAt: 'now' }, 1, 'owner')!
     const image = cardSvg(card, { theme: 'light', fontFamily: 'font"/><script>' })
     expect(image.svg).not.toContain('<image ')
@@ -29,6 +35,35 @@ describe('local card image rendering and delivery leases', () => {
     expect(image.svg).toContain('#dc2626')
     card.visual!.details.body = '\n'.repeat(200)
     expect(() => cardSvg(card, { theme: 'light' })).toThrow('too tall')
+  })
+
+  it('distinguishes trusted help commands, parameters and descriptions without printing long URLs', () => {
+    for (const theme of ['light', 'dark'] as const) {
+      for (let page = 1; page <= HELP_PAGES.length; page++) {
+        for (let part = 1; ; part++) {
+          const card = helpCard('el-bot', page, 'owner', undefined, { image: true, part })
+          if (!card)
+            break
+          const { svg, height } = cardSvg(card, { theme })
+          expect(height).toBeLessThanOrEqual(1100)
+          expect(svg).not.toContain('https://')
+          expect(svg).toContain('使用提醒')
+          expect(card.payload.markdown.content).toContain('https://docs.bot.elpsy.cn/')
+          expect(svg).toContain(theme === 'dark' ? '#7dd3fc' : '#1d4ed8')
+          for (const entry of card.visual!.details.help!.commands)
+            expect(svg).toContain(`font-weight="600">${entry.command}`)
+        }
+      }
+    }
+    const card = helpCard('demo', 1, 'owner', '<script>alert(1)</script>', { image: true })!
+    const { svg } = cardSvg(card, { theme: 'dark' })
+    expect(svg).not.toContain('<script>')
+    expect(svg).toContain('&lt;script&gt;')
+    expect(svg).toMatch(/<text x="[\d.]+" y="\d+"[^>]+font-size="24">提示词<\/text>/)
+    expect(svg).toContain('font-size="26" xml:space="preserve">提交任务')
+    const result = resultCard({ id: 'test', project: 'demo', status: 'completed', output: '/run injected：text', createdAt: 'now' }, 1, 'owner')!
+    expect(result.visual!.details.help).toBeUndefined()
+    expect(cardSvg(result, { theme: 'dark' }).svg).not.toContain('Menlo')
   })
 
   it('serves only generated PNG leases, expires them and clears them at shutdown', async () => {

@@ -15,6 +15,7 @@ import { isRecord } from 'qq-sdk/official'
 import { acceptedCard, approvalCard, cardPages, helpCard, projectsCard, resultCard, statusCard } from './cards'
 import { HELP_COMMANDS } from './constants'
 import { failureCode, failureText } from './failures'
+import { cleanupAll } from './lifecycle'
 import { ManagementController } from './management'
 import { ReplySender } from './reply'
 import { inspectSession, sessionSummary } from './sessions'
@@ -32,6 +33,7 @@ export class RemoteController {
   private items = new Map<string, unknown>()
   private runPromise?: Promise<void>
   private interrupting?: { task: Task, promise: Promise<void>, commands: string[] }
+  private closing?: Promise<void>
   private turnFailure?: { turnId: string, code: FailureCode }
   private sender: ReplySender
   private management: ManagementController
@@ -79,6 +81,8 @@ export class RemoteController {
   }
 
   private async handle(message: C2CMessage) {
+    if (this.stopping)
+      return
     const text = message.content.trim()
     const openId = message.author.user_openid
     // Replayed old prompts must not create new work even after bounded dedup eviction.
@@ -97,7 +101,7 @@ export class RemoteController {
       await this.persist()
       void this.say(
         { message, sequence: 0 },
-        helpCard(this.state.project, 1, openId, '绑定成功。以下按钮仅限本人操作。')!,
+        helpCard(this.state.project, 1, openId, '绑定成功。以下按钮仅限本人操作。', { image: this.config.messageFormat === 'image' })!,
       )
       return
     }
@@ -114,7 +118,7 @@ export class RemoteController {
     this.replyContext = reply
     const [command, ...args] = text.split(/\s+/)
     if (HELP_COMMANDS.has(command) && (command.startsWith('/') || text === command)) {
-      void this.say(reply, helpCard(this.state.project, Number(args[0] ?? 1), openId) ?? '帮助页码无效。发送 /help 查看第一页。')
+      void this.say(reply, helpCard(this.state.project, Number(args[0] ?? 1), openId, undefined, { image: this.config.messageFormat === 'image', part: Number(args[1] ?? 1) }) ?? '帮助页码无效。发送 /help 查看第一页。')
       return
     }
     if (command === '/projects') {
@@ -138,7 +142,7 @@ export class RemoteController {
         return
       }
       const check = await inspectSession(this.codex, project, this.config.projects[project], this.state.threads[project])
-      void this.say(reply, helpCard(this.state.project, 2, openId, `QQ 入站正常，主人校验通过。\n${sessionSummary(check)}\n本机登录、模型与 QQ API 检查：el-bot codex check --all。未运行模型任务。`)!)
+      void this.say(reply, helpCard(this.state.project, 2, openId, `QQ 入站正常，主人校验通过。\n${sessionSummary(check)}\n本机登录、模型与 QQ API 检查：el-bot codex check --all。未运行模型任务。`, { image: this.config.messageFormat === 'image' })!)
       return
     }
     if (command === '/result') {
@@ -185,7 +189,7 @@ export class RemoteController {
     if (this.management.accept(command, args, reply, text))
       return
     if (command.startsWith('/') && !['/run', '/project', '/new', '/thread', '/review'].includes(command)) {
-      void this.say(reply, helpCard(this.state.project, 1, openId, '未知命令。请选择快捷操作或查看以下用法。')!)
+      void this.say(reply, helpCard(this.state.project, 1, openId, '未知命令。请选择快捷操作或查看以下用法。', { image: this.config.messageFormat === 'image' })!)
       return
     }
     if (this.closed) {
@@ -685,8 +689,28 @@ export class RemoteController {
     }
   }
 
-  async close() {
+  get runtimeActivity() {
+    return { busy: !!this.active || this.management.busy, ...(this.active ? { task: { id: this.active.id, status: this.active.status } } : {}) }
+  }
+
+  /** Serialize the busy check with message admission, then close the admission gate. */
+  prepareStop(interrupt: boolean): Promise<void> {
+    const work = this.inbox.then(() => {
+      if (!this.stopping && this.runtimeActivity.busy && !interrupt)
+        throw new Error('仍有任务或管理操作；请等待完成，或明确选择中断并停止。')
+      this.stopping = true
+    })
+    this.inbox = work.catch(this.onError)
+    return work
+  }
+
+  close(): Promise<void> {
     this.stopping = true
+    this.closing ??= this.finishClose()
+    return this.closing
+  }
+
+  private async finishClose() {
     await this.inbox
     this.closed = true
     this.cancelled = true
@@ -695,11 +719,15 @@ export class RemoteController {
     if (this.active?.threadId && this.active.turnId) {
       await this.interruptTask(this.active)
     }
-    await this.codex.close()
-    await closingManagement
-    await this.runPromise
-    if (this.active)
-      await this.finish('interrupted', '遥控服务已停止。')
-    await this.persist()
+    await cleanupAll([
+      () => this.codex.close(),
+      () => closingManagement,
+      async () => { await this.runPromise },
+      async () => {
+        if (this.active)
+          await this.finish('interrupted', '遥控服务已停止。')
+      },
+      () => this.persist(),
+    ])
   }
 }

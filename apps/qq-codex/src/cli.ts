@@ -8,12 +8,14 @@ import { Command, Option } from 'commander'
 import consola from 'consola'
 import { helpCard, resultCard, statusCard } from './cards'
 import { readConfig } from './config'
+import { runtimeLogs, runtimeStatus, startBackground, stopBackground } from './control'
 import { readCredentials } from './credentials'
 import { configureDesktop } from './desktop-setup'
 import { diagnose, formatDiagnostics } from './diagnostics'
 import { renderCardImage } from './image'
 import { initialize } from './init'
 import { resolvePaths } from './paths'
+import { replyPreferences } from './preferences'
 import { checkDesktop, checkLocal, checkQQ, instanceIdentity, startRemote } from './runtime'
 import { bindInstance, StateStore } from './store'
 
@@ -58,6 +60,16 @@ export function registerCodexCommand(program: Command): Command {
     const paths = resolvePaths(options(command))
     await startRemote(await config(command), paths.state, await credentials(command), paths.profile)
   }
+  const managed = async (json: boolean | undefined, operation: () => Promise<unknown>) => {
+    try {
+      const result = await operation()
+      process.stdout.write(`${JSON.stringify({ ok: true, result }, null, json ? undefined : 2)}\n`)
+    }
+    catch (error) {
+      process.stdout.write(`${JSON.stringify({ ok: false, error: error instanceof Error ? error.message : '本机控制失败。' })}\n`)
+      process.exitCode = 1
+    }
+  }
   program.command('init')
     .description('交互创建配置和凭据文件；不会覆盖已有文件或绑定')
     .option('-p, --project <directory>', '允许遥控的项目目录', process.cwd())
@@ -85,7 +97,52 @@ export function registerCodexCommand(program: Command): Command {
     })
   program.command('start')
     .description('启动遥控服务；首次启动在终端显示 QQ 私聊绑定码')
-    .action(async (_opts: unknown, command: Command) => start(command))
+    .option('--background', '独立后台运行；日志写入状态文件旁的 .log')
+    .option('--json', '输出本机控制结果；需要 --background')
+    .action(async (opts: { background?: boolean, json?: boolean }, command: Command) => {
+      if (opts.background) {
+        await managed(opts.json, async () => {
+          await config(command)
+          await credentials(command)
+          return startBackground(resolvePaths(options(command)))
+        })
+      }
+      else if (opts.json) {
+        await managed(true, async () => {
+          throw new Error('--json 启动需要 --background。')
+        })
+      }
+      else {
+        await start(command)
+      }
+    })
+  for (const operation of ['status', 'stop', 'restart', 'logs'] as const) {
+    const command = program.command(operation).description({ status: '查看经过身份校验的本机运行状态', stop: '正常停止；有任务时默认拒绝', restart: '正常停止后重新后台启动', logs: '查看最近的本机后台日志' }[operation]).option('--json', '输出结构化控制结果')
+    if (operation === 'stop' || operation === 'restart')
+      command.option('--interrupt', '明确中断执行中任务并关闭服务')
+    command.action(async (opts: { json?: boolean, interrupt?: boolean }, action: Command) => managed(opts.json, async () => {
+      const paths = resolvePaths(options(action))
+      if (operation === 'status')
+        return runtimeStatus(paths.state)
+      if (operation === 'logs')
+        return runtimeLogs(paths.state)
+      if (operation === 'stop')
+        return stopBackground(paths.state, opts.interrupt)
+      await config(action)
+      await credentials(action)
+      await stopBackground(paths.state, opts.interrupt)
+      return startBackground(paths)
+    }))
+  }
+  program.command('preferences')
+    .description('查看或保存回复格式与图片主题；修改后重启生效，不自动中断任务')
+    .addOption(new Option('--message-format <format>', 'QQ 回复格式').choices(['image', 'markdown', 'text']))
+    .addOption(new Option('--image-theme <theme>', '图片卡片主题').choices(['light', 'dark']))
+    .option('--json', '输出结构化设置，不显示其他配置或凭据')
+    .action(async (opts: { json?: boolean, messageFormat?: 'image' | 'markdown' | 'text', imageTheme?: 'light' | 'dark' }, command: Command) => managed(opts.json, async () => {
+      const paths = resolvePaths(options(command))
+      return replyPreferences(paths.config, paths.state, { messageFormat: opts.messageFormat, imageTheme: opts.imageTheme })
+    }))
   program.command('paths')
     .description('显示当前使用的配置、凭据和状态路径，不显示密钥')
     .action((_opts: unknown, command: Command) => {
@@ -146,15 +203,18 @@ export function registerCodexCommand(program: Command): Command {
     .option('--text-file <file>', '读取 UTF-8 结果文字；仅配合 result')
     .option('--font-file <file>', '额外加载本机字体文件')
     .option('--font-family <name>', '字体族名称')
-    .option('--page <number>', '帮助或结果页码', '1')
-    .action(async (opts: { output: string, card: string, theme: 'light' | 'dark', textFile?: string, fontFile?: string, fontFamily?: string, page: string }) => {
+    .option('--page <number>', '帮助分类或结果页码', '1')
+    .option('--part <number>', '图片帮助的分类内页码；仅配合 help', '1')
+    .action(async (opts: { output: string, card: string, theme: 'light' | 'dark', textFile?: string, fontFile?: string, fontFamily?: string, page: string, part: string }) => {
       if (opts.textFile && opts.card !== 'result')
         throw new Error('--text-file 仅用于 result 卡片')
+      if (opts.card !== 'help' && opts.part !== '1')
+        throw new Error('--part 仅用于 help 卡片')
       const output = opts.textFile ? await readFile(resolve(opts.textFile), 'utf8') : '图片展示已启用。\n中文、代码与操作指令保持原文。\nconst status = "completed"'
       if (output.length > 100000)
         throw new Error('预览结果最多 100000 个字符')
       const page = Number(opts.page)
-      const card = opts.card === 'help' ? helpCard('demo', page, 'preview') : opts.card === 'result' ? resultCard({ id: 'preview', project: 'demo', status: 'completed', output, createdAt: new Date().toISOString() }, page, 'preview') : statusCard('demo', { id: 'preview', project: 'demo', status: 'running', output: '', createdAt: new Date().toISOString() }, [], page, 'preview')
+      const card = opts.card === 'help' ? helpCard('demo', page, 'preview', undefined, { image: true, part: Number(opts.part) }) : opts.card === 'result' ? resultCard({ id: 'preview', project: 'demo', status: 'completed', output, createdAt: new Date().toISOString() }, page, 'preview') : statusCard('demo', { id: 'preview', project: 'demo', status: 'running', output: '', createdAt: new Date().toISOString() }, [], page, 'preview')
       if (!card)
         throw new Error('卡片页码无效')
       const image = await renderCardImage(card, { theme: opts.theme, ...(opts.fontFile ? { fontFiles: [resolve(opts.fontFile)] } : {}), fontFamily: opts.fontFamily })

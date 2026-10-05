@@ -67,6 +67,7 @@ export interface GatewayPayload {
 }
 
 export interface GatewayOptions {
+  onDisconnect?: () => void
   onMessage: (message: C2CMessage) => Promise<void>
   onError: (error: Error) => void
   onReady?: () => void

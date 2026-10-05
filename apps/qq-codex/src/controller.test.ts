@@ -101,6 +101,43 @@ function setup(owner: string | undefined = 'owner', schema?: CodexSchema) {
 }
 
 describe('remote admission and sessions', () => {
+  it('refuses busy shutdown, blocks queued work after admission closes and persists interruption once', async () => {
+    const s = setup()
+    await s.start()
+    await expect(s.controller.prepareStop(false)).rejects.toThrow('仍有任务')
+    expect(s.codex.close).not.toHaveBeenCalled()
+    await s.controller.prepareStop(true)
+    await s.send('must not create another task')
+    const first = s.controller.close()
+    expect(s.controller.close()).toBe(first)
+    await first
+    expect(s.codex.close).toHaveBeenCalledOnce()
+    expect(s.state.tasks).toHaveLength(1)
+    expect(s.state.tasks[0].status).toBe('interrupted')
+    expect(s.saved.at(-1)).toContain('interrupted')
+  })
+
+  it('routes image help parts and their buttons without admitting a model task', async () => {
+    const s = setup()
+    s.config.messageFormat = 'image'
+    await s.send('/help 1 2', 'stranger')
+    expect(s.qq.reply).not.toHaveBeenCalled()
+    await s.send('/help 1 2')
+    await vi.waitFor(() => expect(s.qq.reply).toHaveBeenCalledOnce())
+    expect(replyText(s.qq.reply.mock.calls[0][2])).toContain('/result [任务ID] [页码]')
+    expect(replyText(s.qq.reply.mock.calls[0][2])).not.toContain('/review [目标JSON]')
+    expect(buttonCommands(s.qq.reply.mock.calls[0][2])).toContain('/help 2')
+    await s.send('/help 2')
+    await vi.waitFor(() => expect(s.qq.reply).toHaveBeenCalledTimes(2))
+    expect(buttonCommands(s.qq.reply.mock.calls[1][2])).toContain('/help 2 2')
+    await s.send('/help 1 99')
+    await vi.waitFor(() => expect(s.qq.reply).toHaveBeenCalledTimes(3))
+    expect(replyText(s.qq.reply.mock.calls[2][2])).toContain('帮助页码无效')
+    expect(s.codex.turn).not.toHaveBeenCalled()
+    expect(s.codex.thread).not.toHaveBeenCalled()
+    expect(s.state.tasks).toHaveLength(0)
+  })
+
   it('sends C2C-compatible buttons and authorizes their commands on the server', async () => {
     const s = setup()
     await s.send('/help')

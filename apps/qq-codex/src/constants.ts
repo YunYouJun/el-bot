@@ -9,28 +9,80 @@ export const DOCUMENTATION_LINKS: LinkButton[] = [
 
 export const HELP_COMMANDS = new Set(['/help', '/menu', '/?', '/帮助', '/菜单', '帮助', '菜单'])
 
-export const HELP_PAGES: HelpPage[] = [
+export const HELP_COMMANDS_PER_IMAGE = 4
+
+/** Use one catalog for the image, Markdown and plain-text versions. */
+export function helpBody(page: Pick<HelpPage, 'commands' | 'intro' | 'notes'>): string {
+  return [
+    page.intro,
+    ...page.commands.map(entry => `${[entry.command, ...entry.relatedCommands ?? []].join('、')}${entry.parameters ? ` ${entry.parameters}` : ''}：${entry.description}`),
+    ...page.notes,
+  ].filter(Boolean).join('\n')
+}
+
+export const HELP_PAGES: HelpPage[] = ([
   {
     title: '任务与结果',
-    body: '直接发送文字：在当前项目提交任务，继续上次会话。\n/run 提示词：明确提交任务，也可发送以 / 开头的提示词。\n/review [目标JSON]：审查代码，默认未提交改动。\n/steer 提示词：补充执行中任务的要求。\n/status [页码]：查看任务及待审批、待回答请求。\n/result [任务ID] [页码]：查看结果；省略 ID 查看最近任务。\n/stop [任务ID]：请求停止，用 /status 确认最终状态。\n/help [页码] 或 /menu [页码]：查看快捷命令。\n同一时间只能运行一个任务。输入任务按钮只填入草稿，补齐后发送。',
+    intro: '直接发送文字，在当前项目提交任务并继续会话。',
+    commands: [
+      { command: '/run', parameters: '提示词', description: '提交任务；提示词以 / 开头时也可使用。' },
+      { command: '/review', parameters: '[目标JSON]', description: '审查代码，默认检查未提交改动。' },
+      { command: '/steer', parameters: '提示词', description: '向正在执行的任务补充要求。' },
+      { command: '/status', parameters: '[页码]', description: '查看任务状态，以及待审批、待回答请求。' },
+      { command: '/result', parameters: '[任务ID] [页码]', description: '查看结果；省略任务 ID 时查看最近任务。' },
+      { command: '/stop', parameters: '[任务ID]', description: '请求停止任务，再用 /status 确认状态。' },
+      { command: '/help', parameters: '[分类] [页码]', description: '查看帮助；/menu、/?、帮助、菜单也可使用。' },
+    ],
+    notes: ['同一时间只能运行一个任务。输入任务按钮会填入草稿，补齐后发送。'],
   },
   {
     title: '项目与会话',
-    body: '/projects [页码]：查看允许的项目，点选按钮切换。\n/project 名称：切换项目，各项目保留自己的会话。\n/diagnose [项目]：只读检查会话是否归档、丢失或路径变化。\n/new [项目]：下一条任务新建会话；省略项目时使用当前项目，保留历史结果。\n/thread use ID：绑定当前项目已有会话。\n/thread fork：复制当前会话历史并绑定新会话。\n运行任务时不能切换项目或更换会话，请等待完成或先 /stop。\n服务断开时，在本机运行 check --all；停止服务后可用 recover --project 项目恢复。',
+    commands: [
+      { command: '/projects', parameters: '[页码]', description: '查看允许的项目，点选按钮切换。' },
+      { command: '/project', parameters: '名称', description: '切换项目；各项目保留自己的会话。' },
+      { command: '/diagnose', parameters: '[项目]', description: '只读检查会话是否归档、丢失或路径变化。' },
+      { command: '/new', parameters: '[项目]', description: '下一条任务新建会话，保留历史结果；省略项目时使用当前项目。' },
+      { command: '/thread use', parameters: 'ID', description: '绑定当前项目已有会话。' },
+      { command: '/thread fork', description: '复制当前会话历史，并绑定新会话。' },
+    ],
+    notes: ['任务运行时不可切换项目或会话，请等待完成或先 /stop。', '服务断开时，在本机运行 check --all；停止服务后可用 recover --project 项目恢复。'],
   },
   {
     title: '审批与回答',
-    body: '/approval ID [页码]：查看完整审批或问题详情。\n/approve ID：批准本次请求；需先查看全部详情页。\n/reject ID：拒绝本次请求。\n/answer ID {"问题ID":"回答"}：回答全部问题。\n可从 /status 找到待处理编号；过期或已处理的请求不可再次操作。\n帮助菜单不会执行审批，具体操作只出现在对应请求卡片中。',
+    commands: [
+      { command: '/approval', parameters: 'ID [页码]', description: '查看完整审批或问题详情。' },
+      { command: '/approve', parameters: 'ID', description: '批准本次请求；需先查看全部详情页。' },
+      { command: '/reject', parameters: 'ID', description: '拒绝本次请求。' },
+      { command: '/answer', parameters: 'ID {"问题ID":"回答"}', description: '一次回答全部问题。' },
+    ],
+    notes: ['可从 /status 找到待处理编号；过期或已处理的请求不可再次操作。', '帮助菜单不会执行审批，具体操作只出现在对应请求卡片中。'],
   },
   {
     title: 'API 与能力管理',
-    body: '/threads [游标]：查看当前项目的 Codex 会话。\n/thread use 会话ID：绑定已有会话。\n/models、/skills、/plugins、/mcp：浏览本机能力。\n/api [方法前缀] [页码]：查看本机版本的协议目录。\n/api schema 方法 [页码]：查看参数 schema。\n/rpc 方法 JSON：调用协议接口。\n/events [页码]：查看最近的脱敏事件。\n管理写操作先 /inspect ID 查看全部详情，再 /confirm ID；/cancel ID 取消。\n/manage-result ID [页码]：查询管理结果。',
+    commands: [
+      { command: '/threads', parameters: '[游标]', description: '查看当前项目的 Codex 会话。' },
+      { command: '/thread use', parameters: '会话ID', description: '绑定已有会话。' },
+      { command: '/models', relatedCommands: ['/skills', '/plugins', '/mcp'], description: '分别浏览模型、技能、插件和 MCP 服务。' },
+      { command: '/api', parameters: '[方法前缀] [页码]', description: '查看本机版本的协议目录。' },
+      { command: '/api schema', parameters: '方法 [页码]', description: '查看接口参数 schema。' },
+      { command: '/rpc', parameters: '方法 JSON', description: '调用协议接口。' },
+      { command: '/events', parameters: '[页码]', description: '查看最近的脱敏事件。' },
+      { command: '/manage-result', parameters: 'ID [页码]', description: '查询管理结果。' },
+    ],
+    notes: ['管理写操作先 /inspect ID 查看全部详情，再 /confirm ID；/cancel ID 取消。'],
   },
   {
     title: 'Codex Desktop 管理',
-    body: '/desktop projects：读取桌面宿主项目列表。\n/desktop chats：读取桌面聊天与侧栏。\n/desktop tools [页码]：列出当前宿主实际提供的工具。\n/desktop schema 工具 [页码]：查看工具说明与参数。\n/desktop call 工具 JSON：调用桌面工具。\n可管理聊天、侧栏、工作树、插件和自动化，具体范围以工具目录为准。\n写操作需查看详情并确认，宿主权限仍然生效。\n需在本机配置桌面适配器并通过 desktop-check。',
+    commands: [
+      { command: '/desktop projects', description: '读取桌面宿主项目列表。' },
+      { command: '/desktop chats', description: '读取桌面聊天与侧栏。' },
+      { command: '/desktop tools', parameters: '[页码]', description: '列出当前宿主实际提供的工具。' },
+      { command: '/desktop schema', parameters: '工具 [页码]', description: '查看工具说明与参数。' },
+      { command: '/desktop call', parameters: '工具 JSON', description: '调用桌面工具。' },
+    ],
+    notes: ['可管理聊天、侧栏、工作树、插件和自动化，具体范围以工具目录为准。', '写操作需查看详情并确认，宿主权限仍然生效。', '需在本机配置桌面适配器并通过 desktop-check。'],
   },
-]
+] satisfies Omit<HelpPage, 'body'>[]).map(page => ({ ...page, body: helpBody(page) }))
 
 export const HELP_BUTTON: CommandButton = { label: '帮助菜单', command: '/help' }
 

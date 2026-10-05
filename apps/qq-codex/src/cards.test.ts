@@ -2,6 +2,7 @@ import type { PendingApproval, ReplyCard, Task } from './types'
 import { Buffer } from 'node:buffer'
 import { describe, expect, it } from 'vitest'
 import { acceptedCard, approvalCard, cardPages, helpCard, projectsCard, resultCard, statusCard } from './cards'
+import { HELP_PAGES } from './constants'
 
 const task: Task = { id: 'aabbccdd', project: 'demo', status: 'running', output: '', createdAt: new Date().toISOString() }
 
@@ -138,5 +139,40 @@ describe('bounded QQ cards', () => {
     }
     expect(seen).toEqual(projects)
     expect(projectsCard(projects, projects[0], 7, 'owner')).toBeUndefined()
+  })
+
+  it('paginates image commands without omissions and keeps category shortcuts stable', () => {
+    const seen = []
+    for (let page = 1; page <= HELP_PAGES.length; page++) {
+      for (let part = 1; ; part++) {
+        const card = helpCard('_'.repeat(64), page, 'owner', undefined, { image: true, part })
+        if (!card)
+          break
+        const commands = card.visual!.details.help!.commands
+        expect(commands.length).toBeLessThanOrEqual(4)
+        expect(Buffer.byteLength(card.payload.markdown.content)).toBeLessThan(2000)
+        expect(buttons(card).length).toBeLessThanOrEqual(9)
+        for (const entry of commands) {
+          expect(card.text).toContain(entry.command)
+          for (const related of entry.relatedCommands ?? [])
+            expect(card.text).toContain(related)
+          expect(card.text).toContain(entry.description)
+        }
+        expect(buttons(card).some(button => /^\/(?:approve|reject|answer)\b/.test(button.action.data))).toBe(false)
+        seen.push(...commands)
+      }
+    }
+    expect(seen).toEqual(HELP_PAGES.flatMap(page => page.commands))
+    const actions = (page: number, part: number) => buttons(helpCard('demo', page, 'owner', undefined, { image: true, part })!).map(button => button.action.data)
+    expect(actions(1, 1)).toContain('/help 1 2')
+    expect(helpCard('demo', 1, 'owner', undefined, { image: true })!.visual!.details.help!.footer).toContain('下一页：/help 1 2')
+    expect(actions(1, 2)).toContain('/help 1 1')
+    expect(actions(1, 2)).toContain('/help 2')
+    expect(actions(2, 1)).toContain('/help 1 2')
+    expect(actions(5, 2)).not.toContain('/help 6')
+    expect(helpCard('demo', 3, 'owner', undefined, { image: true })!.text).toContain('/approve ID')
+    for (const part of [0, 1.5, 3, NaN])
+      expect(helpCard('demo', 1, 'owner', undefined, { image: true, part })).toBeUndefined()
+    expect(helpCard('demo', 1, 'owner', undefined, { part: 2 })).toBeUndefined()
   })
 })

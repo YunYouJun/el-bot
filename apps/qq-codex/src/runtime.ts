@@ -1,3 +1,4 @@
+import type { RuntimeStatus } from './control'
 import type { BotCredentials, RemoteConfig } from './types'
 import { once } from 'node:events'
 import { homedir } from 'node:os'
@@ -14,10 +15,12 @@ import {
   QQGateway,
 } from 'qq-sdk/official'
 import { statusCard } from './cards'
+import { serveControl } from './control'
 import { RemoteController } from './controller'
 import { renderCardImage } from './image'
 import { CardImageStore } from './image-store'
 import { CardImageUploader } from './image-upload'
+import { cleanupAll, RuntimeLifecycle, StartupCancelled } from './lifecycle'
 import { checkCodexReadiness } from './readiness'
 import { inspectSessions, sessionSummary } from './sessions'
 import { bindInstance, StateStore } from './store'
@@ -86,30 +89,70 @@ export async function startRemote(config: RemoteConfig, statePath: string, crede
   const desktop = config.desktop ? new CodexDesktopClient(config.desktop) : undefined
   const qq = new QQBotClient({ appId, secret, sandbox: config.sandbox })
   const store = new StateStore(statePath)
-  const unlock = await store.lock()
+  let unlock: () => Promise<void> = async () => {}
   const imageStore = config.messageFormat === 'image' && config.image?.publicBaseUrl ? new CardImageStore({ ...config.image, publicBaseUrl: config.image.publicBaseUrl }) : undefined
   const images = imageStore ?? (config.messageFormat === 'image' && config.image ? new CardImageUploader(qq, config.image) : undefined)
   let controller: RemoteController | undefined
   let stopTransport = () => {}
   let stopHttp = () => {}
-  let shuttingDown = false
+  let stopControl: () => Promise<void> = async () => {}
+  const startedAt = new Date().toISOString()
+  let phase: RuntimeStatus['phase'] = 'starting'
+  let qqStatus: RuntimeStatus['qq'] = 'disconnected'
+  let codexStatus: RuntimeStatus['codex'] = 'connecting'
   const signals = new Map<NodeJS.Signals, () => void>()
-  const shutdown = async () => {
-    if (shuttingDown)
-      return
-    shuttingDown = true
-    for (const [signal, handler] of signals) process.off(signal, handler)
-    stopTransport()
-    stopHttp()
-    if (controller)
-      await controller.close()
-    else await codex.close()
-    await desktop?.close()
-    imageStore?.close()
-    await unlock()
+  const lifecycle = new RuntimeLifecycle(async () => {
+    try {
+      await cleanupAll([
+        () => stopTransport(),
+        () => stopHttp(),
+        () => controller ? controller.close() : codex.close(),
+        async () => { await desktop?.close() },
+        () => imageStore?.close(),
+        () => stopControl(),
+        () => unlock(),
+      ])
+    }
+    finally {
+      for (const [signal, handler] of signals) process.off(signal, handler)
+    }
+  })
+  const shutdown = () => {
+    phase = 'stopping'
+    return lifecycle.stop()
   }
+  for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+    const handler = () => {
+      void shutdown().catch((error) => {
+        consola.error(error.message)
+        process.exitCode = 1
+      })
+    }
+    signals.set(signal, handler)
+    process.on(signal, handler)
+  }
+  codex.on('disconnect', () => {
+    codexStatus = 'disconnected'
+  })
   try {
+    unlock = await store.lock()
+    lifecycle.checkpoint()
+    stopControl = await serveControl(statePath, () => ({
+      phase,
+      pid: process.pid,
+      startedAt,
+      qq: qqStatus,
+      codex: codexStatus,
+      project: controller?.state.project,
+      ...controller?.runtimeActivity,
+      busy: controller?.runtimeActivity.busy ?? false,
+    }), async (interrupt) => {
+      await controller?.prepareStop(interrupt)
+      await shutdown()
+    })
+    lifecycle.checkpoint()
     const state = await store.load(config.defaultProject)
+    lifecycle.checkpoint()
     const legacy = !state.instance
     bindInstance(state, instanceIdentity(config, credentials, profile))
     if (legacy)
@@ -117,6 +160,7 @@ export async function startRemote(config: RemoteConfig, statePath: string, crede
     const schema = config.management?.enabled ? await CodexSchema.load(config.codexExecutable, config.experimentalApi) : undefined
     if (desktop)
       await desktop.listTools()
+    lifecycle.checkpoint()
     controller = new RemoteController(
       config,
       state,
@@ -130,12 +174,17 @@ export async function startRemote(config: RemoteConfig, statePath: string, crede
       { schema, desktop, images },
     )
     await store.save(state)
+    lifecycle.checkpoint()
     await codex.start()
+    lifecycle.checkpoint()
     await checkCodexReadiness(codex, config)
+    lifecycle.checkpoint()
+    codexStatus = 'connected'
     for (const session of await inspectSessions(codex, config, state)) {
       if (!['new', 'ready'].includes(session.status))
         consola.warn(sessionSummary(session))
     }
+    lifecycle.checkpoint()
     const remote = controller
     if (!state.owner) {
       consola.info(
@@ -148,7 +197,7 @@ export async function startRemote(config: RemoteConfig, statePath: string, crede
         app.route('/', imageStore.app)
       if (config.transport === 'webhook') {
         app.use('/qq/events', bodyLimit({ maxSize: 1024 * 1024 }))
-        const handler = createQQWebhookHandler({ appId, secret, onMessage: message => remote.accept(message) })
+        const handler = createQQWebhookHandler({ appId, secret, onMessage: message => lifecycle.stopping ? Promise.resolve() : remote.accept(message) })
         app.post('/qq/events', c => handler(c.req.raw))
       }
       const server = serve({
@@ -158,33 +207,44 @@ export async function startRemote(config: RemoteConfig, statePath: string, crede
       })
       stopHttp = () => {
         server.close()
+        if ('closeAllConnections' in server)
+          server.closeAllConnections()
       }
       await once(server, 'listening')
+      lifecycle.checkpoint()
+      if (config.transport === 'webhook')
+        qqStatus = 'webhook'
       consola.success(
         `QQ HTTP service listening at http://127.0.0.1:${config.webhookPort}. Configure your HTTPS reverse proxy for the enabled endpoints.`,
       )
     }
     if (config.transport !== 'webhook') {
+      qqStatus = 'connecting'
       const gateway = new QQGateway(qq, {
-        onMessage: message => remote.accept(message),
-        onError: error => consola.warn(error.message),
-        onReady: () => consola.success('QQ gateway connected'),
+        onMessage: message => lifecycle.stopping ? Promise.resolve() : remote.accept(message),
+        onError: (error) => {
+          qqStatus = 'connecting'
+          consola.warn(error.message.split(secret).join('[redacted]'))
+        },
+        onDisconnect: () => {
+          qqStatus = 'connecting'
+        },
+        onReady: () => {
+          qqStatus = 'connected'
+          consola.success('QQ gateway connected')
+        },
       })
       stopTransport = () => gateway.stop()
       await gateway.start()
+      lifecycle.checkpoint()
     }
-    for (const signal of ['SIGINT', 'SIGTERM'] as const) {
-      const handler = () => {
-        void shutdown().catch(() => {
-          process.exitCode = 1
-        })
-      }
-      signals.set(signal, handler)
-      process.once(signal, handler)
-    }
+    phase = 'running'
   }
   catch (error) {
+    lifecycle.started()
     await shutdown()
-    throw error
+    if (!(error instanceof StartupCancelled))
+      throw error
   }
+  finally { lifecycle.started() }
 }

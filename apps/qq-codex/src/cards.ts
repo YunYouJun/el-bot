@@ -1,7 +1,7 @@
 import type { QQKeyboard } from 'qq-sdk/official'
 import type { CardButton, CardDetails, CommandButton, PendingApproval, ReplyCard, Task } from './types'
 import { Buffer } from 'node:buffer'
-import { BUTTON_STYLES, DOCUMENTATION_LINKS, HELP_BUTTON, HELP_PAGES, TASK_STATUS_ICONS, TASK_STATUS_LABELS } from './constants'
+import { BUTTON_STYLES, DOCUMENTATION_LINKS, HELP_BUTTON, HELP_COMMANDS_PER_IMAGE, HELP_PAGES, helpBody, TASK_STATUS_ICONS, TASK_STATUS_LABELS } from './constants'
 import { failureText } from './failures'
 import { pages } from './text'
 
@@ -84,19 +84,33 @@ function taskButtons(task: Task | undefined, primary: 'status' | 'result' | 'inp
 }
 
 /** A discoverable menu also works without rich rendering or an active Codex connection. */
-export function helpCard(project: string, page: number, owner: string, notice?: string): ReplyCard | undefined {
+export function helpCard(project: string, page: number, owner: string, notice?: string, options: { image?: boolean, part?: number } = {}): ReplyCard | undefined {
   if (!Number.isInteger(page) || page < 1 || page > HELP_PAGES.length)
     return undefined
   const details = HELP_PAGES[page - 1]
-  return card(`🧭 Codex 快捷命令 (${page}/${HELP_PAGES.length})`, {
+  const part = options.part ?? 1
+  const total = options.image ? Math.ceil(details.commands.length / HELP_COMMANDS_PER_IMAGE) : 1
+  if (!Number.isInteger(part) || part < 1 || part > total)
+    return undefined
+  const commands = options.image ? details.commands.slice((part - 1) * HELP_COMMANDS_PER_IMAGE, part * HELP_COMMANDS_PER_IMAGE) : details.commands
+  const intro = [notice, details.intro].filter(Boolean).join('\n') || undefined
+  const helpNavigation: CommandButton[] = options.image
+    ? [
+        ...(part > 1 ? [{ label: '上一页', command: `/help ${page} ${part - 1}` }] : page > 1 ? [{ label: '上一分类', command: `/help ${page - 1} ${Math.ceil(HELP_PAGES[page - 2].commands.length / HELP_COMMANDS_PER_IMAGE)}` }] : []),
+        ...(part < total ? [{ label: '下一页', command: `/help ${page} ${part + 1}`, tone: 'primary' as const }] : page < HELP_PAGES.length ? [{ label: '下一分类', command: `/help ${page + 1}`, tone: 'primary' as const }] : []),
+      ]
+    : navigation('/help', page, HELP_PAGES.length)
+  const navigationText = helpNavigation.map(button => `${button.label}：${button.command}`).join(' · ')
+  return card(options.image ? `🧭 Codex 帮助 · 分类 ${page}/${HELP_PAGES.length}` : `🧭 Codex 快捷命令 (${page}/${HELP_PAGES.length})`, {
     fields: [{ label: '当前项目', value: project }],
-    section: details.title,
-    body: [notice, details.body].filter(Boolean).join('\n'),
-    footnote: '/help 页码 · /menu、/?、帮助、菜单也可打开帮助',
+    section: options.image ? `${details.title} · ${part}/${total}` : details.title,
+    body: helpBody({ commands, intro, notes: details.notes }),
+    footnote: options.image ? [`/help ${page} ${part} · /help 分类 页码`, navigationText, '使用图片外的按钮，或发送文字指令。'].filter(Boolean).join('\n') : '/help 页码 · /menu、/?、帮助、菜单也可打开帮助',
     links: DOCUMENTATION_LINKS,
+    ...(options.image ? { help: { commands, intro, notes: details.notes, footer: `[参数] 可以省略，其余参数需填写\n${navigationText || '/help 返回帮助首页'}` } } : {}),
   }, page >= 4
     ? [
-        ...navigation('/help', page, HELP_PAGES.length),
+        ...helpNavigation,
         { label: 'API 目录', command: '/api', tone: 'primary' },
         { label: '桌面项目', command: '/desktop projects' },
         { label: '桌面聊天', command: '/desktop chats' },
@@ -105,7 +119,7 @@ export function helpCard(project: string, page: number, owner: string, notice?: 
         HELP_BUTTON,
       ]
     : [
-        ...navigation('/help', page, HELP_PAGES.length),
+        ...helpNavigation,
         { label: '输入任务', command: '/run ', enter: false, tone: 'primary' },
         { label: '任务状态', command: '/status' },
         { label: '最近结果', command: '/result' },
