@@ -50,7 +50,7 @@ describe('uploaded image cards', () => {
     expect(fetcher.mock.calls.filter(([url]) => String(url).endsWith('/messages'))).toHaveLength(2)
     expect(JSON.stringify(sent)).not.toContain('signed=yes')
     expect(onError).not.toHaveBeenCalled()
-  }, 15000) // Include native font discovery in the real rendering/upload check.
+  }, 45000) // Include cold Windows font discovery, observed at 25 seconds in CI.
 
   it('displays native media even when the server omits its Markdown URL', async () => {
     const qq = { uploadImage: vi.fn(async () => ({ file_info: 'private-info', ttl: 300 })), reply: vi.fn<QQBotClient['reply']>(async () => ({})) }
