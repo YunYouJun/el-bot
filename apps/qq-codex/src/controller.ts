@@ -31,6 +31,7 @@ export class RemoteController {
   private approvals = new Map<string, PendingApproval>()
   private items = new Map<string, unknown>()
   private runPromise?: Promise<void>
+  private interrupting?: { task: Task, promise: Promise<void>, commands: string[] }
   private turnFailure?: { turnId: string, code: FailureCode }
   private sender: ReplySender
   private management: ManagementController
@@ -60,9 +61,9 @@ export class RemoteController {
       this.closed = true
       if (this.active) {
         void this.finish(
-          this.stopping ? 'interrupted' : 'failed',
-          this.stopping ? '遥控服务已停止。' : undefined,
-          this.stopping ? undefined : failureCode(error, 'connection'),
+          this.interrupting ? 'failed' : this.stopping ? 'interrupted' : 'failed',
+          this.stopping && !this.interrupting ? '遥控服务已停止。' : undefined,
+          this.interrupting ? 'stop-unconfirmed' : this.stopping ? undefined : failureCode(error, 'connection'),
         ).catch(this.onError)
       }
     })
@@ -165,8 +166,8 @@ export class RemoteController {
       this.cancelled = true
       this.clearApprovals()
       if (this.active.threadId && this.active.turnId)
-        void this.codex.interrupt(this.active.threadId, this.active.turnId).catch(this.onError)
-      void this.say(reply, '已请求停止。使用 /status 查看最终状态。')
+        void this.interruptTask(this.active)
+      void this.say(reply, '已请求停止，正在确认当前任务的命令已终止。使用 /status 查看最终状态。')
       return
     }
     if (command === '/steer') {
@@ -350,7 +351,7 @@ export class RemoteController {
     task.status = 'running'
     await this.persist()
     if (this.cancelled)
-      await this.codex.interrupt(threadId, task.turnId)
+      await this.interruptTask(task)
   }
 
   private notification({ method, params }: RpcNotification) {
@@ -384,8 +385,11 @@ export class RemoteController {
       && isRecord(params.item)
     ) {
       const item = params.item
-      if (typeof item.id === 'string')
+      if (typeof item.id === 'string') {
         this.items.set(item.id, item)
+        if (item.type === 'commandExecution' && this.interrupting?.task === task && !this.interrupting.commands.includes(item.id))
+          this.interrupting.commands.push(item.id)
+      }
       if (
         method === 'item/completed'
         && item.type === 'agentMessage'
@@ -409,6 +413,11 @@ export class RemoteController {
       && (!task.turnId || params.turn.id === task.turnId)
     ) {
       const status = params.turn.status
+      if (this.cancelled) {
+        task.turnId ??= String(params.turn.id)
+        void this.interruptTask(task)
+        return
+      }
       void this.finish(
         status === 'completed'
           ? 'completed'
@@ -421,6 +430,27 @@ export class RemoteController {
           : undefined,
       ).catch(this.onError)
     }
+  }
+
+  private interruptTask(task: Task): Promise<void> {
+    if (this.interrupting?.task === task)
+      return this.interrupting.promise
+    const commandItems = [...this.items].filter(([, item]) => isRecord(item) && item.type === 'commandExecution').map(([id]) => id)
+    // Defer the RPC until the latch is installed: turn/completed may arrive first.
+    const promise = Promise.resolve().then(async () => {
+      try {
+        await this.codex.interrupt(task.threadId!, task.turnId!, commandItems)
+        if (this.active === task)
+          await this.finish('interrupted', '已确认当前任务的终端命令已终止。')
+      }
+      catch {
+        this.closed = true
+        if (this.active === task)
+          await this.finish('failed', undefined, 'stop-unconfirmed')
+      }
+    }).catch(this.onError)
+    this.interrupting = { task, promise, commands: commandItems }
+    return promise
   }
 
   private request(request: RpcRequest) {
@@ -619,6 +649,8 @@ export class RemoteController {
     if (!task)
       return
     this.active = undefined
+    if (this.interrupting?.task === task)
+      this.interrupting = undefined
     task.status = status
     if (failure) {
       task.failure = failure
@@ -661,9 +693,7 @@ export class RemoteController {
     this.clearApprovals()
     const closingManagement = this.management.close()
     if (this.active?.threadId && this.active.turnId) {
-      await this.codex
-        .interrupt(this.active.threadId, this.active.turnId)
-        .catch(this.onError)
+      await this.interruptTask(this.active)
     }
     await this.codex.close()
     await closingManagement

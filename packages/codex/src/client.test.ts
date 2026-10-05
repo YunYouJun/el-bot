@@ -1,3 +1,6 @@
+import { access, mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -25,6 +28,24 @@ function client(timeout = 2000, experimentalApi = false, codexHome?: string) {
 }
 
 describe('codex app-server stdio', () => {
+  it('terminates the active command after an interrupt notification so delayed effects cannot continue', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'el-bot-stop-'))
+    const marker = join(directory, 'late.txt')
+    const codex = new CodexClient({ executable: process.execPath, args: [fileURLToPath(new URL('../test/fixtures/background-terminal.mjs', import.meta.url)), marker], experimentalApi: true })
+    clients.push(codex)
+    try {
+      await codex.start()
+      await codex.turn('thread', directory, 'work')
+      await codex.interrupt('thread', 'turn', ['command-item'])
+      await new Promise(resolve => setTimeout(resolve, 1500))
+      expect(await access(marker).then(() => true, () => false)).toBe(false)
+      expect(await access(`${marker}.unrelated`).then(() => true, () => false)).toBe(true)
+    }
+    finally {
+      await codex.close()
+      await rm(directory, { recursive: true, force: true })
+    }
+  })
   it('uses the selected Codex home instead of an ambient account and session directory', async () => {
     vi.stubEnv('CODEX_HOME', '/ambient-codex')
     const codex = client(2000, false, '/isolated-codex')

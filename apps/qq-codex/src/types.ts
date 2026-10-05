@@ -74,7 +74,7 @@ export interface CodexReadinessClient {
 export type FailureCode
   = 'authentication' | 'model' | 'session-archived' | 'session-missing'
     | 'project-changed' | 'quota' | 'rate-limit' | 'context' | 'network'
-    | 'timeout' | 'connection' | 'unknown'
+    | 'timeout' | 'connection' | 'stop-unconfirmed' | 'unknown'
 export interface FailureMessage {
   summary: string
   hint: string

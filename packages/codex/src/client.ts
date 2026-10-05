@@ -74,7 +74,7 @@ export class CodexClient extends EventEmitter<{
     try {
       await this.request('initialize', {
         clientInfo: { name: 'el_bot_qq', title: 'El Bot QQ', version: '0.1.0' },
-        ...(this.options.experimentalApi ? { capabilities: { experimentalApi: true } } : {}),
+        ...(this.options.experimentalApi || this.options.terminalControl ? { capabilities: { experimentalApi: true } } : {}),
       })
       this.send({ method: 'initialized', params: {} })
     }
@@ -218,8 +218,44 @@ export class CodexClient extends EventEmitter<{
     })
   }
 
-  interrupt(threadId: string, turnId: string) {
-    return this.request('turn/interrupt', { threadId, turnId })
+  async interrupt(threadId: string, turnId: string, commandItemIds?: readonly string[]) {
+    const result = await this.request('turn/interrupt', { threadId, turnId })
+    if (commandItemIds === undefined)
+      return result
+    if (!this.options.terminalControl && !this.options.experimentalApi)
+      throw new Error('Terminal control is required to confirm command cancellation')
+    const terminals = await this.terminals(threadId)
+    for (const terminal of terminals) {
+      if (commandItemIds.includes(terminal.itemId))
+        await this.request('thread/backgroundTerminals/terminate', { threadId, processId: terminal.processId })
+    }
+    if ((await this.terminals(threadId)).some(terminal => commandItemIds.includes(terminal.itemId)))
+      throw new Error('Command termination could not be confirmed')
+    return result
+  }
+
+  private async terminals(threadId: string): Promise<{ itemId: string, processId: string }[]> {
+    const terminals: { itemId: string, processId: string }[] = []
+    const seen = new Set<string>()
+    let cursor: string | undefined
+    do {
+      const result = await this.request('thread/backgroundTerminals/list', { threadId, ...(cursor ? { cursor } : {}), limit: 100 })
+      if (!record(result) || !Array.isArray(result.data))
+        throw new Error('Invalid terminal listing')
+      for (const item of result.data) {
+        if (!record(item) || typeof item.itemId !== 'string' || typeof item.processId !== 'string')
+          throw new Error('Invalid terminal identity')
+        terminals.push({ itemId: item.itemId, processId: item.processId })
+      }
+      if (result.nextCursor != null && typeof result.nextCursor !== 'string')
+        throw new Error('Invalid terminal cursor')
+      cursor = result.nextCursor || undefined
+      if (cursor && (seen.has(cursor) || seen.size >= 100))
+        throw new Error('Terminal listing did not complete')
+      if (cursor)
+        seen.add(cursor)
+    } while (cursor)
+    return terminals
   }
 
   async review(threadId: string, target: ReviewTarget): Promise<TurnResult> {

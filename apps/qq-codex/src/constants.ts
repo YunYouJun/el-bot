@@ -71,6 +71,7 @@ export const FAILURE_MESSAGES: Record<FailureCode, FailureMessage> = {
   'network': { summary: 'Codex 与模型服务的连接失败。', hint: '检查本机网络、代理及模型服务状态，恢复后再发送新任务。' },
   'timeout': { summary: '本机 Codex 请求超时，服务已停止接收新任务。', hint: '检查本机 Codex 状态并重启 el-bot codex start，再继续。' },
   'connection': { summary: '本机 Codex 连接已断开。', hint: '检查 Codex 可执行文件与本机进程，重启 el-bot codex start。' },
+  'stop-unconfirmed': { summary: '无法确认当前任务的终端命令已终止，服务已停止接收新任务。', hint: '在本机检查并结束该任务的命令进程，核对 Codex 终端控制接口支持后重启服务。不要将本次状态视为命令已停止。' },
   'unknown': { summary: 'Codex 任务未完成，暂未识别具体原因。', hint: '在本机运行 el-bot codex check --all，核对登录、模型和项目配置后再提交。' },
 }
 

@@ -23,7 +23,7 @@ import { inspectSessions, sessionSummary } from './sessions'
 import { bindInstance, StateStore } from './store'
 
 export function createCodexClient(config: RemoteConfig): CodexClient {
-  return new CodexClient({ executable: config.codexExecutable, codexHome: config.codexHome, envAllowlist: config.codexEnvAllowlist, connection: config.codexConnection, socketPath: config.codexSocket, experimentalApi: config.experimentalApi })
+  return new CodexClient({ executable: config.codexExecutable, codexHome: config.codexHome, envAllowlist: config.codexEnvAllowlist, connection: config.codexConnection, socketPath: config.codexSocket, experimentalApi: config.experimentalApi, terminalControl: true })
 }
 
 export function instanceIdentity(config: RemoteConfig, credentials: BotCredentials, profile?: string) {

@@ -17,6 +17,8 @@ export interface CodexOptions {
   connection?: 'stdio' | 'desktop'
   socketPath?: string
   experimentalApi?: boolean
+  /** Opt into scoped terminal control for confirmed task cancellation. */
+  terminalControl?: boolean
   /** Explicit arguments support protocol test fixtures; production uses app-server. */
   args?: string[]
   requestTimeoutMs?: number

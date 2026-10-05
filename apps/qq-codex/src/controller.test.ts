@@ -281,12 +281,16 @@ describe('remote admission and sessions', () => {
 
   it('keeps status and stop responsive, rejects parallel work and waits for completion', async () => {
     const s = setup()
+    let confirm!: (value: object) => void
+    s.codex.interrupt.mockImplementationOnce(() => new Promise((resolve) => {
+      confirm = resolve
+    }))
     await s.start()
     await s.send('another task')
     await s.send('/status')
     await s.send('/stop')
     expect(s.codex.turn).toHaveBeenCalledOnce()
-    expect(s.codex.interrupt).toHaveBeenCalledWith('thread', 'turn')
+    expect(s.codex.interrupt).toHaveBeenCalledWith('thread', 'turn', [])
     expect(s.state.tasks[0].status).toBe('running')
     s.codex.emit('notification', {
       method: 'turn/completed',
@@ -295,7 +299,38 @@ describe('remote admission and sessions', () => {
         turn: { id: 'turn', status: 'interrupted' },
       },
     })
-    expect(s.state.tasks[0].status).toBe('interrupted')
+    expect(s.state.tasks[0].status).toBe('running')
+    await s.send('work before terminal termination')
+    expect(s.codex.turn).toHaveBeenCalledOnce()
+    confirm({})
+    await vi.waitFor(() => expect(s.state.tasks[0].status).toBe('interrupted'))
+  })
+
+  it('blocks new tasks and reports an unconfirmed stop when terminal cleanup fails', async () => {
+    const s = setup()
+    await s.start()
+    s.codex.interrupt.mockRejectedValueOnce(new Error('private-path private-token'))
+    await s.send('/stop')
+    await vi.waitFor(() => expect(s.state.tasks[0].failure).toBe('stop-unconfirmed'))
+    expect(s.state.tasks[0].status).toBe('failed')
+    expect(s.state.tasks[0].output).not.toContain('private-token')
+    await s.send('do not admit more work')
+    expect(s.codex.turn).toHaveBeenCalledOnce()
+  })
+
+  it('includes command items arriving during cancellation and interrupts only once', async () => {
+    const s = setup()
+    await s.start()
+    s.codex.emit('notification', { method: 'item/started', params: { threadId: 'thread', turnId: 'turn', item: { id: 'ours', type: 'commandExecution' } } })
+    s.codex.interrupt.mockImplementationOnce(async () => {
+      s.codex.emit('notification', { method: 'item/started', params: { threadId: 'thread', turnId: 'turn', item: { id: 'racing', type: 'commandExecution' } } })
+      s.codex.emit('notification', { method: 'turn/completed', params: { threadId: 'thread', turn: { id: 'turn', status: 'interrupted' } } })
+      return {}
+    })
+    await s.send('/stop')
+    await vi.waitFor(() => expect(s.state.tasks[0].status).toBe('interrupted'))
+    expect(s.codex.interrupt).toHaveBeenCalledOnce()
+    expect(s.codex.interrupt).toHaveBeenCalledWith('thread', 'turn', ['ours', 'racing'])
   })
 
   it('cancels during thread startup without starting a turn', async () => {
