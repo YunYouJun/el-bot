@@ -83,7 +83,7 @@ export function registerCodexCommand(program: Command): Command {
   program.command('paths')
     .description('显示当前使用的配置、凭据和状态路径，不显示密钥')
     .action((_opts: unknown, command: Command) => {
-      consola.log(JSON.stringify(resolvePaths(options(command)), null, 2))
+      process.stdout.write(`${JSON.stringify(resolvePaths(options(command)), null, 2)}\n`)
     })
   program.command('recover')
     .description('重置指定项目的续聊绑定；保留主人和历史，不重放任务；先停止服务')
@@ -130,7 +130,7 @@ export function registerCodexCommand(program: Command): Command {
       const schema = await CodexSchema.load(opts.executable, opts.experimental)
       if (opts.method && !schema.methods.includes(opts.method))
         throw new Error('本机 Codex 未提供这个 API。')
-      consola.log(JSON.stringify(opts.method ? { params: schema.params(opts.method), definitions: schema.schema.definitions } : schema.methods, null, 2))
+      process.stdout.write(`${JSON.stringify(opts.method ? { params: schema.params(opts.method), definitions: schema.schema.definitions } : schema.methods, null, 2)}\n`)
     })
   program.action(async () => {
     const opts = program.opts<{ check?: boolean, checkQq?: boolean }>()

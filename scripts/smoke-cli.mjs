@@ -11,6 +11,7 @@ const temporary = await mkdtemp(join(tmpdir(), 'el-bot-cli-package-'))
 const pnpm = process.env.npm_execpath
 assert(pnpm, 'Run with pnpm test:cli')
 const environment = { ...process.env }
+environment.CI = 'true'
 for (const key of Object.keys(environment)) {
   if (key.startsWith('QQ_BOT_') || key.startsWith('DOTENV_CONFIG_'))
     delete environment[key]
