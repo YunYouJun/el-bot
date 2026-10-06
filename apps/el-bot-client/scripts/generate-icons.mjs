@@ -27,6 +27,27 @@ function render(svg, width) {
   return new Resvg(svg, { fitTo: { mode: 'width', value: width } }).render()
 }
 
+function canonicalIco(svg) {
+  // Render vector frames directly to avoid architecture-dependent raster resizing.
+  const sizes = [16, 24, 32, 48, 64, 256]
+  const images = sizes.map(size => render(svg, size).asPng())
+  const directory = Buffer.alloc(6 + sizes.length * 16)
+  directory.writeUInt16LE(1, 2)
+  directory.writeUInt16LE(sizes.length, 4)
+  let offset = directory.length
+  for (const [index, size] of sizes.entries()) {
+    const entry = 6 + index * 16
+    directory[entry] = size % 256
+    directory[entry + 1] = size % 256
+    directory.writeUInt16LE(1, entry + 4)
+    directory.writeUInt16LE(32, entry + 6)
+    directory.writeUInt32LE(images[index].length, entry + 8)
+    directory.writeUInt32LE(offset, entry + 12)
+    offset += images[index].length
+  }
+  return Buffer.concat([directory, ...images])
+}
+
 function canonicalIcns(data) {
   assert.equal(data.toString('ascii', 0, 4), 'icns')
   assert.equal(data.readUInt32BE(4), data.length)
@@ -75,7 +96,7 @@ try {
   outputs.set('docs/public/manifest.json', `${JSON.stringify({ ...manifest, theme_color: color }, null, 2)}\n`)
   const icons = 'apps/el-bot-client/src-tauri/icons'
   outputs.set(`${icons}/icon.png`, await readFile(join(temporary, 'app/icon.png')))
-  outputs.set(`${icons}/icon.ico`, await readFile(join(temporary, 'app/icon.ico')))
+  outputs.set(`${icons}/icon.ico`, canonicalIco(appIcon))
   outputs.set(`${icons}/icon.icns`, canonicalIcns(await readFile(join(temporary, 'mac/icon.icns'))))
   outputs.set(`${icons}/macos-icon.png`, render(macIcon, 512).asPng())
   const tray = render(trayIcon, 32)
