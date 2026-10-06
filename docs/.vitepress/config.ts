@@ -133,6 +133,7 @@ export default defineConfig({
       // fallback
       "/development/": [
         { text: "工作区与发布", link: "/development/monorepo" },
+        { text: "用户指令系统", link: "/development/user-commands" },
         { text: "QQ 遥控 Codex", link: "/development/codex-remote" },
         { text: "本机桌面客户端", link: "/development/client-tool" },
         { text: "AI 快速接入", link: "/codex/ai-setup" },

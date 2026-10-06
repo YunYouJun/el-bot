@@ -4,6 +4,7 @@ import type { AnswerOptions } from './utils'
 import { defineBotPlugin, onNapcatMessage } from '../../core'
 // import { displayAnswerList, renderString } from './utils'
 import pkg from './package.json'
+import { displayAnswerList } from './utils'
 
 export * from './utils'
 
@@ -23,6 +24,12 @@ export default defineBotPlugin<AnswerOptions>((options) => {
     // },
 
     setup(ctx) {
+      ctx.command('answer')
+        .description('查看自动应答的使用帮助')
+        .usage('answer')
+        .example('answer')
+        .action(() => displayAnswerList(options))
+
       // 设置定时
       // options.forEach((ans) => {
       //   if (ans.cron) {

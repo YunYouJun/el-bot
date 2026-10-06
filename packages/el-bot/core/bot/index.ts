@@ -30,12 +30,14 @@ import { handleError } from '../utils/error'
 import { statement } from '../utils/misc'
 import { Command } from './command'
 import { logger } from './logger'
+import { dispatchNapcatMessage } from './message'
 import { createQQSDK, QQWebsocketClient } from './platform'
 import { Plugins } from './plugins'
 import { Sender } from './sender'
 import { Status } from './status'
 import { User } from './user'
 
+export * from './command'
 export * from './logger'
 export * from './plugins'
 
@@ -155,6 +157,10 @@ export class Bot {
   isDev = process.env.NODE_ENV !== 'production'
   rootDir = process.cwd()
   tmpDir = 'tmp/'
+
+  private readonly handleNapcatMessage = (message: NapcatMessage) => {
+    void dispatchNapcatMessage(this, message).catch(handleError)
+  }
 
   constructor(el: ElUserConfig) {
     statement()
@@ -281,11 +287,13 @@ export class Bot {
     // 加载插件
     consola.log('')
     setCurrentInstance(this)
-    await this.plugins.loadConfig()
-    // 自动加载自定义插件
-    if (this.el.bot.autoloadPlugins) {
-      await this.plugins.loadCustom(this.el.bot.pluginDir)
-    }
+    await this._command.reloadPlugins(async () => {
+      await this.plugins.loadConfig()
+      // 自动加载自定义插件
+      if (this.el.bot.autoloadPlugins) {
+        await this.plugins.loadCustom(this.el.bot.pluginDir)
+      }
+    })
 
     consola.log('')
     consola.success('插件加载完成')
@@ -294,25 +302,8 @@ export class Bot {
     if (this.el.mirai)
       this.mirai.listen()
 
-    // 监听并解析用户指令
-    this._command.listen()
-
     // onMessage
-    this.napcat.on('message', async (msg) => {
-      await this.hooks.callHook('onMessage', msg)
-      await this.hooks.callHook('onNapcatMessage', msg)
-
-      switch (msg.message_type) {
-        case 'private':
-          await this.hooks.callHook('onPrivateFriendMessage', msg)
-          await this.hooks.callHook('onPrivateGroupMessage', msg)
-          await this.hooks.callHook('onPrivateMessage', msg)
-          break
-        case 'group':
-          await this.hooks.callHook('onGroupMessage', msg)
-          break
-      }
-    })
+    this.napcat.on('message', this.handleNapcatMessage)
 
     // 如何解决持久运行
     // 意外退出
@@ -331,7 +322,8 @@ export class Bot {
    * 停止机器人
    */
   async stop() {
-    this.napcat.disconnect()
+    this.napcat.off('message', this.handleNapcatMessage)
+    await this.napcat.disconnect()
     if (this.miraiInstance)
       await this.miraiInstance.release()
     this.server?.close()
@@ -405,5 +397,15 @@ export class Bot {
    */
   command(name: string) {
     return this._command.command(name)
+  }
+
+  /** Execute a user command without sending a QQ message. */
+  executeCommand(text: string) {
+    return this._command.execute(text)
+  }
+
+  /** Get user-facing help without executing an action. */
+  getCommandHelp(name?: string) {
+    return this._command.getHelp(name)
   }
 }

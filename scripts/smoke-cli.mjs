@@ -58,20 +58,45 @@ try {
   assert.equal(manifest.exports['./nest'].import, './dist/nest.mjs')
   await writeFile(join(consumer, 'import.mjs'), `
     import assert from 'node:assert/strict'
-    import { Bot, createBot, defineBotPlugin, defineConfig } from 'el-bot'
+    import { Bot, Command, answerPlugin, createBot, defineBotPlugin, defineConfig } from 'el-bot'
     import { ElBotModule, ElBotService } from 'el-bot/nest'
-    for (const value of [Bot, createBot, defineBotPlugin, defineConfig, ElBotModule, ElBotService])
+    for (const value of [Bot, Command, createBot, defineBotPlugin, defineConfig, ElBotModule, ElBotService])
       assert.equal(typeof value, 'function')
     assert.equal(defineConfig({ debug: true }).debug, true)
+    const bot = Object.create(Bot.prototype)
+    bot._command = new Command(bot)
+    bot.reply = () => { throw new Error('Programmatic execution must not send to QQ') }
+    bot.command('echo').description('Echo arguments').usage('echo <text>').example('echo hello')
+      .action(async (args, context) => {
+        assert.equal(context.bot, bot)
+        assert.equal(context.source, 'programmatic')
+        return args.join(' ')
+      })
+    assert.deepEqual(await bot.executeCommand('echo hello'), { matched: true, result: 'hello' })
+    assert.deepEqual(await bot.executeCommand('missing'), { matched: false })
+    assert(bot.getCommandHelp('echo').includes('echo <text>'))
+    await answerPlugin({ list: [{ receivedText: ['ping'], reply: 'pong', help: 'ping → pong' }] }).setup(bot)
+    assert.deepEqual(await bot.executeCommand('answer'), { matched: true, result: '回答列表：\\n- ping → pong' })
+    assert(bot.getCommandHelp().includes('answer'))
   `)
   run(process.execPath, ['import.mjs'], consumer)
   run(process.execPath, [pnpm, '--ignore-workspace', 'add', '--save-dev', `typescript@${manifest.devDependencies.typescript}`, `@types/node@${manifest.devDependencies['@types/node']}`, '--ignore-scripts'], consumer)
   await writeFile(join(consumer, 'consumer.ts'), `
-    import { createBot, defineConfig, type Bot } from 'el-bot'
+    import { createBot, defineConfig, type Bot, type CommandContext, type CommandExecution } from 'el-bot'
     import { ElBotModule, ElBotService } from 'el-bot/nest'
     const config = defineConfig({ debug: true })
     const create: (options?: Parameters<typeof createBot>[0]) => Promise<Bot> = createBot
-    void [config, create, ElBotModule, ElBotService]
+    function commandConsumer(bot: Bot) {
+      bot.command('echo').description('Echo').usage('echo <text>').example('echo hello')
+        .action(async (args: string[], context: CommandContext) => {
+          if (context.source === 'message') await context.reply(args.join(' '))
+          return args.join(' ')
+        })
+      const execution: Promise<CommandExecution> = bot.executeCommand('echo hello')
+      const help: string = bot.getCommandHelp('echo')
+      return { execution, help }
+    }
+    void [config, create, commandConsumer, ElBotModule, ElBotService]
   `)
   run(process.execPath, [join(consumer, 'node_modules/typescript/bin/tsc'), '--strict', '--noEmit', '--module', 'NodeNext', '--target', 'ES2022', '--types', 'node', 'consumer.ts'], consumer)
   run(process.execPath, ['--input-type=module', '-e', 'import("./node_modules/el-bot/dist/qq-sdk.mjs").then(sdk => { if (typeof sdk.createQQApi !== "function") process.exit(1) })'], consumer)

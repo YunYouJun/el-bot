@@ -43,6 +43,14 @@ API 目录、桌面项目与聊天管理见 [Codex Desktop](/codex/desktop)。�
 
 当前开发构建的 `codex preferences` 可以查看和保存图片／Markdown／纯文本模式以及图片主题，只修改展示字段；运行中的机器人需要手动重启生效。也可在[本机客户端](/development/client-tool)中设置，并用本机按钮打开 Codex／QQ。npm `1.0.0-rc.2` 尚未提供此命令。
 
+## 插件用户命令
+
+当前开发构建的通用框架在 NapCat 私聊中支持直接发送 `帮助`、`help 命令名`；群聊需在开头 @机器人或使用「机器人名 命令」。
+已加载的 `answerPlugin` 提供 `answer` 命令，展示应答配置的帮助信息。
+
+插件通过 `bot.command().description().usage().example().action()` 注册命令；回调返回文本或 NapCat 消息链时自动回复，也可用本次调用的 `context.reply()` 手动回复。
+`bot.executeCommand()` 支持内部调用，`bot.getCommandHelp()` 获取帮助文本。设计、示例和验收边界见[面向用户的指令系统](/development/user-commands)。npm `1.0.0-rc.2` 尚未提供这些新增能力。
+
 ## 旧框架的 QQ 文本终端
 
 以下 `el echo`、`el plugins` 等是已有框架 CLI 插件的聊天命令，与本机 `el-bot codex` 子命令分别使用。

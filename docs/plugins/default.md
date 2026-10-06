@@ -22,6 +22,12 @@ plugins:
 
 ## 应答 answer
 
+当前开发构建的 NapCat `answerPlugin` 提供用户命令 `answer`，列出应答配置项的 `help`。私聊直接发送 `answer`，群聊使用「机器人名 answer」或在开头 @机器人；`帮助 answer` 可查看命令用法。
+
+使用 `answerPlugin({ list: [{ receivedText: ['ping'], reply: 'pong', help: '发送 ping，回复 pong' }] })` 配置文本应答和帮助说明。完整配置与插件注册示例见[面向用户的指令系统](/development/user-commands#answer-插件接入)。npm `1.0.0-rc.2` 尚未包含新增命令。
+
+下方是旧 Mirai 插件的配置示例；NapCat 配置使用上述 `receivedText`、`reply` 和 `help` 字段。
+
 - `reply`: 类型
 
 | Name     | Type                                                                                                                      | Example | Description                                                                                                                     |
