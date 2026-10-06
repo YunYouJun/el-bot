@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { homedir, tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
@@ -11,6 +11,12 @@ const temporary = await mkdtemp(join(tmpdir(), 'el-bot-cli-package-'))
 const pnpm = process.env.npm_execpath
 assert(pnpm, 'Run with pnpm test:cli')
 const environment = { ...process.env }
+// Keep browser binaries outside the isolated credentials home used by this test.
+environment.PLAYWRIGHT_BROWSERS_PATH ??= process.platform === 'darwin'
+  ? join(homedir(), 'Library', 'Caches', 'ms-playwright')
+  : process.platform === 'win32'
+    ? join(process.env.LOCALAPPDATA ?? join(homedir(), 'AppData', 'Local'), 'ms-playwright')
+    : join(process.env.XDG_CACHE_HOME ?? join(homedir(), '.cache'), 'ms-playwright')
 environment.CI = 'true'
 for (const key of Object.keys(environment)) {
   if (key.startsWith('QQ_BOT_') || key.startsWith('DOTENV_CONFIG_'))
@@ -160,6 +166,9 @@ try {
   assert.equal(JSON.parse(run(process.execPath, [cli, 'codex', 'stop', '--interrupt', ...controlArgs], consumer, false)).ok, false)
   assert.equal(await readFile(`${controlState}.lock`, 'utf8'), '99999999')
   const preview = join(temporary, 'card.png')
+  assert(run(process.execPath, [cli, 'codex', 'browser-install', '--help'], consumer).includes('--with-deps'))
+  if (process.env.CI)
+    run(process.execPath, [cli, 'codex', 'browser-install', '--with-deps'], consumer)
   run(process.execPath, [cli, 'codex', 'render', '--card', 'result', '--theme', 'dark', '--output', preview], consumer)
   const png = await readFile(preview)
   assert.equal(png.subarray(1, 4).toString(), 'PNG')

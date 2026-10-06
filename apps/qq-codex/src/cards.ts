@@ -180,6 +180,7 @@ export function resultCard(task: Task, page: number, owner: string): ReplyCard |
     fields: [{ label: '项目', value: task.project }, { label: '任务', value: task.id }],
     section: '结果',
     body: parts[page - 1],
+    bodyFormat: 'markdown',
     footnote: `/result ${task.id} 页码 · /help 帮助`,
   }, [...navigation(`/result ${task.id}`, page, parts.length), ...taskButtons(task, task.status === 'running' || task.status === 'starting' ? 'status' : 'input')], owner)
 }

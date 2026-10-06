@@ -24,17 +24,21 @@
   "dependencies": {
     "@el-bot/codex": "workspace:*",
     "@hono/node-server": "catalog:",
-    "@resvg/resvg-js": "catalog:",
+    "@yunlefun/ui": "catalog:",
     "commander": "catalog:",
     "consola": "catalog:",
     "dotenv": "catalog:",
     "enquirer": "catalog:",
     "hono": "catalog:",
+    "markdown-it": "catalog:",
+    "playwright": "catalog:",
     "qq-sdk": "workspace:*",
+    "shiki": "catalog:",
     "tweetnacl": "catalog:",
     "ws": "catalog:"
   },
   "devDependencies": {
+    "@types/markdown-it": "catalog:",
     "@types/node": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"

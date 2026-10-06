@@ -54,6 +54,9 @@ catalogs:
     '@types/js-yaml':
       specifier: ^4.0.9
       version: 4.0.9
+    '@types/markdown-it':
+      specifier: ^14.2.0
+      version: 14.2.0
     '@types/node':
       specifier: ^24.19.1
       version: 24.19.1
@@ -165,6 +168,9 @@ catalogs:
     lint-staged:
       specifier: ^17.6.0
       version: 17.6.0
+    markdown-it:
+      specifier: ^14.3.2
+      version: 14.3.2
     mirai-ts:
       specifier: ^2.4.8
       version: 2.4.8
@@ -183,6 +189,9 @@ catalogs:
     picocolors:
       specifier: ^1.1.1
       version: 1.1.1
+    playwright:
+      specifier: ^1.63.0
+      version: 1.63.0
     pm2:
       specifier: ^7.0.4
       version: 7.0.4
@@ -219,6 +228,9 @@ catalogs:
     shelljs:
       specifier: ^0.10.0
       version: 0.10.0
+    shiki:
+      specifier: ^4.5.0
+      version: 4.5.0
     ts-loader:
       specifier: ^9.6.2
       version: 9.6.2
@@ -376,9 +388,9 @@ importers:
       '@hono/node-server':
         specifier: 'catalog:'
         version: 2.1.3(hono@4.13.13)
-      '@resvg/resvg-js':
+      '@yunlefun/ui':
         specifier: 'catalog:'
-        version: 2.6.2
+        version: 0.0.6(sass@1.105.1)
       commander:
         specifier: 'catalog:'
         version: 15.0.0
@@ -394,9 +406,18 @@ importers:
       hono:
         specifier: 'catalog:'
         version: 4.13.13
+      markdown-it:
+        specifier: 'catalog:'
+        version: 14.3.2
+      playwright:
+        specifier: 'catalog:'
+        version: 1.63.0
       qq-sdk:
         specifier: workspace:*
         version: link:../../packages/qq-sdk
+      shiki:
+        specifier: 'catalog:'
+        version: 4.5.0
       tweetnacl:
         specifier: 'catalog:'
         version: 1.0.3
@@ -404,6 +425,9 @@ importers:
         specifier: 'catalog:'
         version: 8.22.0
     devDependencies:
+      '@types/markdown-it':
+        specifier: 'catalog:'
+        version: 14.2.0
       '@types/node':
         specifier: 'catalog:'
         version: 24.19.1
@@ -434,6 +458,12 @@ importers:
 
   docs:
     dependencies:
+      '@yunlefun/ui':
+        specifier: 'catalog:'
+        version: 0.0.6(sass@1.105.1)
+      '@yunlefun/vue':
+        specifier: 'catalog:'
+        version: 0.4.2(sass@1.105.1)(vue@3.5.43(typescript@5.9.3))
       sass:
         specifier: 'catalog:'
         version: 1.105.1
@@ -602,15 +632,15 @@ importers:
       '@octokit/webhooks-methods':
         specifier: 'catalog:'
         version: 6.0.0
-      '@resvg/resvg-js':
-        specifier: 'catalog:'
-        version: 2.6.2
       '@types/node-schedule':
         specifier: 'catalog:'
         version: 2.1.8
       '@types/ws':
         specifier: 'catalog:'
         version: 8.18.2
+      '@yunlefun/ui':
+        specifier: 'catalog:'
+        version: 0.0.6(sass@1.105.1)
       ajv:
         specifier: 'catalog:'
         version: 8.20.0
@@ -677,6 +707,9 @@ importers:
       picocolors:
         specifier: 'catalog:'
         version: 1.1.1
+      playwright:
+        specifier: 'catalog:'
+        version: 1.63.0
       progress:
         specifier: 'catalog:'
         version: 2.0.3
@@ -4946,6 +4979,16 @@ packages:
 
   pkg-types@2.3.3:
     resolution: {integrity: sha512-j/lCFdcppV0JxWpCEITdbDltBxPP6cHT+yNJ6Go2OgoSA9518X847X9z0p6LtA4Nc16+eQzCZjRrWanTGvHJ5w==}
+
+  playwright-core@1.63.0:
+    resolution: {integrity: sha512-rYCsBF/M5HjUch52bbtVONEFjv6Xu8sm8h72dNlR5bzIE1fvC/bxgspzkjSfU+MweEMmPM8KJebG6nnyxo5mCg==}
+    engines: {node: '>=20'}
+    hasBin: true
+
+  playwright@1.63.0:
+    resolution: {integrity: sha512-+7ziBLidS4NaNCdt57SUDT+wYmmd5fmiQejUic/kb+YsYSCPyOOE9sebzMjNmQrsnNpDJqd4WHvV/8lfKfUDUg==}
+    engines: {node: '>=20'}
+    hasBin: true
 
   pluralize@8.0.0:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
@@ -10133,6 +10176,12 @@ snapshots:
       confbox: 0.3.1
       exsolve: 1.1.3
       pathe: 2.0.3
+
+  playwright-core@1.63.0: {}
+
+  playwright@1.63.0:
+    dependencies:
+      playwright-core: 1.63.0
 
   pluralize@8.0.0: {}
 

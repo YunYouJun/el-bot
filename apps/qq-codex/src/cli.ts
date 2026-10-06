@@ -1,7 +1,9 @@
 import type { InitOptions, PathOptions } from './types'
+import { spawn } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { readFile, writeFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { createRequire } from 'node:module'
+import { dirname, join, resolve } from 'node:path'
 import process from 'node:process'
 import { CodexSchema } from '@el-bot/codex'
 import { Command, Option } from 'commander'
@@ -12,7 +14,7 @@ import { runtimeLogs, runtimeStatus, startBackground, stopBackground } from './c
 import { readCredentials } from './credentials'
 import { configureDesktop } from './desktop-setup'
 import { diagnose, formatDiagnostics } from './diagnostics'
-import { renderCardImage } from './image'
+import { closeCardRenderer, renderCardImage } from './image'
 import { initialize } from './init'
 import { resolvePaths } from './paths'
 import { replyPreferences } from './preferences'
@@ -195,6 +197,17 @@ export function registerCodexCommand(program: Command): Command {
         throw new Error('本机 Codex 未提供这个 API。')
       process.stdout.write(`${JSON.stringify(opts.method ? { params: schema.params(opts.method), definitions: schema.schema.definitions } : schema.methods, null, 2)}\n`)
     })
+  program.command('browser-install')
+    .description('安装当前 el-bot 依赖版本对应的 Chromium；仅图片模式需要')
+    .option('--with-deps', '同时安装浏览器系统依赖；Linux 上可能需要管理员权限')
+    .action(async (opts: { withDeps?: boolean }) => {
+      const cli = join(dirname(createRequire(import.meta.url).resolve('playwright/package.json')), 'cli.js')
+      await new Promise<void>((resolve, reject) => {
+        const child = spawn(process.execPath, [cli, 'install', 'chromium', ...opts.withDeps ? ['--with-deps'] : []], { stdio: 'inherit' })
+        child.once('error', reject)
+        child.once('exit', code => code === 0 ? resolve() : reject(new Error(`Chromium 安装失败（退出码 ${code}）`)))
+      })
+    })
   program.command('render')
     .description('生成本地卡片 PNG 预览；不连接 QQ、不运行模型、不覆盖已有图片')
     .requiredOption('-o, --output <file>', '输出 PNG 路径')
@@ -217,9 +230,12 @@ export function registerCodexCommand(program: Command): Command {
       const card = opts.card === 'help' ? helpCard('demo', page, 'preview', undefined, { image: true, part: Number(opts.part) }) : opts.card === 'result' ? resultCard({ id: 'preview', project: 'demo', status: 'completed', output, createdAt: new Date().toISOString() }, page, 'preview') : statusCard('demo', { id: 'preview', project: 'demo', status: 'running', output: '', createdAt: new Date().toISOString() }, [], page, 'preview')
       if (!card)
         throw new Error('卡片页码无效')
-      const image = await renderCardImage(card, { theme: opts.theme, ...(opts.fontFile ? { fontFiles: [resolve(opts.fontFile)] } : {}), fontFamily: opts.fontFamily })
-      await writeFile(resolve(opts.output), image.png, { flag: 'wx', mode: 0o600 })
-      consola.success(`已生成 ${image.width}×${image.height} PNG：${resolve(opts.output)}。未发送 QQ 消息。`)
+      try {
+        const image = await renderCardImage(card, { theme: opts.theme, ...(opts.fontFile ? { fontFiles: [resolve(opts.fontFile)] } : {}), fontFamily: opts.fontFamily })
+        await writeFile(resolve(opts.output), image.png, { flag: 'wx', mode: 0o600 })
+        consola.success(`已生成 ${image.width}×${image.height} PNG：${resolve(opts.output)}。未发送 QQ 消息。`)
+      }
+      finally { await closeCardRenderer() }
     })
   program.action(async () => {
     const opts = program.opts<{ check?: boolean, checkQq?: boolean }>()

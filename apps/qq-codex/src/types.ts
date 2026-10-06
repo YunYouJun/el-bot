@@ -1,5 +1,6 @@
 import type { DesktopOptions, RpcRequest } from '@el-bot/codex'
 import type { C2CMessage, QQMarkdownReply } from 'qq-sdk/official'
+import type { CardRenderOptions, ImageCard, ImageCardDetails, ImageHelpCommand } from './card-renderer'
 
 /** Explicit path overrides accepted by every CLI command. */
 export interface PathOptions {
@@ -50,14 +51,11 @@ export interface RemoteConfig {
   messageFormat: 'markdown' | 'text' | 'image'
   image?: ImageOptions
 }
-export interface ImageOptions {
+export interface ImageOptions extends CardRenderOptions {
   /** Local QQ uploads are the default; public hosting remains an optional transport. */
   transport?: 'upload' | 'public'
   /** Required only for public transport, forwarded to /qq-codex/images. */
   publicBaseUrl?: string
-  theme: 'light' | 'dark'
-  fontFiles?: string[]
-  fontFamily?: string
 }
 export interface CardImagePublisher {
   kind?: 'media' | 'markdown'
@@ -153,7 +151,7 @@ export interface ReplyCard {
   payload: QQMarkdownReply
   /** Keep approval details selectable and available even when an image cannot load. */
   imageAllowed?: boolean
-  visual?: { title: string, details: CardDetails, tone: 'primary' | 'success' | 'warning' | 'danger' | 'muted' }
+  visual?: ImageCard
 }
 
 /** A command button; its data is always generated from trusted controller state. */
@@ -174,23 +172,12 @@ export interface LinkButton {
 
 export type CardButton = CommandButton | LinkButton
 
-/** Trusted labels and literal values displayed above a card's escaped body. */
-export interface CardDetails {
-  fields?: { label: string, value: string }[]
-  body: string
-  section?: string
-  footnote: string
+/** Trusted labels and literal values displayed above a card's body. */
+export interface CardDetails extends ImageCardDetails {
   links?: LinkButton[]
-  /** Structured documentation is supplied only by the fixed help catalog. */
-  help?: { commands: HelpCommand[], intro?: string, notes: string[], footer: string }
 }
 
-export interface HelpCommand {
-  command: string
-  relatedCommands?: string[]
-  parameters?: string
-  description: string
-}
+export type HelpCommand = ImageHelpCommand
 
 /** Fixed command documentation; user output never supplies menu actions. */
 export interface HelpPage {

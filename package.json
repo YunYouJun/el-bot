@@ -44,6 +44,7 @@
     "dev:simple": "pnpm -C examples/simple run dev",
     "docs:dev": "pnpm -C docs run dev",
     "docs:build": "pnpm -C docs run build",
+    "docs:examples": "tsx scripts/build-card-examples.ts",
     "lint": "eslint --cache .",
     "lint:fix": "pnpm lint --fix",
     "cqhttp": "cd go-cqhttp && ./go-cqhttp faststart",

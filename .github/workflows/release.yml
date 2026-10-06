@@ -53,6 +53,7 @@ jobs:
       - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm typecheck:packages
+      - run: pnpm --filter @el-bot/qq-codex exec playwright install --with-deps chromium
       - run: pnpm test
       - run: pnpm docs:build
       - run: pnpm --filter el-bot pack --pack-destination ./dist

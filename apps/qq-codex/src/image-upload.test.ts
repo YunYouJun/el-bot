@@ -1,12 +1,14 @@
 import type { ReplyContext } from './types'
 import { Buffer } from 'node:buffer'
 import { QQBotClient } from 'qq-sdk/official'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest'
 import { statusCard } from './cards'
+import { closeCardRenderer } from './image'
 import { CardImageUploader } from './image-upload'
 import { ReplySender } from './reply'
 
 afterEach(() => vi.unstubAllGlobals())
+afterAll(closeCardRenderer)
 
 describe('uploaded image cards', () => {
   it('renders a real PNG and sends native media followed by copyable controls within the passive budget', async () => {

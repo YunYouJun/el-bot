@@ -55,6 +55,7 @@ export default defineConfig({
     sidebar: {
       "/codex/": [
         { text: "功能展示", link: "/codex/" },
+        { text: "图片卡片示例", link: "/codex/card-renderer" },
         { text: "安装与接入", link: "/development/codex-remote" },
         { text: "AI 快速接入", link: "/codex/ai-setup" },
         { text: "管理 Codex Desktop", link: "/codex/desktop" },
@@ -135,6 +136,7 @@ export default defineConfig({
         { text: "工作区与发布", link: "/development/monorepo" },
         { text: "用户指令系统", link: "/development/user-commands" },
         { text: "QQ 遥控 Codex", link: "/development/codex-remote" },
+        { text: "Markdown 图片渲染", link: "/development/card-renderer" },
         { text: "本机桌面客户端", link: "/development/client-tool" },
         { text: "AI 快速接入", link: "/codex/ai-setup" },
         { text: "管理 Codex Desktop", link: "/codex/desktop" },

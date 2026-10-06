@@ -55,6 +55,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm typecheck:packages
+      - run: pnpm --filter @el-bot/qq-codex exec playwright install --with-deps chromium
       - run: pnpm test
       - run: pnpm test:cli
 

@@ -17,7 +17,7 @@ import {
 import { statusCard } from './cards'
 import { serveControl } from './control'
 import { RemoteController } from './controller'
-import { renderCardImage } from './image'
+import { closeCardRenderer, renderCardImage } from './image'
 import { CardImageStore } from './image-store'
 import { CardImageUploader } from './image-upload'
 import { cleanupAll, RuntimeLifecycle, StartupCancelled } from './lifecycle'
@@ -49,7 +49,10 @@ export async function checkDesktop(config: RemoteConfig): Promise<void> {
 /** Check local Codex authentication without starting a model turn. */
 export async function checkLocal(config: RemoteConfig, statePath?: string): Promise<void> {
   if (config.messageFormat === 'image' && config.image) {
-    await renderCardImage(statusCard(config.defaultProject, undefined, [], 1, 'local-check')!, config.image)
+    try {
+      await renderCardImage(statusCard(config.defaultProject, undefined, [], 1, 'local-check')!, config.image)
+    }
+    finally { await closeCardRenderer() }
     consola.success(config.image.publicBaseUrl ? '本机图片渲染通过；公网图片入口需另行核验。' : '本机图片渲染通过；发送时直接上传到 QQ，无需公网图片入口。未上传图片、未发送消息。')
   }
   const codex = createCodexClient(config)
@@ -109,6 +112,7 @@ export async function startRemote(config: RemoteConfig, statePath: string, crede
         () => controller ? controller.close() : codex.close(),
         async () => { await desktop?.close() },
         () => imageStore?.close(),
+        () => closeCardRenderer(),
         () => stopControl(),
         () => unlock(),
       ])

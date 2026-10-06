@@ -10,14 +10,16 @@
     "url": "https://www.yunyoujun.cn"
   },
   "scripts": {
-    "dev": "node ../scripts/build-ai-docs.mjs && vitepress dev . --open --host",
-    "build": "node ../scripts/build-ai-docs.mjs && vitepress build",
+    "dev": "pnpm -w docs:examples && node ../scripts/build-ai-docs.mjs && vitepress dev . --open --host",
+    "build": "pnpm -w docs:examples && node ../scripts/build-ai-docs.mjs && vitepress build",
     "serve": "pnpm preview",
     "preview": "vitepress preview",
     "typecheck": "vue-tsc --noEmit"
   },
   "license": "AGPL-3.0",
   "dependencies": {
+    "@yunlefun/ui": "catalog:",
+    "@yunlefun/vue": "catalog:",
     "sass": "catalog:",
     "vitepress": "catalog:",
     "vue": "catalog:"
