@@ -18,6 +18,7 @@ packages:
   - docs
 
 overrides:
+  oxfmt>tinypool: 2.1.2
   pm2>js-yaml: ^4.3.2
   request>form-data: ^2.5.6
   request>qs: ^6.16.0
