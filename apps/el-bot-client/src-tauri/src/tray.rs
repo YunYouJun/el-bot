@@ -31,6 +31,8 @@ pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let logs = item("logs", "运行日志", true)?;
     let settings = item("settings", "连接设置", true)?;
     let codex = item("open-codex", "打开 Codex", true)?;
+    let codebuddy = item("open-codebuddy", "打开 CodeBuddy", true)?;
+    let dsh = item("open-dsh", "打开 DSH Tauri", true)?;
     let qq = item("open-qq", "打开 QQ", true)?;
     let quit = item("quit", "退出客户端（机器人继续运行）", true)?;
     let separator = PredefinedMenuItem::separator(app)?;
@@ -47,6 +49,8 @@ pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             &logs,
             &settings,
             &codex,
+            &codebuddy,
+            &dsh,
             &qq,
             &separator_end,
             &quit,
@@ -74,7 +78,7 @@ pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         .on_menu_event(|app, event| match event.id.as_ref() {
             "quit" => app.exit(0),
             action @ ("start" | "stop" | "restart" | "runtime" | "logs" | "settings"
-            | "open-codex" | "open-qq") => {
+            | "open-codex" | "open-codebuddy" | "open-dsh" | "open-qq") => {
                 show_window(app);
                 // Reuse the window's pending guard and explicit interruption confirmation.
                 let _ = app.emit_to("main", "tray-action", action);

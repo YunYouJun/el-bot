@@ -3,7 +3,7 @@ import { isTauri } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { onMounted, onUnmounted, shallowRef } from 'vue'
 
-export type TrayAction = 'runtime' | 'logs' | 'settings' | 'start' | 'stop' | 'restart' | 'open-codex' | 'open-qq'
+export type TrayAction = 'runtime' | 'logs' | 'settings' | 'start' | 'stop' | 'restart' | 'open-codex' | 'open-codebuddy' | 'open-dsh' | 'open-qq'
 
 export function useTrayActions(handle: (action: TrayAction) => Promise<void>) {
   const error = shallowRef('')

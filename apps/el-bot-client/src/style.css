@@ -22,17 +22,22 @@ button:disabled {
   cursor: not-allowed;
 }
 .shell {
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-columns: 200px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
 }
 .sidebar {
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--ylf-space-8);
-  padding: var(--ylf-space-8) var(--ylf-space-4);
+  gap: var(--ylf-space-6);
+  padding: var(--ylf-space-6) var(--ylf-space-4);
   background: var(--ylf-c-surface);
   border-right: 1px solid var(--ylf-c-border);
+  overflow-y: auto;
 }
 .brand {
   display: flex;
@@ -104,16 +109,19 @@ button:disabled {
 .workspace {
   width: 100%;
   min-width: 0;
+  min-height: 0;
   max-width: 1050px;
-  padding: var(--ylf-space-8) var(--ylf-space-8) var(--ylf-space-12);
+  padding: var(--ylf-space-6);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
 }
 .page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: var(--ylf-space-4);
-  margin-bottom: var(--ylf-space-6);
+  gap: var(--ylf-space-3);
+  margin-bottom: var(--ylf-space-4);
 }
 h1 {
   margin: 0;
@@ -129,21 +137,14 @@ p {
   color: var(--ylf-c-text-2);
 }
 .page-header p {
-  margin: var(--ylf-space-2) 0 0;
+  margin: var(--ylf-space-1) 0 0;
   font-size: var(--ylf-text-sm);
-}
-.page-header .eyebrow {
-  margin: 0 0 var(--ylf-space-3);
-  color: var(--ylf-c-text-3);
-  font-size: var(--ylf-text-xs);
-  font-weight: 600;
-  letter-spacing: 0.04em;
 }
 .connection-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--ylf-space-4);
-  margin: 0 0 var(--ylf-space-6);
+  gap: var(--ylf-space-3);
+  margin: 0 0 var(--ylf-space-3);
 }
 .connection-list > div {
   display: flex;
@@ -151,7 +152,7 @@ p {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--ylf-space-2);
-  padding: var(--ylf-space-4);
+  padding: var(--ylf-space-2) var(--ylf-space-3);
   border: 1px solid var(--ylf-c-border);
   border-radius: var(--ylf-radius);
 }
@@ -171,11 +172,11 @@ dd {
 }
 .footnote {
   font-size: var(--ylf-text-xs);
-  margin: var(--ylf-space-4) 0 0;
+  margin: var(--ylf-space-2) 0 0;
 }
 .error,
 .notice {
-  padding: var(--ylf-space-3) var(--ylf-space-4);
+  padding: var(--ylf-space-2) var(--ylf-space-3);
   border-radius: var(--ylf-radius-sm);
   font-size: var(--ylf-text-sm);
   overflow-wrap: anywhere;
@@ -187,6 +188,10 @@ dd {
 .notice {
   color: var(--ylf-c-text-2);
   background: var(--ylf-c-bg-soft);
+}
+.workspace > .error,
+.workspace > .notice {
+  margin: 0 0 var(--ylf-space-3);
 }
 .settings-form {
   max-width: var(--ylf-layout-reading);
@@ -256,6 +261,7 @@ dd {
 @media (max-width: 720px) {
   .shell {
     grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
   }
   .sidebar {
     gap: var(--ylf-space-4);
@@ -276,7 +282,7 @@ dd {
     display: none;
   }
   .workspace {
-    padding: var(--ylf-space-6) var(--ylf-space-4);
+    padding: var(--ylf-space-4);
   }
   .connection-list {
     grid-template-columns: 1fr;

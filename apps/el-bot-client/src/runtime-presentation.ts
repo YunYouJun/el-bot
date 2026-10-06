@@ -33,7 +33,7 @@ export function connectionIndicator(status: RuntimeStatus | undefined, service: 
   if (!status || status.phase === 'unmanaged')
     return { state: 'unknown', label: '未验证' }
   if (service === 'codex' && status.codex === 'connected')
-    return { state: 'ready', label: '已就绪' }
+    return { state: 'ready', label: status.agent && status.agent !== 'codex' ? '已连接' : '已就绪' }
   return transports[status[service]]
 }
 

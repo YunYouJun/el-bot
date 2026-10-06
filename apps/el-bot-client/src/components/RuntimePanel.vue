@@ -4,6 +4,7 @@ import YlfButton from '@yunlefun/vue/components/YlfButton.vue'
 import YlfDialog from '@yunlefun/vue/components/YlfDialog.vue'
 import { computed, shallowRef, watch } from 'vue'
 import { connectionIndicator, runtimeIndicator, taskIndicator } from '../runtime-presentation'
+import ProgramLogo from './ProgramLogo.vue'
 import YlfAgentCard from './ui/YlfAgentCard.vue'
 import YlfAgentStatus from './ui/YlfAgentStatus.vue'
 import YlfAgentTask from './ui/YlfAgentTask.vue'
@@ -14,6 +15,8 @@ const confirming = shallowRef<'stop' | 'restart'>()
 const summary = computed(() => runtimeIndicator(props.status))
 const qq = computed(() => connectionIndicator(props.status, 'qq'))
 const codex = computed(() => connectionIndicator(props.status, 'codex'))
+const agent = computed(() => props.status?.agent ?? 'codex')
+const agentName = computed(() => ({ codex: 'Codex', codebuddy: 'CodeBuddy', dsh: 'DSH' })[agent.value])
 const task = computed(() => taskIndicator(props.status))
 const taskDescription = computed(() => {
   if (!props.status || props.status.phase === 'unmanaged')
@@ -64,10 +67,22 @@ defineExpose({ requestAction })
 </script>
 
 <template>
-  <YlfAgentCard name="el-bot" :state="summary.state" :status-label="summary.label" :description="status?.project ? `当前项目：${status.project}` : '通过 QQ 私聊使用本机 AI 助手'">
+  <YlfAgentCard class="runtime-panel" name="el-bot" :state="summary.state" :status-label="summary.label" :description="status?.project ? `当前项目：${status.project}` : '通过 QQ 私聊使用本机 AI 助手'">
     <dl class="connection-list">
-      <div><dt>QQ 连接</dt><dd><YlfAgentStatus :state="qq.state" :label="qq.label" /></dd></div>
-      <div><dt>Codex</dt><dd><YlfAgentStatus :state="codex.state" :label="codex.label" /></dd></div>
+      <div>
+        <dt class="connection-label">
+          <ProgramLogo program="qq" />
+          <span>QQ 连接</span>
+        </dt>
+        <dd><YlfAgentStatus :state="qq.state" :label="qq.label" /></dd>
+      </div>
+      <div>
+        <dt class="connection-label">
+          <ProgramLogo :program="agent" />
+          <span>{{ agentName }}</span>
+        </dt>
+        <dd><YlfAgentStatus :state="codex.state" :label="codex.label" /></dd>
+      </div>
     </dl>
     <YlfAgentTask title="当前任务" :state="task.state" :status-label="task.label" :task-id="status?.phase === 'unmanaged' ? undefined : status?.task?.id" :description="taskDescription" />
     <p v-if="status?.message" class="notice">
@@ -100,3 +115,47 @@ defineExpose({ requestAction })
     关窗后驻留菜单栏／托盘。退出客户端后，机器人仍继续运行。
   </p>
 </template>
+
+<style scoped>
+.runtime-panel {
+  padding: var(--ylf-space-4);
+}
+.connection-label {
+  display: flex;
+  align-items: center;
+  gap: var(--ylf-space-2);
+}
+.runtime-panel :deep(.ylf-agent-card__header) {
+  gap: var(--ylf-space-3);
+}
+.runtime-panel :deep(.ylf-agent-card__avatar) {
+  width: 40px;
+  height: 40px;
+}
+.runtime-panel :deep(.ylf-agent-card__avatar svg) {
+  width: 26px;
+  height: 26px;
+}
+.runtime-panel :deep(.ylf-agent-card__description) {
+  margin-top: var(--ylf-space-1);
+}
+.runtime-panel :deep(.ylf-agent-card__body) {
+  margin-top: var(--ylf-space-4);
+}
+.runtime-panel :deep(.ylf-agent-card__actions) {
+  gap: var(--ylf-space-2);
+  margin-top: var(--ylf-space-4);
+  padding-top: var(--ylf-space-3);
+}
+.runtime-panel :deep(.ylf-agent-task) {
+  padding: var(--ylf-space-3);
+}
+.runtime-panel :deep(.ylf-agent-task__description) {
+  margin-top: var(--ylf-space-2);
+}
+@media (max-width: 720px) {
+  .runtime-panel :deep(.ylf-button) {
+    min-height: 44px;
+  }
+}
+</style>

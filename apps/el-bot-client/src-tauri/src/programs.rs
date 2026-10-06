@@ -5,6 +5,8 @@ use std::path::PathBuf;
 #[serde(rename_all = "lowercase")]
 pub enum LocalProgram {
     Codex,
+    Codebuddy,
+    Dsh,
     Qq,
 }
 
@@ -13,6 +15,8 @@ impl LocalProgram {
     fn bundle_id(&self) -> &'static str {
         match self {
             Self::Codex => "com.openai.codex",
+            Self::Codebuddy => "com.tencent.codebuddycn",
+            Self::Dsh => "dsh-tauri",
             Self::Qq => "com.tencent.qq",
         }
     }
@@ -20,6 +24,8 @@ impl LocalProgram {
     fn configured_path<'a>(&self, settings: &'a ClientSettings) -> &'a str {
         match self {
             Self::Codex => &settings.codex_app_path,
+            Self::Codebuddy => &settings.codebuddy_app_path,
+            Self::Dsh => &settings.dsh_app_path,
             Self::Qq => &settings.qq_app_path,
         }
     }

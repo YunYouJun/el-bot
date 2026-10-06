@@ -15,6 +15,10 @@ pub struct ClientSettings {
     #[serde(default)]
     pub codex_app_path: String,
     #[serde(default)]
+    pub codebuddy_app_path: String,
+    #[serde(default)]
+    pub dsh_app_path: String,
+    #[serde(default)]
     pub qq_app_path: String,
 }
 
@@ -42,7 +46,12 @@ impl ClientSettings {
                 return Err("找不到 Node 或 el-bot CLI；请检查连接设置。".into());
             }
         }
-        for path in [&self.codex_app_path, &self.qq_app_path] {
+        for path in [
+            &self.codex_app_path,
+            &self.codebuddy_app_path,
+            &self.dsh_app_path,
+            &self.qq_app_path,
+        ] {
             if !path.is_empty() && (!Path::new(path).is_absolute() || path.contains('\0')) {
                 return Err("应用路径必须为完整本机路径。".into());
             }
@@ -84,6 +93,8 @@ pub fn load() -> Result<ClientSettings, String> {
             .to_string_lossy()
             .into(),
         codex_app_path: String::new(),
+        codebuddy_app_path: String::new(),
+        dsh_app_path: String::new(),
         qq_app_path: String::new(),
     })
 }

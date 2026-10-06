@@ -1,5 +1,6 @@
 /** Public control status contains no credentials, user IDs, prompts or task output. */
 export interface RuntimeStatus {
+  agent?: 'codex' | 'codebuddy' | 'dsh'
   phase: 'stopped' | 'starting' | 'running' | 'stopping' | 'unmanaged'
   pid?: number
   startedAt?: string

@@ -30,8 +30,9 @@ const page = computed(() => pages[tab.value])
 const { settings, status, pending, error, logs, preferences, act, refresh, readLogs, saveSettings, savePreferences, openProgram } = useBotController()
 const runtimePanel = useTemplateRef('runtimePanel')
 const { error: trayError } = useTrayActions(async (action) => {
-  if (action === 'open-codex' || action === 'open-qq') {
-    await openProgram(action === 'open-codex' ? 'codex' : 'qq')
+  if (action === 'open-codex' || action === 'open-codebuddy' || action === 'open-dsh' || action === 'open-qq') {
+    const programs = { 'open-codex': 'codex', 'open-codebuddy': 'codebuddy', 'open-dsh': 'dsh', 'open-qq': 'qq' } as const
+    await openProgram(programs[action])
     return
   }
   if (action === 'settings' || action === 'logs') {
@@ -68,9 +69,8 @@ const { error: trayError } = useTrayActions(async (action) => {
     <main class="workspace">
       <header class="page-header">
         <div>
-          <p class="eyebrow">
-            EL-BOT / {{ desktop ? '本机控制台' : '界面预览' }}
-          </p><h1>{{ page.title }}</h1><p>{{ page.description }}</p>
+          <h1>{{ page.title }}</h1>
+          <p>{{ page.description }}</p>
         </div>
         <YlfButton variant="secondary" size="sm" :disabled="pending || !desktop" @click="refresh">
           刷新状态
