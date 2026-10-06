@@ -1,21 +1,26 @@
+import type { BotPlugin } from './types'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 import consola from 'consola'
 
 import fs from 'fs-extra'
-import { BotPlugin } from './types'
+
+const entryExtensions = ['.ts', '.mts', '.js', '.mjs', '.cts', '.cjs']
+
+export function assertBotPlugin(plugin: unknown): asserts plugin is BotPlugin {
+  if (!plugin || typeof plugin !== 'object' || !('setup' in plugin) || typeof plugin.setup !== 'function')
+    throw new TypeError('A bot plugin must export an object with a setup(bot) function, or a factory returning that object')
+}
 
 /**
  * exec function to object
  * @TODO add custom options set
  */
-export async function parsePluginEntry(pluginPath: string) {
-  const importedCustomPlugin = (await import(pluginPath)).default
-  if (typeof importedCustomPlugin === 'function') {
-    return await importedCustomPlugin({})
-  }
-  else {
-    return importedCustomPlugin
-  }
+export async function parsePluginEntry(pluginPath: string): Promise<BotPlugin> {
+  const imported = (await import(pathToFileURL(path.resolve(pluginPath)).href)).default
+  const plugin: unknown = typeof imported === 'function' ? await imported({}) : imported
+  assertBotPlugin(plugin)
+  return plugin
 }
 
 /**
@@ -39,32 +44,40 @@ export async function resolvePluginFromName(options: {
   }
 
   const stat = await fs.stat(pluginDir)
-  let resolvedPlugin: BotPlugin = {
-    setup: () => {},
-  }
+  let resolvedPlugin: BotPlugin
   if (stat.isDirectory()) {
     const pkgPath = path.resolve(pluginDir, 'package.json')
-    const entryPath = path.resolve(pluginDir, 'index.ts')
-    if (!(await fs.exists(entryPath))) {
+    let entryPath: string | undefined
+    for (const extension of entryExtensions) {
+      const candidate = path.join(pluginDir, `index${extension}`)
+      if (await fs.pathExists(candidate)) {
+        entryPath = candidate
+        break
+      }
+    }
+    if (!entryPath) {
       consola.error(`Plugin ${name} entry not found`)
       return
     }
     resolvedPlugin = await parsePluginEntry(entryPath)
-    if (!resolvedPlugin.pkg) {
-      if (await fs.exists(pkgPath)) {
-        resolvedPlugin.pkg = await import(pkgPath)
-      }
-      else {
-        consola.warn(`Plugin ${name} package.json not found`)
-      }
-    }
+    if (!resolvedPlugin.pkg && await fs.pathExists(pkgPath))
+      resolvedPlugin = { ...resolvedPlugin, pkg: await fs.readJson(pkgPath) }
   }
-  else {
+  else if (stat.isFile() && entryExtensions.includes(path.extname(name)) && !/\.d\.[cm]?ts$/.test(name)) {
     const entryPath = path.resolve(pluginDir)
     resolvedPlugin = await parsePluginEntry(entryPath)
   }
+  else {
+    return
+  }
 
-  return resolvedPlugin
+  return {
+    ...resolvedPlugin,
+    pkg: {
+      ...resolvedPlugin.pkg,
+      name: resolvedPlugin.pkg?.name || (stat.isDirectory() ? name : path.basename(name, path.extname(name))),
+    },
+  }
 }
 
 /**
@@ -72,16 +85,26 @@ export async function resolvePluginFromName(options: {
  * @param dir
  */
 export async function getAllPluginsFromDir(dir: string) {
-  const pluginFiles = await fs.readdir(dir)
+  let pluginFiles: string[]
+  try {
+    pluginFiles = await fs.readdir(dir)
+  }
+  catch (error) {
+    consola.warn(`Unable to read plugin directory ${dir}; skipping custom plugins`, error)
+    return []
+  }
 
   const plugins: BotPlugin[] = []
-  for (const plugin of pluginFiles) {
-    const resolvedPlugin = await resolvePluginFromName({
-      rootDir: dir,
-      name: plugin,
-    })
-    if (resolvedPlugin) {
-      plugins.push(resolvedPlugin)
+  for (const name of pluginFiles.sort()) {
+    if (name.startsWith('.') || name === 'node_modules')
+      continue
+    try {
+      const resolvedPlugin = await resolvePluginFromName({ rootDir: dir, name })
+      if (resolvedPlugin)
+        plugins.push(resolvedPlugin)
+    }
+    catch (error) {
+      consola.error(`Unable to load plugin ${path.join(dir, name)}; skipping it`, error)
     }
   }
   return plugins
@@ -118,6 +141,8 @@ export interface PluginOptions {}
  * })
  * ```
  */
+export function defineBotPlugin(botPlugin: BotPlugin): BotPlugin
+export function defineBotPlugin<T = PluginOptions>(botPlugin: (options: T) => BotPlugin): (options: T) => BotPlugin
 export function defineBotPlugin<T = PluginOptions>(botPlugin: BotPlugin | ((options: T) => BotPlugin)) {
-  return botPlugin as T extends PluginOptions ? (options: T) => BotPlugin : BotPlugin
+  return botPlugin
 }

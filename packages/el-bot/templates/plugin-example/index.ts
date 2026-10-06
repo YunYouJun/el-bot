@@ -1,17 +1,15 @@
-import consola from 'consola'
-import { defineBotPlugin, onNapcatMessage } from 'el-bot'
-import colors from 'picocolors'
+import { defineBotPlugin } from 'el-bot'
 
 export default defineBotPlugin({
+  pkg: { name: 'login', description: '查询机器人登录账号' },
   setup(ctx) {
-    const { napcat } = ctx
-    onNapcatMessage(async (msg) => {
-      consola.info('napcat message', msg)
-
-      if (msg.raw_message === 'Get Login Info') {
-        const data = await napcat.get_login_info()
-        consola.info('当前登录账号:', `${colors.yellow(data.nickname)}(${colors.cyan(data.user_id)})`)
-      }
-    })
+    ctx.command('login')
+      .description('查询机器人登录账号')
+      .usage('login')
+      .example('login')
+      .action(async () => {
+        const data = await ctx.napcat.get_login_info()
+        return `当前登录账号：${data.nickname}(${data.user_id})`
+      })
   },
 })

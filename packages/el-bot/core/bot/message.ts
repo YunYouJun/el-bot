@@ -10,8 +10,10 @@ export async function dispatchNapcatMessage(bot: Bot, message: NapcatMessage) {
   await bot.hooks.callHook('onNapcatMessage', message)
   switch (message.message_type) {
     case 'private':
-      await bot.hooks.callHook('onPrivateFriendMessage', message)
-      await bot.hooks.callHook('onPrivateGroupMessage', message)
+      if (message.sub_type === 'friend')
+        await bot.hooks.callHook('onPrivateFriendMessage', message)
+      else if (message.sub_type === 'group')
+        await bot.hooks.callHook('onPrivateGroupMessage', message)
       await bot.hooks.callHook('onPrivateMessage', message)
       break
     case 'group':

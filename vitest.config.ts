@@ -6,6 +6,8 @@ export default defineConfig({
   resolve: { alias: {
     // Match the framework build alias for mirai-ts's missing ESM entry.
     'mirai-ts': createRequire(import.meta.url).resolve('mirai-ts'),
+    'el-bot/nest': fileURLToPath(new URL('./packages/el-bot/core/nest/index.ts', import.meta.url)),
+    'el-bot': fileURLToPath(new URL('./packages/el-bot/index.ts', import.meta.url)),
     'qq-sdk/official': fileURLToPath(new URL('./packages/qq-sdk/src/official/index.ts', import.meta.url)),
     'qq-sdk': fileURLToPath(new URL('./packages/qq-sdk/src/index.ts', import.meta.url)),
     '#qq-sdk': fileURLToPath(new URL('./packages/qq-sdk/src/index.ts', import.meta.url)),

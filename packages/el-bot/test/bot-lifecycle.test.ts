@@ -33,6 +33,7 @@ describe('bot command lifecycle', () => {
     bot.command('手动').action(() => '保留')
     const incoming = (content: string): NapcatMessage => ({
       message_type: 'private',
+      sub_type: 'friend',
       self_id: 100,
       sender: { user_id: 200 },
       message_id: 1,

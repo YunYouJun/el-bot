@@ -1,20 +1,14 @@
-import { defineBotPlugin, pluginLogger } from 'el-bot'
-import { Structs } from 'node-napcat-ts'
+import { defineBotPlugin } from 'el-bot'
 
 export default defineBotPlugin({
   pkg: {
     name: 'ping',
   },
-  setup: (ctx) => {
-    pluginLogger.info('ping 自己的插件日志')
-
-    const { napcat } = ctx
-    napcat.on('message', (msg) => {
-      if (msg.raw_message === '捅死你') {
-        ctx.reply(msg, [
-          Structs.text('我爱你'),
-        ])
-      }
-    })
+  setup(bot) {
+    bot.command('ping')
+      .description('测试机器人是否在线')
+      .usage('ping')
+      .example('ping')
+      .action(() => 'pong')
   },
 })

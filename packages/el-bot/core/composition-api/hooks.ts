@@ -1,18 +1,16 @@
-// import {  } from "node-napcat-ts";
-
-import { GroupMessage, PrivateFriendMessage, PrivateGroupMessage } from 'node-napcat-ts'
+import type { GroupMessage, PrivateFriendMessage, PrivateGroupMessage } from 'node-napcat-ts'
 import { currentInstance } from './lifecycle'
 
 export type NapcatMessage = GroupMessage | PrivateFriendMessage | PrivateGroupMessage
 export type CommonMessage = NapcatMessage
 
 export interface LiteCycleHook {
-  onMessage: (msg: any) => void | Promise<void>
-  onNapcatMessage: (msg: any) => void | Promise<void>
-  onGroupMessage: (msg: any) => void | Promise<void>
-  onPrivateMessage: (msg: any) => void | Promise<void>
-  onPrivateFriendMessage: (msg: any) => void | Promise<void>
-  onPrivateGroupMessage: (msg: any) => void | Promise<void>
+  onMessage: (msg: NapcatMessage) => void | Promise<void>
+  onNapcatMessage: (msg: NapcatMessage) => void | Promise<void>
+  onGroupMessage: (msg: GroupMessage) => void | Promise<void>
+  onPrivateMessage: (msg: PrivateFriendMessage | PrivateGroupMessage) => void | Promise<void>
+  onPrivateFriendMessage: (msg: PrivateFriendMessage) => void | Promise<void>
+  onPrivateGroupMessage: (msg: PrivateGroupMessage) => void | Promise<void>
 }
 
 /**
@@ -59,7 +57,7 @@ export function onPrivateFriendMessage(
  * @param handler
  */
 export function onPrivateGroupMessage(
-  handler: (msg: PrivateFriendMessage) => void | Promise<void>,
+  handler: (msg: PrivateGroupMessage) => void | Promise<void>,
 ) {
   currentInstance?.hooks.addHooks({
     onPrivateGroupMessage: handler,
@@ -67,7 +65,7 @@ export function onPrivateGroupMessage(
 }
 
 export function onPrivateMessage(
-  handler: (msg: PrivateFriendMessage) => void | Promise<void>,
+  handler: (msg: PrivateFriendMessage | PrivateGroupMessage) => void | Promise<void>,
 ) {
   currentInstance?.hooks.addHooks({
     onPrivateMessage: handler,

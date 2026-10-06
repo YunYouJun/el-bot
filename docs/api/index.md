@@ -20,6 +20,12 @@ el-bot 的 [API 文档](https://www.yunyoujun.cn/el-bot/) 已通过 [typedoc](ht
 
 `CommandContext`、`CommandExecution`、`CommandReply`、`CommandResult` 和 `CommandAction` 可从 `el-bot` 导入，供插件声明类型。以上新增能力尚未包含在 npm `1.0.0-rc.2` 中。
 
+## NapCat 插件与消息 hooks
+
+`defineBotPlugin({ setup(bot) {} })` 返回插件对象，`defineBotPlugin<Options>((options) => ({ setup(bot) {} }))` 返回带配置的工厂。通过 `bot.plugins` 配置对象或开启目录自动加载；失败隔离规则见[插件开发](/plugins/)。
+
+好友私聊只进入 `onPrivateFriendMessage`，群临时私聊只进入 `onPrivateGroupMessage`，之后均进入 `onPrivateMessage`。专属 hook 参数分别为 SDK 的 `PrivateFriendMessage`、`PrivateGroupMessage`，通用私聊 hook 接受两者的联合。命中用户命令时不触发框架消息 hooks。
+
 ## Context 上下文
 
 机器人所有的相关内容均被绑定于 `ctx` 上，它是 `el-bot` 实例化后的自身。这也是开发机器人插件时你默认所能获得到的内容。

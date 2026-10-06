@@ -1,1 +1,1 @@
-export { default as answerPlugin } from './answer'
+export { default as answerPlugin } from './answer/index'

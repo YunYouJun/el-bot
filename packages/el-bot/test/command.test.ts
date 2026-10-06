@@ -21,6 +21,7 @@ function message(text: string, group = false, segments?: Receive[keyof Receive][
     self_id: 100,
     sender: { user_id: 200 },
     message_type: group ? 'group' : 'private',
+    sub_type: group ? 'normal' : 'friend',
     message_id: 1,
     raw_message: text,
     message: segments ?? [{ type: 'text', data: { text } }],
@@ -300,14 +301,18 @@ describe('napCat command and hook dispatch', () => {
     expect(reply).toHaveBeenCalledTimes(1)
   })
 
-  it.each([false, true])('preserves hook order for unmatched messages (group=%s)', async (group) => {
+  it.each([
+    ['friend', message('小云 不存在'), ['onMessage', 'onNapcatMessage', 'onPrivateFriendMessage', 'onPrivateMessage']],
+    ['temporary group', { ...message('小云 不存在'), sub_type: 'group' } as NapcatMessage, ['onMessage', 'onNapcatMessage', 'onPrivateGroupMessage', 'onPrivateMessage']],
+    ['group', message('小云 不存在', true), ['onMessage', 'onNapcatMessage', 'onGroupMessage']],
+  ])('dispatches unmatched %s messages to the correct hooks in order', async (_, incoming, expected) => {
     const { bot, hooks, reply } = createBot()
     const calls: string[] = []
     const names: (keyof LiteCycleHook)[] = ['onMessage', 'onNapcatMessage', 'onPrivateFriendMessage', 'onPrivateGroupMessage', 'onPrivateMessage', 'onGroupMessage']
     for (const name of names)
       hooks.hook(name, () => { calls.push(name) })
-    await dispatchNapcatMessage(bot, message('小云 不存在', group))
-    expect(calls).toEqual(group ? ['onMessage', 'onNapcatMessage', 'onGroupMessage'] : names.slice(0, 5))
+    await dispatchNapcatMessage(bot, incoming as NapcatMessage)
+    expect(calls).toEqual(expected)
     expect(reply).not.toHaveBeenCalled()
   })
 })

@@ -1,4 +1,5 @@
 import type { Bot } from '..'
+import type { BotPlugin } from './types'
 import path from 'node:path'
 import process from 'node:process'
 import consola from 'consola'
@@ -9,7 +10,7 @@ import { isFunction } from '../../shared'
 import { merge } from '../../utils/config'
 import { handleError } from '../../utils/error'
 import { pluginLogger } from '../logger'
-import { getAllPluginsFromDir } from './utils'
+import { assertBotPlugin, getAllPluginsFromDir } from './utils'
 
 export type PluginInstallFunction = (ctx: Bot, ...options: any[]) => any
 
@@ -90,20 +91,7 @@ export class Plugins {
     if (botConfig.plugins) {
       consola.start(`加载配置插件[${colors.green(botConfig.plugins.length)}]`, colors.dim('el-bot.config.ts'))
 
-      for (let i = 0; i < botConfig.plugins.length; i++) {
-        const plugin = botConfig.plugins[i]
-        const pkgName = plugin.pkg?.name || '未知'
-        try {
-          if (plugin) {
-            await plugin.setup(this.ctx)
-            consola.log(`${i === botConfig.plugins.length - 1 ? '└─' : '├─'} ${colors.green(pkgName)} ${colors.blue(`v${plugin.pkg?.version}` || '未知版本')}`)
-          }
-        }
-        catch (err: any) {
-          handleError(err as Error)
-          consola.log(`${i === botConfig.plugins.length - 1 ? '└─' : '├─'} ${colors.red(pkgName)} ${colors.dim('加载失败')}`)
-        }
-      }
+      await this.setupPlugins(botConfig.plugins)
     }
     consola.log('')
   }
@@ -121,19 +109,24 @@ export class Plugins {
     const customPlugins = await getAllPluginsFromDir(absolutePluginDir)
     consola.start(`加载自定义插件[${colors.green(customPlugins.length)}]`, colors.dim(absolutePluginDir))
 
-    // for (const pluginItem of customPlugins) {
-    // get index
-    const pluginsPromiseArr = []
-    for (let i = 0; i < customPlugins.length; i++) {
-      const pluginItem = customPlugins[i]
-      const name = pluginItem.pkg?.name || '未知插件'
-      const version = `v${pluginItem.pkg?.version}` || '未知版本'
-      const description = pluginItem.pkg?.description || ''
-      consola.log(`${i === customPlugins.length - 1 ? '└─' : '├─'} ${colors.green(name)} ${colors.blue(version)} ${colors.dim(description)}`)
+    await this.setupPlugins(customPlugins)
+  }
 
-      pluginsPromiseArr.push(pluginItem.setup(this.ctx))
+  private async setupPlugins(plugins: BotPlugin[]) {
+    for (const [index, plugin] of plugins.entries()) {
+      const name = plugin?.pkg?.name || '未知插件'
+      const branch = index === plugins.length - 1 ? '└─' : '├─'
+      try {
+        assertBotPlugin(plugin)
+        await plugin.setup(this.ctx)
+        const version = plugin.pkg?.version ? `v${plugin.pkg.version}` : '未知版本'
+        consola.log(`${branch} ${colors.green(name)} ${colors.blue(version)} ${colors.dim(plugin.pkg?.description || '')}`)
+      }
+      catch (error) {
+        handleError(error, 'plugin')
+        consola.log(`${branch} ${colors.red(name)} ${colors.dim('加载失败')}`)
+      }
     }
-    await Promise.all(pluginsPromiseArr)
   }
 
   /**

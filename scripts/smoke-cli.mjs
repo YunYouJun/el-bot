@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import process from 'node:process'
@@ -58,7 +58,8 @@ try {
   assert.equal(manifest.exports['./nest'].import, './dist/nest.mjs')
   await writeFile(join(consumer, 'import.mjs'), `
     import assert from 'node:assert/strict'
-    import { Bot, Command, answerPlugin, createBot, defineBotPlugin, defineConfig } from 'el-bot'
+    import { fileURLToPath } from 'node:url'
+    import { Bot, Command, Plugins, answerPlugin, createBot, defineBotPlugin, defineConfig, getAllPluginsFromDir } from 'el-bot'
     import { ElBotModule, ElBotService } from 'el-bot/nest'
     for (const value of [Bot, Command, createBot, defineBotPlugin, defineConfig, ElBotModule, ElBotService])
       assert.equal(typeof value, 'function')
@@ -78,11 +79,40 @@ try {
     await answerPlugin({ list: [{ receivedText: ['ping'], reply: 'pong', help: 'ping → pong' }] }).setup(bot)
     assert.deepEqual(await bot.executeCommand('answer'), { matched: true, result: '回答列表：\\n- ping → pong' })
     assert(bot.getCommandHelp().includes('answer'))
+    const fixture = new URL('./plugins/', import.meta.url)
+    const { mkdir, writeFile } = await import('node:fs/promises')
+    await mkdir(fixture)
+    await writeFile(new URL('01-failed.mjs', fixture), 'export default { setup() { throw new Error("expected setup failure") } }')
+    await writeFile(new URL('space%20%23%20name.mjs', fixture), 'export default { setup(bot) { bot.command("loaded").action(() => "ready") } }')
+    const plugins = await getAllPluginsFromDir(fileURLToPath(fixture))
+    assert.equal(plugins.length, 2)
+    assert.equal(plugins[1].pkg.name, 'space # name')
+    bot.el = { bot: { plugins } }
+    await new Plugins(bot).loadConfig()
+    assert.deepEqual(await bot.executeCommand('loaded'), { matched: true, result: 'ready' })
+    assert.deepEqual(await getAllPluginsFromDir(fileURLToPath(new URL('./missing/', import.meta.url))), [])
   `)
   run(process.execPath, ['import.mjs'], consumer)
-  run(process.execPath, [pnpm, '--ignore-workspace', 'add', '--save-dev', `typescript@${manifest.devDependencies.typescript}`, `@types/node@${manifest.devDependencies['@types/node']}`, '--ignore-scripts'], consumer)
+  const template = join(root, 'packages/create-app/template-ts')
+  const templateManifest = JSON.parse(await readFile(join(template, 'package.json'), 'utf8'))
+  run(process.execPath, [pnpm, '--ignore-workspace', 'add', '--save-dev', `typescript@${manifest.devDependencies.typescript}`, `@types/node@${manifest.devDependencies['@types/node']}`, `tsx@${templateManifest.devDependencies.tsx}`, '--ignore-scripts'], consumer)
+  await cp(template, join(consumer, 'template'), { recursive: true })
+  run(process.execPath, [join(consumer, 'node_modules/typescript/bin/tsc'), '--project', 'template/tsconfig.json'], consumer)
+  await writeFile(join(consumer, 'template-check.ts'), `
+    import assert from 'node:assert/strict'
+    import { fileURLToPath } from 'node:url'
+    import { Bot, Command, getAllPluginsFromDir } from 'el-bot'
+    const bot = Object.create(Bot.prototype) as Bot
+    bot._command = new Command(bot)
+    const plugins = await getAllPluginsFromDir(fileURLToPath(new URL('./template/plugins/', import.meta.url)))
+    assert.equal(plugins.length, 1)
+    await plugins[0].setup(bot)
+    assert.deepEqual(await bot.executeCommand('test'), { matched: true, result: 'Link Start!' })
+    assert(bot.getCommandHelp('test').includes('用法：test'))
+  `)
+  run(process.execPath, ['--import', 'tsx', 'template-check.ts'], consumer)
   await writeFile(join(consumer, 'consumer.ts'), `
-    import { createBot, defineConfig, type Bot, type CommandContext, type CommandExecution } from 'el-bot'
+    import { createBot, defineBotPlugin, defineConfig, onPrivateFriendMessage, onPrivateGroupMessage, onPrivateMessage, type Bot, type BotPlugin, type CommandContext, type CommandExecution } from 'el-bot'
     import { ElBotModule, ElBotService } from 'el-bot/nest'
     const config = defineConfig({ debug: true })
     const create: (options?: Parameters<typeof createBot>[0]) => Promise<Bot> = createBot
@@ -96,7 +126,15 @@ try {
       const help: string = bot.getCommandHelp('echo')
       return { execution, help }
     }
-    void [config, create, commandConsumer, ElBotModule, ElBotService]
+    function pluginConsumer() {
+      const plugin: BotPlugin = defineBotPlugin({ setup() {} })
+      const factory: (options: { prefix: string }) => BotPlugin = defineBotPlugin<{ prefix: string }>(options => ({ pkg: { name: options.prefix }, setup() {} }))
+      onPrivateFriendMessage(message => { const type: 'friend' = message.sub_type; void type })
+      onPrivateGroupMessage(message => { const type: 'group' = message.sub_type; void type })
+      onPrivateMessage(message => { const type: 'friend' | 'group' = message.sub_type; void type })
+      return { plugin, factory }
+    }
+    void [config, create, commandConsumer, pluginConsumer, ElBotModule, ElBotService]
   `)
   run(process.execPath, [join(consumer, 'node_modules/typescript/bin/tsc'), '--strict', '--noEmit', '--module', 'NodeNext', '--target', 'ES2022', '--types', 'node', 'consumer.ts'], consumer)
   run(process.execPath, ['--input-type=module', '-e', 'import("./node_modules/el-bot/dist/qq-sdk.mjs").then(sdk => { if (typeof sdk.createQQApi !== "function") process.exit(1) })'], consumer)
@@ -193,7 +231,7 @@ try {
   assert.equal(await readFile(isolatedPaths.state, 'utf8'), snapshot)
   run(process.execPath, [cli, 'codex', '--profile', '../bad', 'paths'], consumer, false)
   run(process.execPath, [cli, 'codex', 'desktop-check', ...paths], consumer, false)
-  console.log('Packed package: framework and Nest imports, CLI installation, JSON diagnostics, setup, recovery and credential redaction passed.')
+  console.log('Packed package: framework and Nest imports, plugin loading and TypeScript starter, CLI installation, JSON diagnostics, setup, recovery and credential redaction passed.')
 }
 finally {
   await rm(temporary, { recursive: true, force: true })
