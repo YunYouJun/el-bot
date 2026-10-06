@@ -152,6 +152,8 @@ try {
   assert(codexHelp.includes('el-bot codex'))
   for (const command of ['init', 'check', 'start', 'status', 'stop', 'restart', 'logs', 'preferences', 'paths', 'recover', 'api', 'desktop-init', 'desktop-check', 'render']) assert(codexHelp.includes(command))
   assert(codexHelp.includes('--profile'))
+  assert(run(process.execPath, [cli, 'agent', '--help'], consumer).includes('CodeBuddy'))
+  assert(run(process.execPath, [cli, 'agent', 'init', '--help'], consumer).includes('--agent'))
   assert(run(process.execPath, [cli, 'codex', 'init', '--help'], consumer).includes('--project'))
   assert(run(process.execPath, [cli, 'codex', 'check', '--help'], consumer).includes('--json'))
   assert(run(process.execPath, [cli, 'codex', 'api', '--help'], consumer).includes('--experimental'))
@@ -216,6 +218,23 @@ try {
   const isolatedPaths = JSON.parse(run(process.execPath, [cli, 'codex', '--profile', 'package-smoke', 'paths'], consumer))
   run(process.execPath, [cli, 'codex', '--profile', 'package-smoke', 'init', '--no-prompt', '--project', consumer], consumer)
   assert.equal(JSON.parse(await readFile(isolatedPaths.config, 'utf8')).codexHome, isolatedPaths.codexHome)
+  const acpFixture = join(temporary, 'acp-fixture')
+  if (process.platform !== 'win32')
+    await writeFile(acpFixture, `#!/usr/bin/env node\n${await readFile(join(root, 'packages/codex/test/fixtures/acp.mjs'), 'utf8')}`, { mode: 0o700 })
+  for (const agent of ['codebuddy', 'dsh']) {
+    const agentArgs = [cli, 'agent', '--profile', `package-${agent}`]
+    const agentPaths = JSON.parse(run(process.execPath, [...agentArgs, 'paths'], consumer))
+    run(process.execPath, [...agentArgs, 'init', '--agent', agent, '--no-prompt', '--project', consumer], consumer)
+    const agentConfig = JSON.parse(await readFile(agentPaths.config, 'utf8'))
+    assert.equal(agentConfig.agent, agent)
+    assert.equal(agentConfig.codexHome, undefined)
+    if (process.platform !== 'win32') {
+      await writeFile(agentPaths.config, JSON.stringify({ ...agentConfig, agentExecutable: acpFixture }))
+      const report = JSON.parse(run(process.execPath, [...agentArgs, 'check', '--json'], consumer))
+      assert.equal(report.ok, true)
+      assert.equal(report.checks.find(check => check.id === 'account-model').status, 'skip')
+    }
+  }
   await writeFile(isolatedPaths.state, JSON.stringify({ version: 1, owner: 'smoke-owner', project: 'consumer', threads: { consumer: { id: 'old', cwd: consumer } }, seen: ['keep'], tasks: [{ id: 'keep-result', project: 'consumer', status: 'completed', output: 'keep', createdAt: 'now' }] }))
   run(process.execPath, [cli, 'codex', '--profile', 'package-smoke', 'recover', '--project', 'consumer'], consumer)
   const recovered = JSON.parse(await readFile(isolatedPaths.state, 'utf8'))

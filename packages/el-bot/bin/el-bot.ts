@@ -8,11 +8,11 @@ import { runLegacy } from '../node/cli/legacy'
 import { version } from '../package.json'
 
 const program = new Command('el-bot')
-  .description('el-bot 机器人与 Codex 遥控工具')
+  .description('el-bot 机器人与本机 AI 程序遥控工具')
   .version(version, '-v, --version')
   .showHelpAfterError()
 
-registerCodexCommand(program.command('codex'))
+registerCodexCommand(program.command('codex').alias('agent'))
 
 program.command('dev [root]')
   .description('启动机器人开发模式')

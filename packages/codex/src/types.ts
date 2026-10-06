@@ -31,6 +31,16 @@ export interface ThreadOptions {
 export interface TurnResult {
   turn: { id: string }
 }
+
+export interface AcpOptions {
+  provider: 'codebuddy' | 'dsh'
+  executable?: string
+  envAllowlist?: string[]
+  projects: string[]
+  /** Explicit arguments are reserved for protocol fixtures. */
+  args?: string[]
+  requestTimeoutMs?: number
+}
 export interface ThreadResult {
   thread: { id: string, cwd: string }
 }

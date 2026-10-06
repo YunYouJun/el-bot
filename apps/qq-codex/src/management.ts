@@ -1,4 +1,4 @@
-import type { CodexClient, CodexDesktopClient, CodexSchema } from '@el-bot/codex'
+import type { AgentClient, CodexDesktopClient, CodexSchema } from '@el-bot/codex'
 import type { RemoteConfig, ReplyContext } from './types'
 import { randomBytes } from 'node:crypto'
 import { realpath } from 'node:fs/promises'
@@ -111,7 +111,7 @@ export class ManagementController {
 
   constructor(
     private config: RemoteConfig,
-    private codex: CodexClient,
+    private codex: AgentClient,
     private schema: CodexSchema | undefined,
     private desktop: CodexDesktopClient | undefined,
     private current: () => string,
@@ -136,6 +136,10 @@ export class ManagementController {
   accept(command: string, args: string[], reply: ReplyContext, text = [command, ...args].join(' ')): boolean {
     if (!['/api', '/rpc', '/desktop', '/models', '/skills', '/plugins', '/mcp', '/threads', '/events', '/inspect', '/confirm', '/cancel', '/manage-result'].includes(command))
       return false
+    if (this.codex.provider) {
+      void this.say(reply, '当前程序支持任务、项目续聊、审批与停止。Codex API / Desktop 管理命令仅适用于 Codex。')
+      return true
+    }
     if (this.closed)
       return true
     if (this.running) {

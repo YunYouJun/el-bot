@@ -21,6 +21,7 @@ export interface CliPaths {
 
 /** Options for non-destructive first-run setup. */
 export interface InitOptions {
+  agent?: 'codex' | 'codebuddy' | 'dsh'
   project?: string
   name?: string
   prompt: boolean
@@ -33,6 +34,10 @@ export interface BotCredentials {
 }
 
 export interface RemoteConfig {
+  /** Existing configurations continue to use Codex. */
+  agent?: 'codex' | 'codebuddy' | 'dsh'
+  agentExecutable?: string
+  agentEnvAllowlist?: string[]
   projects: Record<string, string>
   defaultProject: string
   ownerOpenId?: string
@@ -67,6 +72,7 @@ export type TaskStatus
 /** Minimal RPC surface needed for local account and model preflight checks. */
 export interface CodexReadinessClient {
   request: (method: string, params: unknown) => Promise<unknown>
+  inspectThread?: (id: string, cwd: string) => Promise<'ready' | 'missing' | 'project-changed' | 'unavailable'>
 }
 /** Stable categories only; raw provider errors and credentials are never persisted. */
 export type FailureCode
@@ -99,6 +105,8 @@ export interface RemoteState {
 
 /** Local instance identity; contains no credentials or personal account data. */
 export interface InstanceIdentity {
+  agent?: 'codex' | 'codebuddy' | 'dsh'
+  agentExecutable?: string
   appId: string
   sandbox: boolean
   profile?: string

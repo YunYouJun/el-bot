@@ -42,10 +42,12 @@ export async function readConfig(filename: string): Promise<RemoteConfig> {
   ) {
     throw new Error('defaultProject must name an allowed project')
   }
-  for (const field of ['ownerOpenId', 'codexExecutable', 'model']) {
+  if (raw.agent !== undefined && (typeof raw.agent !== 'string' || !['codex', 'codebuddy', 'dsh'].includes(raw.agent)))
+    throw new Error('agent must be codex, codebuddy or dsh')
+  for (const field of ['ownerOpenId', 'codexExecutable', 'agentExecutable', 'model']) {
     if (
       raw[field] !== undefined
-      && (typeof raw[field] !== 'string' || !raw[field])
+      && (typeof raw[field] !== 'string' || !raw[field] || raw[field].includes('\0'))
     ) {
       throw new Error(`${field} must be a nonempty string`)
     }
@@ -58,6 +60,8 @@ export async function readConfig(filename: string): Promise<RemoteConfig> {
     throw new Error('codexHome isolation requires stdio; desktop uses the existing desktop account and session store')
   if (raw.codexEnvAllowlist !== undefined && (!Array.isArray(raw.codexEnvAllowlist) || !raw.codexEnvAllowlist.every(key => typeof key === 'string' && /^[A-Z_][A-Z0-9_]*$/.test(key) && !key.startsWith('QQ_BOT_'))))
     throw new Error('codexEnvAllowlist must contain environment variable names and cannot include QQ credentials')
+  if (raw.agentEnvAllowlist !== undefined && (!Array.isArray(raw.agentEnvAllowlist) || !raw.agentEnvAllowlist.every(key => typeof key === 'string' && /^[A-Z_][A-Z0-9_]*$/.test(key) && !key.startsWith('QQ_BOT_'))))
+    throw new Error('agentEnvAllowlist must contain environment variable names and cannot include QQ credentials')
   if (raw.codexSocket !== undefined && (typeof raw.codexSocket !== 'string' || !isAbsolute(raw.codexSocket)))
     throw new Error('codexSocket must be an absolute socket path')
   if (raw.codexSocket && raw.codexConnection !== 'desktop')
@@ -68,6 +72,11 @@ export async function readConfig(filename: string): Promise<RemoteConfig> {
     || typeof raw.management.enabled !== 'boolean'
     || (raw.management.allowedMethods !== undefined && (!Array.isArray(raw.management.allowedMethods) || !raw.management.allowedMethods.every(method => typeof method === 'string' && /^[\w/]+$/.test(method)))))) {
     throw new Error('management must specify enabled and an optional allowedMethods array')
+  }
+  if (raw.agent && raw.agent !== 'codex'
+    && (raw.codexConnection === 'desktop' || raw.codexHome !== undefined || raw.codexSocket !== undefined || raw.codexExecutable !== undefined
+      || raw.codexEnvAllowlist !== undefined || raw.experimentalApi === true || raw.desktop !== undefined || (isRecord(raw.management) && raw.management.enabled))) {
+    throw new Error('ACP agents do not support Codex connection, home, desktop or management settings')
   }
   let desktop: RemoteConfig['desktop']
   if (raw.desktop !== undefined) {
@@ -145,6 +154,9 @@ export async function readConfig(filename: string): Promise<RemoteConfig> {
     throw new Error('Invalid webhookPort')
   }
   return {
+    agent: raw.agent as RemoteConfig['agent'],
+    agentExecutable: raw.agentExecutable as string | undefined,
+    agentEnvAllowlist: raw.agentEnvAllowlist as string[] | undefined,
     projects,
     defaultProject,
     ownerOpenId: raw.ownerOpenId as string | undefined,

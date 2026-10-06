@@ -42,13 +42,13 @@ export async function initialize(paths: CliPaths, options: InitOptions): Promise
   try {
     for (const filename of [paths.config, paths.envFile])
       await mkdir(dirname(filename), { recursive: true, mode: 0o700 })
-    if (paths.codexHome)
+    if (paths.codexHome && (!options.agent || options.agent === 'codex'))
       await mkdir(paths.codexHome, { recursive: true, mode: 0o700 })
     if (!hasEnv) {
       await writeFile(paths.envFile, `# QQ official bot credentials. Keep this file private.\nQQ_BOT_APP_ID="${appId}"\nQQ_BOT_SECRET="${secret}"\n`, { flag: 'wx', mode: 0o600 })
       created.push(paths.envFile)
     }
-    await writeFile(paths.config, `${JSON.stringify({ projects: { [name]: project }, defaultProject: name, ...(paths.codexHome ? { codexHome: paths.codexHome } : {}), transport: 'websocket', sandbox: false, messageFormat: 'markdown' }, null, 2)}\n`, { flag: 'wx', mode: 0o600 })
+    await writeFile(paths.config, `${JSON.stringify({ projects: { [name]: project }, defaultProject: name, ...(options.agent && options.agent !== 'codex' ? { agent: options.agent } : paths.codexHome ? { codexHome: paths.codexHome } : {}), transport: 'websocket', sandbox: false, messageFormat: 'markdown' }, null, 2)}\n`, { flag: 'wx', mode: 0o600 })
     created.push(paths.config)
   }
   catch (error) {
@@ -61,6 +61,6 @@ export async function initialize(paths: CliPaths, options: InitOptions): Promise
     consola.info('请在凭据文件中补齐 AppID 和 AppSecret。')
   consola.info('在 QQ 后台启用 WebSocket，并配置运行机器的出口 IP 白名单。')
   consola.info('接下来运行 el-bot codex check --all，然后运行 el-bot codex start。自定义路径请沿用 --config / --credentials / --state。')
-  if (paths.profile)
+  if (paths.profile && (!options.agent || options.agent === 'codex'))
     consola.info(`后续命令沿用 --profile ${paths.profile}；Codex 账户与会话目录：${paths.codexHome}。先设置 CODEX_HOME 为该目录，再在本机运行 codex login。不会复制已有账户密钥。`)
 }

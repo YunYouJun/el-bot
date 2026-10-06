@@ -1,3 +1,5 @@
+export { AcpClient } from './acp'
+export type { AgentClient } from './agent'
 export * from './client'
 export * from './desktop'
 export * from './schema'

@@ -23,16 +23,24 @@ el-bot codex render --card help --page 1 --part 2 --output ./help.png
 el-bot dev /absolute/path/to/bot
 ```
 
-`codex` 连接 QQ 官方机器人与本机 Codex；`dev` 启动自定义机器人框架。
-Codex 所有路径参数放在 `codex` 后，例如 `el-bot codex check --all --config /path/to/config.json`。
+`codex` / `agent` 连接 QQ 官方机器人与配置选定的本机程序；`dev` 启动自定义机器人框架。
+路径参数放在 `codex` / `agent` 后，例如 `el-bot codex check --all --config /path/to/config.json`。
 `el-bot codex` 不带子命令会启动服务；`el-bot` 不带参数保留从当前目录启动旧框架的行为。
 查看帮助时使用显式 `--help`，避免意外启动服务。
 
-Codex 子命令从 `1.0.0-beta.17` 起提供，使用 `pnpm add -g el-bot@next` 安装，见[完整接入](/development/codex-remote)。
+当前源码增加 `agent` 别名与 ACP 接入。为 CodeBuddy / dsh 创建独立实例，例如：
+
+```bash
+el-bot agent --profile codebuddy init --agent codebuddy --project /absolute/path/to/my-project
+el-bot agent --profile codebuddy check --all
+el-bot agent --profile codebuddy start
+```
+
+`--agent` 只用于初始化，后续读取配置。`api`、Desktop 管理与专用会话操作只适用于 Codex；能力差异见[程序选择](/codex/agents)。安装版本与源码功能须核对，见[完整接入](/development/codex-remote#安装-cli)。
 AI 助手可以使用 `init --no-prompt` 和只读 `check`，见 [AI 快速接入](/codex/ai-setup)。
 新实例使用 `--profile` 隔离，归档检测与恢复见[实例隔离与恢复](/codex/instances)。
 
-## QQ 中的 Codex 命令
+## QQ 中的遥控命令
 
 绑定后，在 QQ 私聊中直接发送任务，或使用 `/project`、`/status`、`/result`、`/stop`。
 审批使用 `/approval ID`、`/approve ID` 和 `/reject ID`；完整列表见 [QQ 命令](/development/codex-remote#qq-命令)。
@@ -41,7 +49,7 @@ API 目录、桌面项目与聊天管理见 [Codex Desktop](/codex/desktop)。�
 
 `codex render` 生成本地 PNG 卡片预览；设置图片模式后默认直接上传到 QQ，无需自建公网图片入口，见[图片卡片](/development/codex-remote#图片卡片与本地预览)。
 
-当前开发构建的 `codex preferences` 可以查看和保存图片／Markdown／纯文本模式以及图片主题，只修改展示字段；运行中的机器人需要手动重启生效。也可在[本机客户端](/development/client-tool)中设置，并用本机按钮打开 Codex／QQ。npm `1.0.0-rc.2` 尚未提供此命令。
+当前开发构建的 `codex preferences` / `agent preferences` 可以查看和保存图片／Markdown／纯文本模式以及图片主题，只修改展示字段；运行中的机器人需要手动重启生效。也可在[本机客户端](/development/client-tool)中设置，并用本机按钮打开 Codex、CodeBuddy、dsh 或 QQ。旧版 CLI 缺少此入口时需使用对应的新构建。
 
 ## 插件用户命令
 

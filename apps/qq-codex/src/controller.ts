@@ -1,4 +1,4 @@
-import type { CodexClient, CodexDesktopClient, CodexSchema, ReviewTarget, RpcNotification, RpcRequest } from '@el-bot/codex'
+import type { AgentClient, CodexDesktopClient, CodexSchema, ReviewTarget, RpcNotification, RpcRequest } from '@el-bot/codex'
 import type { C2CMessage, QQBotClient } from 'qq-sdk/official'
 import type {
   CardImagePublisher,
@@ -42,7 +42,7 @@ export class RemoteController {
     private config: RemoteConfig,
     readonly state: RemoteState,
     qq: Pick<QQBotClient, 'reply'>,
-    private codex: CodexClient,
+    private codex: AgentClient,
     private save: (state: RemoteState) => Promise<void>,
     private onError: (error: unknown) => void,
     integrations: { schema?: CodexSchema, desktop?: CodexDesktopClient, images?: CardImagePublisher } = {},
@@ -138,7 +138,7 @@ export class RemoteController {
         return
       }
       if (this.closed) {
-        void this.say(reply, 'Codex 连接已断开。请在本机运行 el-bot codex check --all，并重启 start；沿用原 profile 或路径。未重试任务。')
+        void this.say(reply, '程序连接已断开。请在本机运行 el-bot agent check --all，并重启 start；沿用原 profile 或路径。未重试任务。')
         return
       }
       const check = await inspectSession(this.codex, project, this.config.projects[project], this.state.threads[project])
@@ -175,6 +175,10 @@ export class RemoteController {
       return
     }
     if (command === '/steer') {
+      if (this.codex.provider) {
+        void this.say(reply, '当前程序不支持执行中补充要求。请等待任务结束后继续发送，或先 /stop。')
+        return
+      }
       const task = this.active
       const input = text.slice(6).trim()
       if (!task?.threadId || !task.turnId || this.cancelled || !input || input.length > 20000) {
@@ -193,7 +197,7 @@ export class RemoteController {
       return
     }
     if (this.closed) {
-      void this.say(reply, 'Codex 服务已断开，请在本机重启遥控服务。')
+      void this.say(reply, '程序连接已断开，请在本机重启遥控服务。')
       return
     }
     if (this.active || this.management.busy) {
@@ -225,6 +229,10 @@ export class RemoteController {
       return
     }
     if (command === '/thread') {
+      if (this.codex.provider) {
+        void this.say(reply, '当前程序按项目自动续聊；使用 /new 新建会话。手工绑定与分叉只适用于 Codex。')
+        return
+      }
       if (args[0] === 'fork' && this.state.threads[this.state.project]) {
         try {
           const saved = this.state.threads[this.state.project]
@@ -259,6 +267,10 @@ export class RemoteController {
     }
     let review: ReviewTarget | undefined
     if (command === '/review') {
+      if (this.codex.provider) {
+        void this.say(reply, '当前程序请使用 /run 审查未提交改动，并在提示词中描述审查范围。')
+        return
+      }
       try {
         const target: unknown = JSON.parse(text.slice(7).trim() || '{"type":"uncommittedChanges"}')
         if (!isRecord(target) || text.length > 20000)
@@ -309,7 +321,7 @@ export class RemoteController {
           )
         }
         else {
-          this.onError(new Error(failureText(code)))
+          this.onError(new Error(failureText(code, this.codex.provider)))
         }
       })
       .catch(this.onError)
@@ -322,7 +334,7 @@ export class RemoteController {
       throw new Error('Project path changed; use /new before resuming')
     if (saved) {
       const check = await inspectSession(this.codex, task.project, cwd, saved)
-      if (check.status !== 'ready')
+      if (check.status !== 'ready' && !(this.codex.provider && check.status === 'unavailable'))
         throw new Error(check.status === 'archived' ? 'Session is archived' : check.status === 'missing' ? 'Thread not found' : check.status === 'project-changed' ? 'Project path changed' : 'Cannot read stored session')
     }
     const threadId = await this.codex.thread({
@@ -445,7 +457,7 @@ export class RemoteController {
       try {
         await this.codex.interrupt(task.threadId!, task.turnId!, commandItems)
         if (this.active === task)
-          await this.finish('interrupted', '已确认当前任务的终端命令已终止。')
+          await this.finish('interrupted', this.codex.provider ? '程序已确认当前任务结束。' : '已确认当前任务的终端命令已终止。')
       }
       catch {
         this.closed = true
@@ -658,8 +670,8 @@ export class RemoteController {
     task.status = status
     if (failure) {
       task.failure = failure
-      task.output = `${task.output}\n${failureText(failure)}`.slice(-100000)
-      this.onError(new Error(`Task ${task.id}: ${failureText(failure)}`))
+      task.output = `${task.output}\n${failureText(failure, this.codex.provider)}`.slice(-100000)
+      this.onError(new Error(`Task ${task.id}: ${failureText(failure, this.codex.provider)}`))
     }
     if (message)
       task.output = `${task.output}\n${message}`.slice(-100000)

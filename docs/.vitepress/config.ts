@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   lang: 'zh-CN',
   title: 'El Bot',
-  description: '可扩展的 QQ 机器人与 Codex 遥控工具',
+  description: '可扩展的 QQ 机器人与本机 AI 程序遥控工具',
   lastUpdated: true,
   head: [
     ['link', { rel: 'icon', href: '/favicon.svg' }],
@@ -18,10 +18,11 @@ export default defineConfig({
     footer: { message: 'AGPL-3.0 Licensed', copyright: 'Copyright © 2020-present YunYouJun' },
     nav: [
       {
-        text: "遥控 Codex",
+        text: "遥控 AI 程序",
         activeMatch: "^/(codex/|development/codex-remote)",
         items: [
           { text: "功能展示", link: "/codex/" },
+          { text: "选择 Codex / CodeBuddy / dsh", link: "/codex/agents" },
           { text: "安装与接入", link: "/development/codex-remote" },
           { text: "AI 快速接入", link: "/codex/ai-setup" },
           { text: "管理 Codex Desktop", link: "/codex/desktop" },
@@ -56,6 +57,7 @@ export default defineConfig({
       "/codex/": [
         { text: "功能展示", link: "/codex/" },
         { text: "图片卡片示例", link: "/codex/card-renderer" },
+        { text: "选择 Codex / CodeBuddy / dsh", link: "/codex/agents" },
         { text: "安装与接入", link: "/development/codex-remote" },
         { text: "AI 快速接入", link: "/codex/ai-setup" },
         { text: "管理 Codex Desktop", link: "/codex/desktop" },
@@ -135,7 +137,8 @@ export default defineConfig({
       "/development/": [
         { text: "工作区与发布", link: "/development/monorepo" },
         { text: "用户指令系统", link: "/development/user-commands" },
-        { text: "QQ 遥控 Codex", link: "/development/codex-remote" },
+        { text: "QQ 遥控 AI 程序", link: "/development/codex-remote" },
+        { text: "选择 Codex / CodeBuddy / dsh", link: "/codex/agents" },
         { text: "Markdown 图片渲染", link: "/development/card-renderer" },
         { text: "本机桌面客户端", link: "/development/client-tool" },
         { text: "AI 快速接入", link: "/codex/ai-setup" },

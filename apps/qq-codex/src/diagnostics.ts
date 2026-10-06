@@ -81,15 +81,15 @@ export async function diagnose(options: DiagnosticOptions): Promise<DiagnosticRe
       const codex = createCodexClient(config)
       try {
         await codex.start()
-        checks.push({ id: 'codex', status: 'pass', summary: '本机 app-server 已连接。' })
+        checks.push({ id: 'codex', status: 'pass', summary: codex.provider ? `${codex.provider} ACP 已连接。` : '本机 app-server 已连接。' })
         try {
           await checkCodexReadiness(codex, config)
-          checks.push({ id: 'account-model', status: 'pass', summary: '登录与项目模型配置预检通过；未执行模型任务。' })
+          checks.push({ id: 'account-model', status: codex.provider ? 'skip' : 'pass', summary: codex.provider ? 'ACP 握手不能确认登录与模型额度；请在本机程序中检查。未执行模型任务。' : '登录与项目模型配置预检通过；未执行模型任务。' })
         }
         catch (error) {
           const message = error instanceof Error ? error.message : ''
           const auth = failureCode(error) === 'authentication' || message.includes('尚未登录')
-          const login = [config.codexExecutable ?? 'codex', 'login'].map(quote).join(' ')
+          const login = [config.agentExecutable ?? config.codexExecutable ?? 'codex', 'login'].map(quote).join(' ')
           const loginCommand = config.codexHome
             ? process.platform === 'win32' ? `$env:CODEX_HOME=${quote(config.codexHome)}; ${login}` : `CODEX_HOME=${quote(config.codexHome)} ${login}`
             : login
@@ -98,7 +98,7 @@ export async function diagnose(options: DiagnosticOptions): Promise<DiagnosticRe
         if (state) {
           for (const session of await inspectSessions(codex, config, state)) {
             const usable = session.status === 'ready' || session.status === 'new'
-            checks.push({ id: `session:${session.project}`, status: usable ? 'pass' : 'fail', summary: sessionSummary(session), actions: usable ? undefined : ['先停止服务，再核对账户与项目；需要新会话时执行：', command('recover', '--project', session.project)] })
+            checks.push({ id: `session:${session.project}`, status: usable ? 'pass' : codex.provider && session.status === 'unavailable' ? 'skip' : 'fail', summary: sessionSummary(session), actions: usable ? undefined : ['先停止服务，再核对账户与项目；需要新会话时执行：', command('recover', '--project', session.project)] })
           }
         }
         else {
@@ -106,7 +106,7 @@ export async function diagnose(options: DiagnosticOptions): Promise<DiagnosticRe
         }
         if (config.management?.enabled) {
           try {
-            const schema = await CodexSchema.load(config.codexExecutable, config.experimentalApi)
+            const schema = await CodexSchema.load(config.agentExecutable ?? config.codexExecutable, config.experimentalApi)
             checks.push({ id: 'api-schema', status: 'pass', summary: `已生成本机协议目录：${schema.methods.length} 个方法。` })
           }
           catch {
@@ -115,7 +115,7 @@ export async function diagnose(options: DiagnosticOptions): Promise<DiagnosticRe
         }
       }
       catch {
-        checks.push({ id: 'codex', status: 'fail', summary: '本机 app-server 连接或会话检查失败；核对 Codex 安装、连接模式与网络。', actions: [`${quote(config.codexExecutable ?? 'codex')} --version`, command('paths')] })
+        checks.push({ id: 'codex', status: 'fail', summary: codex.provider ? `${codex.provider} ACP 连接失败；核对本机安装、ACP profile 与凭据。` : '本机 app-server 连接或会话检查失败；核对 Codex 安装、连接模式与网络。', actions: [`${quote(config.agentExecutable ?? config.codexExecutable ?? config.agent ?? 'codex')} --version`, command('paths')] })
       }
       finally {
         await codex.close().catch(() => {

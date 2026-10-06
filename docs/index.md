@@ -2,12 +2,12 @@
 layout: home
 hero:
   name: El Bot
-  text: 用 QQ 遥控你的 Codex
-  tagline: 在自己的电脑上执行任务，在 QQ 中继续会话、处理审批、查看结果。
+  text: 用 QQ 遥控本机 AI 程序
+  tagline: 连接 Codex、CodeBuddy 或 dsh，在 QQ 中安排任务、继续会话、处理审批、查看结果。
   actions:
     - theme: brand
-      text: 接入 Codex
-      link: /development/codex-remote
+      text: 选择程序并接入
+      link: /codex/agents
     - theme: alt
       text: 让 AI 帮我接入
       link: /codex/ai-setup
@@ -22,7 +22,7 @@ features:
   - title: 会话与审批
     details: 每个项目独立续聊；需要升级权限时，在 QQ 查看并逐次确认。
   - title: 统一 CLI
-    details: el-bot codex init、check、start 完成初始化、检查和运行。
+    details: el-bot agent init、check、start 完成初始化、检查和运行；兼容 codex 入口。
 ---
 
 <div class="home-codex">
@@ -31,7 +31,7 @@ features:
 
 ## 三步接入自己的项目
 
-安装包含 Codex 子命令的 `el-bot` 后，在本机运行：
+以下使用默认 Codex。在本机安装相应 CLI 与 `el-bot` 后运行：
 
 ```bash
 el-bot codex init --project /absolute/path/to/my-project --name my-project
@@ -41,8 +41,8 @@ el-bot codex start
 
 需要 Node.js 22.18+、已登录的 Codex CLI 和 QQ 官方机器人。首次启动后，在 QQ 私聊发送终端显示的 `/pair ...` 绑定码。
 
-::: info 当前发布状态
-使用 `pnpm add -g el-bot@next` 安装，或固定 `el-bot@1.0.0-rc.2`。完整步骤见[安装文档](/development/codex-remote#安装-cli)，多实例与归档恢复见[实例隔离与恢复](/codex/instances)。
+::: info CodeBuddy / dsh 与版本
+CodeBuddy / dsh 使用 `init --agent codebuddy` / `init --agent dsh` 和独立 profile，见[程序接入指南](/codex/agents)。新增功能需要当前源码构建或包含该功能的安装包；先核对 CLI 帮助，安装步骤见[完整接入](/development/codex-remote#安装-cli)。多实例与恢复见[实例隔离与恢复](/codex/instances)。
 :::
 
 ## 让 AI 帮你完成接入
@@ -56,7 +56,9 @@ el-bot codex start
 
 | 需求 | 入口 |
 | --- | --- |
-| 从 QQ 安排本机 Codex 任务 | [Codex 功能展示](/codex/) · [完整接入](/development/codex-remote) |
+| 从 QQ 安排本机 AI 任务 | [功能展示](/codex/) · [选择程序](/codex/agents) · [完整接入](/development/codex-remote) |
+| 管理 Codex Desktop 的项目、聊天与工具 | [Desktop 接入](/codex/desktop) |
+| 在本机控制机器人并打开桌面程序 | [桌面客户端](/development/client-tool) |
 | 让 AI 协助安装与排错 | [AI 快速接入](/codex/ai-setup) |
 | 编写自定义 QQ 机器人与插件 | [框架指南](/guide/) · [插件](/plugins/) |
 | 参与工程开发或发布 | [Monorepo 与 npm OIDC](/development/monorepo) |

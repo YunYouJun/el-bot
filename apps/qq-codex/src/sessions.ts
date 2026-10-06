@@ -9,6 +9,8 @@ export async function inspectSession(codex: CodexReadinessClient, project: strin
   if (saved.cwd !== cwd)
     return { project, status: 'project-changed' }
   try {
+    if (codex.inspectThread)
+      return { project, status: await codex.inspectThread(saved.id, cwd) }
     const read = await codex.request('thread/read', { threadId: saved.id, includeTurns: false })
     if (!isRecord(read) || !isRecord(read.thread) || read.thread.id !== saved.id)
       return { project, status: 'unavailable' }
@@ -49,9 +51,9 @@ export function sessionSummary(check: SessionCheck): string {
     'ready': '可继续',
     'new': '下一条任务新建会话',
     'archived': '已归档，不能继续；使用 /new 或本机 recover 创建新会话，历史保留',
-    'missing': '会话不存在；核对 Codex 账户与目录，必要时使用 /new',
+    'missing': '会话不存在；核对本机程序的账户与目录，必要时使用 /new',
     'project-changed': '项目路径已变化；核对配置后使用 /new',
-    'unavailable': '无法确认会话状态；检查本机 Codex 连接或版本',
+    'unavailable': '无法只读确认会话状态；检查本机程序连接、版本或会话列表能力',
   }
   return `${check.project}：${labels[check.status]}`
 }

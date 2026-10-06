@@ -16,26 +16,27 @@
 - 使用文档：<https://docs.bot.elpsy.cn>
 - API 文档：<https://www.yunyoujun.cn/el-bot/>
 
-## QQ 遥控 Codex
+## QQ 遥控 Codex、CodeBuddy 与 dsh
 
-通过 `el-bot codex` 子命令遥控本机 Codex，随 `el-bot` 包提供，支持 QQ 官方私聊绑定、项目/会话切换、任务停止、审批和结果查询。
+通过 `el-bot agent` 遥控本机 Codex、CodeBuddy 或 DeepSeek Harness（dsh），支持 QQ 官方私聊绑定、项目续聊、任务停止、单次审批和结果查询。原有 `el-bot codex` 入口继续兼容，旧配置默认使用 Codex。
 
 源码中可以直接运行：
 
 ```bash
 pnpm install
 pnpm build
-pnpm cli codex init --project /absolute/path/to/project
-pnpm cli codex check --all
-pnpm cli codex start
+# 以 CodeBuddy 为例；dsh 使用独立 profile，并改为 --agent dsh
+pnpm cli agent --profile codebuddy init --agent codebuddy --project /absolute/path/to/project
+pnpm cli agent --profile codebuddy check --all
+pnpm cli agent --profile codebuddy start
 ```
 
-`init` 交互填写 AppID / AppSecret，默认配置位于 `~/.el-bot`，密钥隐藏输入且不会写入仓库。
+需要 Node.js 22.18+、所选程序的 CLI 与账户 / 模型配置，以及 QQ 官方机器人。`init` 在本机交互填写 AppID / AppSecret，密钥隐藏输入；启动后在 QQ 私聊发送终端的 `/pair ...`。
+不同程序使用独立 profile，配置、凭据和状态位于 `~/.el-bot/codex/<profile>/`。Codex profile 还隔离账户目录，ACP 程序沿用自己的本机账户配置。
 可通过 `pnpm --filter el-bot pack --pack-destination ./dist` 生成独立安装包；
-安装后直接使用 `el-bot codex init`、`el-bot codex check`、`el-bot codex start`，无需克隆仓库。
-当前改动不代表新包已发布到 npm。
+安装后将示例中的 `pnpm cli` 替换为 `el-bot`，无需克隆仓库。新增 ACP 功能需要当前源码构建或包含该功能的安装包；当前改动不代表新包已发布到 npm。
 
-完整安装、迁移和命令说明见 [QQ 遥控 Codex](docs/development/codex-remote.md)。
+先看[程序选择与能力对比](docs/codex/agents.md)，完整安装、迁移和命令说明见[QQ 遥控接入](docs/development/codex-remote.md)。
 
 在 QQ 中的使用示例：
 
@@ -48,14 +49,15 @@ pnpm cli codex start
 ```
 
 每个项目保留独立会话，需要升级权限时使用 `/approval` 查看请求，再逐次 `/approve` 或 `/reject`。
+CodeBuddy / dsh 使用 ACP，不提供 Codex 专用的 `/steer`、`/review`、API / Desktop 管理和操作系统沙箱；账户、续聊与停止能力见[对比说明](docs/codex/agents.md#能力对比)。
 查看[功能展示](docs/codex/index.md)了解任务、审批和续聊流程。
 
 ### 让 AI 帮你接入
 
 复制 [AI 快速接入提示词](docs/codex/ai-setup.md#复制给你的-ai-助手)，提供自己的项目路径，
 让本机 Codex、Claude Code 等助手检查环境、执行 `init --no-prompt` 和连接检查。
-AppSecret 在本机填写，QQ 登录与绑定由本人完成。使用 `el-bot@next`，或固定 `el-bot@1.0.0-rc.2`；先检查 `el-bot codex --help`。
-新实例可用 `--profile personal` 隔离配置、凭据、状态和 Codex 目录，见[实例隔离与恢复](https://docs.bot.elpsy.cn/codex/instances)。无需 YunLeFun 账户。
+AppSecret 在本机填写，QQ 登录与绑定由本人完成。先核对版本、`el-bot agent --help` 与 `init --help`，使用与当前功能匹配的构建。
+实例与账户布局见[实例隔离与恢复](docs/codex/instances.md)。无需 YunLeFun 账户。
 
 文档构建自动生成 `llms.txt`、`llms-full.txt` 和原始 Markdown，方便 AI 读取同版本接入说明。
 
@@ -68,7 +70,7 @@ AppSecret 在本机填写，QQ 登录与绑定由本人完成。使用 `el-bot@n
   - 迁移 [mirai-ts](https://github.com/YunYouJun/mirai-ts) 至 [node-napcat-ts](https://github.com/huankong-team/node-napcat-ts)
 - 使用 Node.js 与 TypeScript，pnpm 统一管理工作区和依赖目录。
 - 工程约定参考 [starter-monorepo](https://github.com/YunYouJun/starter-monorepo)：共享依赖 catalog、tsdown、Vitest 和 ESLint。
-- QQ 官方机器人遥控 Codex 随统一 CLI 提供；私有 `apps/qq-codex` 模块不单独发布，使用步骤与社区参考见[接入文档](./docs/development/codex-remote.md)。
+- QQ 官方机器人遥控本机 AI 程序随统一 CLI 提供；私有 `apps/qq-codex` 模块不单独发布，使用步骤与社区参考见[接入文档](./docs/development/codex-remote.md)。
 
 ## 开始
 

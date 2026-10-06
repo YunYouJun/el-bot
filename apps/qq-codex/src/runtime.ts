@@ -1,10 +1,11 @@
+import type { AgentClient } from '@el-bot/codex'
 import type { RuntimeStatus } from './control'
 import type { BotCredentials, RemoteConfig } from './types'
 import { once } from 'node:events'
 import { homedir } from 'node:os'
 import { resolve } from 'node:path'
 import process from 'node:process'
-import { CodexClient, CodexDesktopClient, CodexSchema } from '@el-bot/codex'
+import { AcpClient, CodexClient, CodexDesktopClient, CodexSchema } from '@el-bot/codex'
 import { serve } from '@hono/node-server'
 import consola from 'consola'
 import { Hono } from 'hono'
@@ -25,12 +26,14 @@ import { checkCodexReadiness } from './readiness'
 import { inspectSessions, sessionSummary } from './sessions'
 import { bindInstance, StateStore } from './store'
 
-export function createCodexClient(config: RemoteConfig): CodexClient {
-  return new CodexClient({ executable: config.codexExecutable, codexHome: config.codexHome, envAllowlist: config.codexEnvAllowlist, connection: config.codexConnection, socketPath: config.codexSocket, experimentalApi: config.experimentalApi, terminalControl: true })
+export function createCodexClient(config: RemoteConfig): AgentClient {
+  if (config.agent === 'codebuddy' || config.agent === 'dsh')
+    return new AcpClient({ provider: config.agent, executable: config.agentExecutable, envAllowlist: config.agentEnvAllowlist, projects: Object.values(config.projects) })
+  return new CodexClient({ executable: config.agentExecutable ?? config.codexExecutable, codexHome: config.codexHome, envAllowlist: config.agentEnvAllowlist ?? config.codexEnvAllowlist, connection: config.codexConnection, socketPath: config.codexSocket, experimentalApi: config.experimentalApi, terminalControl: true })
 }
 
 export function instanceIdentity(config: RemoteConfig, credentials: BotCredentials, profile?: string) {
-  return { appId: credentials.appId, sandbox: config.sandbox, ...(profile ? { profile } : {}), codexHome: config.codexHome ?? resolve(process.env.CODEX_HOME ?? resolve(homedir(), '.codex')) }
+  return { appId: credentials.appId, sandbox: config.sandbox, ...(profile ? { profile } : {}), ...(config.agent && config.agent !== 'codex' ? { agent: config.agent, agentExecutable: config.agentExecutable ?? config.agent } : { codexHome: config.codexHome ?? resolve(process.env.CODEX_HOME ?? resolve(homedir(), '.codex')) }) }
 }
 
 /** Inspect desktop capabilities without modifying the app or submitting a model turn. */
@@ -64,14 +67,14 @@ export async function checkLocal(config: RemoteConfig, statePath?: string): Prom
       const sessions = await inspectSessions(codex, config, state)
       for (const session of sessions)
         consola.info(sessionSummary(session))
-      if (sessions.some(session => !['ready', 'new'].includes(session.status)))
+      if (sessions.some(session => !['ready', 'new'].includes(session.status) && !(codex.provider && session.status === 'unavailable')))
         throw new Error('已有会话无法继续。请先恢复指定项目；不会自动重试或重放任务。')
     }
     if (config.management?.enabled) {
-      const schema = await CodexSchema.load(config.codexExecutable, config.experimentalApi)
+      const schema = await CodexSchema.load(config.agentExecutable ?? config.codexExecutable, config.experimentalApi)
       consola.success(`已生成本机协议目录：${schema.methods.length} 个方法。`)
     }
-    consola.success(`Codex 已连接；已检查登录信息与 ${Object.keys(config.projects).length} 个项目的模型配置。未启动模型任务。`)
+    consola.success(config.agent && config.agent !== 'codex' ? `${config.agent} ACP 已连接；登录与模型凭据请在本机程序中确认。未启动模型任务。` : `Codex 已连接；已检查登录信息与 ${Object.keys(config.projects).length} 个项目的模型配置。未启动模型任务。`)
   }
   finally { await codex.close() }
 }
@@ -147,6 +150,7 @@ export async function startRemote(config: RemoteConfig, statePath: string, crede
       startedAt,
       qq: qqStatus,
       codex: codexStatus,
+      agent: config.agent ?? 'codex',
       project: controller?.state.project,
       ...controller?.runtimeActivity,
       busy: controller?.runtimeActivity.busy ?? false,
@@ -161,7 +165,7 @@ export async function startRemote(config: RemoteConfig, statePath: string, crede
     bindInstance(state, instanceIdentity(config, credentials, profile))
     if (legacy)
       await store.backupLegacy()
-    const schema = config.management?.enabled ? await CodexSchema.load(config.codexExecutable, config.experimentalApi) : undefined
+    const schema = config.management?.enabled ? await CodexSchema.load(config.agentExecutable ?? config.codexExecutable, config.experimentalApi) : undefined
     if (desktop)
       await desktop.listTools()
     lifecycle.checkpoint()

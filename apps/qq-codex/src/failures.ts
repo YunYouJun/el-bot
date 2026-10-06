@@ -35,7 +35,19 @@ export function failureCode(error: unknown, fallback: FailureCode = 'unknown'): 
 }
 
 /** Keep failure reports useful without forwarding secrets, account details or local paths to QQ. */
-export function failureText(code: FailureCode): string {
+export function failureText(code: FailureCode, provider?: 'codebuddy' | 'dsh'): string {
   const details = FAILURE_MESSAGES[code]
+  if (provider) {
+    const name = provider === 'codebuddy' ? 'CodeBuddy' : 'dsh'
+    const hints: Partial<Record<FailureCode, string>> = {
+      'authentication': `在本机 ${name} 完成登录或核对 provider 凭据，再沿用原 profile 重启遥控服务。`,
+      'model': `核对本机 ${name} 的可用模型与遥控配置 model，再重启服务。`,
+      'stop-unconfirmed': '在本机检查当前程序和任务进程，确认任务结束后再重启遥控服务。不要将本次状态视为任务已停止。',
+      'unknown': `在本机检查 ${name} 的登录、模型及项目配置，并运行 el-bot agent check --all。`,
+    }
+    const summary = code === 'stop-unconfirmed' ? '无法确认当前程序的任务已结束，服务已停止接收新任务。' : details.summary.replaceAll('Codex', name)
+    const hint = hints[code] ?? details.hint.replaceAll('Codex', name).replaceAll('el-bot codex', 'el-bot agent')
+    return `${summary}\n处理：${hint}\n错误类型：${code}\n任务不会自动重试；历史结果仍可查询。`
+  }
   return `${details.summary}\n处理：${details.hint}\n错误类型：${code}\n任务不会自动重试；历史结果仍可查询。`
 }

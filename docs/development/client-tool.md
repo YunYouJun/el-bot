@@ -12,7 +12,7 @@ el-bot 使用一个 Tauri 2 + Vue 3 应用，同时提供完整控制台窗口�
 - 空闲时「停止」正常关闭连接、保存状态、释放锁；重复停止返回已停止。
 - 有任务或管理操作时，普通停止被拒绝。界面允许明确选择「中断并停止／重启」，也可以继续运行，等待完成后再操作。已经产生的工作区修改不会撤销。
 - 重启先等待旧实例清理完成并释放状态锁，再启动新实例。任务不会自动重放。
-- 状态区分别显示 QQ 连接、Codex 可用性与任务状态。HTTP 回调只显示「回调已监听」，不宣称公网 QQ 回调已验证。
+- 状态区分别显示 QQ 连接、配置选定的任务程序与任务状态。ACP 握手通过显示「已连接」；HTTP 回调显示「回调已监听」，模型与公网 QQ 收发仍需实际验证。
 - 日志展示状态文件旁 `.log` 的最近约 32 KB；前台启动的日志仍在原终端。启动失败时在日志中查看原因。
 
 首次绑定仍沿用 `/pair`，未绑定实例的配对码写入本机私有日志。客户端不修改主人绑定、项目白名单、持久去重、单任务准入或审批规则。
@@ -21,11 +21,13 @@ el-bot 使用一个 Tauri 2 + Vue 3 应用，同时提供完整控制台窗口�
 
 在「连接设置 → QQ 回复展示」选择 **展示图片卡片**、**Markdown 卡片（不展示图片）** 或 **纯文本（不展示图片）**。图片卡片支持浅色／深色主题。保存只修改当前机器人配置的 `messageFormat` 和 `image.theme`，保留其他配置、凭据与会话；正在运行时提示等待任务完成后重启，不自动中断。
 
-「机器人」页面和菜单栏／托盘提供 **打开 Codex**、**打开 QQ**，在客户端所在电脑启动或唤起已安装应用。macOS 默认按应用标识 `com.openai.codex` / `com.tencent.qq` 查找安装位置，不依赖应用文件名；也可在连接设置填写完整 `.app` 路径覆盖。Windows 填写完整 `.exe` 路径，Linux 填写完整可执行文件路径。留空时 Windows／Linux 会提示先配置路径。新路径保存在 `~/.el-bot/client.json`，旧版路径配置仍可读取。
+「机器人」页面和菜单栏／托盘提供 **打开 Codex**、**打开 CodeBuddy**、**打开 dsh**、**打开 QQ**，在客户端所在电脑启动或唤起已安装应用。macOS 默认按应用标识 `com.openai.codex` / `com.tencent.codebuddycn` / `dsh-tauri` / `com.tencent.qq` 查找安装位置；CodeBuddy 默认查找中国版，其他版本可在连接设置填写完整 `.app` 路径覆盖。Windows 填写完整 `.exe` 路径，Linux 填写完整可执行文件路径。留空时 Windows／Linux 会提示先配置路径。新路径保存在 `~/.el-bot/client.json`，旧版路径配置仍可读取。
 
-这是本机按钮，QQ 卡片和聊天命令不会启动任意程序，也不接受 shell 命令、网址或运行参数。打开应用不等于完成 Codex 登录、QQ 登录或机器人连接。当前本机启动验证为 macOS；其他桌面平台仍需对应实机验收。
+机器人配置中的 `agent` 选择 Codex、CodeBuddy 或 dsh 任务程序，状态区显示对应名称。打开程序的路径与任务 CLI 的 `agentExecutable` 分别配置，保存应用路径不会改变任务程序。客户端复用同一套启停入口，CodeBuddy / dsh 接入见[程序接入指南](/codex/agents)。
 
-以上客户端设置与 `preferences` 命令要求 `el-bot@1.0.0-rc.3` 或更高版本。需要使用对应版本的 CLI，旧版 CLI 会提示不支持该命令。
+这些按钮仅用于本机操作，QQ 卡片和聊天命令不会启动任意程序，也不接受 shell 命令、网址或运行参数。打开应用后仍需完成相应账户配置、QQ 登录或机器人连接。当前本机启动验证为 macOS；其他桌面平台仍需对应实机验收。
+
+以上客户端设置、`preferences` 与 ACP 支持需要包含相应功能的新构建。源码包版本不代表已经发布到 npm；先检查所配置 CLI 的版本与 `agent --help`，旧版缺少入口时使用当前源码构建的安装包。
 
 ## CLI 控制
 
@@ -41,9 +43,9 @@ el-bot codex preferences --message-format image --image-theme dark --json
 el-bot codex preferences --message-format markdown --json
 ```
 
-这些命令支持现有 `--profile`、`--config`、`--credentials`、`--state` 参数。客户端首版使用显式文件路径；使用 profile 的实例，配置中的 `codexHome` 需与已有实例身份一致。前台 `el-bot codex start` 行为保留。结构化命令返回 `{ "ok": true, "result": ... }` 或 `{ "ok": false, "error": ... }`，失败退出码为 1。
+这些命令也支持 `el-bot agent` 前缀与现有 `--profile`、`--config`、`--credentials`、`--state` 参数。客户端使用显式文件路径：填入 `paths` 返回的配置、凭据、状态，Codex 的 `codexHome` 须与原实例身份一致，ACP 不添加此字段。前台 `el-bot codex start` 行为保留。结构化命令返回 `{ "ok": true, "result": ... }` 或 `{ "ok": false, "error": ... }`，失败退出码为 1。
 
-后台启动使用当前 CLI 的 Node 和入口文件，凭据值不会放入进程参数。Node 需要满足仓库支持版本，另外需要已安装并登录的 Codex CLI。
+后台启动使用当前 CLI 的 Node 和入口文件，凭据值不会放入进程参数。Node 需要满足仓库支持版本，另外需要安装所选程序的 CLI，并完成相应账户 / 提供方配置；GUI 环境找不到 CLI 时，在机器人配置中填写 `agentExecutable`。
 
 ## 安全停止与旧实例
 
@@ -53,7 +55,7 @@ el-bot codex preferences --message-format markdown --json
 
 旧版本没有控制通道时显示「暂不可管理」。请在原终端按 Ctrl+C 正常退出一次，再用新版客户端启动。客户端不会通过 PID 猜测身份、强杀机器人主进程或自动删除残留锁。异常残留锁需要人工核验旧进程已经不存在后处理。
 
-清理超时会报告错误，不能当成「已停止」；重新查询状态和日志确认。由服务自身启动的 Codex 子进程仍沿用既有退出超时策略。
+清理超时会报告错误，不能当成「已停止」；重新查询状态和日志确认。任务取消与停止确认按所选程序的协议处理，见[能力对比](/codex/agents#能力对比)。
 
 ## 构建和分发
 
@@ -71,7 +73,7 @@ pnpm clients:build     # 当前平台的一种安装包
 
 构建产物复制到 `dist/clients/`：macOS 为 DMG（另保留同一应用的 `.app` 目录便于本机调试），Windows 为 NSIS `.exe`，Linux 为 AppImage。不同平台需在对应构建环境中生成；当前已在 Apple Silicon macOS 验证。客户端 macOS 版要求 macOS 13+，构建需要 Rust 与对应平台工具链。
 
-首版客户端连接本机安装的 Node、Codex 与 el-bot CLI，**没有内置这些运行时**。统一安装包解决菜单栏和控制台的重复安装；新机器仍需准备机器人运行环境。需要独立安装 CLI 时，执行 `pnpm -C packages/el-bot pack --pack-destination ../../dist`，再把 `el-bot-*.tgz` 安装到独立目录，例如 `~/.el-bot/client-runtime`，在设置中选择该目录的 `node_modules/el-bot/dist/cli.mjs`。不要将配置、凭据或状态文件放入应用安装包。
+首版客户端连接本机安装的 Node、任务程序与 el-bot CLI，**没有内置这些运行时**。统一安装包解决菜单栏和控制台的重复安装；新机器仍需准备机器人运行环境。需要独立安装 CLI 时，执行 `pnpm -C packages/el-bot pack --pack-destination ../../dist`，再把 `el-bot-*.tgz` 安装到独立目录，例如 `~/.el-bot/client-runtime`，在设置中选择该目录的 `node_modules/el-bot/dist/cli.mjs`。不要将配置、凭据或状态文件放入应用安装包。
 
 ### CI 打包与发布
 

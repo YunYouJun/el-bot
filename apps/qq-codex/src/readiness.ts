@@ -3,6 +3,9 @@ import { isRecord } from 'qq-sdk/official'
 
 /** Check account metadata and ChatGPT model configuration without spending a model turn. */
 export async function checkCodexReadiness(codex: CodexReadinessClient, config: RemoteConfig): Promise<void> {
+  // ACP initialization does not prove provider authentication; never submit a probe prompt.
+  if (config.agent && config.agent !== 'codex')
+    return
   const account = await codex.request('account/read', { refreshToken: true })
   if (!isRecord(account) || (!account.account && account.requiresOpenaiAuth !== false))
     throw new Error('Codex 尚未登录。请先在本机运行 codex login。')

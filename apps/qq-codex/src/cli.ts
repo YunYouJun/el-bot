@@ -27,8 +27,8 @@ import { bindInstance, StateStore } from './store'
  * @returns The configured command, without parsing arguments or starting a service
  */
 export function registerCodexCommand(program: Command): Command {
-  program.description('通过 QQ 官方机器人私聊遥控本机 Codex')
-    .option('--profile <name>', '独立实例名称；隔离配置、凭据、状态与 Codex 目录')
+  program.description('通过 QQ 官方机器人私聊遥控 Codex、CodeBuddy 或 dsh')
+    .option('--profile <name>', '独立实例名称；隔离配置、QQ 凭据和状态（Codex 另隔离账户目录）')
     .option('-c, --config <path>', 'JSON 配置文件（默认 ~/.el-bot/qq-codex.json）')
     .option('--state <path>', '绑定与会话状态文件（默认 ~/.el-bot/qq-codex-state.json）')
     .option('--credentials <path>', '机器人凭据文件（默认 ~/.el-bot/qq-codex.env）')
@@ -53,7 +53,8 @@ export function registerCodexCommand(program: Command): Command {
   const config = async (command: Command) => {
     const paths = resolvePaths(options(command))
     const settings = await readConfig(paths.config)
-    settings.codexHome ??= paths.codexHome
+    if (!settings.agent || settings.agent === 'codex')
+      settings.codexHome ??= paths.codexHome
     if (settings.codexHome && settings.codexConnection === 'desktop')
       throw new Error('独立 Codex 目录需要 stdio 连接；desktop 连接沿用桌面账户，请使用独立配置 / 凭据 / 状态路径。')
     return settings
@@ -74,6 +75,7 @@ export function registerCodexCommand(program: Command): Command {
   }
   program.command('init')
     .description('交互创建配置和凭据文件；不会覆盖已有文件或绑定')
+    .addOption(new Option('--agent <name>', '本机任务程序').choices(['codex', 'codebuddy', 'dsh']).default('codex'))
     .option('-p, --project <directory>', '允许遥控的项目目录', process.cwd())
     .option('-n, --name <name>', 'QQ 命令使用的项目名称')
     .option('--no-prompt', '不询问凭据；使用环境变量或生成空白凭据模板')
@@ -81,7 +83,7 @@ export function registerCodexCommand(program: Command): Command {
       await initialize(resolvePaths(options(command)), opts)
     })
   program.command('check')
-    .description('检查配置和本机 Codex；不会启动模型任务')
+    .description('检查配置和当前本机程序；不会启动模型任务')
     .addOption(new Option('--qq', '仅检查 QQ 鉴权和网关访问').conflicts('all'))
     .addOption(new Option('--all', '同时检查本机 Codex 与 QQ API').conflicts('qq'))
     .option('--json', '输出结构化诊断与修复建议，便于 AI 接入')

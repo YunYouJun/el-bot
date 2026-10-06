@@ -1,30 +1,38 @@
-# QQ 遥控本地 Codex
+# QQ 遥控本机 AI 程序
 
-通过 QQ 官方机器人的私聊，在自己的电脑上启动 Codex 任务、继续项目会话、处理审批和查询结果。
-实现使用 QQ 官方 API 和 Codex app-server 的 stdio 协议；运行时不依赖 Mirai、NapCat 或桌面浏览器调试端口。
+通过 QQ 官方机器人的私聊，在自己的电脑上启动 Codex、CodeBuddy 或 dsh 任务、继续项目会话、处理审批和查询结果。
+Codex 使用 app-server，CodeBuddy / dsh 使用 ACP stdio；QQ 接入使用官方 API，运行时不依赖 Mirai、NapCat 或桌面浏览器调试端口。
 
-现支持按本机版本生成 API 目录、连接已有 app-server，并通过 Codex 随应用提供的 MCP 适配器管理桌面项目、聊天、侧栏和工具。桌面宿主接入与验证条件见 [管理 Codex Desktop](/codex/desktop)。
+Codex 还支持按本机版本生成 API 目录、连接已有 app-server，并通过随应用提供的 MCP 适配器管理桌面项目、聊天、侧栏和工具。桌面宿主接入与验证条件见 [管理 Codex Desktop](/codex/desktop)。
 
 先看[功能展示](/codex/)，也可以复制[AI 接入提示词](/codex/ai-setup)，让本机助手完成环境检查与初始化。
+
+## 接入 CodeBuddy 与 dsh
+
+源码版新增 `el-bot agent`，作为 `el-bot codex` 的通用别名。`init --agent codebuddy` 或 `init --agent dsh` 为新实例选择程序；后续命令读取配置中的 `agent`，旧配置默认 Codex。
+
+先阅读[程序选择与接入指南](/codex/agents)：包含能力对比、独立 profile、可执行文件与环境变量配置、QQ 验证及排错。CodeBuddy / dsh 共用基础任务和审批流程；专用 Codex API / Desktop 管理、账户隔离与停止确认的能力不同。
+
+下方三步示例使用 Codex；CodeBuddy / dsh 使用指南中的对应命令，QQ 平台配置和本人绑定步骤相同。新增能力需要当前源码构建或明确包含该功能的安装包。
 
 ## 环境要求
 
 - Node.js 22.18+；推荐使用仓库 `.node-version` 指定的 Node.js 24。
-- 本机已安装 Codex CLI，执行 `codex login`；`codex app-server` 必须可用。
+- 本机已安装所选程序的 CLI，并完成账户登录或模型提供方配置。Codex 需要 `codex app-server`；CodeBuddy / dsh 需要 ACP 模式。
 - 在 [QQ 开放平台](https://q.qq.com/) 创建机器人，取得 AppID 和 **AppSecret**。
 - 在后台「开发设置 → 事件订阅与回调」选择 **WebSocket**，配置运行机器的出口 IP 白名单。
 - 根据平台的服务范围或开发体验用户设置，让自己的 QQ 可以添加机器人并私聊。
 
-默认 CLI 沿用本机 Codex 的账户和模型配置，也可在配置文件中指定 `model`。新实例推荐使用 `--profile` 隔离账户、凭据和会话，见[实例隔离与恢复](/codex/instances)。无需 YunLeFun 账户；QQ 鉴权与本人 `/pair` 绑定仍然必需。
-默认连接独立的本地 app-server，创建并恢复自己维护的项目会话。配置已有后端代理后可以绑定该后端的会话；桌面项目、聊天和侧栏管理另需连接 Desktop 宿主适配器，见[管理 Codex Desktop](/codex/desktop)。
+新实例推荐使用 `--profile` 隔离配置、QQ 凭据和会话，见[实例隔离与恢复](/codex/instances)。Codex profile 另外隔离 `CODEX_HOME`，需要独立登录；ACP profile 沿用程序自己的账户配置。无需 YunLeFun 账户；QQ 鉴权与本人 `/pair` 绑定仍然必需。
+默认 Codex 连接独立的本地 app-server；未使用 profile 时沿用本机账户和模型配置，也可指定 `model`。已有后端会话和桌面管理见[管理 Codex Desktop](/codex/desktop)。
 
 ## 安装 CLI
 
-安装包为 `el-bot`，Codex 功能统一放在 `el-bot codex` 子命令下；`el` 别名仍可使用。
-Codex 命令内置所需的工作区协议实现，运行时不依赖仓库、TypeScript、tsx，
+安装包为 `el-bot`，遥控功能位于 `el-bot codex` / `el-bot agent` 子命令下；`el` 别名仍可使用。
+安装包内置所需的工作区协议实现，运行时不依赖仓库、TypeScript、tsx，
 也不要求单独安装 `qq-sdk` 或 `@el-bot/codex`。原有机器人开发入口保留为 `el-bot dev [root]`。
 
-本文对应 `el-bot@1.0.0-rc.2`。预发布版使用 `next` 标签；安装后先检查版本与子命令：
+预发布版使用 `next` 标签；安装后先检查实际版本与帮助：
 
 ```bash
 pnpm add -g el-bot@next
@@ -32,6 +40,8 @@ el-bot --version
 el-bot codex --help
 # 或无需全局安装：pnpm dlx el-bot@next codex <命令>
 ```
+
+本文随仓库源码更新，不表示所有新增功能已经发布到 npm。使用 CodeBuddy / dsh 时，额外检查 `el-bot agent --help` 与 `el-bot agent init --help` 是否提供 `--agent`；缺少入口时构建当前源码。固定 npm 版本前，应先确认该版本已发布且包含所需功能。
 
 从源码构建并打包：
 
@@ -46,16 +56,13 @@ pnpm --filter el-bot pack --pack-destination ./dist
 安装生成的包，之后可在任意目录运行：
 
 ```bash
+# 使用 pack 输出的实际文件名；当前源码版本示例：
 pnpm add -g ./dist/el-bot-1.0.0-rc.3.tgz
 el-bot --help
-el-bot codex --help
+el-bot agent --help
 ```
 
-需要固定版本时：
-
-```bash
-pnpm add -g el-bot@1.0.0-rc.3
-```
+文件名以 `pack` 实际输出为准。也可不安装 tarball，在源码目录使用 `pnpm cli agent` / `pnpm cli codex`。
 
 ## 三步开始
 
@@ -113,17 +120,17 @@ AI 助手可用 `init --no-prompt` 创建配置、`paths` 核对路径、`check 
 
 | 命令 | 作用 |
 | --- | --- |
-| `el-bot codex init` | 创建配置和凭据，可用 `--project`、`--name`、`--no-prompt` |
-| `el-bot codex check` | 验证项目与本机 Codex，可用 `--qq` 或 `--all` |
+| `el-bot codex init` | 创建配置和凭据，可用 `--agent`、`--project`、`--name`、`--no-prompt` |
+| `el-bot codex check` | 验证项目与配置选定的本机程序，可用 `--qq`、`--all`、`--json` |
 | `el-bot codex start` | 启动 QQ 遥控服务；`el-bot codex` 也会启动 |
 | `el-bot codex paths` | 查看实际配置、凭据、状态路径，不显示密钥 |
 | `el-bot codex recover --project 名称` | 停止服务后重置该项目的续聊绑定，备份状态并保留本人绑定和历史 |
-| `el-bot codex api` | 从本机 Codex 生成方法目录，支持 `--experimental`、`--method` |
-| `el-bot codex desktop-init` | 向已有配置接入桌面宿主；需管道与专用聊天 ID |
-| `el-bot codex desktop-check` | 只读验证宿主目录和项目列表，不运行模型 |
+| `el-bot codex api` | 仅 Codex：从本机版本生成方法目录，支持 `--experimental`、`--method` |
+| `el-bot codex desktop-init` | 仅 Codex：向已有配置接入桌面宿主；需管道与专用聊天 ID |
+| `el-bot codex desktop-check` | 仅 Codex：只读验证宿主目录和项目列表，不运行模型 |
 | `el-bot codex --help` / `el-bot --version` | 查看 Codex 帮助或 el-bot 版本 |
 
-所有 Codex 子命令支持 `--profile <name>`、`--config <path>`、`--credentials <path>`、`--state <path>`；参数放在 `codex` 后，例如：
+以上命令也可使用 `el-bot agent` 前缀；支持 `--profile <name>`、`--config <path>`、`--credentials <path>`、`--state <path>`，参数放在 `codex` / `agent` 后，例如：
 
 ```bash
 el-bot codex start --config /path/to/config.json --credentials /path/to/bot.env --state /path/to/state.json
@@ -131,7 +138,7 @@ el-bot codex start --config /path/to/config.json --credentials /path/to/bot.env 
 
 自定义路径后，初始化、检查和启动应使用相同参数。不同机器人的实例需要分别指定凭据、配置和状态文件。
 仅更换 `--config` 不会自动更换默认状态文件；状态锁会阻止两个实例同时使用同一个文件。
-使用 `--profile personal` 可以自动分配独立目录和 Codex 账户目录，须在该目录登录。状态自动绑定 AppID、测试环境和 Codex 目录，见[实例隔离与恢复](/codex/instances)。
+使用 `--profile personal` 自动分配独立实例目录；Codex 另有独立账户目录，须在该目录登录。状态校验 AppID、测试环境及本机程序身份，见[实例隔离与恢复](/codex/instances)。
 
 配置文件示例：
 
@@ -150,6 +157,7 @@ el-bot codex start --config /path/to/config.json --credentials /path/to/bot.env 
 
 项目目录必须存在；相对路径相对于配置文件，QQ 只能通过项目名称选择。
 `sandbox` 指 **QQ 平台的测试环境**，与 Codex 执行沙箱无关。
+`agent` 默认 `codex`；CodeBuddy / dsh 的 `agentExecutable`、`agentEnvAllowlist` 和完整配置见[程序接入指南](/codex/agents#配置可执行文件与环境)。下面的账户与模型设置针对 Codex。
 如果 `codex` 不在 PATH，可以设置 `codexExecutable` 为可执行文件的绝对路径。
 `model` 可覆盖本机 Codex 的默认模型。不填写时沿用当前项目的本机配置；桌面应用中的模型名可能不适用于 CLI。
 若检查提示模型不在当前 ChatGPT 账户目录中，将遥控配置的 `model` 设置为检查建议的模型，再重新检查并启动。自定义模型服务及 API Key 账户不套用 ChatGPT 模型目录。
@@ -165,7 +173,7 @@ QQ_BOT_SECRET="你的 AppSecret"
 显式使用 `--credentials` 或 `--profile` 时只读取对应凭据文件，环境变量不覆盖该文件，文件缺失会直接报错。
 默认模式按 **完整进程环境 → 默认凭据文件 → 当前目录 `.env`** 读取；AppID 和 Secret 必须来自同一来源，半套凭据直接报错，不跨来源拼接。
 旧变量 `QQ_BOT_APP_SECRET` 仍兼容；`QQ_BOT_APP_TOKEN` 不能替代 AppSecret。
-只读取 QQ 凭据，不把 dotenv 中无关的变量注入 Codex 子进程。
+只读取 QQ 凭据，不把 dotenv 中无关的变量注入任务程序子进程。
 
 已知自己的机器人 OpenID 时，可设置 `ownerOpenId`；它不是 QQ 数字账号。
 更换绑定人需停止服务，在本机备份并移走旧状态后重新绑定；配置与已有绑定不一致时拒绝启动。
@@ -201,15 +209,15 @@ pnpm cli codex start
 
 | 错误类型 | 处理方式 |
 | --- | --- |
-| `authentication`：登录失效 | 在运行服务的电脑执行 `codex login`；profile 模式须设置对应 `CODEX_HOME`，完成后重启服务 |
-| `model`：模型不支持 | 运行 `el-bot codex check`，用检查建议的模型配置 `model`，再重启服务 |
+| `authentication`：登录失效 | 在所选程序中重新登录或配置提供方；Codex profile 须使用对应 `CODEX_HOME`，完成后重启服务 |
+| `model`：模型不支持 | Codex 按 `check` 建议配置 `model`；ACP 在对应程序中核对提供方和模型配置 |
 | `session-archived`：会话归档 | 发送 `/new` 后提交新任务；原会话和历史结果保留 |
 | `session-missing` / `project-changed`：会话或项目变化 | 核对原机器、账户与目录；需要新会话时发送 `/new` |
 | `quota` / `rate-limit`：额度或限流 | 检查账户额度与重置时间，或稍后重新提交 |
 | `context`：上下文或会话预算达到上限 | 保留必要背景，发送 `/new`，用较短提示开始 |
 | `network`：模型连接失败 | 检查本机网络、代理和模型服务 |
-| `timeout` / `connection`：本机连接不可用 | 检查 Codex 进程，重启遥控服务 |
-| `stop-unconfirmed`：无法确认命令终止 | 服务已停止接收新任务；在本机检查并结束该任务的命令进程，核对 Codex 终端控制接口支持后重启。不能将此状态视为命令已停止 |
+| `timeout` / `connection`：本机连接不可用 | 检查所选程序的进程与配置，重启遥控服务 |
+| `stop-unconfirmed`：无法确认任务终止 | 服务已停止接收新任务；在本机检查程序与该任务进程后重启。Codex 需支持终端控制，ACP 需收到取消后的 prompt 响应；不能将此状态视为任务已停止 |
 | `unknown`：未识别原因 | 运行 `el-bot codex check --all`，核对本机账户、模型与项目配置 |
 
 登录信息可读取不代表访问令牌一定有效；切换 Codex 账户后，已有遥控进程可能仍持有旧凭据，需要重新登录并重启。
@@ -218,32 +226,34 @@ QQ 报告使用固定的诊断文案，不转发上游原始错误、令牌、�
 
 ## QQ 命令
 
+基础任务、项目选择、状态 / 结果、帮助和单次审批适用于三个程序。表中标注「仅 Codex」的接口不适用于 ACP；[能力对比](/codex/agents#能力对比)说明续聊、诊断和停止的差异。
+
 | 命令 | 作用 |
 | --- | --- |
 | 直接发送文字 | 在当前项目提交任务，继续上一次会话 |
 | `/run 提示词` | 明确提交提示词；可用于以 `/` 开头的内容 |
-| `/review [目标 JSON]` | 审查代码，默认审查未提交改动；也支持基线分支、提交或自定义要求 |
-| `/steer 提示词` | 向当前执行中的任务补充要求 |
+| `/review [目标 JSON]` | 仅 Codex：审查代码，默认审查未提交改动；也支持基线分支、提交或自定义要求 |
+| `/steer 提示词` | 仅 Codex：向当前执行中的任务补充要求 |
 | `/projects [页码]` | 分页查看本地配置允许的项目，点击按钮切换 |
 | `/project 名称` | 切换项目，保留每个项目各自的会话 |
 | `/new [项目]` | 清除指定项目的续聊绑定，省略时使用当前项目；保留历史，下次任务新建会话 |
-| `/diagnose [项目]` | 只读检查会话归档、丢失和目录变化，不调用模型 |
+| `/diagnose [项目]` | 只读检查会话元数据，不调用模型；ACP 缺少查询能力时跳过 |
 | `/status [页码]` | 查看当前任务、状态及待审批/待回答编号，长列表分页 |
 | `/stop [任务ID]` | 请求停止当前任务；指定 ID 时只停止对应任务，用 `/status` 确认最终状态 |
 | `/result [任务ID] [页码]` | 分页查看结果；不填任务 ID 时查看最近任务 |
 | `/approval ID [页码]` | 查看审批命令、文件变更或问题的完整详情 |
 | `/approve ID` | 批准这一条命令/文件变更请求 |
 | `/reject ID` | 拒绝该请求 |
-| `/answer ID {"问题ID":"回答"}` | 回答 Codex 的结构化问题，必须包含全部问题 ID |
+| `/answer ID {"问题ID":"回答"}` | 仅 Codex：回答结构化问题，必须包含全部问题 ID |
 | `/help [分类] [页码]` / `/menu [分类] [页码]` | 打开分组帮助；图片模式支持分类内翻页；`/?`、`/帮助`、`/菜单` 也可使用 |
-| `/threads [游标]` / `/thread use ID` | 浏览当前项目会话，绑定已有会话 |
-| `/thread fork` | 复制当前会话历史并绑定新会话，不启动模型任务 |
-| `/models` / `/skills` / `/plugins` / `/mcp` | 浏览本机能力 |
-| `/api [前缀] [页码]` / `/rpc 方法 JSON` | 查阅本机版本目录，校验后调用协议 |
-| `/desktop projects` / `/desktop chats` / `/desktop tools` | 桌面宿主项目、聊天和工具目录 |
-| `/desktop schema 工具` / `/desktop call 工具 JSON` | 查阅参数，调用宿主工具 |
-| `/inspect ID [页码]` / `/confirm ID` / `/cancel ID` | 查看全部详情后确认一次管理写操作，或取消 |
-| `/manage-result ID [页码]` / `/events [页码]` | 查询管理结果和最近脱敏事件 |
+| `/threads [游标]` / `/thread use ID` | 仅 Codex：浏览当前项目会话，绑定已有会话 |
+| `/thread fork` | 仅 Codex：复制当前会话历史并绑定新会话，不启动模型任务 |
+| `/models` / `/skills` / `/plugins` / `/mcp` | 仅 Codex：浏览本机能力 |
+| `/api [前缀] [页码]` / `/rpc 方法 JSON` | 仅 Codex：查阅本机版本目录，校验后调用协议 |
+| `/desktop projects` / `/desktop chats` / `/desktop tools` | 仅 Codex：桌面宿主项目、聊天和工具目录 |
+| `/desktop schema 工具` / `/desktop call 工具 JSON` | 仅 Codex：查阅参数，调用宿主工具 |
+| `/inspect ID [页码]` / `/confirm ID` / `/cancel ID` | 仅 Codex：查看全部详情后确认一次管理写操作，或取消 |
+| `/manage-result ID [页码]` / `/events [页码]` | 仅 Codex：查询管理结果和最近脱敏事件 |
 
 ### 帮助与快捷入口
 
@@ -324,7 +334,7 @@ QQ 官方于 2026-04-23 向所有机器人开放单聊与群聊自定义 Markdow
 
 ### 图片卡片与本地预览
 
-从 `1.0.0-rc.3` 起，可在[本机客户端](/development/client-tool#图片展示与本机程序)选择是否展示图片，或执行 `el-bot codex preferences --message-format image --image-theme dark` 开启深色图片、`--message-format markdown` / `--message-format text` 关闭图片。设置写入当前实例配置，保留其他字段；等待任务完成后重启生效。
+包含 `preferences` 的新构建可在[本机客户端](/development/client-tool#图片展示与本机程序)选择是否展示图片，或执行 `el-bot agent preferences --message-format image --image-theme dark` 开启深色图片、`--message-format markdown` / `--message-format text` 关闭图片。三种程序共用展示设置；写入当前实例配置后，等待任务完成再重启生效。
 
 图片模式在本机将帮助、项目、任务状态和结果卡片渲染成 PNG，支持浅色 / 深色主题，使用晴空蓝顶部强调线和语义色状态标记。帮助图片用高对比色突出命令，参数以较小字号显示，说明另起一行；提醒独立展示，图内不堆叠长网址。默认直接上传到 QQ，以富媒体消息展示图片，再发送一条带原生按钮的简短 Markdown 操作卡片；文字指令和文档链接保留为可复制、可点击内容。
 结果图片支持 Markdown 加粗、斜体、删除线、行内代码、代码块、标题、列表、引用、分隔线和表格；换行时保留文本样式。链接只绘制文字，图片只显示说明，不加载外部资源；HTML 按文字转义显示。项目名称、状态信息及审批参数仍按原文展示，文字和原生 Markdown 回退保留结果源码。
@@ -404,6 +414,8 @@ el-bot codex render --card result --text-file ./result.txt --output ./result-pre
 
 ## 执行与审批
 
+以下沙箱、终端控制和额外请求处理说明针对 Codex。CodeBuddy / dsh 的权限请求、取消确认与访问范围见[程序接入指南](/codex/agents#在-qq-中验证)。
+
 Codex 使用 `workspace-write` 沙箱、`on-request` 审批策略和用户审批者，默认不允许工具联网。
 这允许 Codex 在选定项目中编辑文件；需要升级权限的执行会转发到 QQ，由绑定人决定。
 项目白名单约束任务工作目录，读取范围仍由 Codex 的沙箱实现决定。
@@ -422,14 +434,14 @@ Codex 进程退出或请求超时后，服务停止接收新的执行任务，�
 
 - QQ 回复使用 `msg_id + msg_seq`；应用最多回复同一条私聊消息 4 次，超过有效期或额度后保留结果供查询。
 - 不逐 token 刷屏。默认发送接收卡片、审批卡片和最终结果；发送 `/status` 或 `/result` 可使用新的回复窗口。
-- 输出按 UTF-8 字节分页，保存最近 20 个任务，每个任务最多保留最后 100,000 个字符。完整工具记录仍由本地 Codex 会话管理。
+- 输出按 UTF-8 字节分页，保存最近 20 个任务，每个任务最多保留最后 100,000 个字符。完整工具记录仍由所选本机程序管理。
 - 状态默认位于 `~/.el-bot/qq-codex-state.json`，包含绑定人、项目会话、去重记录和任务结果；文件权限为 `0600`（支持 POSIX 权限的平台）。
-- 状态文件使用临时文件替换和单实例锁。不要把状态放在公开目录或允许 Codex 随意写入的项目内。
+- 状态文件使用临时文件替换和单实例锁。不要把状态放在公开目录或任务工作目录内。
 - 消息执行前先保存去重记录；平台重发不会重复启动同一任务。超过 5 分钟的历史输入不会提交为新任务。
 - 进程重启会将未结束任务标为中断，**不会自动重放提示词**。查看工作区后发送新任务即可恢复绑定的会话。
 - 极端断电发生在记录与执行之间时，任务可能没有开始；不会为了补偿而自动重复执行。
 
-正常使用 Ctrl+C / SIGTERM 退出会停止接收消息、中断 Codex 并释放锁。
+正常使用 Ctrl+C / SIGTERM 退出会停止接收消息、中断任务、关闭本机连接并释放锁。
 异常崩溃留下 `.lock` 时，先读取其中 PID，确认该进程不再运行，再手动移除锁文件。
 
 ## WebSocket 与 Webhook
@@ -437,13 +449,13 @@ Codex 进程退出或请求超时后，服务停止接收新的执行任务，�
 默认 `websocket` 通过 `/gateway` 取得网关地址，订阅 `GROUP_AND_C2C_EVENT`，只分派私聊文本。
 实现包含心跳确认、退避重连、会话恢复和无效会话后的重新鉴权，不需要公网入站端口。
 
-个人遥控自己的电脑，建议使用 WebSocket。电脑主动建立连接，Codex 在本机运行，无需额外部署公网回调服务。
+个人遥控自己的电脑，建议使用 WebSocket。电脑主动建立连接，任务程序在本机运行，无需额外部署公网回调服务。
 在 QQ 后台「开发设置 → 事件订阅与回调」中也要选择 **WebSocket** 并应用切换。
 仅修改本地 `transport` 不会切换平台的推送方式；网关鉴权成功也不能单独证明消息事件已送到本机。
 如果机器人原本使用 Webhook，切换会改变现有服务的事件接收路径，应先确认旧服务的用途。
 
 面向多用户、运行在常驻服务器上的机器人，可以选择 Webhook，便于复用 HTTPS 服务的部署与监控。
-如果 Codex 仍在个人电脑上，Webhook 接入服务器还需要维护到本机的可靠连接，不能直接替代本地执行进程。
+如果任务程序仍在个人电脑上，Webhook 接入服务器还需要维护到本机的可靠连接，不能直接替代本地执行进程。
 无论使用哪种方式，本机服务停止、电脑休眠或网络中断时，都无法继续处理遥控任务。
 
 如果机器人后台要求使用 Webhook，修改配置：
@@ -459,7 +471,7 @@ Codex 进程退出或请求超时后，服务停止接收新的执行任务，�
 服务只监听 `127.0.0.1:8788/qq/events`。使用自己的 HTTPS 反向代理/隧道暴露这个路径，
 在 QQ 后台填写对应 HTTPS 回调地址并订阅单聊事件。
 应用校验 AppID、时间戳和原始请求体的 Ed25519 签名，支持平台回调挑战；无有效签名的请求不会触发任务。
-状态保存后即完成入站处理，Codex 执行及 QQ 回复在后台继续，不等待长任务完成才返回回调确认。
+状态保存后即完成入站处理，任务执行及 QQ 回复在后台继续，不等待长任务完成才返回回调确认。
 
 ## 包结构与验证
 
@@ -467,8 +479,8 @@ Codex 进程退出或请求超时后，服务停止接收新的执行任务，�
 QQ 官方 API / Gateway / Webhook
   → packages/qq-sdk
   → apps/qq-codex（绑定、命令、状态、审批）
-  → packages/codex（app-server stdio）
-  → 本机 Codex 与选定项目
+  → packages/codex（Codex app-server / ACP stdio）
+  → 本机 Codex / CodeBuddy / dsh 与选定项目
 ```
 
 ```bash
@@ -482,7 +494,7 @@ pnpm docs:build
 
 测试使用本地 HTTP/WebSocket 服务、签名请求和模拟 JSONL 子进程，覆盖凭据刷新、重连、消息去重、
 鉴权、审批、停止、崩溃与持久化。真实 QQ 联调还需要你自己的机器人凭据、后台权限和测试 QQ。
-单独通过 `--check` 只代表本机 Codex 可通信，不代表 QQ 权限已经开通。
+单独通过 `check` 只代表本机协议预检通过，不代表 QQ 权限已开通或模型任务可用。ACP 的账户与模型项跳过，不能据此报告已登录。
 
 ### 真实 API 联调记录
 
@@ -497,6 +509,8 @@ pnpm docs:build
 
 此记录验证了 WebSocket 收发和本地执行链路。Webhook、公网部署和需要审批的真实操作未包含在这次联调中；
 自动化测试中的模拟验证不能替代相应环境的验收。凭据、OpenID 和会话状态仅保存在本机，不纳入仓库。
+
+CodeBuddy / dsh 已完成本机 ACP 初始化握手与模拟协议测试，尚未完成真实 QQ 模型任务验收；两者的验证范围单独记录在[程序接入指南](/codex/agents#诊断与验证范围)。
 
 ## 社区项目参考
 

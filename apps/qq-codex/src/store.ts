@@ -18,12 +18,16 @@ import { FAILURE_MESSAGES } from './constants'
 /** Pin local state to its bot and environment before opening any remote connection. */
 export function bindInstance(state: RemoteState, identity: InstanceIdentity): void {
   if (state.instance) {
+    if ((state.instance.agent ?? 'codex') !== (identity.agent ?? 'codex') || state.instance.agentExecutable !== identity.agentExecutable)
+      throw new Error('状态文件属于其他程序。请为不同 agent 使用独立 profile / 状态文件；不会复用已有会话。')
     for (const key of ['appId', 'sandbox', 'profile', 'codexHome'] as const) {
       if (state.instance[key] !== identity[key])
         throw new Error('状态文件属于其他机器人、环境或 Codex 目录。请使用对应 profile / 凭据 / 状态；不会重置原绑定。')
     }
   }
   else {
+    if (identity.agent && identity.agent !== 'codex' && (Object.keys(state.threads).length || state.tasks.length))
+      throw new Error('旧状态没有程序标识。请为 ACP 程序选择新的 profile / 状态文件；不会复用已有会话。')
     state.instance = { ...identity }
   }
 }
@@ -74,7 +78,9 @@ export class StateStore {
         || typeof data.instance.appId !== 'string' || !data.instance.appId
         || typeof data.instance.sandbox !== 'boolean'
         || (data.instance.profile !== undefined && typeof data.instance.profile !== 'string')
-        || (data.instance.codexHome !== undefined && typeof data.instance.codexHome !== 'string')))
+        || (data.instance.codexHome !== undefined && typeof data.instance.codexHome !== 'string')
+        || (data.instance.agent !== undefined && (typeof data.instance.agent !== 'string' || !['codex', 'codebuddy', 'dsh'].includes(data.instance.agent)))
+        || (data.instance.agentExecutable !== undefined && typeof data.instance.agentExecutable !== 'string')))
       || !isRecord(data.threads)
       || !Array.isArray(data.seen)
       || !data.seen.every(id => typeof id === 'string')

@@ -5,13 +5,15 @@ description: 1.0.0 候选版的安装、诊断、真实 QQ 验收和正式版条
 
 # RC 验收与支持范围
 
-当前候选版本为 `1.0.0-rc.2`，发布到 npm `next`。测试时建议固定版本，便于记录与复现：
+本页保留 `1.0.0-rc.1` / `1.0.0-rc.2` 的 Codex 验收记录，不作为当前 npm 版本说明。复现 RC.2 时可固定版本：
 
 ```bash
 pnpm add -g el-bot@1.0.0-rc.2
 ```
 
 RC 用于验证新用户安装和持续运行。基础范围是 QQ 官方 C2C 私聊与本机 stdio Codex：本人绑定、项目白名单、任务与结果、Markdown / 文字回复、审批与停止、实例隔离、连接诊断和明确恢复。
+
+当前源码新增 CodeBuddy / dsh ACP 接入与本机程序按钮，能力和验证范围见[程序选择](/codex/agents)与[客户端](/development/client-tool)。ACP 已完成本机握手和模拟协议测试，尚未完成真实 QQ 模型任务验收；本页的 Codex 记录不适用于其他程序。安装前按[完整接入](/development/codex-remote#安装-cli)核对实际版本与帮助。
 
 ## 安装与迁移
 

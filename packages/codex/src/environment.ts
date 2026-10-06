@@ -26,6 +26,12 @@ const PLATFORM_VARIABLES = new Set([
   'NO_PROXY',
 ])
 
+/** ACP children receive platform settings and explicitly selected provider variables. */
+export function agentEnvironment(source: NodeJS.ProcessEnv, allowlist: string[] = []): NodeJS.ProcessEnv {
+  return Object.fromEntries(Object.entries(source).filter(([key]) => !key.toUpperCase().startsWith('QQ_BOT_')
+    && (PLATFORM_VARIABLES.has(key.toUpperCase()) || key.startsWith('LC_') || allowlist.includes(key))))
+}
+
 /** Isolated homes inherit platform/proxy settings, not ambient provider credentials. */
 export function codexEnvironment(source: NodeJS.ProcessEnv, options: CodexOptions): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = {}
