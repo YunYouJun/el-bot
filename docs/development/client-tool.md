@@ -25,7 +25,7 @@ el-bot 使用一个 Tauri 2 + Vue 3 应用，同时提供完整控制台窗口�
 
 这是本机按钮，QQ 卡片和聊天命令不会启动任意程序，也不接受 shell 命令、网址或运行参数。打开应用不等于完成 Codex 登录、QQ 登录或机器人连接。当前本机启动验证为 macOS；其他桌面平台仍需对应实机验收。
 
-以上客户端设置与 `preferences` 命令属于当前开发构建，尚未包含在 npm `1.0.0-rc.2`。需要使用同次构建的 CLI，旧版 CLI 会提示不支持该命令。
+以上客户端设置与 `preferences` 命令要求 `el-bot@1.0.0-rc.3` 或更高版本。需要使用对应版本的 CLI，旧版 CLI 会提示不支持该命令。
 
 ## CLI 控制
 
@@ -73,7 +73,22 @@ pnpm clients:build     # 当前平台的一种安装包
 
 首版客户端连接本机安装的 Node、Codex 与 el-bot CLI，**没有内置这些运行时**。统一安装包解决菜单栏和控制台的重复安装；新机器仍需准备机器人运行环境。需要独立安装 CLI 时，执行 `pnpm -C packages/el-bot pack --pack-destination ../../dist`，再把 `el-bot-*.tgz` 安装到独立目录，例如 `~/.el-bot/client-runtime`，在设置中选择该目录的 `node_modules/el-bot/dist/cli.mjs`。不要将配置、凭据或状态文件放入应用安装包。
 
-Tauri 本机构建使用 ad-hoc 签名，没有开发者证书签名和 Apple 公证。面向其他用户正式分发前，需要配置正式签名身份、公证以及对应平台验证，客户端构建不会发布 npm 或上传安装包。
+### CI 打包与发布
+
+`.github/workflows/desktop.yml` 是可复用的原生打包流程，普通 CI 与标签发布均调用它，也可从 Actions 手动触发。流程使用冻结的 pnpm/Cargo 锁文件，验证图标、前端构建和 Rust 测试，再生成安装包。
+
+| 构建环境 | 架构 | 安装包 |
+| --- | --- | --- |
+| macOS 15 | arm64 | DMG |
+| macOS 15 Intel | x64 | DMG |
+| Windows Server 2022 | x64 | NSIS `.exe` |
+| Ubuntu 22.04 | x64 / arm64 | AppImage、Debian `.deb` |
+
+安装包名称包含客户端版本、平台与架构，每个平台生成 `SHA256SUMS-<平台架构>.txt`。CI 将它们保留为 7 天的 workflow artifacts；`v*` 标签发布先等待原生打包和 npm 安装兼容性验证通过，再通过 OIDC 发布 npm，并将同一批客户端安装包附到 GitHub Release。客户端版本为 `0.1.0`，独立于 el-bot npm 版本；发布内容会注明两者的运行环境要求。
+
+macOS 预览包使用 ad-hoc 签名，没有开发者证书签名和 Apple 公证；Windows 预览包尚未配置发布者证书。正式分发需补齐对应证书与公证，Release 会明确说明当前签名状态。本机 `pnpm clients:build` 仍只生成本机安装包。
+
+配置依据：[Tauri 官方 GitHub Actions 指南](https://v2.tauri.app/distribute/pipelines/github/)。
 
 ## 云乐坊设计体系
 

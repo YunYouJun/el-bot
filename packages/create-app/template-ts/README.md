@@ -4,8 +4,8 @@
 `plugins/test` 使用 `defineBotPlugin()` 和 `bot.command()` 注册 `test` 命令；
 自定义插件放在 `plugins`，通过 `bot.autoloadPlugins: true` 自动加载。
 
-模板中的用户命令需要当前仓库开发构建，尚未包含在 npm `el-bot@1.0.0-rc.2` 中。
-开发验证时请安装仓库构建的 el-bot tarball；待框架和脚手架发布后再使用对应 npm 版本。
+模板中的用户命令要求 `el-bot@1.0.0-rc.3` 或更高版本，也可安装当前仓库构建的 el-bot tarball。
+旧版 npm `el-bot@1.0.0-rc.2` 不包含这些能力；本次只发布框架，使用仓库模板获取最新示例。
 
 ```bash
 pnpm install

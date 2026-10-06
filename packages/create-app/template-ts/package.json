@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "el-bot": "^1.0.0-beta.16"
+    "el-bot": "^1.0.0-rc.3"
   },
   "devDependencies": {
     "@types/node": "^24.19.1",

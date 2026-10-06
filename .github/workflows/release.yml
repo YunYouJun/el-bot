@@ -95,7 +95,7 @@ jobs:
         run: pnpm test:cli "$RELEASE_ARCHIVE"
 
   publish:
-    needs: [build, compatibility]
+    needs: [build, compatibility, desktop]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -122,13 +122,22 @@ jobs:
           RELEASE_DIST_TAG: ${{ needs.build.outputs.dist_tag }}
         run: npm publish "$RELEASE_ARCHIVE" --access public --tag "$RELEASE_DIST_TAG" --provenance --ignore-scripts
 
+  desktop:
+    needs: build
+    uses: ./.github/workflows/desktop.yml
+
   github-release:
-    needs: [build, publish]
+    needs: [build, publish, desktop]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       contents: write
     steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: desktop-*
+          path: desktop
+          merge-multiple: true
       - name: Create GitHub release notes
         env:
           GH_TOKEN: ${{ github.token }}
@@ -140,4 +149,13 @@ jobs:
           if [ "$RELEASE_DIST_TAG" != latest ]; then
             args+=(--prerelease)
           fi
-          gh release create "$RELEASE_REF" "${args[@]}"
+          cat > release-notes.md <<'NOTES'
+          本次包含 el-bot npm 包与 Tauri 客户端预览安装包。
+
+          安装 CLI：`pnpm add -g el-bot@next`。桌面客户端仍需本机 Node.js、已登录的 Codex CLI 与对应版本 el-bot CLI。
+
+          安装包支持 macOS arm64/x64（DMG）、Windows x64（NSIS）、Linux arm64/x64（AppImage、Debian）；每个平台附 SHA-256 校验文件。
+
+          macOS 安装包使用 ad-hoc 签名，尚未 Apple 公证；Windows 安装包未配置发布者证书。均为预览包，正式签名与公证将在配置证书后另行接入。
+          NOTES
+          gh release create "$RELEASE_REF" desktop/* "${args[@]}" --notes-file release-notes.md

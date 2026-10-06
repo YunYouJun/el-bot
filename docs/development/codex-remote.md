@@ -46,7 +46,7 @@ pnpm --filter el-bot pack --pack-destination ./dist
 安装生成的包，之后可在任意目录运行：
 
 ```bash
-pnpm add -g ./dist/el-bot-1.0.0-rc.2.tgz
+pnpm add -g ./dist/el-bot-1.0.0-rc.3.tgz
 el-bot --help
 el-bot codex --help
 ```
@@ -54,7 +54,7 @@ el-bot codex --help
 需要固定版本时：
 
 ```bash
-pnpm add -g el-bot@1.0.0-rc.2
+pnpm add -g el-bot@1.0.0-rc.3
 ```
 
 ## 三步开始
@@ -324,7 +324,7 @@ QQ 官方于 2026-04-23 向所有机器人开放单聊与群聊自定义 Markdow
 
 ### 图片卡片与本地预览
 
-当前开发构建支持在[本机客户端](/development/client-tool#图片展示与本机程序)选择是否展示图片，或执行 `el-bot codex preferences --message-format image --image-theme dark` 开启深色图片、`--message-format markdown` / `--message-format text` 关闭图片。设置写入当前实例配置，保留其他字段；等待任务完成后重启生效。此设置命令尚未包含在 npm `1.0.0-rc.2`。
+从 `1.0.0-rc.3` 起，可在[本机客户端](/development/client-tool#图片展示与本机程序)选择是否展示图片，或执行 `el-bot codex preferences --message-format image --image-theme dark` 开启深色图片、`--message-format markdown` / `--message-format text` 关闭图片。设置写入当前实例配置，保留其他字段；等待任务完成后重启生效。
 
 图片模式在本机将帮助、项目、任务状态和结果卡片渲染成 PNG，支持浅色 / 深色主题及彩色状态条。帮助图片用高对比色突出命令，参数以较小字号显示，说明另起一行；提醒独立展示，图内不堆叠长网址。默认直接上传到 QQ，以富媒体消息展示图片，再发送一条带原生按钮的简短 Markdown 操作卡片；文字指令和文档链接保留为可复制、可点击内容。
 审批和结构化问题详情继续使用原生 Markdown，确保完整内容可核对、可复制，图片加载失败不会影响审批详情的送达判断。管理 API 的文字结果也沿用原有分页。

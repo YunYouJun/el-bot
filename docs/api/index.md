@@ -18,7 +18,7 @@ el-bot 的 [API 文档](https://www.yunyoujun.cn/el-bot/) 已通过 [typedoc](ht
 | `bot.executeCommand(text)` | 内部执行并返回命中状态和结果，不自动发送 QQ 消息 |
 | `bot.getCommandHelp(name?)` | 获取全部命令列表或单条命令帮助，不执行回调 |
 
-`CommandContext`、`CommandExecution`、`CommandReply`、`CommandResult` 和 `CommandAction` 可从 `el-bot` 导入，供插件声明类型。以上新增能力尚未包含在 npm `1.0.0-rc.2` 中。
+`CommandContext`、`CommandExecution`、`CommandReply`、`CommandResult` 和 `CommandAction` 可从 `el-bot` 导入，供插件声明类型。以上新增能力随 `1.0.0-rc.3` 发布，旧版 npm `1.0.0-rc.2` 不包含这些能力。
 
 ## NapCat 插件与消息 hooks
 

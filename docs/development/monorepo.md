@@ -116,11 +116,13 @@ npm trust github el-bot --repo YunYouJun/el-bot --file release.yml --allow-publi
 
 1. 提交并推送本次代码，确保默认分支 `dev` 的 CI 通过，且工作区干净。
 2. 运行 `pnpm release`，在交互中选择尚未发布的版本；该命令只更新 `packages/el-bot/package.json`，生成 Conventional Commit、`v<版本>` 标签并推送。
-3. 标签触发工作流：校验标签与包版本一致、确认 npm 不存在该版本，然后执行 lint、构建、类型检查、测试、文档构建和安装包测试。
-4. prerelease 版本（例如 `1.0.0-rc.2`）发布到 `next`，正式版本发布到 `latest`；npm 发布成功后生成 GitHub Release。
+3. 标签触发工作流：校验标签与包版本一致、确认 npm 不存在该版本，然后执行 lint、构建、类型检查、测试、文档构建、安装包测试与 Tauri 五个平台/架构的原生打包。所有检查通过后才发布 npm。
+4. prerelease 版本（例如 `1.0.0-rc.3`）发布到 `next`，正式版本发布到 `latest`；npm 发布成功后生成 GitHub Release，并上传通过验证的客户端安装包及 SHA-256 校验文件。
 
-本次版本为 `1.0.0-rc.2`，对应标签 `v1.0.0-rc.2` 和 npm `next`。已存在的 npm 版本不能覆盖，后续发布须选择新版本。
+本次目标版本为 `1.0.0-rc.3`，对应标签 `v1.0.0-rc.3` 和 npm `next`。已存在的 npm 版本不能覆盖，后续发布须选择新版本。
 若其他包后续需要独立发布，应分别配置 Trusted Publisher 和版本流程；当前工作流只发布 `el-bot`。
+
+客户端原生打包集中在 `.github/workflows/desktop.yml`，普通 CI 与 Release 共用同一流程；单独触发该 workflow 只构建并上传 Actions artifacts，不发布 npm 或 GitHub Release。macOS 和 Windows 安装包当前属于未正式签名/公证的预览包，客户端仍依赖本机运行时，详见[客户端打包与发布](/development/client-tool#ci-打包与发布)。
 
 本地可检查安装包，但不能证明 GitHub OIDC 已获 npm 授权：
 

@@ -14,6 +14,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  desktop:
+    name: Build native installers
+    uses: ./.github/workflows/desktop.yml
+
   lint:
     name: Lint and full typecheck
     runs-on: ubuntu-latest
