@@ -71,6 +71,10 @@ export default defineConfig({
           link: "/guide/",
         },
         {
+          text: "企微入站",
+          link: "/guide/wecom",
+        },
+        {
           text: "终端命令",
           link: "/guide/cli",
         },

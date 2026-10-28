@@ -7,6 +7,7 @@ el-bot 提供 QQ 机器人框架和统一 CLI。先根据用途选择入口：
 | 用 QQ 遥控本机 Codex | [完整安装与接入](/development/codex-remote)，使用 QQ 官方机器人 |
 | 让本机 AI 助手帮忙配置 | [AI 快速接入](/codex/ai-setup)，复制提示词后提供项目路径 |
 | 编写 QQ 机器人、加载自定义插件 | 以下框架指南，默认使用 NapCat |
+| 把企业微信智能机器人消息转发到 Grok | [企微入站](/guide/wecom)，长连接桥，不经过 QQ |
 
 ## QQ 遥控 Codex
 

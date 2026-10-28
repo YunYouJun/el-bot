@@ -60,6 +60,7 @@
     "typecheck:packages": "pnpm --filter \"./packages/*\" --filter \"./apps/*\" -r --if-present run typecheck",
     "typecheck:docs": "pnpm -C docs typecheck",
     "qq:codex": "tsx apps/qq-codex/src/index.ts",
+    "wecom": "tsx packages/wecom/src/cli.ts",
     "test:cli": "node scripts/smoke-cli.mjs",
     "cli": "tsx packages/el-bot/bin/el-bot.ts"
   },
