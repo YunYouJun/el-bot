@@ -10,6 +10,7 @@
 | `apps/qq-codex` | 私有 QQ 遥控实现模块，向统一 CLI 注册 `codex` 子命令 |
 | `packages/el-bot` | 机器人框架、Nest 适配器与统一 CLI，发布编译后的 ESM 和类型声明；旧启动器保留 TypeScript |
 | `packages/qq-sdk` | QQ 官方 API 和 webhook 验证，tsdown 构建 ESM 与类型声明 |
+| `packages/wecom` | 企业微信智能机器人长连接桥，把入站文本转发到可配置的 Webhook；tsdown 构建 ESM 与类型声明 |
 | `packages/codex` | app-server / proxy、版本 schema 和 Desktop MCP 客户端 |
 | `packages/create-app` | 项目脚手架，tsdown 构建 Node CLI，随包携带模板 |
 | `packages/cli` | 旧版独立 CLI 草稿，尚未配置构建 |

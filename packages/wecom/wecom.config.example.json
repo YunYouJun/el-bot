@@ -1,0 +1,9 @@
+{
+  "botId": "your-bot-id",
+  "secret": "your-bot-secret",
+  "wsUrl": "wss://openws.work.weixin.qq.com",
+  "webhookUrl": "https://example.invalid/grok/routines/wecom-inbound",
+  "webhookAuthHeader": "Authorization",
+  "webhookAuthValue": "Bearer REPLACE_WITH_ROUTINE_KEY",
+  "heartbeatIntervalMs": 30000
+}
