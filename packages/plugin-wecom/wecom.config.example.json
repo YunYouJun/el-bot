@@ -1,0 +1,7 @@
+{
+  "botType": "smart",
+  "botId": "your-bot-id",
+  "secret": "your-bot-secret",
+  "wsUrl": "wss://openws.work.weixin.qq.com",
+  "heartbeatIntervalMs": 30000
+}

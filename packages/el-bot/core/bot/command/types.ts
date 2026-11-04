@@ -1,5 +1,6 @@
 import type { SendMessageSegment } from 'node-napcat-ts'
 import type { Bot } from '..'
+import type { MessageContext } from '../../adapter'
 import type { NapcatMessage } from '../../composition-api'
 
 export type CommandReply = string | SendMessageSegment[]
@@ -9,6 +10,7 @@ export interface CommandContext {
   bot: Bot
   source: 'message' | 'programmatic'
   message?: NapcatMessage
+  session?: MessageContext
   /** Bound to this invocation; rejects when no incoming message is available. */
   reply: (content: CommandReply, quote?: boolean) => Promise<unknown>
 }

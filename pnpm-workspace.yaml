@@ -58,6 +58,7 @@ catalog:
   '@types/yargs': ^17.0.35
   '@unocss/eslint-plugin': ^66.10.5
   '@vitejs/plugin-vue': ^6.0.9
+  '@wecom/aibot-node-sdk': ^1.0.7
   '@yunlefun/ui': 0.0.6
   '@yunlefun/vue': 0.4.2
   ajv: ^8.20.0

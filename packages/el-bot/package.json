@@ -27,12 +27,20 @@
     "framework"
   ],
   "imports": {
+    "#plugin-qq": {
+      "types": "./dist/plugin-qq.d.mts",
+      "default": "./dist/plugin-qq.mjs"
+    },
     "#qq-sdk": {
       "types": "./dist/qq-sdk.d.mts",
       "default": "./dist/qq-sdk.mjs"
     }
   },
   "exports": {
+    "./adapter": {
+      "types": "./dist/adapter.d.mts",
+      "import": "./dist/adapter.mjs"
+    },
     ".": {
       "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs",

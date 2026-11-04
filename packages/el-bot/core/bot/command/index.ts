@@ -1,4 +1,5 @@
 import type { Bot } from '..'
+import type { MessageContext } from '../../adapter'
 import type { NapcatMessage } from '../../composition-api'
 import type { CommandAction, CommandContext, CommandExecution, CommandReply } from './types'
 import { getCommandText, getHelpContent, helpNames } from './utils'
@@ -73,7 +74,7 @@ export class Command {
   }
 
   /** Execute without a message to return a result without sending to QQ. */
-  async execute(text: string, message?: NapcatMessage): Promise<CommandExecution> {
+  async execute(text: string, message?: NapcatMessage, session?: MessageContext): Promise<CommandExecution> {
     const [name, ...args] = text.trim().split(/\s+/u)
     if (helpNames.has(name))
       return { matched: true, result: this.getHelp(args[0]) }
@@ -83,9 +84,15 @@ export class Command {
 
     const context: CommandContext = {
       bot: this.ctx,
-      source: message ? 'message' : 'programmatic',
+      source: message || session ? 'message' : 'programmatic',
       message,
+      session,
       reply: async (content: CommandReply, quote = false) => {
+        if (session && !message) {
+          if (typeof content !== 'string')
+            throw new Error('Platform commands currently support text replies only')
+          return session.reply(content)
+        }
         if (!message)
           throw new Error('Reply is unavailable during programmatic command execution')
         // Bot.reply can prepend a quote; keep the caller's message chain intact.
@@ -101,12 +108,12 @@ export class Command {
   }
 
   /** Return true only when a command has consumed the incoming message. */
-  async handleMessage(message: NapcatMessage) {
+  async handleMessage(message: NapcatMessage, session?: MessageContext) {
     const text = getCommandText(message, this.ctx.el.bot.name, this.children)
     if (text === undefined)
       return false
     try {
-      const execution = await this.execute(text, message)
+      const execution = await this.execute(text, message, session)
       if (!execution.matched)
         return false
       if (execution.result !== undefined)
@@ -120,6 +127,33 @@ export class Command {
       catch (replyError) {
         this.ctx.logger.error('[command] Failure reply failed', replyError)
       }
+    }
+    return true
+  }
+
+  async handleSession(session: MessageContext) {
+    if (session.sender.id === session.accountId)
+      return false
+    let text = session.text.trim()
+    const prefix = this.ctx.el.bot.name.trim()
+    const named = prefix && text.startsWith(prefix) && /\s/u.test(text.charAt(prefix.length))
+    if (session.chat.type === 'group' && !session.addressed && !named)
+      return false
+    if (named)
+      text = text.slice(prefix.length).trim()
+    try {
+      const execution = await this.execute(text, undefined, session)
+      if (!execution.matched)
+        return false
+      if (execution.result !== undefined) {
+        if (typeof execution.result !== 'string')
+          throw new Error('Platform commands currently support text replies only')
+        await session.reply(execution.result)
+      }
+    }
+    catch (error) {
+      this.ctx.logger.error('[command] Execution failed', error)
+      await session.reply('命令执行失败，请稍后重试。').catch(error => this.ctx.logger.error('[command] Failure reply failed', error))
     }
     return true
   }

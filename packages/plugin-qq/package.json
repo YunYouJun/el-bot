@@ -1,0 +1,35 @@
+{
+  "name": "@el-bot/plugin-qq",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "QQ platform plugin for el-bot with NapCat and official C2C adapters",
+  "license": "AGPL-3.0",
+  "sideEffects": false,
+  "exports": {
+    ".": { "types": "./dist/index.d.mts", "import": "./dist/index.mjs" },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": ["dist"],
+  "engines": { "node": ">=22.18.0" },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "prepack": "pnpm build"
+  },
+  "peerDependencies": { "el-bot": "workspace:*" },
+  "peerDependenciesMeta": { "el-bot": { "optional": true } },
+  "dependencies": {
+    "consola": "catalog:",
+    "node-napcat-ts": "catalog:",
+    "qq-guild-bot": "catalog:",
+    "qq-sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "publint": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  }
+}

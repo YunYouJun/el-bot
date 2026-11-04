@@ -1,0 +1,53 @@
+import consola from 'consola'
+import { AvailableIntentsEventsEnum, createOpenAPI, createWebsocket, GetWsParam, IMessage, SessionEvents } from 'qq-guild-bot'
+import { createQQApi } from 'qq-sdk'
+
+export type EventType = keyof typeof SessionEvents | keyof typeof AvailableIntentsEventsEnum
+
+export interface BaseEventType {
+  eventType: EventType
+  eventId: string
+}
+
+export interface EventTypesMap {
+  GUILD_MESSAGES: BaseEventType & {
+    msg: IMessage
+  }
+  [key: string]: BaseEventType
+}
+
+/**
+ * fix qq-guild-bot types
+ */
+export interface QQWebsocketClient extends ReturnType<typeof createWebsocket> {
+  on: <T extends EventType>(eventName: T, callback: (data: EventTypesMap[T]) => void) => this
+}
+
+/** Keep upstream client types symbolic instead of expanding private HTTP declarations. */
+export interface QQSDK {
+  api: ReturnType<typeof createQQApi>
+  client: ReturnType<typeof createOpenAPI>
+  ws: QQWebsocketClient
+}
+
+/**
+ * QQ 机器人平台
+ */
+export function createQQSDK(qqConfig: GetWsParam): QQSDK {
+  const client = createOpenAPI(qqConfig)
+  consola.success('🐧 已创建 QQ Client')
+
+  const api = createQQApi(qqConfig)
+  const ws = createWebsocket(qqConfig) as QQWebsocketClient
+
+  ws.on('READY', (_data) => {
+    consola.success('🐧 QQ Websocket 已连接')
+  })
+  consola.success('🐧 已创建 QQ Websocket 链接')
+
+  return {
+    api,
+    client,
+    ws,
+  }
+}

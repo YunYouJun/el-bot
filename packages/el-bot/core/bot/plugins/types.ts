@@ -1,6 +1,8 @@
 import { Bot } from '../index'
 
 export interface BotPlugin {
+  /** Declares a platform plugin, suppressing the implicit legacy QQ connection. */
+  platform?: string
   /**
    * 插件信息
    */

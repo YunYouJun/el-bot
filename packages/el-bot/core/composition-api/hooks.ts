@@ -1,16 +1,23 @@
 import type { GroupMessage, PrivateFriendMessage, PrivateGroupMessage } from 'node-napcat-ts'
+import type { MessageContext } from '../adapter'
 import { currentInstance } from './lifecycle'
 
 export type NapcatMessage = GroupMessage | PrivateFriendMessage | PrivateGroupMessage
 export type CommonMessage = NapcatMessage
 
 export interface LiteCycleHook {
+  onSession: (message: MessageContext) => void | Promise<void>
   onMessage: (msg: NapcatMessage) => void | Promise<void>
   onNapcatMessage: (msg: NapcatMessage) => void | Promise<void>
   onGroupMessage: (msg: GroupMessage) => void | Promise<void>
   onPrivateMessage: (msg: PrivateFriendMessage | PrivateGroupMessage) => void | Promise<void>
   onPrivateFriendMessage: (msg: PrivateFriendMessage) => void | Promise<void>
   onPrivateGroupMessage: (msg: PrivateGroupMessage) => void | Promise<void>
+}
+
+/** Receive platform-independent messages without changing the legacy QQ hooks. */
+export function onSession(handler: (message: MessageContext) => void | Promise<void>) {
+  currentInstance?.hooks.addHooks({ onSession: handler })
 }
 
 /**

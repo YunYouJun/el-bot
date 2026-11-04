@@ -1,5 +1,7 @@
 import type { MessageType } from 'mirai-ts'
 import type mongoose from 'mongoose'
+import type { NCWebsocket, SendMessageSegment } from 'node-napcat-ts'
+import type { BotAdapter, MessageContext, MessageTarget } from '../adapter'
 import type { ElConfig, ElUserConfig } from '../config/el'
 // type
 import type { Plugin, PluginInstallFunction } from './plugins/class'
@@ -7,13 +9,11 @@ import path from 'node:path'
 import process from 'node:process'
 import { Command as CliCommand } from 'commander'
 import consola from 'consola'
-import fs from 'fs-extra'
 
+import fs from 'fs-extra'
 import { createHooks } from 'hookable'
 import Mirai from 'mirai-ts'
-import { NCWebsocket, SendMessageSegment, Structs } from 'node-napcat-ts'
-import colors from 'picocolors'
-import { createOpenAPI } from 'qq-guild-bot'
+import { createNapcatClient, isNapcatAdapter, NapcatAdapter, replyNapcatMessage } from '#plugin-qq'
 import { BotServer, createServer } from '../../node/server'
 import { LiteCycleHook, NapcatMessage } from '../composition-api'
 import { setCurrentInstance } from '../composition-api/lifecycle'
@@ -28,15 +28,17 @@ import { handleError } from '../utils/error'
 // node
 
 import { statement } from '../utils/misc'
+import { AdapterRegistry } from './adapters'
 import { Command } from './command'
 import { logger } from './logger'
-import { dispatchNapcatMessage } from './message'
-import { createQQSDK, QQWebsocketClient } from './platform'
+import { dispatchAdapterMessage } from './message'
+import { createQQSDK } from './platform'
 import { Plugins } from './plugins'
 import { Sender } from './sender'
 import { Status } from './status'
 import { User } from './user'
 
+export { AdapterRegistry } from './adapters'
 export * from './command'
 export * from './logger'
 export * from './plugins'
@@ -96,16 +98,33 @@ export class Bot {
   /**
    * node-napcat-ts
    */
-  napcat: NCWebsocket
+  private napcatInstance?: NCWebsocket
+  private napcatAdapter?: NapcatAdapter
+
+  /** Lazy compatibility access; WeCom-only bots never construct a NapCat client. */
+  get napcat(): NCWebsocket {
+    return this.napcatInstance ??= createNapcatClient(this.el.napcat, this.el.debug || this.el.napcat.debug)
+  }
+
+  set napcat(client: NCWebsocket) {
+    this.napcatInstance = client
+  }
+
   /**
    * qq-guild-bot
    * QQ 官方机器人
    * https://q.qq.com/qqbot/
    * @see https://bot.q.qq.com/wiki/develop/nodesdk/
    */
-  qq?: {
-    client: ReturnType<typeof createOpenAPI>
-    ws: QQWebsocketClient
+  qq?: ReturnType<typeof createQQSDK>
+
+  readonly adapters = new AdapterRegistry()
+  private running = false
+  private starting?: Promise<void>
+  private stopping?: Promise<void>
+  private readonly handleSignal = () => {
+    if (process.stdin.isTTY)
+      void this.stop().then(() => process.exit(0))
   }
 
   /**
@@ -158,10 +177,6 @@ export class Bot {
   rootDir = process.cwd()
   tmpDir = 'tmp/'
 
-  private readonly handleNapcatMessage = (message: NapcatMessage) => {
-    void dispatchNapcatMessage(this, message).catch(handleError)
-  }
-
   constructor(el: ElUserConfig) {
     statement()
 
@@ -194,10 +209,6 @@ export class Bot {
       }
     }
 
-    // init napcat
-    const napcatConfig = this.el.napcat
-    this.napcat = new NCWebsocket(napcatConfig, this.el.debug || napcatConfig.debug)
-
     // init qq
     if (this.el.qq)
       this.qq = createQQSDK(this.el.qq)
@@ -207,8 +218,9 @@ export class Bot {
    * 机器人当前消息 快捷回复
    */
   reply(message: string | MessageType.MessageChain): ReturnType<Mirai['reply']>
+  reply(message: MessageContext, content: string): Promise<unknown>
   reply(rawMsg: NapcatMessage, msg: SendMessageSegment[] | string, quote?: boolean): Promise<unknown> | undefined
-  reply(rawMsg: NapcatMessage | string | MessageType.MessageChain, msg?: SendMessageSegment[] | string, quote = false) {
+  reply(rawMsg: NapcatMessage | MessageContext | string | MessageType.MessageChain, msg?: SendMessageSegment[] | string, quote = false) {
     if (typeof rawMsg === 'string' || Array.isArray(rawMsg)) {
       const current = this.mirai.curMsg
       if (!current)
@@ -217,40 +229,31 @@ export class Bot {
     }
     if (msg === undefined)
       throw new Error('Reply content is required')
-    const napcat = this.napcat
-
-    // 文本消息
-    if (typeof msg === 'string') {
-      msg = [Structs.text(msg)]
+    if ('adapterId' in rawMsg) {
+      if (typeof msg !== 'string')
+        throw new Error('Platform replies currently support text content only')
+      return rawMsg.reply(msg)
     }
-
-    // 引用消息
-    if (quote) {
-      msg.unshift(Structs.reply(rawMsg.message_id))
-    }
-
-    if (rawMsg.sender.user_id) {
-      // 私聊
-      if (rawMsg.message_type === 'private') {
-        return napcat.send_private_msg({
-          user_id: rawMsg.sender.user_id,
-          message: msg,
-        })
-      }
-      // 群聊
-      else if (rawMsg.message_type === 'group') {
-        return napcat.send_group_msg({
-          group_id: rawMsg.group_id,
-          message: msg,
-        })
-      }
-    }
+    return replyNapcatMessage(this.napcat, rawMsg, msg, quote)
   }
 
   /**
    * 启动机器人
    */
-  async start() {
+  start(): Promise<void> {
+    if (this.stopping)
+      return this.stopping.then(() => this.start())
+    if (this.starting)
+      return this.starting
+    if (this.running)
+      return Promise.resolve()
+    this.starting = this.startRuntime().finally(() => {
+      this.starting = undefined
+    })
+    return this.starting
+  }
+
+  private async startRuntime() {
     consola.log('')
     consola.debug('Starting el-bot...')
 
@@ -258,32 +261,9 @@ export class Bot {
     if (this.el.db?.enable)
       await connectDb(this, this.el.db)
 
-    if (this.el.mirai) {
-      await this.mirai.link(this.el.mirai.qq)
-    }
-    else {
-      try {
-        await this.napcat.connect()
-        const data = await this.napcat.get_version_info()
-        consola.success(`${data.app_name} ${colors.yellow(data.app_version)} ${colors.cyan(data.protocol_version)} connected!`)
-      }
-      catch (err: any) {
-        consola.error('NapCat by SDK 连接失败')
-        handleError(err)
-      }
-
-      // get login info
-      try {
-        const data = await this.napcat.get_login_info()
-        consola.info('当前登录账号:', `${colors.yellow(data.nickname)}(${colors.cyan(data.user_id)})`)
-      }
-      catch (err) {
-        handleError(err)
-      }
-    }
-
     // reset
     this.hooks.removeAllHooks()
+    this.plugins.hasPlatformPlugins = false
     // 加载插件
     consola.log('')
     setCurrentInstance(this)
@@ -299,31 +279,49 @@ export class Bot {
     consola.success('插件加载完成')
     consola.log('')
 
-    if (this.el.mirai)
+    const explicitPlatform = this.plugins.hasPlatformPlugins || this.el.bot.plugins.some(plugin => plugin?.platform)
+    if (!this.adapters.size && !explicitPlatform && this.el.legacyQQ !== false && !this.el.mirai)
+      this.registerAdapter(new NapcatAdapter({ client: this.napcat, onError: handleError }))
+
+    if (this.el.mirai) {
+      await this.mirai.link(this.el.mirai.qq)
       this.mirai.listen()
-
-    // onMessage
-    this.napcat.on('message', this.handleNapcatMessage)
-
-    // 如何解决持久运行
-    // 意外退出
-    process.on('SIGINT', () => {
-      /**
-       * 如果程序在前台运行（即，process.stdin.isTTY 为 true），那么它会在收到 SIGINT 信号时退出。如果程序在后台运行（即，process.stdin.isTTY 为 false），那么它会忽略 SIGINT 信号。
-       */
-      if (process.stdin.isTTY) {
-        this.stop()
-        process.exit(0)
-      }
-    })
+    }
+    try {
+      await this.adapters.start(message => dispatchAdapterMessage(this, message))
+      this.running = true
+      process.on('SIGINT', this.handleSignal)
+    }
+    catch (error) {
+      this.adapters.clear()
+      this.napcatAdapter = undefined
+      throw error
+    }
   }
 
   /**
    * 停止机器人
    */
-  async stop() {
-    this.napcat.off('message', this.handleNapcatMessage)
-    await this.napcat.disconnect()
+  stop(): Promise<void> {
+    if (this.stopping)
+      return this.stopping
+    this.stopping = this.stopRuntime().finally(() => {
+      this.stopping = undefined
+    })
+    return this.stopping
+  }
+
+  private async stopRuntime() {
+    await this.starting?.catch(() => {})
+    process.off('SIGINT', this.handleSignal)
+    try {
+      await this.adapters.stop()
+    }
+    finally {
+      this.adapters.clear()
+      this.napcatAdapter = undefined
+      this.running = false
+    }
     if (this.miraiInstance)
       await this.miraiInstance.release()
     this.server?.close()
@@ -344,6 +342,20 @@ export class Bot {
 
     this.logger.success('Bye, Master!')
     consola.log('')
+  }
+
+  registerAdapter(adapter: BotAdapter) {
+    if (isNapcatAdapter(adapter) && this.napcatAdapter && this.napcatAdapter !== adapter)
+      throw new Error('Only one NapCat adapter can serve legacy QQ hooks')
+    this.adapters.register(adapter)
+    if (isNapcatAdapter(adapter)) {
+      this.napcat = adapter.client
+      this.napcatAdapter = adapter
+    }
+  }
+
+  send(adapterId: string, target: MessageTarget, content: string) {
+    return this.adapters.send(adapterId, target, content)
   }
 
   /**

@@ -67,7 +67,8 @@ typings/
 
 # dotenv environment variables file
 .env
-.env.test
+.env.*
+!.env.example
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -81,7 +82,7 @@ dist
 # Local QQ credentials, pairing and Codex session state
 .el-bot/
 
-# Local WeCom bridge credentials (see packages/wecom/.env.example)
+# Local WeCom bridge credentials (see packages/plugin-wecom/.env.example)
 wecom.config.json
 wecom.config.local.json
 

@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": "../..",
+    "paths": {
+      "el-bot/adapter": ["packages/el-bot/core/adapter.ts"],
+      "qq-sdk": ["packages/qq-sdk/src/index.ts"],
+      "qq-sdk/official": ["packages/qq-sdk/src/official/index.ts"]
+    },
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts", "tsdown.config.ts"]
+}

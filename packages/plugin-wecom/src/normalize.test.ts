@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { inspectWecomMessage, normalizeWecomMessage } from './normalize'
 import { replyOnWecom } from './reply'
 
@@ -92,7 +92,23 @@ describe('normalizeWecomMessage', () => {
 })
 
 describe('replyOnWecom', () => {
-  it('does not send an outbound reply in the inbound MVP', () => {
-    expect(replyOnWecom).toThrow('phase 2: aibot_respond_msg')
+  it('keeps the request identity and completes a stream reply through the SDK', async () => {
+    const replyStream = vi.fn().mockResolvedValue({ errcode: 0 })
+    const frame = { headers: { req_id: 'original-request' } }
+    await replyOnWecom({ replyStream }, frame, 'pong')
+    expect(replyStream).toHaveBeenCalledExactlyOnceWith(frame, expect.any(String), 'pong', true)
+  })
+
+  it('does not leak SDK error details', async () => {
+    const replyStream = vi.fn().mockRejectedValue(new Error('private-secret'))
+    await expect(replyOnWecom({ replyStream }, { headers: { req_id: 'request' } }, 'pong')).rejects.toThrow('WeCom message reply failed')
+  })
+
+  it('preserves the reply acknowledgement code without exposing its body', async () => {
+    const replyStream = vi.fn().mockRejectedValue({ errcode: 846607, errmsg: 'private-response-body' })
+    await expect(replyOnWecom({ replyStream }, { headers: { req_id: 'request' } }, 'pong')).rejects.toMatchObject({
+      code: 846607,
+      message: 'WeCom message reply failed (code 846607)',
+    })
   })
 })

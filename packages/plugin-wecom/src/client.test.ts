@@ -109,6 +109,74 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 describe('wecom bridge', () => {
+  it('preserves a rejected SDK acknowledgement code without exposing its response body', async () => {
+    const gateway = await wecomSocket()
+    const onReady = vi.fn()
+    const bridge = new WecomBridge({
+      botId: 'fake-bot',
+      secret: 'fake-secret',
+      wsUrl: gateway.url,
+      maxReconnectAttempts: 0,
+      onReady,
+    })
+    track(() => bridge.stop())
+    bridge.start()
+    await ackSubscribe(gateway)
+    await vi.waitFor(() => expect(onReady).toHaveBeenCalledTimes(1))
+    const result = bridge.sendMessage('owner', 'hello').catch((error: unknown) => error)
+    await vi.waitFor(() => expect(gateway.frames.some(frame => isRecord(frame) && frame.cmd === 'aibot_send_msg')).toBe(true))
+    const send = gateway.frames.find(frame => isRecord(frame) && frame.cmd === 'aibot_send_msg')
+    if (!isRecord(send))
+      throw new Error('Missing SDK send frame')
+    await gateway.send({ headers: send.headers, errcode: 846607, errmsg: 'private-response-body' })
+    const error = await result
+    expect(error).toMatchObject({ code: 846607, message: 'WeCom message send failed (code 846607)' })
+    expect(String(error)).not.toContain('private-response-body')
+  })
+
+  it('receives and deduplicates text without an outbound webhook', async () => {
+    const gateway = await wecomSocket()
+    const onInbound = vi.fn()
+    const fetchImpl = vi.fn()
+    const bridge = new WecomBridge({
+      botId: 'your-bot-id',
+      secret: 'your-bot-secret',
+      wsUrl: gateway.url,
+      maxReconnectAttempts: 0,
+      fetchImpl,
+      onInbound,
+    })
+    track(() => bridge.stop())
+    bridge.start()
+    await ackSubscribe(gateway)
+    await gateway.send(textCallback())
+    await gateway.send(textCallback())
+    await vi.waitFor(() => expect(onInbound).toHaveBeenCalledTimes(1))
+    expect(onInbound).toHaveBeenCalledWith(expect.objectContaining({ text: 'hello', msg: { id: 'msg-1' } }))
+    expect(fetchImpl).not.toHaveBeenCalled()
+  })
+
+  it('reports local-handler failures and allows the message to be retried', async () => {
+    const gateway = await wecomSocket()
+    const errors: string[] = []
+    const onInbound = vi.fn().mockRejectedValueOnce(new Error('private-handler-secret')).mockResolvedValue(undefined)
+    const bridge = new WecomBridge({
+      botId: 'your-bot-id',
+      secret: 'your-bot-secret',
+      wsUrl: gateway.url,
+      maxReconnectAttempts: 0,
+      onInbound,
+      onError: error => errors.push(error.message),
+    })
+    track(() => bridge.stop())
+    bridge.start()
+    await ackSubscribe(gateway)
+    await gateway.send(textCallback())
+    await vi.waitFor(() => expect(errors).toEqual(['Failed to handle msg-1']))
+    await gateway.send(textCallback())
+    await vi.waitFor(() => expect(onInbound).toHaveBeenCalledTimes(2))
+  })
+
   it('subscribes with bot credentials and posts the normalized text message', async () => {
     const http = await webhookServer()
     const gateway = await wecomSocket()

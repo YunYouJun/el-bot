@@ -55,6 +55,8 @@ export interface BotServerOptions {
 }
 
 export interface ElConfig<T = BotConfig> {
+  /** Enable the legacy QQ fallback when no platform plugin is configured. */
+  legacyQQ?: boolean
   /**
    * 开启调试模式
    */

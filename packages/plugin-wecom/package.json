@@ -1,14 +1,18 @@
 {
-  "name": "@el-bot/wecom",
+  "name": "@el-bot/plugin-wecom",
   "type": "module",
   "version": "0.0.1",
-  "description": "WeCom smart-bot long connection bridge that forwards inbound text to a webhook",
+  "description": "WeCom smart-bot long connections and group webhook notifications with optional inbound forwarding",
   "license": "AGPL-3.0",
   "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs"
+    },
+    "./client": {
+      "types": "./dist/client.d.mts",
+      "import": "./dist/client.mjs"
     },
     "./package.json": "./package.json"
   },
@@ -31,7 +35,14 @@
     "typecheck": "tsc --noEmit",
     "prepack": "pnpm build"
   },
+  "peerDependencies": {
+    "el-bot": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "el-bot": { "optional": true }
+  },
   "dependencies": {
+    "@wecom/aibot-node-sdk": "catalog:",
     "consola": "catalog:",
     "dotenv": "catalog:",
     "ws": "catalog:"

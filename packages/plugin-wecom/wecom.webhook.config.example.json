@@ -1,0 +1,4 @@
+{
+  "botType": "webhook",
+  "groupWebhookUrl": "https://example.invalid/wecom/send?key=REPLACE_WITH_GROUP_KEY"
+}

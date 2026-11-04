@@ -8,6 +8,8 @@ import { isRecord } from './util'
 export interface LoadWecomConfigOptions {
   env?: NodeJS.ProcessEnv
   cwd?: string
+  /** Explicit selection, ahead of environment variables and JSON configuration. */
+  botType?: string
   /** Explicit file path. When omitted, `WECOM_CONFIG` or `./wecom.config.json` is used. */
   configPath?: string
 }
@@ -25,7 +27,7 @@ async function exists(file: string) {
   }
 }
 
-function pick(envValue: string | undefined, fileValue: unknown): string | undefined {
+function pick(envValue: unknown, fileValue: unknown): string | undefined {
   if (typeof envValue === 'string' && envValue.trim() !== '')
     return envValue.trim()
   if (typeof fileValue === 'string' && fileValue.trim() !== '')
@@ -46,7 +48,7 @@ function assertUrl(value: string, protocols: string[], label: string) {
 }
 
 /**
- * Load bridge config from a local JSON file and environment variables.
+ * Load the selected bot type from a local JSON file and environment variables.
  * Non-empty environment variables override the file. Secrets are never logged here.
  */
 export async function loadWecomConfig(options: LoadWecomConfigOptions = {}): Promise<WecomConfig> {
@@ -74,25 +76,43 @@ export async function loadWecomConfig(options: LoadWecomConfigOptions = {}): Pro
     file = parsed
   }
 
+  const botType = options.botType ?? pick(env.WECOM_BOT_TYPE, file.botType) ?? 'smart'
+  if (botType !== 'smart' && botType !== 'webhook')
+    throw new Error('WECOM_BOT_TYPE must be smart or webhook')
+
+  if (botType === 'webhook') {
+    const groupWebhookUrl = pick(env.WECOM_GROUP_WEBHOOK_URL, file.groupWebhookUrl)
+    if (!groupWebhookUrl)
+      throw new Error('Missing WeCom config: groupWebhookUrl (WECOM_GROUP_WEBHOOK_URL)')
+    assertUrl(groupWebhookUrl, ['http:', 'https:'], 'WeCom group webhook URL')
+    return { botType, groupWebhookUrl }
+  }
+
   const botId = pick(env.WECOM_BOT_ID, file.botId)
   const secret = pick(env.WECOM_BOT_SECRET, file.secret)
   const wsUrl = pick(env.WECOM_WS_URL, file.wsUrl) ?? WECOM_DEFAULT_WS_URL
-  const webhookUrl = pick(env.WECOM_WEBHOOK_URL, file.webhookUrl)
-  const webhookAuthHeader = pick(env.WECOM_WEBHOOK_AUTH_HEADER, file.webhookAuthHeader) ?? 'Authorization'
-  const webhookAuthValue = pick(env.WECOM_WEBHOOK_AUTH_VALUE, file.webhookAuthValue)
+  // Preserve legacy forwarding names while keeping group webhooks separate.
+  const webhookUrl = pick(env.WECOM_FORWARD_WEBHOOK_URL, env.WECOM_WEBHOOK_URL)
+    ?? pick(file.forwardWebhookUrl, file.webhookUrl)
+  const webhookAuthHeader = pick(env.WECOM_FORWARD_WEBHOOK_AUTH_HEADER, env.WECOM_WEBHOOK_AUTH_HEADER)
+    ?? pick(file.forwardWebhookAuthHeader, file.webhookAuthHeader) ?? 'Authorization'
+  const webhookAuthValue = pick(env.WECOM_FORWARD_WEBHOOK_AUTH_VALUE, env.WECOM_WEBHOOK_AUTH_VALUE)
+    ?? pick(file.forwardWebhookAuthValue, file.webhookAuthValue)
 
-  if (!botId || !secret || !webhookUrl || !webhookAuthValue) {
+  if (!botId || !secret) {
     const missing = [
       botId ? '' : 'botId (WECOM_BOT_ID)',
       secret ? '' : 'secret (WECOM_BOT_SECRET)',
-      webhookUrl ? '' : 'webhookUrl (WECOM_WEBHOOK_URL)',
-      webhookAuthValue ? '' : 'webhookAuthValue (WECOM_WEBHOOK_AUTH_VALUE)',
     ].filter(item => item !== '')
     throw new Error(`Missing WeCom config: ${missing.join(', ')}`)
   }
 
   assertUrl(wsUrl, ['ws:', 'wss:'], 'WeCom websocket URL')
-  assertUrl(webhookUrl, ['http:', 'https:'], 'Grok webhook URL')
+  if (webhookUrl) {
+    assertUrl(webhookUrl, ['http:', 'https:'], 'Forward webhook URL')
+    if (!webhookAuthValue)
+      throw new Error('Missing WeCom forwarding config: webhookAuthValue (WECOM_FORWARD_WEBHOOK_AUTH_VALUE)')
+  }
 
   const heartbeatFile = file.heartbeatIntervalMs === undefined
     ? undefined
@@ -103,6 +123,7 @@ export async function loadWecomConfig(options: LoadWecomConfigOptions = {}): Pro
     throw new Error(`WECOM_HEARTBEAT_MS must be an integer >= ${MIN_HEARTBEAT_MS}`)
 
   return {
+    botType,
     botId,
     secret,
     wsUrl,

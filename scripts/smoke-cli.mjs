@@ -36,11 +36,18 @@ function run(command, args, cwd, success = true) {
   return output
 }
 
+// npm_execpath can point to either a JavaScript launcher or a standalone pnpm binary.
+function runPnpm(args, cwd) {
+  return /\.[cm]?js$/u.test(pnpm)
+    ? run(process.execPath, [pnpm, ...args], cwd)
+    : run(pnpm, args, cwd)
+}
+
 try {
   const app = join(root, 'packages/el-bot')
   let archive = process.argv[2] ? resolve(process.argv[2]) : undefined
   if (!archive) {
-    run(process.execPath, [pnpm, 'pack', '--pack-destination', temporary], app)
+    runPnpm(['pack', '--pack-destination', temporary], app)
     const filename = (await readdir(temporary)).find(file => file.endsWith('.tgz'))
     if (filename)
       archive = join(temporary, filename)
@@ -49,16 +56,19 @@ try {
   const consumer = join(temporary, 'consumer')
   await mkdir(consumer)
   await writeFile(join(consumer, 'package.json'), JSON.stringify({ private: true, type: 'module' }))
-  run(process.execPath, [pnpm, '--ignore-workspace', 'add', archive, '--ignore-scripts'], consumer)
+  runPnpm(['--ignore-workspace', 'add', archive, '--ignore-scripts'], consumer)
   const installed = join(consumer, 'node_modules/el-bot')
   const manifest = JSON.parse(await readFile(join(installed, 'package.json'), 'utf8'))
   assert(!JSON.stringify(manifest.dependencies).match(/workspace:|catalog:/))
   assert(!manifest.dependencies['qq-sdk'])
   assert(!manifest.dependencies['@el-bot/codex'])
   assert(!manifest.dependencies['@el-bot/qq-codex'])
+  assert(!manifest.dependencies['@el-bot/plugin-qq'])
   assert.equal(manifest.bin['el-bot'], './dist/cli.mjs')
   assert.equal(manifest.bin.el, manifest.bin['el-bot'])
   assert.equal(manifest.imports['#qq-sdk'].default, './dist/qq-sdk.mjs')
+  assert.equal(manifest.imports['#plugin-qq'].default, './dist/plugin-qq.mjs')
+  assert.equal(manifest.exports['./adapter'].import, './dist/adapter.mjs')
   assert.equal(manifest.exports['.'].import, './dist/index.mjs')
   assert.equal(manifest.exports['.'].types, './dist/index.d.mts')
   assert.equal(manifest.exports['./nest'].import, './dist/nest.mjs')
@@ -67,6 +77,22 @@ try {
     import { fileURLToPath } from 'node:url'
     import { Bot, Command, Plugins, answerPlugin, createBot, defineBotPlugin, defineConfig, getAllPluginsFromDir } from 'el-bot'
     import { ElBotModule, ElBotService } from 'el-bot/nest'
+    await import('el-bot/adapter')
+    const { AdapterRegistry } = await import('el-bot')
+    const connections = new AdapterRegistry()
+    let starts = 0
+    let stops = 0
+    connections.register({ id: 'isolated', platform: 'test', start() { starts++ }, stop() { stops++ } })
+    await connections.start(async () => {})
+    await connections.stop()
+    assert.equal(starts, 1)
+    assert.equal(stops, 1)
+    const nativeClient = { marker: 'external-plugin-client' }
+    const externalAdapter = { id: 'external-qq', platform: 'qq', transport: 'napcat', client: nativeClient, start() {}, stop() {} }
+    const isolatedBot = new Bot({ legacyQQ: false, server: { webhooks: { enable: false } }, bot: { autoloadPlugins: false } })
+    isolatedBot.registerAdapter(externalAdapter)
+    assert.equal(isolatedBot.napcat, nativeClient, 'External plugin packages must bind the same native QQ client')
+    await isolatedBot.stop()
     for (const value of [Bot, Command, createBot, defineBotPlugin, defineConfig, ElBotModule, ElBotService])
       assert.equal(typeof value, 'function')
     assert.equal(defineConfig({ debug: true }).debug, true)
@@ -101,7 +127,7 @@ try {
   run(process.execPath, ['import.mjs'], consumer)
   const template = join(root, 'packages/create-app/template-ts')
   const templateManifest = JSON.parse(await readFile(join(template, 'package.json'), 'utf8'))
-  run(process.execPath, [pnpm, '--ignore-workspace', 'add', '--save-dev', `typescript@${manifest.devDependencies.typescript}`, `@types/node@${manifest.devDependencies['@types/node']}`, `tsx@${templateManifest.devDependencies.tsx}`, '--ignore-scripts'], consumer)
+  runPnpm(['--ignore-workspace', 'add', '--save-dev', `typescript@${manifest.devDependencies.typescript}`, `@types/node@${manifest.devDependencies['@types/node']}`, `tsx@${templateManifest.devDependencies.tsx}`, '--ignore-scripts'], consumer)
   await cp(template, join(consumer, 'template'), { recursive: true })
   run(process.execPath, [join(consumer, 'node_modules/typescript/bin/tsc'), '--project', 'template/tsconfig.json'], consumer)
   await writeFile(join(consumer, 'template-check.ts'), `
@@ -190,10 +216,10 @@ try {
   const legacyError = run(process.execPath, [cli, '--legacy-invalid-option'], consumer, false)
   assert(/Unknown arguments?: legacy-invalid-option/.test(legacyError), legacyError)
   assert(run(process.execPath, [cli, '--version'], consumer).includes(manifest.version))
-  assert(run(process.execPath, [pnpm, 'exec', 'el-bot', '--version'], consumer).includes(manifest.version))
-  assert(run(process.execPath, [pnpm, 'exec', 'el', 'codex', '--help'], consumer).includes('el-bot codex'))
+  assert(runPnpm(['exec', 'el-bot', '--version'], consumer).includes(manifest.version))
+  assert(runPnpm(['exec', 'el', 'codex', '--help'], consumer).includes('el-bot codex'))
   const paths = ['--config', join(temporary, 'config.json'), '--credentials', join(temporary, 'credentials.env'), '--state', join(temporary, 'state.json')]
-  run(process.execPath, [pnpm, 'exec', 'el-bot', 'codex', 'init', '--no-prompt', '--project', consumer, '--name', 'consumer', ...paths], consumer)
+  runPnpm(['exec', 'el-bot', 'codex', 'init', '--no-prompt', '--project', consumer, '--name', 'consumer', ...paths], consumer)
   const config = JSON.parse(await readFile(join(temporary, 'config.json'), 'utf8'))
   assert.equal(config.defaultProject, 'consumer')
   const preferences = JSON.parse(run(process.execPath, [cli, 'codex', 'preferences', '--json', ...paths], consumer))

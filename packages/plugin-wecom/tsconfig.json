@@ -1,6 +1,8 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "baseUrl": "../..",
+    "paths": { "el-bot/adapter": ["packages/el-bot/core/adapter.ts"] },
     "types": ["node"]
   },
   "include": ["src/**/*.ts", "tsdown.config.ts"]

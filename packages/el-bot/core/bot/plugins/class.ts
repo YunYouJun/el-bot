@@ -35,6 +35,7 @@ export const PluginTypeMap: Record<PluginType, string> = {
 }
 
 export class Plugins {
+  hasPlatformPlugins = false
   default = new Set<PluginInfo>()
   official = new Set<PluginInfo>()
   community = new Set<PluginInfo>()
@@ -114,6 +115,8 @@ export class Plugins {
 
   private async setupPlugins(plugins: BotPlugin[]) {
     for (const [index, plugin] of plugins.entries()) {
+      if (plugin?.platform)
+        this.hasPlatformPlugins = true
       const name = plugin?.pkg?.name || '未知插件'
       const branch = index === plugins.length - 1 ? '└─' : '├─'
       try {

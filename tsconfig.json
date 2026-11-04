@@ -5,6 +5,10 @@
     "experimentalDecorators": true,
     "baseUrl": ".",
     "paths": {
+      "el-bot/adapter": ["packages/el-bot/core/adapter.ts"],
+      "#plugin-qq": ["packages/plugin-qq/src/index.ts"],
+      "@el-bot/plugin-qq": ["packages/plugin-qq/src/index.ts"],
+      "@el-bot/plugin-wecom": ["packages/plugin-wecom/src/index.ts"],
       "el-bot": [
         "packages/el-bot/index.ts"
       ],

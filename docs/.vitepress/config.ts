@@ -71,7 +71,7 @@ export default defineConfig({
           link: "/guide/",
         },
         {
-          text: "企微入站",
+          text: "企微机器人",
           link: "/guide/wecom",
         },
         {
@@ -140,6 +140,7 @@ export default defineConfig({
       // fallback
       "/development/": [
         { text: "工作区与发布", link: "/development/monorepo" },
+        { text: "平台插件", link: "/development/platform-plugins" },
         { text: "用户指令系统", link: "/development/user-commands" },
         { text: "QQ 遥控 AI 程序", link: "/development/codex-remote" },
         { text: "选择 Codex / CodeBuddy / dsh", link: "/codex/agents" },
