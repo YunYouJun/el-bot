@@ -59,7 +59,7 @@ export async function diagnose(options: DiagnosticOptions): Promise<DiagnosticRe
       checks.push({ id: 'credentials', status: 'pass', summary: '已从选定来源读取完整凭据；内容已隐藏。' })
     }
     catch {
-      checks.push({ id: 'credentials', status: 'fail', summary: '凭据缺失、无法读取或来源不完整。', actions: [command('paths'), '在选定凭据文件同时设置 QQ_BOT_APP_ID 与 QQ_BOT_SECRET（兼容 QQ_BOT_APP_SECRET）。'] })
+      checks.push({ id: 'credentials', status: 'fail', summary: '凭据缺失、无法读取或来源不完整。', actions: [command('paths'), '在选定凭据文件同时设置 QQ_BOT_APP_ID 与 QQ_BOT_APP_SECRET。'] })
     }
     if (state && credentials) {
       try {

@@ -91,7 +91,7 @@ describe('aCP agent task control', () => {
   })
 
   it('passes only selected provider variables and strips QQ credentials', () => {
-    expect(agentEnvironment({ PATH: '/bin', HOME: '/home/example', DEEPSEEK_API_KEY: 'provider-key', QQ_BOT_SECRET: 'bot-secret', UNSELECTED: 'value' }, ['DEEPSEEK_API_KEY', 'QQ_BOT_SECRET']))
+    expect(agentEnvironment({ PATH: '/bin', HOME: '/home/example', DEEPSEEK_API_KEY: 'provider-key', QQ_BOT_APP_SECRET: 'bot-secret', UNSELECTED: 'value' }, ['DEEPSEEK_API_KEY', 'QQ_BOT_APP_SECRET']))
       .toEqual({ PATH: '/bin', HOME: '/home/example', DEEPSEEK_API_KEY: 'provider-key' })
   })
 })

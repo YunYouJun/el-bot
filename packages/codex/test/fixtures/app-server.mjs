@@ -37,7 +37,7 @@ createInterface({ input: process.stdin }).on('line', (line) => {
     process.exit(1)
   }
   else if (request.method === 'environment') {
-    send({ id: request.id, result: { secret: process.env.QQ_BOT_SECRET } })
+    send({ id: request.id, result: { secret: process.env.QQ_BOT_APP_SECRET } })
   }
   else if (request.method === 'codex-home') {
     send({ id: request.id, result: { home: process.env.CODEX_HOME } })

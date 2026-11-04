@@ -17,16 +17,15 @@ export async function readCredentials(envFile: string, explicit = false, env: No
   }
   const file = await read(envFile, explicit)
   const legacy = explicit ? {} : await read(legacyFile, false)
-  const secret = (values: NodeJS.ProcessEnv) => values.QQ_BOT_SECRET || values.QQ_BOT_APP_SECRET
   // An explicit file is authoritative. Never combine halves from different sources.
   for (const source of explicit ? [file] : [env, file, legacy]) {
     const appId = source.QQ_BOT_APP_ID || ''
-    const value = secret(source) || ''
+    const value = source.QQ_BOT_APP_SECRET || ''
     if (!appId && !value)
       continue
     if (!appId || !value)
-      throw new Error('同一个凭据来源必须同时提供 QQ_BOT_APP_ID 和 QQ_BOT_SECRET，不能混用不同环境的凭据。')
+      throw new Error('同一个凭据来源必须同时提供 QQ_BOT_APP_ID 和 QQ_BOT_APP_SECRET，不能混用不同环境的凭据。')
     return { appId, secret: value }
   }
-  throw new Error('缺少 QQ_BOT_APP_ID / QQ_BOT_SECRET。请运行 el-bot codex init，或通过 --credentials 指定凭据文件。')
+  throw new Error('缺少 QQ_BOT_APP_ID / QQ_BOT_APP_SECRET。请运行 el-bot codex init，或通过 --credentials 指定凭据文件。')
 }

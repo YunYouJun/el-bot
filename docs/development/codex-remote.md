@@ -82,7 +82,7 @@ el-bot codex init --project /absolute/path/to/my-project --name my-project
 | 凭据 | `~/.el-bot/qq-codex.env` | AppID、AppSecret |
 | 状态 | `~/.el-bot/qq-codex-state.json` | 本人绑定、项目会话、任务和消息去重 |
 
-在脚本或非交互环境中使用 `init --no-prompt`：已有 `QQ_BOT_APP_ID`、`QQ_BOT_SECRET` 环境变量时写入凭据，
+在脚本或非交互环境中使用 `init --no-prompt`：已有 `QQ_BOT_APP_ID`、`QQ_BOT_APP_SECRET` 环境变量时写入凭据，
 否则创建空白模板供手动填写。已有凭据文件保持原样。不要将密钥作为命令行参数传入，以免出现在进程列表和 shell 历史中。
 
 ### 2. 检查
@@ -167,12 +167,12 @@ el-bot codex start --config /path/to/config.json --credentials /path/to/bot.env 
 
 ```dotenv
 QQ_BOT_APP_ID="你的 AppID"
-QQ_BOT_SECRET="你的 AppSecret"
+QQ_BOT_APP_SECRET="你的 AppSecret"
 ```
 
 显式使用 `--credentials` 或 `--profile` 时只读取对应凭据文件，环境变量不覆盖该文件，文件缺失会直接报错。
 默认模式按 **完整进程环境 → 默认凭据文件 → 当前目录 `.env`** 读取；AppID 和 Secret 必须来自同一来源，半套凭据直接报错，不跨来源拼接。
-旧变量 `QQ_BOT_APP_SECRET` 仍兼容；`QQ_BOT_APP_TOKEN` 不能替代 AppSecret。
+`QQ_BOT_APP_TOKEN` 不能替代 AppSecret。
 只读取 QQ 凭据，不把 dotenv 中无关的变量注入任务程序子进程。
 
 已知自己的机器人 OpenID 时，可设置 `ownerOpenId`；它不是 QQ 数字账号。

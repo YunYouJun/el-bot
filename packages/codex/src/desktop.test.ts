@@ -16,7 +16,7 @@ function client() {
 
 describe('codex Desktop MCP adapter', () => {
   it('discovers the host catalog, passes real chat metadata and strips QQ credentials', async () => {
-    vi.stubEnv('QQ_BOT_SECRET', 'must-not-leak')
+    vi.stubEnv('QQ_BOT_APP_SECRET', 'must-not-leak')
     const desktop = client()
     expect((await desktop.listTools()).map(tool => tool.name)).toEqual(['list_projects', 'set_thread_title'])
     const result = await desktop.call('list_projects', {}) as { content: { text: string }[] }
