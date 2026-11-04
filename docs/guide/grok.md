@@ -62,7 +62,7 @@ pnpm wecom:grok
 pnpm --filter @el-bot/wecom-grok build
 ```
 
-构建产物包含运行依赖，部署只需上传 `dist/`、`Dockerfile`、`.dockerignore` 和 `compose.yaml`，无需上传整个仓库或 `node_modules`。容器仅连接内部 Docker 网络，不映射宿主机端口，回调仍要求每次请求独立的一次性凭据。
+构建产物包含运行依赖，部署只需上传 `dist/`、`Dockerfile`、`.dockerignore` 和 `compose.yaml`，无需上传整个仓库或 `node_modules`。容器固定使用 `node:26.13.0-bookworm-slim`，与开发、CI 的 Node.js 版本一致。容器仅连接内部 Docker 网络，不映射宿主机端口，回调仍要求每次请求独立的一次性凭据。
 
 当前部署目录为服务器 `yunlefun` 的 `/opt/el-bot/wecom-grok`。凭据独立保存在 `/etc/el-bot/wecom-grok/service.env`（`0600`），仅包含企微 BotID、Secret 和 Grok 官方 Webhook 配置；绑定文件为同目录的 `binding.json`（`0400`，UID/GID `1000`）。凭据不进入镜像或仓库。容器通过 `GROK_BOT_CALLBACK_HOST=0.0.0.0` 监听内部接口，默认仍以非 root 用户运行。
 

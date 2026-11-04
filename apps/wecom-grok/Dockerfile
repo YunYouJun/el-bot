@@ -1,4 +1,4 @@
-FROM node:22-bookworm-slim
+FROM node:26.13.0-bookworm-slim
 WORKDIR /app
 COPY --chown=node:node dist/ ./dist/
 USER node

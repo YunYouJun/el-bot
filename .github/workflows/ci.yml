@@ -41,7 +41,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        node: [24.18.0]
+        node: [26.13.0]
         include:
           - os: ubuntu-latest
             node: 22.18.0

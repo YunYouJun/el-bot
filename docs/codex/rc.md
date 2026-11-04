@@ -29,7 +29,7 @@ el-bot codex --profile personal check --all --json
 完整步骤见[实例隔离与恢复](/codex/instances)和[AI 接入](/codex/ai-setup)。
 
 库入口 `el-bot`、`el-bot/nest` 发布 ESM JavaScript 与类型声明，可由普通 Node.js 导入；旧框架启动器仍使用 Vite Node 加载 TypeScript 插件。
-最低 Node.js 为 22.18.0，推荐仓库指定的 Node.js 24。发布流程先构建、安装和验证同一 tarball，再验证 Node.js 22.18.0 的 Linux / Windows / macOS 安装结果，最后执行 npm OIDC 发布。
+最低 Node.js 为 22.18.0，推荐仓库指定的 Node.js 26.13.0 LTS。发布流程先构建、安装和验证同一 tarball，再验证 Node.js 22.18.0 的 Linux / Windows / macOS 安装结果，最后执行 npm OIDC 发布。
 
 ## 真实 QQ 验收
 

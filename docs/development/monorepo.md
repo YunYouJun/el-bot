@@ -1,7 +1,8 @@
 # Monorepo 开发
 
 工程约定参考 [starter-monorepo](https://github.com/YunYouJun/starter-monorepo)。
-使用 `.node-version` 指定的 Node.js 24 和 `packageManager` 固定的 pnpm 11.24.0。
+使用 `.node-version` 指定的 Node.js 26.13.0 LTS 和 `packageManager` 固定的 pnpm 11.24.0。
+CI 主矩阵和企微问答容器使用相同 Node.js 版本，保留 Node.js 22.18.0 的最低兼容性测试。库的 `engines` 下限与 tsdown 的 `node22` 构建目标继续保留，使用方无需同步提高最低版本。
 
 ## 目录与职责
 
@@ -55,8 +56,8 @@ CI 使用 `pnpm install --frozen-lockfile`，禁止在 CI 隐式改写锁文件�
 
 ## 依赖与兼容性
 
-依赖版本集中在 catalog。Node.js 使用 24，TypeScript 保留 5.9，匹配 sagiri 和类型文档工具支持范围。此次检查中 TypeScript 最新版为 7，但 sagiri 仍要求 `^5.0.0`，TypeDoc 尚不支持 7；不强行跨主版本升级。
-Chalk 升级为 6；`@types/node` 使用与 Node 24 对应的最新版本；c12 保留稳定版 3，避免将 RC 作为稳定更新引入。
+依赖版本集中在 catalog。Node.js 开发及部署使用 26.13.0 LTS，TypeScript 保留 5.9，匹配 sagiri 和类型文档工具支持范围。此前依赖检查中 TypeScript 最新版为 7，但 sagiri 仍要求 `^5.0.0`，TypeDoc 尚不支持 7；不强行跨主版本升级。
+Chalk 使用 6；`@types/node` 暂保留 24 系列，本次只升级运行环境；c12 保留稳定版 3，避免将 RC 作为稳定更新引入。
 `el-bot` 是 `el-bot` / `el` 可执行命令的唯一发布者，`apps/qq-codex` 保持私有。
 CLI 将内部 Codex 客户端与 QQ 官方协议实现打包，第三方运行时依赖独立声明。
 框架使用的工作区 `qq-sdk` 同样构建进发布包，由包内 `#qq-sdk` 映射引用，安装时不依赖 registry 中的同名版本。

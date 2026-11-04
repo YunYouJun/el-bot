@@ -17,7 +17,7 @@ Codex 还支持按本机版本生成 API 目录、连接已有 app-server，并�
 
 ## 环境要求
 
-- Node.js 22.18+；推荐使用仓库 `.node-version` 指定的 Node.js 24。
+- Node.js 22.18+；推荐使用仓库 `.node-version` 指定的 Node.js 26.13.0 LTS。
 - 本机已安装所选程序的 CLI，并完成账户登录或模型提供方配置。Codex 需要 `codex app-server`；CodeBuddy / dsh 需要 ACP 模式。
 - 在 [QQ 开放平台](https://q.qq.com/) 创建机器人，取得 AppID 和 **AppSecret**。
 - 在后台「开发设置 → 事件订阅与回调」选择 **WebSocket**，配置运行机器的出口 IP 白名单。

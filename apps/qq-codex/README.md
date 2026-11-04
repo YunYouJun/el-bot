@@ -7,7 +7,7 @@
 
 ## 快速开始
 
-需要 Node.js 22.18+（推荐 Node.js 24）、已配置账户 / 模型的任务程序 CLI，以及 QQ 官方机器人 AppID / AppSecret。
+需要 Node.js 22.18+（推荐 Node.js 26.13.0 LTS）、已配置账户 / 模型的任务程序 CLI，以及 QQ 官方机器人 AppID / AppSecret。
 在仓库根目录构建后运行，以下以 CodeBuddy 为例：
 
 ```bash
