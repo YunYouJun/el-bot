@@ -7,13 +7,20 @@ interface CallbackPayload {
   reply: { url: string, authorization: string }
 }
 
-function fixture(options: { timeoutMs?: number, status?: number } = {}) {
+function fixture(options: { timeoutMs?: number, status?: number, loopback?: boolean } = {}) {
   let payload!: CallbackPayload
   const fetchImpl = vi.fn<typeof fetch>(async (_url, init) => {
     payload = JSON.parse(String(init?.body))
     return new Response(null, { status: options.status ?? 200 })
   })
-  const responder = new GrokWebhookResponder({ webhookUrl: 'https://grok.example/routine', authValue: 'Bearer fake-key', callbackUrl: 'https://reply.example/grok/reply', fetchImpl, timeoutMs: options.timeoutMs })
+  const responder = new GrokWebhookResponder({
+    webhookUrl: 'https://grok.example/routine',
+    authValue: 'Bearer fake-key',
+    callbackUrl: options.loopback ? 'http://127.0.0.1:8789/grok/reply' : 'https://reply.example/grok/reply',
+    callbackMode: options.loopback ? 'loopback' : 'https',
+    fetchImpl,
+    timeoutMs: options.timeoutMs,
+  })
   return {
     responder,
     fetchImpl,
@@ -29,6 +36,36 @@ function fixture(options: { timeoutMs?: number, status?: number } = {}) {
 }
 
 describe('official Grok webhook and asynchronous callback', () => {
+  it('keeps one-use authentication when the routine runs on the same computer', async () => {
+    const f = fixture({ loopback: true })
+    const answer = f.responder.ask('hello')
+    expect(f.payload().reply.url).toBe('http://127.0.0.1:8789/grok/reply')
+    expect((await f.callback('wrong', { authorization: 'Bearer invalid' })).status).toBe(401)
+    expect((await f.callback('same-computer answer')).status).toBe(204)
+    await expect(answer).resolves.toBe('same-computer answer')
+    expect((await f.callback()).status).toBe(401)
+  })
+
+  it.each(['http://localhost:8789/reply', 'http://0.0.0.0:8789/reply', 'http://10.0.0.1:8789/reply', 'https://reply.example/reply'])(
+    'rejects a non-loopback callback in loopback mode: %s',
+    (callbackUrl) => {
+      expect(() => new GrokWebhookResponder({
+        webhookUrl: 'https://grok.example/routine',
+        authValue: 'Bearer fake-key',
+        callbackUrl,
+        callbackMode: 'loopback',
+      })).toThrow('HTTP on 127.0.0.1')
+    },
+  )
+
+  it('requires explicit loopback mode before allowing an HTTP callback', () => {
+    expect(() => new GrokWebhookResponder({
+      webhookUrl: 'https://grok.example/routine',
+      authValue: 'Bearer fake-key',
+      callbackUrl: 'http://127.0.0.1:8789/reply',
+    })).toThrow('HTTPS')
+  })
+
   it('waits for the authenticated result rather than treating HTTP 200 as the answer', async () => {
     const f = fixture()
     const completed = vi.fn()

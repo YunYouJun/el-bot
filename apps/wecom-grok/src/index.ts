@@ -33,11 +33,17 @@ async function main() {
   const hostname = process.env.GROK_BOT_CALLBACK_HOST ?? '127.0.0.1'
   if (hostname !== '127.0.0.1' && hostname !== '0.0.0.0')
     throw new Error('Callback host must be loopback or a container listener')
+  const callbackMode = process.env.GROK_BOT_CALLBACK_MODE ?? 'https'
+  if (callbackMode !== 'https' && callbackMode !== 'loopback')
+    throw new Error('Callback mode must be https or loopback')
+  if (callbackMode === 'loopback' && hostname !== '127.0.0.1')
+    throw new Error('Loopback callbacks must listen only on 127.0.0.1')
   const responder = new GrokWebhookResponder({
     webhookUrl: process.env.GROK_BOT_WEBHOOK_URL ?? wecom.webhookUrl ?? '',
     authValue: process.env.GROK_BOT_WEBHOOK_AUTH_VALUE ?? wecom.webhookAuthValue ?? '',
     authHeader: process.env.GROK_BOT_WEBHOOK_AUTH_HEADER ?? wecom.webhookAuthHeader,
     callbackUrl: process.env.GROK_BOT_CALLBACK_URL ?? '',
+    callbackMode,
     onSent: () => consola.info(JSON.stringify({ event: 'grok-accepted' })),
   })
   if (process.argv.includes('--check')) {

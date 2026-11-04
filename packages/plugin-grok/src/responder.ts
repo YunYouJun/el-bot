@@ -6,6 +6,8 @@ export interface GrokResponderOptions {
   authValue: string
   authHeader?: string
   callbackUrl: string
+  /** Use only when the SDK bridge and the Grok routine share one computer. */
+  callbackMode?: 'https' | 'loopback'
   timeoutMs?: number
   fetchImpl?: typeof fetch
   onSent?: () => void
@@ -30,8 +32,18 @@ export class GrokWebhookResponder {
   constructor(private readonly options: GrokResponderOptions) {
     for (const address of [options.webhookUrl, options.callbackUrl]) {
       const url = new URL(address)
-      if (url.protocol !== 'https:' || url.username || url.password || url.hash)
-        throw new Error('Grok webhook and callback must use HTTPS')
+      if (url.username || url.password || url.hash)
+        throw new Error('Grok addresses must not contain credentials or fragments')
+    }
+    if (new URL(options.webhookUrl).protocol !== 'https:')
+      throw new Error('Grok webhook must use HTTPS')
+    const callback = new URL(options.callbackUrl)
+    if (options.callbackMode === 'loopback') {
+      if (callback.protocol !== 'http:' || callback.hostname !== '127.0.0.1')
+        throw new Error('Loopback callbacks must use HTTP on 127.0.0.1')
+    }
+    else if (callback.protocol !== 'https:') {
+      throw new Error('Grok callback must use HTTPS unless loopback mode is explicit')
     }
     if (!options.authValue || (options.timeoutMs ?? 240_000) <= 0)
       throw new Error('Grok webhook authentication and a positive timeout are required')
