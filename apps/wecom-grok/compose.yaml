@@ -1,0 +1,55 @@
+services:
+  wecom-grok:
+    image: el-bot/wecom-grok:local
+    pull_policy: never
+    build:
+      context: .
+    restart: unless-stopped
+    init: true
+    env_file:
+      - /etc/el-bot/wecom-grok/service.env
+    environment:
+      GROK_BOT_CALLBACK_HOST: 0.0.0.0
+      GROK_BOT_CALLBACK_PORT: '8789'
+      WECOM_GROK_CONFIG: /run/config/binding.json
+    volumes:
+      - /etc/el-bot/wecom-grok/binding.json:/run/config/binding.json:ro
+    cpus: 0.5
+    mem_limit: 256m
+    pids_limit: 64
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: 5m
+        max-file: '2'
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:8789' + new URL(process.env.GROK_BOT_CALLBACK_URL).pathname, {method:'POST'}).then(r => process.exit(r.status === 401 ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    networks:
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.el-bot-grok.rule=Host(`dokploy.yunle.fun`) && Path(`/el-bot/grok/reply`)
+      - traefik.http.routers.el-bot-grok.priority=200
+      - traefik.http.routers.el-bot-grok.entrypoints=websecure
+      - traefik.http.routers.el-bot-grok.tls=true
+      - traefik.http.routers.el-bot-grok.service=el-bot-grok
+      - traefik.http.services.el-bot-grok.loadbalancer.server.port=8789
+networks:
+  dokploy-network:
+    external: true

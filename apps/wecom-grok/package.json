@@ -1,0 +1,11 @@
+{
+  "name": "@el-bot/wecom-grok",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "description": "企业微信与 Grok Bot 的自动问答连接",
+  "engines": { "node": ">=22.18.0" },
+  "scripts": { "build": "tsdown", "start": "tsx src/index.ts", "typecheck": "tsc --noEmit" },
+  "dependencies": { "@el-bot/plugin-grok": "workspace:*", "@el-bot/plugin-wecom": "workspace:*", "@hono/node-server": "catalog:", "consola": "catalog:", "dotenv": "catalog:", "el-bot": "workspace:*" },
+  "devDependencies": { "@types/node": "catalog:", "tsdown": "catalog:", "tsx": "catalog:", "typescript": "catalog:" }
+}

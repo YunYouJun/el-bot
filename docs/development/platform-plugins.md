@@ -7,6 +7,7 @@ el-bot 的平台接入按实际协议分成两个可选包，每个包内部保�
 | `el-bot` | 平台注册与启停、消息分发、命令和业务插件 |
 | `@el-bot/plugin-wecom` | 官方企微 SDK、智能机器人收发与回复、群 Webhook、可选外部转发、独立 CLI |
 | `@el-bot/plugin-qq` | NapCat 连接与消息适配、官方 QQ C2C 适配、旧 QQ 接口兼容 |
+| `@el-bot/plugin-grok` | Grok Bot 官方 Webhook 问答及鉴权结果回调，业务插件 |
 | `qq-sdk` | 已存在的 QQ 底层 API 与回调验证工具，由 QQ 插件复用 |
 
 这些包目前在本仓库工作区内使用。发布策略仍只发布 `el-bot`；QQ 兼容实现随主包构建和打包，不新增尚未发布的插件运行时依赖。

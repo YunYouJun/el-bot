@@ -8,6 +8,7 @@ export default defineConfig({
     '#plugin-qq': fileURLToPath(new URL('./packages/plugin-qq/src/index.ts', import.meta.url)),
     '@el-bot/plugin-qq': fileURLToPath(new URL('./packages/plugin-qq/src/index.ts', import.meta.url)),
     '@el-bot/plugin-wecom': fileURLToPath(new URL('./packages/plugin-wecom/src/index.ts', import.meta.url)),
+    '@el-bot/plugin-grok': fileURLToPath(new URL('./packages/plugin-grok/src/index.ts', import.meta.url)),
     // Match the framework build alias for mirai-ts's missing ESM entry.
     'mirai-ts': createRequire(import.meta.url).resolve('mirai-ts'),
     'el-bot/nest': fileURLToPath(new URL('./packages/el-bot/core/nest/index.ts', import.meta.url)),

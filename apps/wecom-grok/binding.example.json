@@ -1,0 +1,5 @@
+{
+  "wecomBotId": "your-wecom-bot-id",
+  "ownerUserId": "verified-userid-from-sdk-callback",
+  "grokBotName": "企微问答"
+}

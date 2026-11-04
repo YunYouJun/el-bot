@@ -61,6 +61,7 @@
     "typecheck:docs": "pnpm -C docs typecheck",
     "qq:codex": "tsx apps/qq-codex/src/index.ts",
     "wecom": "tsx packages/plugin-wecom/src/cli.ts",
+    "wecom:grok": "tsx apps/wecom-grok/src/index.ts",
     "test:cli": "node scripts/smoke-cli.mjs",
     "cli": "tsx packages/el-bot/bin/el-bot.ts"
   },

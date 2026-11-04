@@ -441,6 +441,40 @@ importers:
         specifier: 'catalog:'
         version: 5.9.3
 
+  apps/wecom-grok:
+    dependencies:
+      '@el-bot/plugin-grok':
+        specifier: workspace:*
+        version: link:../../packages/plugin-grok
+      '@el-bot/plugin-wecom':
+        specifier: workspace:*
+        version: link:../../packages/plugin-wecom
+      '@hono/node-server':
+        specifier: 'catalog:'
+        version: 2.1.3(hono@4.13.13)
+      consola:
+        specifier: 'catalog:'
+        version: 3.4.2
+      dotenv:
+        specifier: 'catalog:'
+        version: 18.0.5
+      el-bot:
+        specifier: workspace:*
+        version: link:../../packages/el-bot
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.19.1
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.23.0(@volar/typescript@2.4.28(typescript@5.9.3))(@vue/language-core@3.3.12)(publint@0.3.25)(tsx@4.23.15)(typescript@5.9.3)(vue-tsc@3.3.12(typescript@5.9.3))
+      tsx:
+        specifier: 'catalog:'
+        version: 4.23.15
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
   demo:
     devDependencies:
       el-bot:
@@ -795,6 +829,25 @@ importers:
       vite:
         specifier: 'catalog:'
         version: 8.3.2(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.105.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)
+
+  packages/plugin-grok:
+    dependencies:
+      el-bot:
+        specifier: workspace:*
+        version: link:../el-bot
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.19.1
+      publint:
+        specifier: 'catalog:'
+        version: 0.3.25
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.23.0(@volar/typescript@2.4.28(typescript@5.9.3))(@vue/language-core@3.3.12)(publint@0.3.25)(tsx@4.23.15)(typescript@5.9.3)(vue-tsc@3.3.12(typescript@5.9.3))
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
 
   packages/plugin-qq:
     dependencies:

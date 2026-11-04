@@ -13,6 +13,8 @@
 
 官方协议：[智能机器人长连接](https://developer.work.weixin.qq.com/document/path/101463)。
 
+需要自动问答时，使用 [Grok Bot 自动问答](/guide/grok)，通过官方 Webhook 触发、鉴权结果回调及企微 SDK 回复组成完整链路。
+
 ## 这条链路在做什么
 
 ```text

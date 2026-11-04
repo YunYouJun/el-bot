@@ -75,6 +75,10 @@ export default defineConfig({
           link: "/guide/wecom",
         },
         {
+          text: "Grok Bot 自动问答",
+          link: "/guide/grok",
+        },
+        {
           text: "终端命令",
           link: "/guide/cli",
         },
