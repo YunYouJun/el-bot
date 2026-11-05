@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod cloud;
 mod programs;
 mod settings;
 mod tray;
@@ -17,6 +18,16 @@ fn load_settings() -> Result<ClientSettings, String> {
 fn save_settings(settings: ClientSettings) -> Result<ClientSettings, String> {
     settings::save(&settings)?;
     Ok(settings)
+}
+
+#[tauri::command]
+fn save_cloud_settings(cloud: cloud::CloudSettings) -> Result<ClientSettings, String> {
+    settings::save_cloud(cloud)
+}
+
+#[tauri::command]
+async fn open_cloud() -> Result<(), String> {
+    cloud::open().await
 }
 
 #[derive(serde::Deserialize)]
@@ -115,6 +126,33 @@ async fn reply_settings(
     execute_cli("preferences", extra).await
 }
 
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum PersonaOperation {
+    List,
+    Use,
+    Disable,
+}
+
+#[tauri::command]
+async fn dsh_persona(
+    operation: PersonaOperation,
+    id: Option<String>,
+    revision: Option<String>,
+) -> Result<serde_json::Value, String> {
+    let operation = match operation {
+        PersonaOperation::List => "list",
+        PersonaOperation::Use => "use",
+        PersonaOperation::Disable => "disable",
+    };
+    cloud::personas(operation, id.as_deref(), revision.as_deref()).await
+}
+
+#[tauri::command]
+async fn open_persona_manager() -> Result<(), String> {
+    cloud::open_personas().await
+}
+
 #[tauri::command]
 fn open_local_program(program: programs::LocalProgram) -> Result<(), String> {
     programs::open(program, &settings::load()?)
@@ -190,8 +228,12 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             load_settings,
             save_settings,
+            save_cloud_settings,
+            open_cloud,
             bot_command,
             reply_settings,
+            dsh_persona,
+            open_persona_manager,
             open_local_program
         ])
         .build(tauri::generate_context!())

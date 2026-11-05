@@ -1,7 +1,9 @@
 export type { RuntimeStatus } from '../../qq-codex/src/control-types'
 export type { ReplyPreferences } from '../../qq-codex/src/preferences-types'
 export type LocalProgram = 'codex' | 'codebuddy' | 'dsh' | 'qq'
+export interface CloudSettings { sshHost: string }
 export interface ClientSettings {
+  cloud?: CloudSettings
   nodePath: string
   cliPath: string
   configPath: string

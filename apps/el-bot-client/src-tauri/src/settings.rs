@@ -7,6 +7,8 @@ use std::{
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ClientSettings {
+    #[serde(default)]
+    pub cloud: crate::cloud::CloudSettings,
     pub node_path: String,
     pub cli_path: String,
     pub config_path: String,
@@ -81,6 +83,7 @@ pub fn load() -> Result<ClientSettings, String> {
         .into()
     };
     Ok(ClientSettings {
+        cloud: crate::cloud::CloudSettings::default(),
         node_path: node.to_string_lossy().into(),
         cli_path: directory
             .join("client-runtime/node_modules/el-bot/dist/cli.mjs")
@@ -101,6 +104,18 @@ pub fn load() -> Result<ClientSettings, String> {
 
 pub fn save(settings: &ClientSettings) -> Result<(), String> {
     settings.validate()?;
+    persist(settings)
+}
+
+pub fn save_cloud(cloud: crate::cloud::CloudSettings) -> Result<ClientSettings, String> {
+    cloud.validate()?;
+    let mut settings = load()?;
+    settings.cloud = cloud;
+    persist(&settings)?;
+    Ok(settings)
+}
+
+fn persist(settings: &ClientSettings) -> Result<(), String> {
     let path = file()?;
     let directory = path.parent().unwrap();
     fs::create_dir_all(directory).map_err(|_| "无法创建客户端设置目录。")?;

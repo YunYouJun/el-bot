@@ -1,4 +1,4 @@
-import type { ClientSettings, LocalProgram, Operation, ReplyPreferences, RuntimeStatus } from '../types'
+import type { ClientSettings, CloudSettings, LocalProgram, Operation, ReplyPreferences, RuntimeStatus } from '../types'
 import { invoke, isTauri } from '@tauri-apps/api/core'
 import { computed, onMounted, onUnmounted, shallowRef } from 'vue'
 
@@ -8,7 +8,7 @@ export function useBotController() {
   const pending = shallowRef(false)
   const actionError = shallowRef('')
   const connectionError = shallowRef('')
-  const error = computed(() => actionError.value || connectionError.value)
+  const error = computed(() => actionError.value)
   const logs = shallowRef('')
   const preferences = shallowRef<ReplyPreferences>()
   let timer: ReturnType<typeof setTimeout> | undefined
@@ -105,6 +105,28 @@ export function useBotController() {
     if (alive)
       timer = setTimeout(poll, 3000)
   }
+  async function saveCloud(cloud: CloudSettings) {
+    if (pending.value)
+      return
+    pending.value = true
+    try {
+      settings.value = await invoke<ClientSettings>('save_cloud_settings', { cloud })
+      actionError.value = ''
+    }
+    catch (e) { actionError.value = String(e) }
+    finally { pending.value = false }
+  }
+  async function openCloud() {
+    if (pending.value)
+      return
+    pending.value = true
+    try {
+      await invoke('open_cloud')
+      actionError.value = ''
+    }
+    catch (e) { actionError.value = String(e) }
+    finally { pending.value = false }
+  }
   onMounted(async () => {
     if (!isTauri()) {
       connectionError.value = '请在桌面客户端中连接机器人。浏览器预览只展示界面。'
@@ -117,12 +139,12 @@ export function useBotController() {
     try {
       await readPreferences()
     }
-    catch (e) { actionError.value = `无法读取展示设置：${String(e)}` }
+    catch (e) { connectionError.value = `无法读取展示设置：${String(e)}` }
     await poll()
   })
   onUnmounted(() => {
     alive = false
     clearTimeout(timer)
   })
-  return { settings, status, pending, error, logs, preferences, act, refresh, readLogs, saveSettings, savePreferences, openProgram }
+  return { settings, status, pending, error, connectionError, logs, preferences, act, refresh, readLogs, saveSettings, savePreferences, openProgram, saveCloud, openCloud }
 }

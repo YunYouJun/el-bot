@@ -28,6 +28,7 @@ pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let stop = item("stop", "停止机器人…", false)?;
     let restart = item("restart", "重启机器人…", false)?;
     let runtime = item("runtime", "打开控制台", true)?;
+    let cloud = item("open-cloud", "打开云端 DSH", true)?;
     let logs = item("logs", "运行日志", true)?;
     let settings = item("settings", "连接设置", true)?;
     let codex = item("open-codex", "打开 Codex", true)?;
@@ -46,6 +47,7 @@ pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             &stop,
             &restart,
             &runtime,
+            &cloud,
             &logs,
             &settings,
             &codex,
@@ -78,7 +80,7 @@ pub fn setup(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         .on_menu_event(|app, event| match event.id.as_ref() {
             "quit" => app.exit(0),
             action @ ("start" | "stop" | "restart" | "runtime" | "logs" | "settings"
-            | "open-codex" | "open-codebuddy" | "open-dsh" | "open-qq") => {
+            | "open-codex" | "open-codebuddy" | "open-dsh" | "open-qq" | "open-cloud") => {
                 show_window(app);
                 // Reuse the window's pending guard and explicit interruption confirmation.
                 let _ = app.emit_to("main", "tray-action", action);
