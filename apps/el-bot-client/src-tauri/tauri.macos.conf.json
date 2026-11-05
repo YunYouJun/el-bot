@@ -1,0 +1,13 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "build": {
+    "beforeBuildCommand": "pnpm build:macos"
+  },
+  "bundle": {
+    "icon": [
+      "icons/icon.png",
+      "icons/icon.icns",
+      "target/icon-composer/Assets.car"
+    ]
+  }
+}

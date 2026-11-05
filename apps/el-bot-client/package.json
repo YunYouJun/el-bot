@@ -8,6 +8,7 @@
     "icons:check": "node scripts/generate-icons.mjs --check",
     "dev": "vite --host 127.0.0.1 --port 1420",
     "build": "vue-tsc --noEmit && vite build",
+    "build:macos": "pnpm build && node scripts/compile-macos-icon.mjs",
     "typecheck": "vue-tsc --noEmit",
     "tauri": "tauri",
     "desktop:dev": "pnpm icons:generate && tauri dev",

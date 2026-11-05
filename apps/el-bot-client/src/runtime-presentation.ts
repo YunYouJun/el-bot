@@ -2,6 +2,7 @@ import type { YlfAgentState } from './components/ui/agent'
 import type { RuntimeStatus } from './types'
 
 interface Indicator { state: YlfAgentState, label: string }
+export type MascotExpression = 'idle' | 'thinking' | 'happy' | 'error'
 const phases: Record<RuntimeStatus['phase'], Indicator> = {
   stopped: { state: 'offline', label: '已停止' },
   starting: { state: 'connecting', label: '正在启动' },
@@ -45,4 +46,18 @@ export function taskIndicator(status?: RuntimeStatus): Indicator {
   if (status.busy)
     return { state: 'working', label: '管理操作进行中' }
   return { state: 'offline', label: '空闲' }
+}
+
+export function mascotExpression(status?: RuntimeStatus, pending = false): MascotExpression {
+  if (pending || status?.phase === 'starting' || status?.phase === 'stopping')
+    return 'thinking'
+  if (!status || status.phase !== 'running')
+    return 'idle'
+  if (status.busy)
+    return 'thinking'
+  if (status.task?.status === 'failed')
+    return 'error'
+  if (status.task?.status === 'completed')
+    return 'happy'
+  return 'idle'
 }

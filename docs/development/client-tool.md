@@ -59,7 +59,13 @@ el-bot codex preferences --message-format markdown --json
 
 ## 构建和分发
 
-品牌图标按 [YunLeFun/icons 规范](https://github.com/YunLeFun/icons/blob/main/docs/guide/contributing.md)分为透明主体 `el-bot-mark` 和满幅无圆角的 `el-bot-app-icon`。`assets/brand/el-bot-mark.svg` 是唯一手工维护的图形源；界面、文档、PNG、ICO、ICNS 和 macOS 菜单栏模板从同一主体生成。平台圆角只在 macOS ICNS 导出阶段应用一次，菜单栏使用单色模板适配明暗外观。
+客户端侧栏与机器人状态卡使用 `BotMascot.vue` 三弧云朵角色，支持鼠标跟随、轻微转头和眨眼；窗口失焦、隐藏或开启“减少动态效果”时静止。状态卡根据真实任务状态显示思考、完成与异常表情。
+
+品牌图标按 [YunLeFun/icons 规范](https://github.com/YunLeFun/icons/blob/main/docs/guide/contributing.md)分为透明主体 `el-bot-mark` 和满幅无圆角的 `el-bot-app-icon`。原有 `assets/brand/el-bot-mark.svg` 保持不变，继续用于文档 logo；`assets/brand/el-bot-cloud.svg` 是客户端角色、应用 SVG、PNG、ICO、ICNS、Icon Composer 分层源和 macOS 菜单栏模板共用的云朵源。默认正面主体宽度为 72%，静态图标的圆角只在 macOS ICNS 导出阶段应用一次，菜单栏使用单色模板适配明暗外观。
+
+macOS 26 及以上使用生成的 `apps/el-bot-client/src-tauri/icons/ElBot.icon` 分层图标：品牌蓝底板和透明云朵矢量前景分离，主体保持背景宽度的 72%，由系统处理 Liquid Glass 高光、折射、圆角和外观适配。`tauri.macos.conf.json` 在打包前执行 `build:macos`，由 `scripts/compile-macos-icon.mjs` 调用 Xcode 26 及以上的 `xcrun actool` 生成 `target/icon-composer/Assets.car`，Tauri 将其收入应用包并设置 `CFBundleIconName`。若命中 Xcode 27 已知的文件描述符错误，仅重启当前用户的 `ibtoold` 缓存服务并重试一次；其他错误直接报告。旧系统保留最高 1024 × 1024 的静态 ICNS 回退，`macos-icon.png` 仍是该静态版本的预览。Windows / Linux 图标和独立品牌 mark 不受分层材质影响。原生分层规范见 Apple 的[应用图标指南](https://developer.apple.com/design/human-interface-guidelines/app-icons)。
+
+macOS 打包 CI 使用 `macos-26` / `macos-26-intel`，并通过 `apps/el-bot-client/scripts/check-macos-icon.mjs` 检查实际 `.app` 中的默认、深色、着色图层及原生高光，避免工具链缺失时仅带静态图标。该脚本也可手动运行，参数为打包后的 `.app` 路径。
 
 修改图形后执行 `pnpm icons:generate`，用 `pnpm icons:check` 验证所有派生资产与源一致。客户端开发和安装包构建会自动生成图标。变体元数据与上游来源记录在 `assets/brand/metadata.json`；两个变体已登记到 [YunLeFun/icons 源码集合](https://github.com/YunLeFun/icons)，由图标集的 `pnpm icons:collect` 同步，npm 消费需等待后续版本发布。Iconify 名称为 `ylf:el-bot-mark` / `ylf:el-bot-app-icon`，UnoCSS 类名为 `i-ylf-el-bot-mark` / `i-ylf-el-bot-app-icon`。品牌 SVG 与派生图形采用 `assets/brand/LICENSE` 中的 MIT 许可。
 

@@ -1,6 +1,6 @@
 import type { RuntimeStatus } from './types'
 import { describe, expect, it } from 'vitest'
-import { connectionIndicator, runtimeIndicator, taskIndicator } from './runtime-presentation'
+import { connectionIndicator, mascotExpression, runtimeIndicator, taskIndicator } from './runtime-presentation'
 
 const running: RuntimeStatus = { phase: 'running', qq: 'connected', codex: 'connected', busy: false }
 
@@ -24,5 +24,24 @@ describe('client status presentation', () => {
     expect(taskIndicator({ ...running, busy: true, task: { id: 'task-1', status: 'awaiting_approval' } })).toEqual({ state: 'unknown', label: 'awaiting_approval' })
     expect(taskIndicator({ ...running, busy: true })).toEqual({ state: 'working', label: '管理操作进行中' })
     expect(taskIndicator(undefined)).toEqual({ state: 'unknown', label: '未验证' })
+  })
+
+  it('does not celebrate stale task results when stopped or unmanaged', () => {
+    for (const phase of ['stopped', 'unmanaged'] as const) {
+      for (const result of ['completed', 'failed'])
+        expect(mascotExpression({ ...running, phase, task: { id: 'previous-task', status: result } })).toBe('idle')
+    }
+    expect(mascotExpression(undefined)).toBe('idle')
+  })
+
+  it('gives current operations precedence over the previous task expression', () => {
+    const completed = { ...running, task: { id: 'previous-task', status: 'completed' } }
+    expect(mascotExpression(completed)).toBe('happy')
+    expect(mascotExpression(completed, true)).toBe('thinking')
+    expect(mascotExpression({ ...completed, busy: true })).toBe('thinking')
+    expect(mascotExpression({ ...completed, phase: 'stopping' })).toBe('thinking')
+    expect(mascotExpression({ ...completed, phase: 'starting' })).toBe('thinking')
+    expect(mascotExpression({ ...running, task: { id: 'failed-task', status: 'failed' } })).toBe('error')
+    expect(mascotExpression({ ...running, task: { id: 'task-1', status: 'awaiting_approval' } })).toBe('idle')
   })
 })

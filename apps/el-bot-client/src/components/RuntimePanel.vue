@@ -3,7 +3,8 @@ import type { Operation, RuntimeStatus } from '../types'
 import YlfButton from '@yunlefun/vue/components/YlfButton.vue'
 import YlfDialog from '@yunlefun/vue/components/YlfDialog.vue'
 import { computed, shallowRef, watch } from 'vue'
-import { connectionIndicator, runtimeIndicator, taskIndicator } from '../runtime-presentation'
+import { connectionIndicator, mascotExpression, runtimeIndicator, taskIndicator } from '../runtime-presentation'
+import BotMascot from './BotMascot.vue'
 import ProgramLogo from './ProgramLogo.vue'
 import YlfAgentCard from './ui/YlfAgentCard.vue'
 import YlfAgentStatus from './ui/YlfAgentStatus.vue'
@@ -18,6 +19,7 @@ const codex = computed(() => connectionIndicator(props.status, 'codex'))
 const agent = computed(() => props.status?.agent ?? 'codex')
 const agentName = computed(() => ({ codex: 'Codex', codebuddy: 'CodeBuddy', dsh: 'DSH' })[agent.value])
 const task = computed(() => taskIndicator(props.status))
+const expression = computed(() => mascotExpression(props.status, props.pending))
 const taskDescription = computed(() => {
   if (!props.status || props.status.phase === 'unmanaged')
     return '连接后显示任务状态。'
@@ -68,6 +70,9 @@ defineExpose({ requestAction })
 
 <template>
   <YlfAgentCard class="runtime-panel" name="el-bot" :state="summary.state" :status-label="summary.label" :description="status?.project ? `当前项目：${status.project}` : '通过 QQ 私聊使用本机 AI 助手'">
+    <template #avatar>
+      <BotMascot :expression="expression" />
+    </template>
     <dl class="connection-list">
       <div>
         <dt class="connection-label">
@@ -129,12 +134,12 @@ defineExpose({ requestAction })
   gap: var(--ylf-space-3);
 }
 .runtime-panel :deep(.ylf-agent-card__avatar) {
-  width: 40px;
-  height: 40px;
-}
-.runtime-panel :deep(.ylf-agent-card__avatar svg) {
-  width: 26px;
-  height: 26px;
+  width: 64px;
+  height: 64px;
+  overflow: visible;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 .runtime-panel :deep(.ylf-agent-card__description) {
   margin-top: var(--ylf-space-1);
