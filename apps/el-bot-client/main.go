@@ -31,11 +31,17 @@ type app struct {
 	personas                                  *PersonaResult
 	personaSelection                          string
 	avatar                                    *ui.Bitmap
+	native                                    *nativeView
+	nativeCallback                            uintptr
 }
 
 func (a *app) invalidate() {
 	if a.win != nil {
-		a.win.Invalidate()
+		if a.native != nil {
+			a.native.render(a.nativeSnapshot())
+		} else {
+			a.win.Invalidate()
+		}
 	}
 }
 func (a *app) background(work func() (func(), error)) {
@@ -188,8 +194,26 @@ func (a *app) show(page string) {
 	}
 	a.win = mygo.NewWindow(mygo.WindowOptions{Title: t("appName"), Width: 960, Height: 720, MinWidth: 780, MinHeight: 580, Hidden: true, Content: ui.View(a.view)})
 	w := a.win
-	w.OnReadyToShow(func() { w.Show(); w.Focus() })
-	w.OnClosed(func() { a.win = nil; runtime.GC(); mygo.App.SetActivationPolicy(mygo.ActivationPolicyAccessory) })
+	w.OnReadyToShow(func() {
+		native, err := a.attachNative(w)
+		if err != nil {
+			a.err = err
+			a.invalidate()
+		} else {
+			a.native = native
+		}
+		w.Show()
+		w.Focus()
+	})
+	w.OnClosed(func() {
+		if a.native != nil {
+			a.native.close()
+			a.native = nil
+		}
+		a.win = nil
+		runtime.GC()
+		mygo.App.SetActivationPolicy(mygo.ActivationPolicyAccessory)
+	})
 }
 
 func (a *app) ready() {

@@ -1,10 +1,12 @@
 # 云伯特 · Yun Bot
 
-正式客户端已迁移到 **MyGo 0.7.4 + Go 1.27.3 原生 UI**，中文名称为「云伯特」，英文名称为 **Yun Bot**。默认开发、构建、菜单栏和安装包入口均使用 `apps/el-bot-client` 中的 Go 程序。旧 Vue／Tauri 源码保留作对照，仍参与 TypeScript 检查，可通过该包的 `legacy:dev`／`legacy:build` 显式运行。
+正式客户端已迁移到 **MyGo 0.7.4 + Go 1.27.3**，中文名称为「云伯特」，英文名称为 **Yun Bot**。默认开发、构建、菜单栏和安装包入口均使用 `apps/el-bot-client` 中的 Go 程序。旧 Vue／Tauri 源码保留作对照，仍参与 TypeScript 检查，可通过该包的 `legacy:dev`／`legacy:build` 显式运行。
+
+macOS 主窗口使用 **AppKit + SwiftUI**：系统分栏侧栏、统一工具栏、原生设置表单、文件选择器和 SF Symbols；快捷入口读取本机已安装应用的真实图标。MyGo 负责窗口生命周期、托盘、菜单与国际化，Go 控制器持有唯一状态与固定命令白名单。Swift 界面通过有限 JSON 事件桥复用同一套逻辑，不内嵌 WebView。Windows／Linux 保留 MyGo 绘制界面。
 
 ## 语言与本机安装
 
-侧栏提供「简体中文」「English」，托盘及「显示 → 语言」也可切换。界面、状态和原生菜单即时切换，偏好由 MyGo 保存到系统应用设置，重启后保留。macOS 系统应用名及原生对话框的系统文案在重新打开应用后跟随所选语言；「跟随系统」恢复系统语言。第三方返回的未知错误保留原文。
+macOS 工具栏（其他平台侧栏）提供「简体中文」「English」，托盘及「显示 → 语言」也可切换。界面、状态和原生菜单即时切换，偏好由 MyGo 保存到系统应用设置，重启后保留。macOS 系统应用名及原生对话框的系统文案在重新打开应用后跟随所选语言；「跟随系统」恢复系统语言。第三方返回的未知错误保留原文。
 
 安装沿用应用标识 `cn.elpsy.elbot.client` 和 `~/.el-bot/client.json`，已有 SSH 主机别名、本机路径和未知设置字段继续保留。语言切换不修改机器人配置。关窗销毁原生窗口、释放界面资源，进程和托盘保持运行；托盘、Dock 或再次打开应用会重建窗口。退出客户端不会停止云端或独立运行的本机机器人。
 
@@ -15,17 +17,17 @@ pnpm client:build
 ./script/build_and_run.sh                # 构建、备份旧 Yun Bot.app、安装并打开
 ```
 
-macOS 安装到 `/Applications/Yun Bot.app`；旧安装包备份到仓库忽略目录 `.el-bot/backups/desktop/`。源码构建需要 Go 和 Xcode Command Line Tools；分层图标需要 Xcode 26+，默认构建不需要 Cargo。旧 Tauri 构建仍需其 Rust 工具链。
+macOS 安装到 `/Applications/Yun Bot.app`；旧安装包备份到仓库忽略目录 `.el-bot/backups/desktop/`。源码构建需要 Go，macOS 还需 Xcode Command Line Tools 的 Swift 编译器；分层图标需要 Xcode 26+，默认构建不需要 Cargo。构建脚本先生成 arm64／x86_64 通用的 `libYunBotNative.dylib`，仅打入 macOS 资源并随应用签名。旧 Tauri 构建仍需其 Rust 工具链。
 
 ## 日常使用
 
-客户端首页现以「快捷操作」为主：打开云端 DSH、本机 QQ 和任务程序；本机机器人状态可展开。路径、QQ 展示和运行日志位于「高级设置」。
+客户端首页现以「快捷操作」为主：打开云端 DSH、本机 QQ 和任务程序；本机机器人状态可展开。路径、QQ 展示和运行日志位于「设置」。
 
-「高级设置 → 云端机器人」只填写本机 SSH 配置中已有的主机别名。点击「打开云端 DSH」后，原生模块建立固定 SSH 隧道并在系统浏览器打开云端认证入口；只保存别名，不保存模型密钥或 Web 登录令牌。现有本机 CLI 尚未配置时，也可以单独使用云端入口。该连接目前已按 macOS 验证流程实现，Windows／Linux 的 SSH 复用与默认浏览器仍需实机验证。
+「设置 → 云端 DSH」只填写本机 SSH 配置中已有的主机别名。点击「打开云端 DSH」后，原生模块建立固定 SSH 隧道并在系统浏览器打开云端认证入口；只保存别名，不保存模型密钥或 Web 登录令牌。现有本机 CLI 尚未配置时，也可以单独使用云端入口。该连接目前已按 macOS 验证流程实现，Windows／Linux 的 SSH 复用与默认浏览器仍需实机验证。
 
 云端负责会话、模型、分组和远程执行；桌面继续负责托盘驻留、本机程序、快捷入口和本机权限。远程页面在独立浏览器中运行。部署、迁移与回退见仓库 `apps/dsh-cloud/README.md`。
 
-在「连接设置」中填写 Node、el-bot CLI、机器人配置、凭据和状态文件的完整路径。设置保存在 `~/.el-bot/client.json`，只有路径，不保存凭据值。每次操作都会重新读取设置。
+在「设置 → 本机运行环境」中填写 Node、el-bot CLI、机器人配置、凭据和状态文件的完整路径。设置保存在 `~/.el-bot/client.json`，只有路径，不保存凭据值。每次操作都会重新读取设置。
 
 - 点击「启动机器人」后，后台进程独立运行。关窗后客户端驻留菜单栏／托盘；macOS 关窗后释放窗口并隐藏 Dock 图标，再次打开时重建窗口。
 - 从菜单栏／托盘或应用图标打开控制台，重复打开只唤起已有客户端实例。「退出客户端（机器人继续运行）」退出界面，后台机器人仍然运行。
@@ -40,9 +42,9 @@ macOS 安装到 `/Applications/Yun Bot.app`；旧安装包备份到仓库忽略�
 
 ## 图片展示与本机程序
 
-在「连接设置 → QQ 回复展示」选择 **展示图片卡片**、**Markdown 卡片（不展示图片）** 或 **纯文本（不展示图片）**。图片卡片支持浅色／深色主题。保存只修改当前机器人配置的 `messageFormat` 和 `image.theme`，保留其他配置、凭据与会话；正在运行时提示等待任务完成后重启，不自动中断。
+在「设置 → QQ 回复展示」选择 **展示图片卡片**、**Markdown 卡片（不展示图片）** 或 **纯文本（不展示图片）**。图片卡片支持浅色／深色主题。保存只修改当前机器人配置的 `messageFormat` 和 `image.theme`，保留其他配置、凭据与会话；正在运行时提示等待任务完成后重启，不自动中断。
 
-「机器人」页面和菜单栏／托盘提供 **打开 Codex**、**打开 CodeBuddy**、**打开 dsh**、**打开 QQ**，在客户端所在电脑启动或唤起已安装应用。macOS 默认按应用标识 `com.openai.codex` / `com.tencent.codebuddycn` / `com.deepseek.dsh`（兼容 `dsh-tauri`） / `com.tencent.qq` 查找安装位置；CodeBuddy 默认查找中国版，其他版本可在连接设置填写完整 `.app` 路径覆盖。Windows 填写完整 `.exe` 路径，Linux 填写完整可执行文件路径。留空时 Windows／Linux 会提示先配置路径。新路径保存在 `~/.el-bot/client.json`，旧版路径配置仍可读取。
+「快捷操作」页面和菜单栏／托盘提供 **打开 Codex**、**打开 CodeBuddy**、**打开 dsh**、**打开 QQ**，在客户端所在电脑启动或唤起已安装应用。macOS 默认按应用标识 `com.openai.codex` / `com.tencent.codebuddycn` / `com.deepseek.dsh`（兼容 `dsh-tauri`） / `com.tencent.qq` 查找安装位置；CodeBuddy 默认查找中国版，其他版本可在连接设置填写完整 `.app` 路径覆盖。Windows 填写完整 `.exe` 路径，Linux 填写完整可执行文件路径。留空时 Windows／Linux 会提示先配置路径。新路径保存在 `~/.el-bot/client.json`，旧版路径配置仍可读取。
 
 机器人配置中的 `agent` 选择 Codex、CodeBuddy 或 dsh 任务程序，状态区显示对应名称。打开程序的路径与任务 CLI 的 `agentExecutable` 分别配置，保存应用路径不会改变任务程序。客户端复用同一套启停入口，CodeBuddy / dsh 接入见[程序接入指南](/codex/agents)。
 
@@ -80,7 +82,7 @@ el-bot codex preferences --message-format markdown --json
 
 ## 构建和分发
 
-客户端概览使用 `assets/avatars/el-bot-qq-avatar.webp`，QQ 机器人资料使用同一构图的原始图片；来源和生成提示词见同目录的 `README.md`。客户端资源导出为 512 × 512 WebP，头像以圆形展示；侧栏保留 el-bot 品牌图标。客户端主题以品牌蓝为主，侧栏辅以低饱和青紫色，并跟随系统切换浅色／深色外观。
+旧 Vue 对照界面的概览使用 `assets/avatars/el-bot-qq-avatar.webp`，QQ 机器人资料使用同一构图的原始图片；来源和生成提示词见同目录的 `README.md`。客户端资源导出为 512 × 512 WebP，头像以圆形展示；侧栏保留 el-bot 品牌图标。客户端主题以品牌蓝为主，侧栏辅以低饱和青紫色，并跟随系统切换浅色／深色外观。
 
 品牌图标按 [YunLeFun/icons 规范](https://github.com/YunLeFun/icons/blob/main/docs/guide/contributing.md)分为透明主体 `el-bot-mark` 和满幅无圆角的 `el-bot-app-icon`。原有 `assets/brand/el-bot-mark.svg` 保持不变，继续用于文档 logo；`assets/brand/el-bot-cloud.svg` 是客户端角色、应用 SVG、PNG、ICO、ICNS、Icon Composer 分层源和 macOS 菜单栏模板共用的云朵源。默认正面主体宽度为 72%，静态图标的圆角只在 macOS ICNS 导出阶段应用一次，菜单栏使用单色模板适配明暗外观。
 
@@ -113,7 +115,7 @@ macOS 预览包使用 ad-hoc 签名，没有开发者证书签名和 Apple 公�
 
 ## 云乐坊设计体系
 
-原生客户端复用 el-bot 品牌图形与分层应用图标，在 Go 主题中映射云乐坊的蓝色、表面、间距和字体语义，跟随系统深浅色。完整人物卡管理留在 DSH Web，桌面只提供摘要、快捷选择与管理入口。
+原生客户端复用 el-bot 品牌图形与分层应用图标。macOS 使用系统侧栏材质、强调色、动态文字和标准控件，跟随系统深浅色；其他平台在 Go 主题中映射品牌蓝色、表面、间距和字体语义。完整人物卡管理留在 DSH Web，桌面只提供摘要、快捷选择与管理入口。
 
 旧 Vue 对照界面继续保留 `@yunlefun/ui`、`@yunlefun/vue` 和已同步的 `YlfAgent*` 组件，源码与许可不因宿主迁移而删除；它们不进入 MyGo 原生运行时。需要继续同步旧组件时，仍使用 `scripts/sync-design-agent.mjs`。
 
@@ -121,6 +123,6 @@ macOS 预览包使用 ad-hoc 签名，没有开发者证书签名和 Apple 公�
 
 - `apps/qq-codex/src/control.ts`：本机 IPC、身份验证、后台进程与结构化结果。
 - `apps/qq-codex/src/lifecycle.ts`：初始化与关闭协调、逐项清理。
-- `apps/el-bot-client`：Go 原生界面、系统菜单栏／托盘、双语目录及有限命令适配；关闭窗口驻留、重复打开唤起同一实例。只允许固定 CLI 操作、本机应用和云端部署命令。
+- `apps/el-bot-client`：Go 控制器、双语目录、系统菜单栏／托盘、macOS AppKit／SwiftUI 界面及有限事件桥；关闭窗口驻留、重复打开唤起同一实例。只允许固定 CLI 操作、本机应用和云端部署命令。
 
 自动验证覆盖控制令牌、实例隔离、锁不匹配、任务中停止、重复关闭、清理失败和两个客户端并发启动同一模拟进程。测试不建立 QQ 连接、不启动模型任务。完整仓库测试、lint、typecheck 以及精确 CLI tarball 的安装检查继续保留。

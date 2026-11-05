@@ -3,6 +3,8 @@ import { copyFileSync } from 'node:fs'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
+await import('./build-macos-native.mjs')
+
 const directory = fileURLToPath(new URL('..', import.meta.url))
 for (const file of ['icon.png', 'tray-icon.png'])
   copyFileSync(new URL(`../src-tauri/icons/${file}`, import.meta.url), new URL(`../resources/${file === 'tray-icon.png' ? 'tray.png' : file}`, import.meta.url))
