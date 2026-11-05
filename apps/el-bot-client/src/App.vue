@@ -2,7 +2,7 @@
 import { isTauri } from '@tauri-apps/api/core'
 import YlfButton from '@yunlefun/vue/components/YlfButton.vue'
 import { computed, nextTick, onMounted, onUnmounted, shallowRef, useTemplateRef } from 'vue'
-import brandMark from '../../../assets/brand/el-bot-mark.svg'
+import brandIcon from '../../../assets/brand/el-bot-app-icon.svg'
 import ConnectionSettings from './components/ConnectionSettings.vue'
 import LocalPrograms from './components/LocalPrograms.vue'
 import ReplySettings from './components/ReplySettings.vue'
@@ -53,7 +53,7 @@ const { error: trayError } = useTrayActions(async (action) => {
   <div class="shell">
     <aside class="sidebar">
       <div class="brand">
-        <img class="brand-mark" :src="brandMark" alt="" width="40" height="40">
+        <img class="brand-mark" :src="brandIcon" alt="" width="40" height="40" draggable="false">
         <div><span class="brand-name">el-bot</span><span class="brand-caption">AI 机器人工作台</span></div>
       </div>
       <nav aria-label="客户端导航">

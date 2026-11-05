@@ -3,6 +3,7 @@ import type { Operation, RuntimeStatus } from '../types'
 import YlfButton from '@yunlefun/vue/components/YlfButton.vue'
 import YlfDialog from '@yunlefun/vue/components/YlfDialog.vue'
 import { computed, shallowRef, watch } from 'vue'
+import botAvatar from '../../../../assets/avatars/el-bot-qq-avatar.webp'
 import { connectionIndicator, runtimeIndicator, taskIndicator } from '../runtime-presentation'
 import ProgramLogo from './ProgramLogo.vue'
 import YlfAgentCard from './ui/YlfAgentCard.vue'
@@ -68,6 +69,9 @@ defineExpose({ requestAction })
 
 <template>
   <YlfAgentCard class="runtime-panel" name="el-bot" :state="summary.state" :status-label="summary.label" :description="status?.project ? `当前项目：${status.project}` : '通过 QQ 私聊使用本机 AI 助手'">
+    <template #avatar>
+      <img class="bot-avatar" :src="botAvatar" alt="" width="48" height="48" draggable="false">
+    </template>
     <dl class="connection-list">
       <div>
         <dt class="connection-label">
@@ -129,12 +133,17 @@ defineExpose({ requestAction })
   gap: var(--ylf-space-3);
 }
 .runtime-panel :deep(.ylf-agent-card__avatar) {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px var(--ylf-c-brand-soft);
 }
-.runtime-panel :deep(.ylf-agent-card__avatar svg) {
-  width: 26px;
-  height: 26px;
+.bot-avatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .runtime-panel :deep(.ylf-agent-card__description) {
   margin-top: var(--ylf-space-1);

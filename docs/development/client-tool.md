@@ -59,9 +59,24 @@ el-bot codex preferences --message-format markdown --json
 
 ## 构建和分发
 
+客户端概览使用 `assets/avatars/el-bot-qq-avatar.webp`，QQ 机器人资料使用同一构图的原始图片；来源和生成提示词见同目录的 `README.md`。客户端资源导出为 512 × 512 WebP，头像以圆形展示；侧栏保留 el-bot 品牌图标。客户端主题以品牌蓝为主，侧栏辅以低饱和青紫色，并跟随系统切换浅色／深色外观。
+
 品牌图标按 [YunLeFun/icons 规范](https://github.com/YunLeFun/icons/blob/main/docs/guide/contributing.md)分为透明主体 `el-bot-mark` 和满幅无圆角的 `el-bot-app-icon`。`assets/brand/el-bot-mark.svg` 是唯一手工维护的图形源；界面、文档、PNG、ICO、ICNS 和 macOS 菜单栏模板从同一主体生成。平台圆角只在 macOS ICNS 导出阶段应用一次，菜单栏使用单色模板适配明暗外观。
 
+当前 macOS 产物采用传统静态 ICNS，包含最高 1024 × 1024 的图像，并提供 `macos-icon.png` 预览；尚未提供 Icon Composer 分层图标。Apple 的新版[应用图标指南](https://developer.apple.com/design/human-interface-guidelines/app-icons)建议使用分层格式控制 Liquid Glass 与不同外观，后续接入时应使用未裁切的品牌源图层，由系统处理圆角。
+
 修改图形后执行 `pnpm icons:generate`，用 `pnpm icons:check` 验证所有派生资产与源一致。客户端开发和安装包构建会自动生成图标。变体元数据与上游来源记录在 `assets/brand/metadata.json`；两个变体已登记到 [YunLeFun/icons 源码集合](https://github.com/YunLeFun/icons)，由图标集的 `pnpm icons:collect` 同步，npm 消费需等待后续版本发布。Iconify 名称为 `ylf:el-bot-mark` / `ylf:el-bot-app-icon`，UnoCSS 类名为 `i-ylf-el-bot-mark` / `i-ylf-el-bot-app-icon`。品牌 SVG 与派生图形采用 `assets/brand/LICENSE` 中的 MIT 许可。
+
+macOS 从源码打包需要 Xcode Command Line Tools 和 Rust 工具链。Tauri 使用 Rust 实现原生窗口、菜单栏／托盘与本机调用，Cargo 负责安装 Rust 依赖并编译这部分代码；Vue 界面仍由 pnpm / Vite 构建。按 [Rust 官方安装指南](https://rust-lang.org/tools/install/)安装 rustup 后，在当前终端加载环境并检查工具：
+
+```sh
+source "$HOME/.cargo/env"
+cargo --version
+rustc --version
+xcode-select -p
+```
+
+如果打包提示找不到 `cargo metadata`，先检查 Cargo 是否已安装并进入 `PATH`。Rust 工具链只用于源码构建，使用已打包的客户端无需安装 Cargo。
 
 ```sh
 pnpm install
