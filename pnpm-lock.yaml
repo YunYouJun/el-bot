@@ -69,6 +69,9 @@ catalogs:
     '@types/qrcode':
       specifier: ^1.5.6
       version: 1.5.6
+    '@types/react':
+      specifier: ^19.2.18
+      version: 19.3.0
     '@types/shelljs':
       specifier: ^0.10.0
       version: 0.10.0
@@ -210,6 +213,9 @@ catalogs:
     qrcode:
       specifier: ^1.5.4
       version: 1.5.4
+    react:
+      specifier: ^19.2.4
+      version: 19.3.1
     reflect-metadata:
       specifier: ^0.2.2
       version: 0.2.2
@@ -657,6 +663,54 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
+
+  packages/dsh:
+    devDependencies:
+      '@el-bot/persona':
+        specifier: workspace:*
+        version: link:../persona
+      '@types/markdown-it':
+        specifier: 'catalog:'
+        version: 14.2.0
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.19.1
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.3.0
+      '@vitejs/plugin-vue':
+        specifier: 'catalog:'
+        version: 6.0.9(vite@8.3.2(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.105.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(vue@3.5.43(typescript@5.9.3))
+      '@yunlefun/ui':
+        specifier: 'catalog:'
+        version: 0.0.6(sass@1.105.1)
+      '@yunlefun/vue':
+        specifier: 'catalog:'
+        version: 0.4.2(sass@1.105.1)(vue@3.5.43(typescript@5.9.3))
+      markdown-it:
+        specifier: 'catalog:'
+        version: 14.3.2
+      react:
+        specifier: 'catalog:'
+        version: 19.3.1
+      sass:
+        specifier: 'catalog:'
+        version: 1.105.1
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.23.0(@volar/typescript@2.4.28(typescript@5.9.3))(@vue/language-core@3.3.12)(publint@0.3.25)(tsx@4.23.15)(typescript@5.9.3)(vue-tsc@3.3.12(typescript@5.9.3))
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vite:
+        specifier: 'catalog:'
+        version: 8.3.2(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.105.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)
+      vue:
+        specifier: 'catalog:'
+        version: 3.5.43(typescript@5.9.3)
+      vue-tsc:
+        specifier: 'catalog:'
+        version: 3.3.12(typescript@5.9.3)
 
   packages/el-bot:
     dependencies:
@@ -2408,6 +2462,9 @@ packages:
 
   '@types/qrcode@1.5.6':
     resolution: {integrity: sha512-te7NQcV2BOvdj2b1hCAHzAoMNuj65kNBMz0KBaxM6c3VGBOhU0dURQKOtH8CFNI/dsKkwlv32p26qYQTWoB5bw==}
+
+  '@types/react@19.3.0':
+    resolution: {integrity: sha512-N0rFCuH9YoxG9/m61l9MfpJKfmLOVU0em7ipIz6TRgSSkvReLB9vL85GB+yr8Bs5leqpvg96JSwF4ZS1s4viQg==}
 
   '@types/shelljs@0.10.0':
     resolution: {integrity: sha512-OEfyhE5Ox+FeoHbhrEDwm0kXxntO6nsyMRCFvNsIBHPZu5rV1w2OjPcLclaC/IZ1TlzZPgbeMfwAZEi5N238yQ==}
@@ -5267,6 +5324,10 @@ packages:
   rc9@3.1.0:
     resolution: {integrity: sha512-ufjkNVzbRHKcCOmTahZkmVsyc3W+MSk3jY03m+a7tGHkIsdVMG9l10/3HvFbWkkKzY5VFp3pkRsIo/UYgmFL7Q==}
 
+  react@19.3.1:
+    resolution: {integrity: sha512-QNhWdt7nrgVWWQG58QuGsAR3jv3Hbe4mb4vz7w2csnHavciZJgda1CPNaldF6eVxv90ud3jUXpKlHL69gO38yw==}
+    engines: {node: '>=0.10.0'}
+
   readable-stream@1.0.34:
     resolution: {integrity: sha512-ok1qVCJuRkNmvebYikljxJA/UEsKwLl2nI1OmaqAu4/UE+h0wKCHok4XkL/gvi39OacXvw59RJUOFUkDib2rHg==}
 
@@ -7398,6 +7459,10 @@ snapshots:
   '@types/qrcode@1.5.6':
     dependencies:
       '@types/node': 24.19.1
+
+  '@types/react@19.3.0':
+    dependencies:
+      csstype: 3.2.3
 
   '@types/shelljs@0.10.0':
     dependencies:
@@ -10513,6 +10578,8 @@ snapshots:
     dependencies:
       defu: 6.1.7
       destr: 2.0.5
+
+  react@19.3.1: {}
 
   readable-stream@1.0.34:
     dependencies:

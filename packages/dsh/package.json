@@ -1,0 +1,65 @@
+{
+  "name": "@el-bot/dsh",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "el-bot character cards and QQ workspace integration for DSH",
+  "license": "AGPL-3.0",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./client": "./dist/client.js",
+    "./qq-workspaces": {
+      "types": "./dist/qq-workspaces.d.mts",
+      "import": "./dist/qq-workspaces.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "cordis.patch.yml",
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    },
+    "compatibility": {
+      "dshReleases": {
+        "0.2.1-rc.5": "compatible"
+      },
+      "note": "Character cards, authenticated Web page and QQ admission are verified against DSH 0.2.1-rc.5 and dsh-qqbot 0.5.5"
+    }
+  },
+  "scripts": {
+    "build": "tsdown && tsdown --config tsdown.client.config.ts && vite build --config vite.config.ts",
+    "typecheck": "vue-tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": ">=18 <20"
+  },
+  "devDependencies": {
+    "@el-bot/persona": "workspace:*",
+    "@types/markdown-it": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@vitejs/plugin-vue": "catalog:",
+    "@yunlefun/ui": "catalog:",
+    "@yunlefun/vue": "catalog:",
+    "markdown-it": "catalog:",
+    "react": "catalog:",
+    "sass": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vue": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

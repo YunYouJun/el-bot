@@ -1,0 +1,35 @@
+services:
+  dsh:
+    image: el-bot/dsh-cloud:0.2.1-rc.5-qq0.5.5-personas0.1.0
+    container_name: el-bot-dsh
+    pull_policy: never
+    build: .
+    restart: unless-stopped
+    init: true
+    environment:
+      HOME: ${DSH_USER_HOME:-/home/node}
+      DSH_PUBLIC_URL: http://127.0.0.1:13080
+    working_dir: ${DSH_USER_HOME:-/home/node}/.dsh-qqbot/workspace
+    volumes:
+      - ./home:${DSH_USER_HOME:-/home/node}
+    ports:
+      - 127.0.0.1:3080:3080
+    cpus: 0.75
+    mem_limit: 1g
+    pids_limit: 256
+    stop_grace_period: 45s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    healthcheck:
+      test: [CMD, node, -e, "const ip=Object.values(require('node:os').networkInterfaces()).flat().find(x=>x.family==='IPv4'&&!x.internal).address;fetch('http://'+ip+':3080').then(r=>process.exit(r.ok||r.status===401?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 120s
+      retries: 3

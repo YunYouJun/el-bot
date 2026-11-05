@@ -5,6 +5,7 @@
     "experimentalDecorators": true,
     "baseUrl": ".",
     "paths": {
+      "@el-bot/dsh": ["packages/dsh/src/index.ts"],
       "@el-bot/persona": ["packages/persona/src/index.ts"],
       "el-bot/adapter": ["packages/el-bot/core/adapter.ts"],
       "#plugin-qq": ["packages/plugin-qq/src/index.ts"],
@@ -38,6 +39,8 @@
     "**/*.ts"
   ],
   "exclude": [
+    "packages/dsh/src/client.ts",
+    "packages/dsh/web/**",
     "**/dist/**",
     "**/node_modules/**",
     "**/*.spec.ts"

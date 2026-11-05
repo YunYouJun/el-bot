@@ -11,9 +11,9 @@ export default antfu({
     'ts/consistent-type-imports': 'off',
   },
 }, {
-  files: ['apps/el-bot-client/**'],
+  files: ['apps/el-bot-client/**', 'packages/dsh/web/**'],
   rules: {
-    // This client uses semantic CSS classes rather than UnoCSS utilities.
+    // These views use semantic CSS classes rather than UnoCSS utilities.
     'unocss/order': 'off',
     'unocss/order-attributify': 'off',
   },
