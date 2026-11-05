@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { isTauri } from '@tauri-apps/api/core'
+import { invoke, isTauri } from '@tauri-apps/api/core'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import YlfButton from '@yunlefun/vue/components/YlfButton.vue'
 import { computed, nextTick, onMounted, onUnmounted, shallowRef, useTemplateRef } from 'vue'
 import brandIcon from '../../../assets/brand/el-bot-app-icon.svg'
@@ -12,6 +13,22 @@ import { useBotController } from './composables/useBotController'
 import { useTrayActions } from './composables/useTrayActions'
 
 const desktop = isTauri()
+// Only the prototype Rust command records these signals, gated by a local marker file.
+function reportPrototypeReady() {
+  if (desktop)
+    requestAnimationFrame(() => requestAnimationFrame(() => { void invoke('prototype_ui_ready').catch(() => {}) }))
+}
+let stopPrototypeFocus: (() => void) | undefined
+onMounted(() => {
+  reportPrototypeReady()
+  if (desktop) {
+    void getCurrentWindow().onFocusChanged(({ payload }) => {
+      if (payload)
+        reportPrototypeReady()
+    }).then((stop) => { stopPrototypeFocus = stop })
+  }
+})
+onUnmounted(() => stopPrototypeFocus?.())
 const colorScheme = window.matchMedia('(prefers-color-scheme: dark)')
 function syncTheme() {
   document.documentElement.classList.toggle('ylf-theme-dark', colorScheme.matches)

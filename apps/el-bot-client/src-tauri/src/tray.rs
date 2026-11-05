@@ -12,6 +12,7 @@ struct TrayMenu {
 }
 
 pub fn show_window(app: &AppHandle) {
+    crate::prototype_metrics::shown(app);
     #[cfg(target_os = "macos")]
     let _ = app.set_activation_policy(tauri::ActivationPolicy::Regular);
     if let Some(window) = app.get_webview_window("main") {

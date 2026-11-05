@@ -6,6 +6,7 @@ fn main() {
             "bot_command",
             "reply_settings",
             "open_local_program",
+            "prototype_ui_ready",
         ]),
     ))
     .expect("failed to build desktop manifest");

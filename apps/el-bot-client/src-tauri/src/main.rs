@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod programs;
+mod prototype_metrics;
 mod settings;
 mod tray;
 use settings::ClientSettings;
@@ -172,7 +173,11 @@ async fn execute_cli(operation: &str, extra: Vec<String>) -> Result<serde_json::
 }
 
 fn main() {
+    let prototype_start = std::time::Instant::now();
     tauri::Builder::default()
+        .manage(prototype_metrics::PrototypeMetrics(std::sync::Mutex::new(
+            Some((prototype_start, "startup")),
+        )))
         .plugin(tauri_plugin_single_instance::init(|app, _, _| {
             tray::show_window(app);
         }))
@@ -192,7 +197,8 @@ fn main() {
             save_settings,
             bot_command,
             reply_settings,
-            open_local_program
+            open_local_program,
+            prototype_metrics::prototype_ui_ready
         ])
         .build(tauri::generate_context!())
         .expect("failed to build el-bot client")
