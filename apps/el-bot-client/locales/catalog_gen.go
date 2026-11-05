@@ -1133,3 +1133,23 @@ func ErrorBrowser() string { return In(i18n.Locale()).ErrorBrowser() }
 func (msgs Messages) ErrorBrowser() string {
 	return Catalog.Format(msgs.locale, "errorBrowser", nil)
 }
+
+// ErrorNativeUI says "The macOS interface could not be loaded. Rebuild or reinstall Yun Bot."
+// in the language the app shows.
+func ErrorNativeUI() string { return In(i18n.Locale()).ErrorNativeUI() }
+
+// ErrorNativeUI says "The macOS interface could not be loaded. Rebuild or reinstall Yun Bot."
+// in the language of msgs.
+func (msgs Messages) ErrorNativeUI() string {
+	return Catalog.Format(msgs.locale, "errorNativeUI", nil)
+}
+
+// Sidebar says "Sidebar"
+// in the language the app shows.
+func Sidebar() string { return In(i18n.Locale()).Sidebar() }
+
+// Sidebar says "Sidebar"
+// in the language of msgs.
+func (msgs Messages) Sidebar() string {
+	return Catalog.Format(msgs.locale, "sidebar", nil)
+}

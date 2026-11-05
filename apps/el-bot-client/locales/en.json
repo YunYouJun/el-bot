@@ -111,5 +111,7 @@
   "errorProgram": "App not found. Set its full path in Settings.",
   "errorPlatform": "Configure an executable path for this platform.",
   "errorState": "Refresh the bot status before this action.",
-  "errorBrowser": "Could not open the default browser."
+  "errorBrowser": "Could not open the default browser.",
+  "errorNativeUI": "The macOS interface could not be loaded. Rebuild or reinstall Yun Bot.",
+  "sidebar": "Sidebar"
 }

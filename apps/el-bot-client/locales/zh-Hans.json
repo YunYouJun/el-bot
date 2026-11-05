@@ -111,5 +111,7 @@
   "errorProgram": "找不到应用，请在设置中填写完整路径。",
   "errorPlatform": "请为当前系统配置应用可执行文件路径。",
   "errorState": "请先刷新状态，当前状态不允许此操作。",
-  "errorBrowser": "无法打开默认浏览器。"
+  "errorBrowser": "无法打开默认浏览器。",
+  "errorNativeUI": "无法加载 macOS 原生界面，请重新构建或安装云伯特。",
+  "sidebar": "侧边栏"
 }
