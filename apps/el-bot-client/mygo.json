@@ -1,0 +1,23 @@
+{
+  "name": "Yun Bot",
+  "slug": "yun-bot",
+  "identifier": "cn.elpsy.elbot.client",
+  "version": "0.1.0",
+  "out": "build",
+  "publisher": "YunLeFun",
+  "i18n": {
+    "dir": "locales",
+    "source": "en"
+  },
+  "macos": {
+    "minimumSystemVersion": "13.0",
+    "icon": "src-tauri/icons/ElBot.icon",
+    "signingIdentity": "-",
+    "infoPlist": {
+      "CFBundleIconFile": "icon.icns"
+    }
+  },
+  "resources": [
+    "src-tauri/icons/icon.icns"
+  ]
+}

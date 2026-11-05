@@ -18,24 +18,24 @@ jobs:
         include:
           - os: macos-26
             label: macos-arm64
-            target: aarch64-apple-darwin
+            target: darwin/arm64
             bundles: dmg
           - os: macos-26-intel
             label: macos-x64
-            target: x86_64-apple-darwin
+            target: darwin/amd64
             bundles: dmg
           - os: windows-2022
             label: windows-x64
-            target: x86_64-pc-windows-msvc
+            target: windows/amd64
             bundles: nsis
           - os: ubuntu-22.04
             label: linux-x64
-            target: x86_64-unknown-linux-gnu
-            bundles: appimage,deb
+            target: linux/amd64
+            bundles: archive,deb
           - os: ubuntu-22.04-arm
             label: linux-arm64
-            target: aarch64-unknown-linux-gnu
-            bundles: appimage,deb
+            target: linux/arm64
+            bundles: archive,deb
     steps:
       - uses: actions/checkout@v7
         with:
@@ -50,30 +50,23 @@ jobs:
         with:
           node-version-file: .node-version
           cache: pnpm
-      - uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
+      - uses: actions/setup-go@v6
         with:
-          toolchain: stable
-          targets: ${{ matrix.target }}
-      - uses: Swatinem/rust-cache@49a0bdc70d2e1b713ca9e2869b211fcce03d3c1c # v2
-        with:
-          workspaces: apps/el-bot-client/src-tauri -> target
-          key: ${{ matrix.target }}
+          go-version-file: apps/el-bot-client/go.mod
+          cache-dependency-path: apps/el-bot-client/go.sum
       - run: pnpm install --frozen-lockfile
       - run: pnpm icons:check
-      - run: pnpm --filter @el-bot/client build
+      - run: pnpm --filter @el-bot/client typecheck
       - name: Test native client without launching it
-        run: cargo test --release --locked --manifest-path apps/el-bot-client/src-tauri/Cargo.toml --target ${{ matrix.target }}
-      - name: Build preview installers
-        uses: tauri-apps/tauri-action@944946e3e4cac6603d1fe8f514171e9ecd3c78aa # v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          projectPath: apps/el-bot-client
-          tauriScript: pnpm tauri
-          args: --ci --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} -- --locked
+        run: go -C apps/el-bot-client test ./...
+      - name: Build MyGo preview installers
+        run: pnpm --filter @el-bot/client desktop:build --platform ${{ matrix.target }}
       - name: Verify native Liquid Glass icon
         if: runner.os == 'macOS'
-        run: node apps/el-bot-client/scripts/check-macos-icon.mjs "apps/el-bot-client/src-tauri/target/${{ matrix.target }}/release/bundle/macos/el-bot Client.app"
+        shell: bash
+        run: |
+          target="${{ matrix.target }}"
+          node apps/el-bot-client/scripts/check-macos-icon.mjs "apps/el-bot-client/build/${target/\//-}/Yun Bot.app"
       - name: Collect installers and checksums
         run: node scripts/stage-client-release.mjs ${{ matrix.target }} ${{ matrix.label }} ${{ matrix.bundles }}
       - uses: actions/upload-artifact@v7

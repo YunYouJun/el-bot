@@ -9,34 +9,34 @@ let root: string
 beforeEach(async () => {
   root = await mkdtemp(path.join(tmpdir(), 'el-bot-client-release-'))
   const app = path.join(root, 'apps/el-bot-client')
-  await mkdir(path.join(app, 'src-tauri'), { recursive: true })
+  await mkdir(app, { recursive: true })
   await writeFile(path.join(app, 'package.json'), JSON.stringify({ version: '0.1.0' }))
-  await writeFile(path.join(app, 'src-tauri/tauri.conf.json'), JSON.stringify({ version: '0.1.0' }))
+  await writeFile(path.join(app, 'mygo.json'), JSON.stringify({ version: '0.1.0' }))
 })
 
 afterEach(async () => {
   await rm(root, { recursive: true, force: true })
 })
 
-async function installer(target: string, bundle: string, filename: string, content = 'abc') {
-  const directory = path.join(root, 'apps/el-bot-client/src-tauri/target', target, 'release/bundle', bundle)
+async function installer(target: string, _bundle: string, filename: string, content = 'abc') {
+  const directory = path.join(root, 'apps/el-bot-client/build', target.replace('/', '-'))
   await mkdir(directory, { recursive: true })
   await writeFile(path.join(directory, filename), content)
 }
 
 describe('desktop release artifacts', () => {
   it.each([
-    ['aarch64-apple-darwin', 'macos-arm64', 'dmg', ['.dmg']],
-    ['x86_64-apple-darwin', 'macos-x64', 'dmg', ['.dmg']],
-    ['x86_64-pc-windows-msvc', 'windows-x64', 'nsis', ['.exe']],
-    ['aarch64-unknown-linux-gnu', 'linux-arm64', 'appimage,deb', ['.AppImage', '.deb']],
-    ['x86_64-unknown-linux-gnu', 'linux-x64', 'appimage,deb', ['.AppImage', '.deb']],
+    ['darwin/arm64', 'macos-arm64', 'dmg', ['.dmg']],
+    ['darwin/amd64', 'macos-x64', 'dmg', ['.dmg']],
+    ['windows/amd64', 'windows-x64', 'nsis', ['.exe']],
+    ['linux/arm64', 'linux-arm64', 'archive,deb', ['.tar.gz', '.deb']],
+    ['linux/amd64', 'linux-x64', 'archive,deb', ['.tar.gz', '.deb']],
   ])('stages %s installers with distinct names and known SHA-256 checksums', async (target, label, bundles, extensions) => {
     const formats = (bundles as string).split(',')
     for (const [index, bundle] of formats.entries())
-      await installer(target as string, bundle, `el-bot Client_0.1.0_test${extensions[index]}`)
+      await installer(target as string, bundle, `${bundle === 'nsis' ? 'yun-bot-setup-0.1.0-test' : 'yun-bot_0.1.0_test'}${extensions[index]}`)
     const output = await stageClientRelease(target, label, bundles, root)
-    const names = (extensions as string[]).map(extension => `el-bot-client_0.1.0_${label}${extension}`)
+    const names = (extensions as string[]).map(extension => `yun-bot_0.1.0_${label}${extension}`)
     expect((await readdir(output)).sort()).toEqual([...names, `SHA256SUMS-${label}.txt`].sort())
     for (const name of names)
       expect(await readFile(path.join(output, name), 'utf8')).toBe('abc')
@@ -45,27 +45,27 @@ describe('desktop release artifacts', () => {
   })
 
   it('rejects target mismatches and unknown formats before writing output', async () => {
-    await expect(stageClientRelease('x86_64-apple-darwin', 'macos-arm64', 'dmg', root)).rejects.toThrow('mismatched')
-    await expect(stageClientRelease('aarch64-apple-darwin', 'macos-arm64', 'exe', root)).rejects.toThrow('mismatched')
+    await expect(stageClientRelease('darwin/amd64', 'macos-arm64', 'dmg', root)).rejects.toThrow('mismatched')
+    await expect(stageClientRelease('darwin/arm64', 'macos-arm64', 'exe', root)).rejects.toThrow('mismatched')
     await expect(readdir(path.join(root, 'dist'))).rejects.toThrow()
   })
 
   it('rejects mismatched manifest versions', async () => {
     await writeFile(path.join(root, 'apps/el-bot-client/package.json'), JSON.stringify({ version: '0.2.0' }))
-    await expect(stageClientRelease('aarch64-apple-darwin', 'macos-arm64', 'dmg', root)).rejects.toThrow('versions must match')
+    await expect(stageClientRelease('darwin/arm64', 'macos-arm64', 'dmg', root)).rejects.toThrow('versions must match')
   })
 
   it.each([
     ['old version', 'el-bot Client_0.0.9_arm64.dmg', 'abc', 'client version'],
     ['empty installer', 'el-bot Client_0.1.0_arm64.dmg', '', 'not be empty'],
   ])('rejects an %s', async (_, filename, content, error) => {
-    await installer('aarch64-apple-darwin', 'dmg', filename, content)
-    await expect(stageClientRelease('aarch64-apple-darwin', 'macos-arm64', 'dmg', root)).rejects.toThrow(error)
+    await installer('darwin/arm64', 'dmg', filename, content)
+    await expect(stageClientRelease('darwin/arm64', 'macos-arm64', 'dmg', root)).rejects.toThrow(error)
   })
 
   it('rejects ambiguous installers instead of uploading an arbitrary file', async () => {
-    await installer('aarch64-apple-darwin', 'dmg', 'el-bot Client_0.1.0_arm64.dmg')
-    await installer('aarch64-apple-darwin', 'dmg', 'el-bot Client_0.0.9_arm64.dmg')
-    await expect(stageClientRelease('aarch64-apple-darwin', 'macos-arm64', 'dmg', root)).rejects.toThrow('Expected one dmg installer')
+    await installer('darwin/arm64', 'dmg', 'el-bot Client_0.1.0_arm64.dmg')
+    await installer('darwin/arm64', 'dmg', 'el-bot Client_0.0.9_arm64.dmg')
+    await expect(stageClientRelease('darwin/arm64', 'macos-arm64', 'dmg', root)).rejects.toThrow('Expected one dmg installer')
   })
 })

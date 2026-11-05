@@ -53,6 +53,10 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: apps/el-bot-client/go.mod
+          cache-dependency-path: apps/el-bot-client/go.sum
       - run: pnpm build
       - run: pnpm typecheck:packages
       - run: pnpm --filter @el-bot/qq-codex exec playwright install --with-deps chromium
