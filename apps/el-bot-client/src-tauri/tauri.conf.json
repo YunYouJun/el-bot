@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "identifier": "cn.elpsy.elbot.client",
   "build": {
-    "beforeDevCommand": "pnpm dev",
+    "beforeDevCommand": "pnpm legacy:web",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "pnpm build",
+    "beforeBuildCommand": "pnpm legacy:frontend",
     "frontendDist": "../dist"
   },
   "app": {

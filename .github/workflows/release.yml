@@ -50,6 +50,10 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: apps/el-bot-client/go.mod
+          cache-dependency-path: apps/el-bot-client/go.sum
       - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm typecheck:packages

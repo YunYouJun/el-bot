@@ -24,10 +24,10 @@
     "variant": "app-icon",
     "title": "el-bot",
     "titleZh": "el-bot 机器人",
-    "description": "满幅蓝色背景与白色机器人主体组成的无遮罩方形应用图标。",
+    "description": "满幅品牌蓝背景与 72% 宽度的三弧云朵机器人组成的无遮罩方形应用图标。",
     "category": "utility",
     "style": "color",
-    "tags": ["bot", "机器人", "qq", "codex", "desktop", "app-icon"],
+    "tags": ["bot", "机器人", "cloud", "云朵", "qq", "codex", "desktop", "app-icon"],
     "website": "https://docs.bot.elpsy.cn/",
     "source": {
       "repository": "YunYouJun/el-bot",

@@ -15,14 +15,41 @@ const require = createRequire(import.meta.url)
 const cli = require.resolve('@tauri-apps/cli/tauri.js')
 const source = await readFile(join(root, 'assets/brand/el-bot-mark.svg'), 'utf8')
 assert.match(source, /viewBox="0 0 64 64"/)
-const body = source.match(/<svg[^>]*>([\s\S]*?)<\/svg>\s*$/)?.[1].trim()
-assert(body, 'Expected a canonical SVG mark.')
-const color = body.match(/fill="(#[\dA-Fa-f]{6})"/)?.[1]
-assert(color, 'Expected the mark to declare its brand color.')
-const foreground = body.replaceAll(color, '#FFFFFF')
+const cloud = await readFile(join(root, 'assets/brand/el-bot-cloud.svg'), 'utf8')
+assert.match(cloud, /viewBox="0 0 64 64"/)
+const shape = cloud.match(/<path id="cloud-body" d="([^"]+)"/)?.[1]
+const eyes = cloud.match(/<path id="cloud-eyes" d="([^"]+)"/)?.[1]
+assert(shape && eyes, 'Expected separate canonical cloud and eye paths.')
+const color = cloud.match(/<use href="#cloud-body" fill="(#[\dA-Fa-f]{6})"/)?.[1]
+assert(color, 'Expected the cloud to declare its brand color.')
+const body = `<path fill="${color}" fill-rule="evenodd" d="${shape}${eyes}"/>`
+// The cloud spans 52 units (x = 6..58); size the app artwork to 72%.
+const appMarkScale = (64 * 0.72) / 52
+const foreground = `<g transform="translate(32 32) scale(${appMarkScale}) translate(-32 -32)">${body.replaceAll(color, '#FFFFFF')}</g>`
 const appIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">\n  <rect width="64" height="64" fill="${color}"/>\n  ${foreground}\n</svg>\n`
+const composerForeground = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 64 64">\n  ${foreground}\n</svg>\n`
+const composerColor = `${color.slice(1).match(/../g).map(channel => (Number.parseInt(channel, 16) / 255).toFixed(5)).join(',')},1.00000`
+const composerIcon = {
+  'fill': { 'automatic-gradient': `srgb:${composerColor}` },
+  'fill-specializations': [
+    { appearance: 'dark', value: { 'automatic-gradient': 'srgb:0.06275,0.10980,0.18824,1.00000' } },
+    { appearance: 'tinted', value: 'automatic' },
+  ],
+  'groups': [{
+    name: 'Cloud bot',
+    layers: [{
+      'name': 'Cloud bot',
+      'image-name': 'cloud.svg',
+      'glass': true,
+      'fill-specializations': [{ appearance: 'tinted', value: 'automatic' }],
+    }],
+    shadow: { kind: 'neutral', opacity: 0.3 },
+    translucency: { enabled: true, value: 0.1 },
+  }],
+  'supported-platforms': { squares: ['macOS'] },
+}
 const macIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><clipPath id="mac-mask"><rect x="4" y="4" width="56" height="56" rx="12.5"/></clipPath></defs><g clip-path="url(#mac-mask)"><g transform="translate(4 4) scale(.875)"><rect width="64" height="64" fill="${color}"/>${foreground}</g></g></svg>`
-const trayIcon = source.replaceAll(color, '#000000')
+const trayIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">${body.replaceAll(color, '#000000')}</svg>`
 function render(svg, width) {
   return new Resvg(svg, { fitTo: { mode: 'width', value: width } }).render()
 }
@@ -95,6 +122,8 @@ try {
   const manifest = JSON.parse(await readFile(join(root, 'docs/public/manifest.json'), 'utf8'))
   outputs.set('docs/public/manifest.json', `${JSON.stringify({ ...manifest, theme_color: color }, null, 2)}\n`)
   const icons = 'apps/el-bot-client/src-tauri/icons'
+  outputs.set(`${icons}/ElBot.icon/icon.json`, `${JSON.stringify(composerIcon, null, 2)}\n`)
+  outputs.set(`${icons}/ElBot.icon/Assets/cloud.svg`, composerForeground)
   outputs.set(`${icons}/icon.png`, await readFile(join(temporary, 'app/icon.png')))
   outputs.set(`${icons}/icon.ico`, canonicalIco(appIcon))
   outputs.set(`${icons}/icon.icns`, canonicalIcns(await readFile(join(temporary, 'mac/icon.icns'))))

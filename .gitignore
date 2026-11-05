@@ -75,6 +75,7 @@ typings/
 dist
 
 # Desktop build products
+apps/el-bot-client/build/
 **/src-tauri/target/
 **/src-tauri/gen/schemas/
 

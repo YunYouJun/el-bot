@@ -6,13 +6,33 @@
   "scripts": {
     "icons:generate": "node scripts/generate-icons.mjs",
     "icons:check": "node scripts/generate-icons.mjs --check",
-    "dev": "vite --host 127.0.0.1 --port 1420",
-    "build": "vue-tsc --noEmit && vite build",
-    "typecheck": "vue-tsc --noEmit",
+    "dev": "go tool mygo dev",
+    "build": "node scripts/build-native.mjs --skip-dmg --skip-installer",
+    "build:macos": "pnpm build && node scripts/compile-macos-icon.mjs",
+    "typecheck": "vue-tsc --noEmit && go vet ./...",
     "tauri": "tauri",
-    "desktop:dev": "pnpm icons:generate && tauri dev",
-    "desktop:build": "pnpm icons:generate && tauri build"
+    "desktop:dev": "pnpm icons:generate && go tool mygo dev",
+    "desktop:build": "pnpm icons:generate && node scripts/build-native.mjs",
+    "test": "go test ./...",
+    "legacy:web": "vite --host 127.0.0.1 --port 1420",
+    "legacy:frontend": "vue-tsc --noEmit && vite build",
+    "legacy:macos": "pnpm legacy:frontend && node scripts/compile-macos-icon.mjs",
+    "legacy:dev": "pnpm icons:generate && tauri dev",
+    "legacy:build": "pnpm icons:generate && tauri build"
   },
-  "dependencies": { "@tauri-apps/api": "catalog:", "@yunlefun/ui": "catalog:", "@yunlefun/vue": "catalog:", "vue": "catalog:" },
-  "devDependencies": { "@resvg/resvg-js": "catalog:", "@tauri-apps/cli": "catalog:", "@vitejs/plugin-vue": "catalog:", "sass": "catalog:", "typescript": "catalog:", "vite": "catalog:", "vue-tsc": "catalog:" }
+  "dependencies": {
+    "@tauri-apps/api": "catalog:",
+    "@yunlefun/ui": "catalog:",
+    "@yunlefun/vue": "catalog:",
+    "vue": "catalog:"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "catalog:",
+    "@tauri-apps/cli": "catalog:",
+    "@vitejs/plugin-vue": "catalog:",
+    "sass": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vue-tsc": "catalog:"
+  }
 }
