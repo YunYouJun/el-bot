@@ -1,4 +1,5 @@
 import type { AgentClient, CodexDesktopClient, CodexSchema, ReviewTarget, RpcNotification, RpcRequest } from '@el-bot/codex'
+import type { PersonaPreview } from '@el-bot/persona'
 import type { C2CMessage, QQBotClient } from 'qq-sdk/official'
 import type {
   CardImagePublisher,
@@ -11,6 +12,7 @@ import type {
   Task,
 } from './types'
 import { randomBytes } from 'node:crypto'
+import { personaPrompt } from '@el-bot/persona'
 import { isRecord } from 'qq-sdk/official'
 import { acceptedCard, approvalCard, cardPages, helpCard, projectsCard, resultCard, statusCard } from './cards'
 import { HELP_COMMANDS } from './constants'
@@ -37,6 +39,7 @@ export class RemoteController {
   private turnFailure?: { turnId: string, code: FailureCode }
   private sender: ReplySender
   private management: ManagementController
+  private loadPersona?: () => Promise<PersonaPreview | undefined>
 
   constructor(
     private config: RemoteConfig,
@@ -45,8 +48,9 @@ export class RemoteController {
     private codex: AgentClient,
     private save: (state: RemoteState) => Promise<void>,
     private onError: (error: unknown) => void,
-    integrations: { schema?: CodexSchema, desktop?: CodexDesktopClient, images?: CardImagePublisher } = {},
+    integrations: { schema?: CodexSchema, desktop?: CodexDesktopClient, images?: CardImagePublisher, persona?: () => Promise<PersonaPreview | undefined> } = {},
   ) {
+    this.loadPersona = integrations.persona
     this.sender = new ReplySender(qq, config.messageFormat, onError, integrations.images)
     this.management = new ManagementController(config, codex, integrations.schema, integrations.desktop, () => state.project, () => !!this.active || this.closed || this.stopping, (reply, text) => this.say(reply, text))
     if (config.ownerOpenId && state.owner && config.ownerOpenId !== state.owner) {
@@ -329,9 +333,13 @@ export class RemoteController {
 
   private async run(task: Task, prompt: string, review?: ReviewTarget) {
     const cwd = this.config.projects[task.project]
-    const saved = this.state.threads[task.project]
-    if (saved && saved.cwd !== cwd)
+    const previous = this.state.threads[task.project]
+    if (previous && previous.cwd !== cwd)
       throw new Error('Project path changed; use /new before resuming')
+    // Snapshot the selection once per admitted task. Switching never steers active work.
+    const persona = await this.loadPersona?.()
+    const personaKey = persona ? `${persona.metadata.id}:${persona.hash}` : undefined
+    const saved = previous?.persona === personaKey ? previous : undefined
     if (saved) {
       const check = await inspectSession(this.codex, task.project, cwd, saved)
       if (check.status !== 'ready' && !(this.codex.provider && check.status === 'unavailable'))
@@ -345,7 +353,7 @@ export class RemoteController {
     if (this.active !== task)
       return
     task.threadId = threadId
-    this.state.threads[task.project] = { id: threadId, cwd }
+    this.state.threads[task.project] = { id: threadId, cwd, ...(personaKey ? { persona: personaKey } : {}) }
     await this.persist()
     if (this.cancelled) {
       await this.finish('interrupted', '任务在启动前被停止。')
@@ -356,7 +364,7 @@ export class RemoteController {
       : await this.codex.turn(
           threadId,
           cwd,
-          prompt,
+          personaPrompt(prompt, persona),
           this.config.model,
         )
     if (this.active !== task)

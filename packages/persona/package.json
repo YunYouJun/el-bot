@@ -1,0 +1,14 @@
+{
+  "name": "@el-bot/persona",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Portable Markdown character cards and local persona library",
+  "license": "AGPL-3.0",
+  "sideEffects": false,
+  "exports": { ".": { "types": "./dist/index.d.mts", "import": "./dist/index.mjs" } },
+  "files": ["dist", "examples"],
+  "engines": { "node": ">=22.18.0" },
+  "scripts": { "build": "tsdown", "typecheck": "tsc --noEmit" },
+  "dependencies": { "js-yaml": "catalog:" },
+  "devDependencies": { "@types/js-yaml": "catalog:", "@types/node": "catalog:", "tsdown": "catalog:", "typescript": "catalog:" }
+}

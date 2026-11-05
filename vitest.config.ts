@@ -4,6 +4,7 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   resolve: { alias: {
+    '@el-bot/persona': fileURLToPath(new URL('./packages/persona/src/index.ts', import.meta.url)),
     'el-bot/adapter': fileURLToPath(new URL('./packages/el-bot/core/adapter.ts', import.meta.url)),
     '#plugin-qq': fileURLToPath(new URL('./packages/plugin-qq/src/index.ts', import.meta.url)),
     '@el-bot/plugin-qq': fileURLToPath(new URL('./packages/plugin-qq/src/index.ts', import.meta.url)),

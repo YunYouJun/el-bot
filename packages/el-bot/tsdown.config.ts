@@ -22,10 +22,11 @@ export default defineConfig({
     'qq-sdk': fileURLToPath(new URL('../qq-sdk/src/index.ts', import.meta.url)),
     '#qq-sdk': fileURLToPath(new URL('../qq-sdk/src/index.ts', import.meta.url)),
     '@el-bot/codex': fileURLToPath(new URL('../codex/src/index.ts', import.meta.url)),
+    '@el-bot/persona': fileURLToPath(new URL('../persona/src/index.ts', import.meta.url)),
   },
   deps: {
     // NapCat's ESM output also imports JSON without the Node-required attribute.
-    alwaysBundle: ['@el-bot/qq-codex', 'qq-sdk', '@el-bot/codex', 'mirai-ts', /^node-napcat-ts(?:\/|$)/],
+    alwaysBundle: ['@el-bot/qq-codex', 'qq-sdk', '@el-bot/codex', '@el-bot/persona', 'mirai-ts', /^node-napcat-ts(?:\/|$)/],
     onlyImport: Object.keys(packageJson.dependencies).filter(name => !['mirai-ts', 'node-napcat-ts'].includes(name)),
   },
 })

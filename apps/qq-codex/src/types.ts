@@ -98,7 +98,7 @@ export interface RemoteState {
   instance?: InstanceIdentity
   owner?: string
   project: string
-  threads: Record<string, { id: string, cwd: string }>
+  threads: Record<string, { id: string, cwd: string, persona?: string }>
   seen: string[]
   tasks: Task[]
 }

@@ -1,7 +1,9 @@
+import type { PersonaPreview } from '@el-bot/persona'
 import type { QQBotClient } from 'qq-sdk/official'
 import type { RemoteConfig, RemoteState } from './types'
 import { setImmediate } from 'node:timers/promises'
 import { CodexClient, CodexSchema } from '@el-bot/codex'
+import { parsePersona } from '@el-bot/persona'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cardPages } from './cards'
 import { RemoteController } from './controller'
@@ -36,7 +38,7 @@ afterEach(async () => {
     controllers.splice(0).map(controller => controller.close()),
   )
 })
-function setup(owner: string | undefined = 'owner', schema?: CodexSchema) {
+function setup(owner: string | undefined = 'owner', schema?: CodexSchema, persona?: () => Promise<PersonaPreview | undefined>) {
   const config: RemoteConfig = {
     projects: { demo: '/demo', other: '/other' },
     defaultProject: 'demo',
@@ -66,7 +68,7 @@ function setup(owner: string | undefined = 'owner', schema?: CodexSchema) {
     codex,
     save,
     vi.fn(),
-    { schema },
+    { schema, persona },
   )
   controllers.push(controller)
   let sequence = 0
@@ -101,6 +103,53 @@ function setup(owner: string | undefined = 'owner', schema?: CodexSchema) {
 }
 
 describe('remote admission and sessions', () => {
+  it('snapshots personas per task and starts fresh sessions on enable, switch and disable', async () => {
+    const makePersona = (body: string): PersonaPreview => ({ ...parsePersona(body, 'cloud.md'), source: { kind: 'text', name: 'cloud.md' }, importedAt: new Date().toISOString() })
+    let selected: PersonaPreview | undefined
+    const load = vi.fn(async () => selected)
+    const s = setup('owner', undefined, load)
+    await s.send('run stranger task', 'stranger')
+    await s.send('/status')
+    expect(load).not.toHaveBeenCalled()
+    const complete = async () => {
+      s.codex.emit('notification', { method: 'turn/completed', params: { threadId: 'thread', turn: { id: 'turn', status: 'completed' } } })
+      await vi.waitFor(() => expect(s.state.tasks.at(-1)?.status).toBe('completed'))
+    }
+    await s.start()
+    expect(s.codex.turn).toHaveBeenLastCalledWith('thread', '/demo', 'fix tests', undefined)
+    await complete()
+    selected = makePersona('# 小云\n元气')
+    await s.start()
+    expect(s.codex.thread).toHaveBeenLastCalledWith({ cwd: '/demo', model: undefined, threadId: undefined })
+    expect(s.codex.turn).toHaveBeenLastCalledWith('thread', '/demo', expect.stringContaining('元气'), undefined)
+    const activeKey = s.state.threads.demo.persona
+    selected = makePersona('# 小云\n安静')
+    await s.send('parallel work')
+    expect(s.codex.turn).toHaveBeenCalledTimes(2)
+    expect(s.state.threads.demo.persona).toBe(activeKey)
+    await complete()
+    await s.start()
+    expect(s.codex.thread).toHaveBeenLastCalledWith({ cwd: '/demo', model: undefined, threadId: undefined })
+    expect(s.codex.turn).toHaveBeenLastCalledWith('thread', '/demo', expect.stringContaining('安静'), undefined)
+    await complete()
+    selected = undefined
+    await s.start()
+    expect(s.codex.thread).toHaveBeenLastCalledWith({ cwd: '/demo', model: undefined, threadId: undefined })
+    expect(s.codex.turn).toHaveBeenLastCalledWith('thread', '/demo', 'fix tests', undefined)
+    await complete()
+    await s.start()
+    expect(s.codex.thread).toHaveBeenLastCalledWith({ cwd: '/demo', model: undefined, threadId: 'thread' })
+  })
+
+  it('does not run a model turn when the enabled card cannot be verified', async () => {
+    const s = setup('owner', undefined, async () => {
+      throw new Error('Persona snapshot checksum mismatch')
+    })
+    await s.send('work')
+    await vi.waitFor(() => expect(s.state.tasks.at(-1)?.status).toBe('failed'))
+    expect(s.codex.turn).not.toHaveBeenCalled()
+    expect(s.state.owner).toBe('owner')
+  })
   it('refuses busy shutdown, blocks queued work after admission closes and persists interruption once', async () => {
     const s = setup()
     await s.start()

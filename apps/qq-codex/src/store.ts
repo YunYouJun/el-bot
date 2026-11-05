@@ -95,6 +95,7 @@ export class StateStore {
         !isRecord(thread)
         || typeof thread.id !== 'string'
         || typeof thread.cwd !== 'string'
+        || (thread.persona !== undefined && (typeof thread.persona !== 'string' || !/^[a-z0-9][a-z0-9_-]{0,63}:[a-f0-9]{64}$/.test(thread.persona)))
       ) {
         throw new Error('Invalid persisted thread')
       }

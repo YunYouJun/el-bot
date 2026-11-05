@@ -123,6 +123,7 @@
     "yargs": "catalog:"
   },
   "devDependencies": {
+    "@el-bot/persona": "workspace:*",
     "@el-bot/qq-codex": "workspace:*",
     "@types/fs-extra": "catalog:",
     "@types/gradient-string": "catalog:",

@@ -6,6 +6,7 @@ import { homedir } from 'node:os'
 import { resolve } from 'node:path'
 import process from 'node:process'
 import { AcpClient, CodexClient, CodexDesktopClient, CodexSchema } from '@el-bot/codex'
+import { PersonaLibrary } from '@el-bot/persona'
 import { serve } from '@hono/node-server'
 import consola from 'consola'
 import { Hono } from 'hono'
@@ -89,7 +90,7 @@ export async function checkQQ(config: RemoteConfig, credentials: BotCredentials)
 }
 
 /** Start the owner-bound remote service with existing state and graceful signal cleanup. */
-export async function startRemote(config: RemoteConfig, statePath: string, credentials: BotCredentials, profile?: string): Promise<void> {
+export async function startRemote(config: RemoteConfig, statePath: string, credentials: BotCredentials, profile?: string, personaDirectory?: string): Promise<void> {
   const { appId, secret } = credentials
   const codex = createCodexClient(config)
   const desktop = config.desktop ? new CodexDesktopClient(config.desktop) : undefined
@@ -179,7 +180,7 @@ export async function startRemote(config: RemoteConfig, statePath: string, crede
         (error instanceof Error ? error.message : 'Protocol operation failed')
           .split(secret).join('[redacted]'),
       ),
-      { schema, desktop, images },
+      { schema, desktop, images, persona: personaDirectory ? () => new PersonaLibrary(personaDirectory).active() : undefined },
     )
     await store.save(state)
     lifecycle.checkpoint()

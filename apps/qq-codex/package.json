@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@el-bot/codex": "workspace:*",
+    "@el-bot/persona": "workspace:*",
     "@hono/node-server": "catalog:",
     "@yunlefun/ui": "catalog:",
     "commander": "catalog:",

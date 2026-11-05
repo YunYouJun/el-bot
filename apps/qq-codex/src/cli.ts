@@ -17,6 +17,7 @@ import { diagnose, formatDiagnostics } from './diagnostics'
 import { closeCardRenderer, renderCardImage } from './image'
 import { initialize } from './init'
 import { resolvePaths } from './paths'
+import { personaDirectory, registerPersonaCommand } from './personas'
 import { replyPreferences } from './preferences'
 import { checkDesktop, checkLocal, checkQQ, instanceIdentity, startRemote } from './runtime'
 import { bindInstance, StateStore } from './store'
@@ -61,7 +62,7 @@ export function registerCodexCommand(program: Command): Command {
   }
   const start = async (command: Command) => {
     const paths = resolvePaths(options(command))
-    await startRemote(await config(command), paths.state, await credentials(command), paths.profile)
+    await startRemote(await config(command), paths.state, await credentials(command), paths.profile, personaDirectory(paths.config))
   }
   const managed = async (json: boolean | undefined, operation: () => Promise<unknown>) => {
     try {
@@ -147,6 +148,7 @@ export function registerCodexCommand(program: Command): Command {
       const paths = resolvePaths(options(command))
       return replyPreferences(paths.config, paths.state, { messageFormat: opts.messageFormat, imageTheme: opts.imageTheme })
     }))
+  registerPersonaCommand(program, command => resolvePaths(options(command)))
   program.command('paths')
     .description('显示当前使用的配置、凭据和状态路径，不显示密钥')
     .action((_opts: unknown, command: Command) => {
