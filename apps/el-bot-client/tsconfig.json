@@ -1,0 +1,9 @@
+{
+  "extends": "./.nsh/tsconfig.json",
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "strict": true,
+    "noEmit": true
+  },
+  "include": ["App.tsx", "src/**/*.tsx", "test/**/*.tsx"]
+}

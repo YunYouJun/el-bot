@@ -6,15 +6,22 @@
   "scripts": {
     "icons:generate": "node scripts/generate-icons.mjs",
     "icons:check": "node scripts/generate-icons.mjs --check",
-    "dev": "node scripts/build-macos-native.mjs && go tool mygo dev",
+    "dev": "node scripts/build-native.mjs --dev --skip-dmg --skip-installer --run",
     "build": "node scripts/build-native.mjs --skip-dmg --skip-installer",
-    "typecheck": "go vet ./...",
-    "desktop:dev": "pnpm icons:generate && node scripts/build-macos-native.mjs && go tool mygo dev",
-    "desktop:build": "pnpm icons:generate && node scripts/build-native.mjs",
-    "test": "go test ./..."
+    "typecheck": "pnpm typecheck:ui && go vet ./... && cargo check --locked --manifest-path native/Cargo.toml && node ../../scripts/check-apple.mjs",
+    "desktop:dev": "pnpm icons:generate && node scripts/build-native.mjs --dev --skip-dmg --skip-installer --run",
+    "desktop:build": "pnpm icons:generate && node scripts/build-native.mjs --release",
+    "test": "go test ./... && cargo test --locked --manifest-path native/Cargo.toml && node scripts/nsh.mjs test && node ../../scripts/check-apple.mjs --test",
+    "typecheck:ui": "node scripts/nsh.mjs build --release -o .nsh/ui && tsc --noEmit",
+    "mobile:ios": "node scripts/build-native.mjs --platform ios-simulator",
+    "mobile:android": "node scripts/build-nsh.mjs --platform android",
+    "web:build": "node scripts/build-nsh.mjs --platform web",
+    "nsh:build": "node scripts/build-nsh.mjs",
+    "nsh": "node scripts/nsh.mjs"
   },
   "devDependencies": {
     "@resvg/resvg-js": "catalog:",
-    "@tauri-apps/cli": "catalog:"
+    "@tauri-apps/cli": "catalog:",
+    "typescript": "catalog:"
   }
 }

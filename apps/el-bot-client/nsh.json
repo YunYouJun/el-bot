@@ -1,0 +1,13 @@
+{
+  "name": "Yun",
+  "id": "cn.elpsy.elbot.client",
+  "version": "0.1.0",
+  "build": 1,
+  "icon": "icons/app-icon-1024.png",
+  "appearance": "system",
+  "capabilities": {
+    "host": ["client.snapshot", "client.event", "client.choosePath", "client.quit"],
+    "openUrl": { "schemes": ["https"] },
+    "clipboard": true
+  }
+}

@@ -1,14 +1,24 @@
-import { spawnSync } from 'node:child_process'
-import { copyFileSync } from 'node:fs'
+import { mkdir } from 'node:fs/promises'
+import { join } from 'node:path'
 import process from 'node:process'
-import { fileURLToPath } from 'node:url'
+import { appDirectory, run } from './nsh.mjs'
 
-await import('./build-macos-native.mjs')
-
-const directory = fileURLToPath(new URL('..', import.meta.url))
-for (const file of ['icon.png', 'tray-icon.png'])
-  copyFileSync(new URL(`../icons/${file}`, import.meta.url), new URL(`../resources/${file === 'tray-icon.png' ? 'tray.png' : file}`, import.meta.url))
-const result = spawnSync('go', ['tool', 'mygo', 'build', ...process.argv.slice(2)], { cwd: directory, stdio: 'inherit' })
-if (result.error)
-  throw result.error
-process.exitCode = result.status ?? 1
+const args = process.argv.slice(2)
+const platformIndex = args.indexOf('--platform')
+const target = platformIndex < 0 ? process.platform : args[platformIndex + 1]
+if (args.includes('--nsh')) {
+  run(process.execPath, ['scripts/build-nsh.mjs', ...args.filter(arg => arg !== '--nsh')])
+}
+else if (process.platform === 'darwin' && (target === 'darwin' || target.startsWith('darwin/') || ['ios', 'ios-simulator'].includes(target))) {
+  run(process.execPath, ['../../scripts/build-apple.mjs', ...args])
+}
+else if (platformIndex >= 0) {
+  throw new Error('Active app development targets macOS and iOS. Use nsh:build for the retained cross-platform preview.')
+}
+else {
+  // Workspace builds still verify the portable controller on non-Apple CI hosts.
+  const output = join(appDirectory, 'build/controller')
+  await mkdir(output, { recursive: true })
+  run('go', ['build', '-trimpath', '-o', join(output, `yun-controller${process.platform === 'win32' ? '.exe' : ''}`), '.'])
+  console.log('Built the headless controller. Apple app bundles require macOS and Xcode.')
+}

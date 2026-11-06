@@ -76,6 +76,7 @@ typings/
 dist
 
 # Desktop build products
+**/.nsh/
 apps/el-bot-client/build/
 apps/el-bot-client/resources/darwin/
 **/src-tauri/target/

@@ -53,7 +53,13 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version-file: apps/el-bot-client/go.mod
-          cache-dependency-path: apps/el-bot-client/go.sum
+          cache-dependency-path: apps/el-bot-client/go.mod
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/el-bot-client/native
+      - name: Install Linux native UI dependencies
+        run: sudo apt-get update && sudo apt-get install -y libgtk-4-dev libssl-dev libxdo-dev
       - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm typecheck:packages
@@ -155,12 +161,12 @@ jobs:
             args+=(--prerelease)
           fi
           cat > release-notes.md <<'NOTES'
-          本次包含 el-bot npm 包与 Tauri 客户端预览安装包。
+          本次包含 el-bot npm 包与 SwiftUI 原生 macOS 客户端预览安装包。
 
           安装 CLI：`pnpm add -g el-bot@next`。桌面客户端仍需本机 Node.js、已登录的 Codex CLI 与对应版本 el-bot CLI。
 
-          安装包支持 macOS arm64/x64（DMG）、Windows x64（NSIS）、Linux arm64/x64（AppImage、Debian）；每个平台附 SHA-256 校验文件。
+          安装包支持 macOS 14 及以上的 arm64/x64（DMG），附 SHA-256 校验文件。iOS 原生工程同步开发；其他平台后续再推进。
 
-          macOS 安装包使用 ad-hoc 签名，尚未 Apple 公证；Windows 安装包未配置发布者证书。均为预览包，正式签名与公证将在配置证书后另行接入。
+          macOS 安装包使用 ad-hoc 签名，尚未 Apple 公证。正式签名与公证将在配置证书后另行接入。
           NOTES
           gh release create "$RELEASE_REF" desktop/* "${args[@]}" --notes-file release-notes.md

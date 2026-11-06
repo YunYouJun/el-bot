@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	"github.com/YunYouJun/el-bot/apps/el-bot-client/locales"
-	"github.com/egoist/mygo"
-	"github.com/egoist/mygo/i18n"
 )
 
 // The Go catalogs and controller remain the only source of product state.
@@ -27,6 +25,8 @@ type nativeProgram struct {
 	Path             string `json:"path"`
 }
 type nativeState struct {
+	Confirmation       string            `json:"confirmation"`
+	Busy               bool              `json:"busy"`
 	Page               string            `json:"page"`
 	Locale             string            `json:"locale"`
 	LocalePreference   string            `json:"localePreference"`
@@ -86,10 +86,11 @@ func (a *app) nativePrograms() []nativeProgram {
 func (a *app) nativeSnapshot() []byte {
 	texts := map[string]string{}
 	for _, key := range nativeCatalogKeys {
-		texts[key] = locales.Catalog.Format(i18n.Locale(), key, nil)
+		texts[key] = locales.Catalog.Format(activeLocale, key, nil)
 	}
 	s := nativeState{
-		Page: a.page, Locale: i18n.Locale(), LocalePreference: a.localePreference,
+		Confirmation: a.confirmation, Busy: a.status.Busy,
+		Page: a.page, Locale: activeLocale, LocalePreference: a.localePreference,
 		Languages: languageChoices(), Strings: texts,
 		Draft:    a.draft.fields(),
 		Programs: a.nativePrograms(),
@@ -178,6 +179,10 @@ func decodeNativeEvent(data []byte) (nativeEvent, error) {
 	}
 	valid := false
 	switch event.Action {
+	case "confirmInterrupt":
+		valid = (event.Value == "stop" || event.Value == "restart") && event.Field == ""
+	case "cancelInterrupt":
+		valid = event.Value == "" && event.Field == ""
 	case "navigate":
 		valid = event.Value == "quickActions" || event.Value == "personas" || event.Value == "settings"
 	case "locale":
@@ -198,6 +203,8 @@ func decodeNativeEvent(data []byte) (nativeEvent, error) {
 		}
 	case "editPreference":
 		valid = (event.Field == "messageFormat" && (event.Value == "image" || event.Value == "markdown" || event.Value == "text")) || (event.Field == "imageTheme" && (event.Value == "light" || event.Value == "dark"))
+	case "pairChat":
+		valid = (event.Value == "" || event.Value == "phone") && event.Field == ""
 	case "openCloud", "managePersonas", "refreshPersonas", "refreshStatus", "start", "stop", "restart", "saveCloud", "saveLocal", "readPreferences", "savePreferences", "logs":
 		valid = event.Value == "" && event.Field == ""
 	}
@@ -217,12 +224,30 @@ func (a *app) handleNativeEvent(data []byte) {
 		return
 	}
 	switch e.Action {
+	case "confirmInterrupt":
+		if a.confirmation == e.Value {
+			a.confirmation = ""
+			a.command(e.Value, "--interrupt")
+		}
+	case "cancelInterrupt":
+		a.confirmation = ""
 	case "navigate":
 		a.navigate(e.Value)
 	case "locale":
 		a.setLocale(e.Value)
 	case "openCloud":
 		a.launchCloud(false)
+	case "pairChat":
+		s := a.settings.Cloud
+		a.background(func() (func(), error) {
+			pairing, err := pairChat(s)
+			pairing.Purpose = e.Value
+			return func() {
+				// A single-use code crosses only the private stdio pipe, never a snapshot or log.
+				data, _ := json.Marshal(pairing)
+				a.publish(data)
+			}, err
+		})
 	case "managePersonas":
 		a.launchCloud(true)
 	case "openProgram":
@@ -273,14 +298,37 @@ func (a *app) handleNativeEvent(data []byte) {
 	a.invalidate()
 }
 func (a *app) chooseNativePath(key string) {
-	parent := a.win
-	go func() {
-		paths, err := mygo.Dialog.Open(mygo.OpenDialogOptions{Parent: parent, Title: t(key)})
-		mygo.RunOnMain(func() {
-			if a.win == parent && err == nil && len(paths) > 0 {
-				*a.draft.field(key) = paths[0]
-				a.invalidate()
-			}
-		})
-	}()
+	// The native host selects files; this event never reads credential contents.
+	if a.draft.field(key) == nil {
+		a.err = clientError("errorOperation")
+	}
+}
+
+func textOr(value, fallback string) string {
+	if value != "" {
+		return value
+	}
+	return fallback
+}
+func phaseLabel(value string) string {
+	switch value {
+	case "stopped", "starting", "running", "stopping", "unmanaged":
+		return t(value)
+	}
+	return t("waiting")
+}
+func connectionLabel(value string) string {
+	switch value {
+	case "connected", "connecting", "disconnected", "webhook":
+		return t(value)
+	}
+	return t("waiting")
+}
+func (a *app) navigate(page string) {
+	a.page = page
+	a.err = nil
+	a.note = ""
+	if page == "personas" && a.settings.Cloud.SSHHost != "" {
+		a.readPersonas("list", "", "")
+	}
 }

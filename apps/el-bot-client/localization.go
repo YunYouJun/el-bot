@@ -3,9 +3,6 @@ package main
 import (
 	"os"
 	"strings"
-
-	"github.com/egoist/mygo"
-	"github.com/egoist/mygo/i18n"
 )
 
 type languageChoice struct {
@@ -13,88 +10,51 @@ type languageChoice struct {
 	Name string `json:"name"`
 }
 
-var appLanguages = []string{"en", "zh-Hans"}
-var displayedLanguages = []string{"zh-Hans", "en"}
+var activeLocale = "en"
 
 func languageChoices() []languageChoice {
-	choices := make([]languageChoice, 0, len(displayedLanguages)+1)
-	choices = append(choices, languageChoice{Tag: "", Name: t("followSystem")})
-	for _, tag := range displayedLanguages {
-		name := i18n.Autonym(tag)
-		if name == "" {
-			name = tag
-		}
-		choices = append(choices, languageChoice{Tag: tag, Name: name})
-	}
-	return choices
+	return []languageChoice{{"", t("followSystem")}, {"zh-Hans", "简体中文"}, {"en", "English"}}
 }
-
-func validLanguage(tag string) bool {
-	if tag == "" {
-		return true
-	}
-	for _, language := range appLanguages {
-		if language == tag {
-			return true
+func validLanguage(tag string) bool { return tag == "" || tag == "en" || tag == "zh-Hans" }
+func matchLanguage(preferred []string) string {
+	for _, tag := range preferred {
+		tag = strings.ToLower(strings.ReplaceAll(tag, "_", "-"))
+		if strings.HasPrefix(tag, "zh") {
+			return "zh-Hans"
+		}
+		if strings.HasPrefix(tag, "en") {
+			return "en"
 		}
 	}
-	return false
+	return "en"
 }
-
-// localePreferenceFor infers the preference when the client has no saved one.
-// MyGo exposes the resolved locale but not whether it came from an override,
-// so a choice that matches the system is treated as following the system.
 func localePreferenceFor(current string, preferred []string) string {
-	system := i18n.Match(preferred, appLanguages)
-	if system == "" {
-		system = appLanguages[0]
-	}
-	if system == current {
+	if matchLanguage(preferred) == current {
 		return ""
 	}
 	return current
 }
-
-// resolveLocalePreference keeps an explicitly selected language even when it
-// matches the system. A saved choice that no longer matches the resolved
-// locale yields to an external language change.
 func resolveLocalePreference(saved, current string, preferred []string) string {
 	if saved != "" && saved == current && validLanguage(saved) {
 		return saved
 	}
 	return localePreferenceFor(current, preferred)
 }
-
-func inferLocalePreference() string {
-	return localePreferenceFor(mygo.App.Locale(), mygo.App.PreferredLanguages())
-}
-
 func (a *app) applyLocalePreference() {
-	if strings.TrimSpace(os.Getenv("MYGO_LOCALE")) != "" {
-		a.localePreference = inferLocalePreference()
-		return
+	a.localePreference = a.settings.Locale
+	if !validLanguage(a.localePreference) {
+		a.localePreference = ""
 	}
-	resolved := resolveLocalePreference(a.settings.Locale, mygo.App.Locale(), mygo.App.PreferredLanguages())
-	if resolved != a.settings.Locale {
-		a.persistLocalePreference(resolved)
-	}
-	a.localePreference = resolved
-	mygo.App.SetLocale(a.localePreference)
+	a.refreshLocale()
 }
-
 func (a *app) setLocale(tag string) {
 	if !validLanguage(tag) {
 		return
 	}
 	a.localePreference = tag
 	a.persistLocalePreference(tag)
-	before := i18n.Locale()
-	mygo.App.SetLocale(tag)
-	if i18n.Locale() == before {
-		a.refreshLocale()
-	}
+	a.refreshLocale()
 }
-
 func (a *app) persistLocalePreference(tag string) {
 	a.draft.Locale = tag
 	if a.settings.Locale == tag {
@@ -108,15 +68,10 @@ func (a *app) persistLocalePreference(tag string) {
 		a.err = err
 	}
 }
-
 func (a *app) refreshLocale() {
-	mygo.App.SetName(t("appName"))
-	if a.win != nil {
-		a.win.SetTitle(t("appName"))
+	activeLocale = a.localePreference
+	if activeLocale == "" {
+		activeLocale = matchLanguage([]string{os.Getenv("YUN_SYSTEM_LOCALE"), os.Getenv("LANG")})
 	}
-	if a.tray != nil {
-		a.tray.SetToolTip(t("appName"))
-	}
-	a.updateMenus()
 	a.invalidate()
 }

@@ -72,3 +72,20 @@ func TestNativeDraftEditsDoNotChangeSavedSettings(t *testing.T) {
 		t.Fatal("reply settings can be saved without loading them first")
 	}
 }
+
+func TestBusyStopCannotRunWithoutMatchingExplicitConfirmation(t *testing.T) {
+	a := &app{status: Status{Phase: "running", Busy: true}, page: "quickActions"}
+	a.handleNativeEvent([]byte(`{"action":"confirmInterrupt","value":"stop"}`))
+	if a.pending {
+		t.Fatal("an unsolicited confirmation started a command")
+	}
+	a.handleNativeEvent([]byte(`{"action":"stop"}`))
+	if a.pending || a.confirmation != "stop" {
+		t.Fatal("a busy stop must request confirmation before executing")
+	}
+	a.handleNativeEvent([]byte(`{"action":"cancelInterrupt"}`))
+	a.handleNativeEvent([]byte(`{"action":"confirmInterrupt","value":"stop"}`))
+	if a.pending || a.confirmation != "" {
+		t.Fatal("a canceled confirmation was replayed")
+	}
+}

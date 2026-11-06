@@ -20,13 +20,13 @@ pnpm icons:check
 
 `apps/el-bot-client/icons/ElBot.icon` 是同一脚本生成的 [Icon Composer](https://developer.apple.com/icon-composer/) 分层源：品牌蓝底板与透明云朵矢量前景分离，前景保持 72% 宽度，双竖眼使用镂空。高光、折射、圆角和外观适配由系统处理，源图层不预烘焙这些效果。独立品牌 mark 不受影响。
 
-`mygo.json` 在 macOS 打包时把 `macos.icon` 指向该分层源。MyGo 调用 Xcode 26 及以上的 `xcrun actool` 将 `.icon` 编译为 `Assets.car` 并设置 `CFBundleIconName`。macOS 26 及以上使用原生分层材质；旧系统继续使用同包内的静态 ICNS。Windows / Linux 不读取 `.icon`，也不依赖 Xcode。编译产物只存在于构建目录，不提交到 Git。
+原生 Apple 构建 `scripts/build-apple.mjs` 与保留的 nsh 构建 `apps/el-bot-client/scripts/build-nsh.mjs` 调用 Xcode 26 及以上的 `xcrun actool`，将 `.icon` 编译为 `Assets.car` 并设置 `CFBundleIconName`。macOS 26 及以上使用原生分层材质；旧系统继续使用同包内的静态 ICNS。iOS Xcode 工程复用同一个 `.icon`。编译产物只存在于构建目录，不提交到 Git。
 
 在 macOS 上可直接用 Icon Composer 打开 `ElBot.icon` 检查默认、深色和单色外观。修改图形或材质参数时，修改生成脚本并重新生成，不单独修改派生文件。完成打包后运行以下命令，检查实际应用中的矢量图层、外观、系统玻璃高光和 ICNS 回退；CI 使用同一检查阻止静态图标误发：
 
 ```sh
 node apps/el-bot-client/scripts/check-macos-icon.mjs \
-  "apps/el-bot-client/build/darwin-arm64/Yun Bot.app"
+  "apps/macos/build/darwin-arm64/Yun.app"
 ```
 
 应用图标使用三弧云朵与双竖眼，默认底色为晴空蓝 `#4B86C8`；客户端标记直接读取云朵源中的配色。原有品牌 mark 保留天线与原配色。验收时检查 16、24、32、64 px 的识别度，以及浅色和深色背景上的效果。这里仅统一产品品牌图标，不替换表示日志、设置等操作的功能图标。

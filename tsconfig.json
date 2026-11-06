@@ -43,6 +43,8 @@
     "packages/dsh/web/**",
     "**/dist/**",
     "**/node_modules/**",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "**/.nsh/**",
+    "apps/el-bot-client/native/target/**"
   ]
 }

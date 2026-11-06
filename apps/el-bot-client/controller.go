@@ -11,13 +11,12 @@ import (
 	"time"
 
 	"github.com/YunYouJun/el-bot/apps/el-bot-client/locales"
-	"github.com/egoist/mygo/i18n"
 )
 
 type clientError string
 
 func (e clientError) Error() string { return locales.Catalog.Format("en", string(e), nil) }
-func t(key string) string           { return locales.Catalog.Format(i18n.Locale(), key, nil) }
+func t(key string) string           { return locales.Catalog.Format(activeLocale, key, nil) }
 func errorText(err error) string {
 	var known clientError
 	if errors.As(err, &known) {

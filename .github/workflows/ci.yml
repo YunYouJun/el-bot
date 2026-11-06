@@ -52,11 +52,19 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version-file: apps/el-bot-client/go.mod
-          cache-dependency-path: apps/el-bot-client/go.sum
+          cache-dependency-path: apps/el-bot-client/go.mod
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/el-bot-client/native
+      - name: Install Linux native UI dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libgtk-4-dev libssl-dev libxdo-dev
       - run: pnpm build
       - run: pnpm typecheck:packages
       - run: pnpm --filter @el-bot/qq-codex exec playwright install --with-deps chromium
       - run: pnpm test
+      - run: pnpm test:client
       - run: pnpm test:cli
 
   docs:

@@ -1,48 +1,32 @@
 package main
 
 import (
-	"embed"
+	"bufio"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
-
-	"github.com/egoist/mygo"
-	"github.com/egoist/mygo/ui"
 )
 
-//go:embed resources/avatar.webp resources/tray.png
-var assets embed.FS
-
+// The controller runs over private stdio; only its fixed JSON events reach commands.
 type app struct {
-	win                                       *mygo.Window
-	tray                                      *mygo.Tray
-	menu                                      *mygo.Menu
-	settings                                  Settings
-	draft                                     Settings
-	settingsPath, page, note, logs            string
-	err                                       error
-	status                                    Status
-	pending, localExpanded, preferencesLoaded bool
-	preferences                               Preferences
-	personas                                  *PersonaResult
-	personaSelection                          string
-	localePreference                          string
-	avatar                                    *ui.Bitmap
-	native                                    *nativeView
-	nativeCallback                            uintptr
+	settings, draft                                  Settings
+	settingsPath, page, note, logs                   string
+	err                                              error
+	status                                           Status
+	pending, localExpanded, preferencesLoaded        bool
+	preferences                                      Preferences
+	personas                                         *PersonaResult
+	personaSelection, localePreference, confirmation string
+	publish                                          func([]byte)
+	dispatch                                         func(func())
 }
 
 func (a *app) invalidate() {
-	if a.win != nil {
-		if a.native != nil {
-			a.native.render(a.nativeSnapshot())
-		} else {
-			a.win.Invalidate()
-		}
+	if a.publish != nil {
+		a.publish(a.nativeSnapshot())
 	}
 }
 func (a *app) background(work func() (func(), error)) {
@@ -53,16 +37,14 @@ func (a *app) background(work func() (func(), error)) {
 	a.err = nil
 	a.note = ""
 	a.invalidate()
-	a.updateMenus()
 	go func() {
 		apply, err := work()
-		mygo.RunOnMain(func() {
+		a.dispatch(func() {
 			a.pending = false
 			a.err = err
 			if err == nil && apply != nil {
 				apply()
 			}
-			a.updateMenus()
 			a.invalidate()
 		})
 	}()
@@ -116,17 +98,11 @@ func (a *app) action(op string) {
 		return
 	}
 	if a.status.Busy && (op == "stop" || op == "restart") {
-		parent := a.win
-		go func() {
-			result, err := mygo.Dialog.Message(mygo.MessageOptions{Parent: parent, Type: mygo.MessageWarning, Message: t("busyTitle"), Detail: t("busyDetail"), Buttons: []string{t("continue"), t("interrupt")}, DefaultButton: 0, CancelButton: 0})
-			mygo.RunOnMain(func() {
-				if err == nil && result.Button == 1 {
-					a.command(op, "--interrupt")
-				}
-			})
-		}()
+		a.confirmation = op
+		a.invalidate()
 		return
 	}
+
 	a.command(op)
 }
 
@@ -180,99 +156,49 @@ func (a *app) save(cloud bool) {
 		a.err = nil
 		a.note = "settingsSaved"
 	}
-	a.updateMenus()
 	a.invalidate()
-}
-
-func (a *app) show(page string) {
-	a.page = page
-	mygo.App.SetActivationPolicy(mygo.ActivationPolicyRegular)
-	if a.win != nil {
-		a.win.Show()
-		a.win.Focus()
-		a.invalidate()
-		return
-	}
-	a.win = mygo.NewWindow(platformWindowOptions(mygo.WindowOptions{Title: t("appName"), Width: 960, Height: 720, MinWidth: 780, MinHeight: 580, Hidden: true, Content: ui.View(a.view)}))
-	w := a.win
-	w.OnReadyToShow(func() {
-		native, err := a.attachNative(w)
-		if err != nil {
-			a.err = err
-			a.invalidate()
-		} else {
-			a.native = native
-		}
-		w.Show()
-		w.Focus()
-	})
-	w.OnClosed(func() {
-		if a.native != nil {
-			a.native.close()
-			a.native = nil
-		}
-		a.win = nil
-		runtime.GC()
-		mygo.App.SetActivationPolicy(mygo.ActivationPolicyAccessory)
-	})
-}
-
-func (a *app) ready() {
-	a.applyLocalePreference()
-	mygo.App.SetName(t("appName"))
-	icon, _ := assets.ReadFile("resources/tray.png")
-	tray, err := mygo.NewTray(mygo.TrayOptions{ID: "yun-bot", Icon: icon, IconIsTemplate: runtime.GOOS == "darwin", ToolTip: t("appName")})
-	if err != nil {
-		a.err = err
-	} else {
-		a.tray = tray
-		a.tray.OnClick(func() { a.tray.PopUpMenu() })
-	}
-	a.updateMenus()
-	a.show("quickActions")
-	mygo.App.OnLocaleChanged(func(string) {
-		a.refreshLocale()
-	})
-	mygo.App.OnWillQuit(func(*mygo.QuitEvent) {
-		if a.tray != nil {
-			a.tray.Destroy()
-		}
-	})
 }
 
 func main() {
 	home, _ := os.UserHomeDir()
 	path := flag.String("settings", filepath.Join(home, ".el-bot/client.json"), "Client settings file")
-	check := flag.Bool("check", false, "Read the local bot status without opening a window")
+	check := flag.Bool("check", false, "Read local bot status without opening a window")
 	flag.Parse()
-	s, err := loadSettings(*path, home)
+	settings, err := loadSettings(*path, home)
 	if *check {
 		if err != nil {
 			log.Fatal(err)
 		}
-		data, err := invoke(s, "status")
+		data, err := invoke(settings, "status")
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(string(data))
 		return
 	}
-	a := &app{settings: s, draft: s, settingsPath: *path, page: "quickActions", err: err, personaSelection: "default", preferences: Preferences{"markdown", "light"}}
-	data, _ := assets.ReadFile("resources/avatar.webp")
-	a.avatar, _ = ui.DecodeBitmap(data)
-	mygo.App.SetName(t("appName"))
-	if !mygo.App.RequestSingleInstanceLock() {
-		return
-	}
-	mygo.App.OnSecondInstance(func([]string, string) { a.show(a.page) })
-	mygo.App.OnActivate(func(visible bool) {
-		if !visible {
-			a.show(a.page)
+	actions := make(chan func(), 64)
+	a := &app{settings: settings, draft: settings, settingsPath: *path, page: "quickActions", err: err,
+		personaSelection: "default", preferences: Preferences{"markdown", "light"}}
+	a.dispatch = func(apply func()) { actions <- apply }
+	a.publish = func(data []byte) { _, _ = os.Stdout.Write(append(data, '\n')) }
+	a.applyLocalePreference()
+	a.invalidate()
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Buffer(make([]byte, 4096), 16385)
+		for scanner.Scan() {
+			data := append([]byte(nil), scanner.Bytes()...)
+			actions <- func() { a.handleNativeEvent(data) }
 		}
-	})
-	mygo.App.OnWindowAllClosed(func() {})
-	mygo.App.WhenReady(a.ready)
-	if err := mygo.App.Run(); err != nil {
-		log.Fatal(err)
+	}()
+	for {
+		select {
+		case apply := <-actions:
+			apply()
+		case <-done:
+			return
+		}
 	}
 }

@@ -1,0 +1,30 @@
+# Keep DSH on its original bridge so the existing desktop loopback tunnel works.
+services:
+  dsh:
+    volumes:
+      - ./mobile:/opt/dsh-runtime/node_modules/@el-bot/mobile:ro
+  mobile-proxy:
+    image: el-bot/dsh-cloud:0.2.1-rc.5-qq0.5.5-personas0.1.0-models1
+    container_name: el-bot-mobile-proxy
+    pull_policy: never
+    entrypoint: [node, /opt/mobile-proxy/proxy.mjs]
+    restart: unless-stopped
+    init: true
+    read_only: true
+    volumes:
+      - ./mobile/dist:/opt/mobile-proxy:ro
+    networks: [default, mobile-edge]
+    cpus: 0.15
+    mem_limit: 64m
+    pids_limit: 64
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    logging:
+      driver: json-file
+      options:
+        max-size: 5m
+        max-file: '2'
+networks:
+  mobile-edge:
+    external: true
+    name: dokploy-network

@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@11.24.0",
   "author": {
-    "name": "云游君",
+    "name": "\u4e91\u6e38\u541b",
     "email": "me@yunyoujun.cn",
     "url": "https://www.yunyoujun.cn"
   },
@@ -56,7 +56,7 @@
     "release": "bumpp packages/el-bot/package.json --git-check --commit \"chore(release): v{version}\"",
     "start:demo": "pnpm -C demo start",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit && pnpm --filter @el-bot/dsh typecheck && pnpm typecheck:docs",
+    "typecheck": "tsc --noEmit && pnpm --filter @el-bot/dsh typecheck && pnpm typecheck:docs && pnpm --filter @el-bot/client typecheck:ui",
     "dev:lib": "pnpm --filter qq-sdk --filter @el-bot/create-app --parallel run dev",
     "docs:preview": "pnpm -C docs run preview",
     "test:watch": "vitest",
@@ -66,7 +66,8 @@
     "wecom": "tsx packages/plugin-wecom/src/cli.ts",
     "wecom:grok": "tsx apps/wecom-grok/src/index.ts",
     "test:cli": "node scripts/smoke-cli.mjs",
-    "cli": "tsx packages/el-bot/bin/el-bot.ts"
+    "cli": "tsx packages/el-bot/bin/el-bot.ts",
+    "test:client": "pnpm --filter @el-bot/client test"
   },
   "dependencies": {
     "axios": "catalog:"

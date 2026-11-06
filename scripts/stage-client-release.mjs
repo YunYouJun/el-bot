@@ -18,15 +18,14 @@ const targets = {
 export async function stageClientRelease(target, label, bundles, root = process.cwd()) {
   assert.deepEqual({ target, bundles: bundles.split(',') }, targets[label], 'Unknown or mismatched desktop target')
   const app = path.join(root, 'apps/el-bot-client')
-  const config = JSON.parse(await readFile(path.join(app, 'mygo.json'), 'utf8'))
-  const manifest = JSON.parse(await readFile(path.join(app, 'package.json'), 'utf8'))
-  assert.equal(config.version, manifest.version, 'Client manifest and MyGo versions must match')
+  const config = JSON.parse(await readFile(path.join(app, 'package.json'), 'utf8'))
   assert.match(config.version, /^\d+\.\d+\.\d+(?:-[0-9A-Z.-]+)?$/i)
   const output = path.join(root, `dist/desktop-${label}`)
   await mkdir(output, { recursive: true })
   const checksums = []
   for (const bundle of targets[label].bundles) {
-    const sourceDir = path.join(app, 'build', target.replace('/', '-'))
+    const sourceApp = target.startsWith('darwin/') ? path.join(root, 'apps/macos') : app
+    const sourceDir = path.join(sourceApp, 'build', target.replace('/', '-'))
     const files = (await readdir(sourceDir)).filter(file => file.endsWith(extensions[bundle]) && (bundle !== 'nsis' || file.startsWith('yun-bot-setup-')))
     assert.equal(files.length, 1, `Expected one ${bundle} installer in ${sourceDir}`)
     const source = path.join(sourceDir, files[0])

@@ -1,0 +1,407 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		02FEA122DFCD990C4E8B90D5 /* YunCore in Frameworks */ = {isa = PBXBuildFile; productRef = D10A9346A2BE370E6CA774F3 /* YunCore */; };
+		12DD0A6332E576F9CB3B98A6 /* YunUI in Frameworks */ = {isa = PBXBuildFile; productRef = 230A02706766BDB1F224CFCB /* YunUI */; };
+		43806AD30DBBFC221E9B2B5C /* MobileRoot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D00932A9C7BECCAE2D100E4 /* MobileRoot.swift */; };
+		5269DEDAAB0676B0D74F113C /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 172ADD788D39A10E73B89A8E /* AppPreferences.swift */; };
+		531BD11193F02C8431C1DFA3 /* MobileDeviceToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3A892E9A105326ADE7DFE7 /* MobileDeviceToolsView.swift */; };
+		7803C7AE0FB5A5402022AEA4 /* DeviceToolsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135696DEE11C3A0E41093CFA /* DeviceToolsStore.swift */; };
+		CA951056FC91EAE52DE61DDD /* MobileSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B7D9E905E61123B061AD75B /* MobileSettings.swift */; };
+		E3A88A63972B52A2092AE496 /* YunIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72A895CDFEDEF4AA73A98E2F /* YunIOSApp.swift */; };
+		F26A8A6823FEF4203F2349A1 /* MobileBotStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F95F86FA57274B302FF33B1 /* MobileBotStatusView.swift */; };
+		F68A1B2101E2CFB40FBE54B9 /* ElBot.icon in Resources */ = {isa = PBXBuildFile; fileRef = 6DDC8B4D77DEF00DCCE05FD4 /* ElBot.icon */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		135696DEE11C3A0E41093CFA /* DeviceToolsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceToolsStore.swift; sourceTree = "<group>"; };
+		172ADD788D39A10E73B89A8E /* AppPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPreferences.swift; sourceTree = "<group>"; };
+		4C3A892E9A105326ADE7DFE7 /* MobileDeviceToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileDeviceToolsView.swift; sourceTree = "<group>"; };
+		6DDC8B4D77DEF00DCCE05FD4 /* ElBot.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = ElBot.icon; sourceTree = "<group>"; };
+		6F95F86FA57274B302FF33B1 /* MobileBotStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBotStatusView.swift; sourceTree = "<group>"; };
+		72A895CDFEDEF4AA73A98E2F /* YunIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YunIOSApp.swift; sourceTree = "<group>"; };
+		8B7D9E905E61123B061AD75B /* MobileSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileSettings.swift; sourceTree = "<group>"; };
+		9D00932A9C7BECCAE2D100E4 /* MobileRoot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileRoot.swift; sourceTree = "<group>"; };
+		F1CDD738CD9ECC966E536F0F /* yun-apple */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "yun-apple"; path = "../../packages/yun-apple"; sourceTree = SOURCE_ROOT; };
+		F7FF153BE0FE47C5ABFBE9C3 /* Yun.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Yun.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		069E55FFCF0CD5C3284E3E45 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				02FEA122DFCD990C4E8B90D5 /* YunCore in Frameworks */,
+				12DD0A6332E576F9CB3B98A6 /* YunUI in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		20CBADC0FCD017FC9BFB56CD /* icons */ = {
+			isa = PBXGroup;
+			children = (
+				6DDC8B4D77DEF00DCCE05FD4 /* ElBot.icon */,
+			);
+			name = icons;
+			path = "../el-bot-client/icons";
+			sourceTree = "<group>";
+		};
+		45EAC99492E02837119EA1DD = {
+			isa = PBXGroup;
+			children = (
+				20CBADC0FCD017FC9BFB56CD /* icons */,
+				BB0BB034CE31146295932A57 /* Packages */,
+				83F2A74460D04532B4B29675 /* Sources */,
+				A273E6D88F44C1F63C5D4CFC /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		83F2A74460D04532B4B29675 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				172ADD788D39A10E73B89A8E /* AppPreferences.swift */,
+				135696DEE11C3A0E41093CFA /* DeviceToolsStore.swift */,
+				6F95F86FA57274B302FF33B1 /* MobileBotStatusView.swift */,
+				4C3A892E9A105326ADE7DFE7 /* MobileDeviceToolsView.swift */,
+				9D00932A9C7BECCAE2D100E4 /* MobileRoot.swift */,
+				8B7D9E905E61123B061AD75B /* MobileSettings.swift */,
+				72A895CDFEDEF4AA73A98E2F /* YunIOSApp.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		A273E6D88F44C1F63C5D4CFC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F7FF153BE0FE47C5ABFBE9C3 /* Yun.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BB0BB034CE31146295932A57 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				F1CDD738CD9ECC966E536F0F /* yun-apple */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7A944EB396BC3C283545BCA6 /* Yun */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 68EDB8481AD0F1F8DEA381A8 /* Build configuration list for PBXNativeTarget "Yun" */;
+			buildPhases = (
+				B242937D78CC951E6F68D19C /* Sources */,
+				12FF7B7CBFEA4A9E3496151E /* Resources */,
+				069E55FFCF0CD5C3284E3E45 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Yun;
+			packageProductDependencies = (
+				D10A9346A2BE370E6CA774F3 /* YunCore */,
+				230A02706766BDB1F224CFCB /* YunUI */,
+			);
+			productName = Yun;
+			productReference = F7FF153BE0FE47C5ABFBE9C3 /* Yun.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		682893FDF867B3ADBC79A42B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					7A944EB396BC3C283545BCA6 = {
+						DevelopmentTeam = "";
+					};
+				};
+			};
+			buildConfigurationList = 40E0A3CC9FD7D9C2BA2AB105 /* Build configuration list for PBXProject "Yun" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 45EAC99492E02837119EA1DD;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				1B989C04A083DFE61BCE0265 /* XCLocalSwiftPackageReference "../../packages/yun-apple" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = A273E6D88F44C1F63C5D4CFC /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				7A944EB396BC3C283545BCA6 /* Yun */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		12FF7B7CBFEA4A9E3496151E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F68A1B2101E2CFB40FBE54B9 /* ElBot.icon in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B242937D78CC951E6F68D19C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5269DEDAAB0676B0D74F113C /* AppPreferences.swift in Sources */,
+				7803C7AE0FB5A5402022AEA4 /* DeviceToolsStore.swift in Sources */,
+				F26A8A6823FEF4203F2349A1 /* MobileBotStatusView.swift in Sources */,
+				531BD11193F02C8431C1DFA3 /* MobileDeviceToolsView.swift in Sources */,
+				43806AD30DBBFC221E9B2B5C /* MobileRoot.swift in Sources */,
+				CA951056FC91EAE52DE61DDD /* MobileSettings.swift in Sources */,
+				E3A88A63972B52A2092AE496 /* YunIOSApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		0B5D04B686D7B2D9F8A55CC0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3F75FD4FFC9AB73B7267B36A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		A2AC05B1457094947B5C4A01 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = ElBot;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = Config/Simulator.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Yun;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = cn.elpsy.elbot.client;
+				PRODUCT_NAME = Yun;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C2DC6C53308EF30DCE49F480 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = ElBot;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = Config/Simulator.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Yun;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = cn.elpsy.elbot.client;
+				PRODUCT_NAME = Yun;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		40E0A3CC9FD7D9C2BA2AB105 /* Build configuration list for PBXProject "Yun" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0B5D04B686D7B2D9F8A55CC0 /* Debug */,
+				3F75FD4FFC9AB73B7267B36A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		68EDB8481AD0F1F8DEA381A8 /* Build configuration list for PBXNativeTarget "Yun" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A2AC05B1457094947B5C4A01 /* Debug */,
+				C2DC6C53308EF30DCE49F480 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		1B989C04A083DFE61BCE0265 /* XCLocalSwiftPackageReference "../../packages/yun-apple" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../../packages/yun-apple";
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		230A02706766BDB1F224CFCB /* YunUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = YunUI;
+		};
+		D10A9346A2BE370E6CA774F3 /* YunCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = YunCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 682893FDF867B3ADBC79A42B /* Project object */;
+}

@@ -11,7 +11,6 @@ beforeEach(async () => {
   const app = path.join(root, 'apps/el-bot-client')
   await mkdir(app, { recursive: true })
   await writeFile(path.join(app, 'package.json'), JSON.stringify({ version: '0.1.0' }))
-  await writeFile(path.join(app, 'mygo.json'), JSON.stringify({ version: '0.1.0' }))
 })
 
 afterEach(async () => {
@@ -19,7 +18,8 @@ afterEach(async () => {
 })
 
 async function installer(target: string, _bundle: string, filename: string, content = 'abc') {
-  const directory = path.join(root, 'apps/el-bot-client/build', target.replace('/', '-'))
+  const app = target.startsWith('darwin/') ? 'macos' : 'el-bot-client'
+  const directory = path.join(root, `apps/${app}/build`, target.replace('/', '-'))
   await mkdir(directory, { recursive: true })
   await writeFile(path.join(directory, filename), content)
 }
@@ -50,9 +50,9 @@ describe('desktop release artifacts', () => {
     await expect(readdir(path.join(root, 'dist'))).rejects.toThrow()
   })
 
-  it('rejects mismatched manifest versions', async () => {
-    await writeFile(path.join(root, 'apps/el-bot-client/package.json'), JSON.stringify({ version: '0.2.0' }))
-    await expect(stageClientRelease('darwin/arm64', 'macos-arm64', 'dmg', root)).rejects.toThrow('versions must match')
+  it('rejects invalid manifest versions', async () => {
+    await writeFile(path.join(root, 'apps/el-bot-client/package.json'), JSON.stringify({ version: '../../invalid' }))
+    await expect(stageClientRelease('darwin/arm64', 'macos-arm64', 'dmg', root)).rejects.toThrow()
   })
 
   it.each([

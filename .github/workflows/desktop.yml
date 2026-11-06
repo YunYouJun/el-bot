@@ -24,33 +24,10 @@ jobs:
             label: macos-x64
             target: darwin/amd64
             bundles: dmg
-          - os: windows-2022
-            label: windows-x64
-            target: windows/amd64
-            bundles: nsis
-          - os: ubuntu-22.04
-            label: linux-x64
-            target: linux/amd64
-            bundles: archive,deb
-          - os: ubuntu-22.04-arm
-            label: linux-arm64
-            target: linux/arm64
-            bundles: archive,deb
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Install Linux build dependencies
-        if: runner.os == 'Linux'
-        timeout-minutes: 10
-        run: |
-          # The runner's Azure mirror can throttle large GTK/WebKit downloads.
-          if [ '${{ runner.arch }}' = X64 ]; then
-            sudo find /etc/apt -type f \( -name '*.list' -o -name '*.sources' -o -name 'apt-mirrors.txt' \) \
-              -exec sed -i 's|https\?://azure\.archive\.ubuntu\.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' {} +
-          fi
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libwebkit2gtk-4.1-dev build-essential libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev patchelf libfuse2 file xdg-utils
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
@@ -59,20 +36,24 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version-file: apps/el-bot-client/go.mod
-          cache-dependency-path: apps/el-bot-client/go.sum
+          cache-dependency-path: apps/el-bot-client/go.mod
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/el-bot-client/native
       - run: pnpm install --frozen-lockfile
       - run: pnpm icons:check
       - run: pnpm --filter @el-bot/client typecheck
-      - name: Test native client without launching it
-        run: go -C apps/el-bot-client test ./...
-      - name: Build MyGo preview installers
+      - name: Test native client without connecting bots
+        run: pnpm test:client
+      - name: Build SwiftUI native installers
         run: pnpm --filter @el-bot/client desktop:build --platform ${{ matrix.target }}
       - name: Verify native Liquid Glass icon
         if: runner.os == 'macOS'
         shell: bash
         run: |
           target="${{ matrix.target }}"
-          node apps/el-bot-client/scripts/check-macos-icon.mjs "apps/el-bot-client/build/${target/\//-}/Yun Bot.app"
+          node apps/el-bot-client/scripts/check-macos-icon.mjs "apps/macos/build/${target/\//-}/Yun.app"
       - name: Collect installers and checksums
         run: node scripts/stage-client-release.mjs ${{ matrix.target }} ${{ matrix.label }} ${{ matrix.bundles }}
       - uses: actions/upload-artifact@v7
@@ -81,3 +62,17 @@ jobs:
           path: dist/desktop-${{ matrix.label }}/*
           if-no-files-found: error
           retention-days: 7
+
+  ios:
+    name: Build native iOS Simulator app
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @el-bot/client mobile:ios

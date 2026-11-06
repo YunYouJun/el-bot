@@ -7,10 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
-
-	"github.com/egoist/mygo"
 )
 
 var hostPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`)
@@ -26,7 +25,11 @@ func (s CloudSettings) validate() error {
 
 func sshCommand(control string, args ...string) ([]byte, error) {
 	base := []string{"-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=10", "-S", control}
-	return runBounded(25*time.Second, 2*1024*1024, "/usr/bin/ssh", append(base, args...)...)
+	executable := "ssh"
+	if runtime.GOOS == "darwin" {
+		executable = "/usr/bin/ssh"
+	}
+	return runBounded(25*time.Second, 2*1024*1024, executable, append(base, args...)...)
 }
 
 func connectCloud(s CloudSettings) (string, error) {
@@ -87,7 +90,7 @@ func openCloud(s CloudSettings, personas bool) error {
 		return err
 	}
 	// The authenticated address is never saved, displayed or logged.
-	if err := mygo.Shell.OpenExternal(address); err != nil {
+	if err := openExternal(address); err != nil {
 		return clientError("errorBrowser")
 	}
 	return nil
@@ -159,4 +162,18 @@ func cloudPersonas(s CloudSettings, operation, id, revision string) (*PersonaRes
 		return nil, clientError("errorPersona")
 	}
 	return &response.Result, nil
+}
+
+func openExternal(address string) error {
+	executable := "xdg-open"
+	args := []string{address}
+	switch runtime.GOOS {
+	case "darwin":
+		executable = "/usr/bin/open"
+	case "windows":
+		executable = "rundll32.exe"
+		args = []string{"url.dll,FileProtocolHandler", address}
+	}
+	_, err := runBounded(10*time.Second, 4096, executable, args...)
+	return err
 }

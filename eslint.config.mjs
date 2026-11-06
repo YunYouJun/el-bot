@@ -1,7 +1,7 @@
 import antfu from '@antfu/eslint-config'
 
 export default antfu({
-  ignores: ['node_modules/', '**/node_modules/**/', 'dist/', '**/dist/**/', 'logs/', '**/logs/**/', 'docs/', '**/docs/**/', 'coverage', '**/coverage/**', 'mcl', '**/mcl/**', 'go-cqhttp', '**/go-cqhttp/**'],
+  ignores: ['**/.nsh/**', '**/.build/**', '**/.swiftpm/**', 'apps/macos/build/**', 'apps/ios/build/**', 'apps/el-bot-client/native/target/**', 'node_modules/', '**/node_modules/**/', 'dist/', '**/dist/**/', 'logs/', '**/logs/**/', 'docs/', '**/docs/**/', 'coverage', '**/coverage/**', 'mcl', '**/mcl/**', 'go-cqhttp', '**/go-cqhttp/**'],
   formatters: true,
   unocss: true,
   vue: true,

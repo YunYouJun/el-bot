@@ -58,6 +58,7 @@ catalog:
   '@unocss/eslint-plugin': ^66.12.0
   '@vitejs/plugin-vue': ^6.0.10
   '@wecom/aibot-node-sdk': ^1.0.7
+  '@yunlefun/sso': 0.7.0
   '@yunlefun/ui': 0.0.6
   '@yunlefun/vue': 0.4.2
   ajv: ^8.20.0

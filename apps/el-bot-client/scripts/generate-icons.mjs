@@ -100,6 +100,7 @@ try {
   const manifest = JSON.parse(await readFile(join(root, 'docs/public/manifest.json'), 'utf8'))
   outputs.set('docs/public/manifest.json', `${JSON.stringify({ ...manifest, theme_color: color }, null, 2)}\n`)
   const icons = 'apps/el-bot-client/icons'
+  outputs.set(`${icons}/app-icon-1024.png`, render(appIcon, 1024).asPng())
   outputs.set(`${icons}/ElBot.icon/icon.json`, `${JSON.stringify(composerIcon, null, 2)}\n`)
   outputs.set(`${icons}/ElBot.icon/Assets/cloud.svg`, composerForeground)
   outputs.set(`${icons}/icon.png`, await readFile(join(temporary, 'app/icon.png')))
