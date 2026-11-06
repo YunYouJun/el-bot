@@ -19,6 +19,7 @@ overrides:
   socks>ip-address: ^10.7.6
 
 patchedDependencies:
+  mirai-ts@2.4.8: patches/mirai-ts@2.4.8.patch
   rss-feed-emitter@4.0.0: patches/rss-feed-emitter@4.0.0.patch
 
 allowBuilds:
@@ -46,7 +47,7 @@ catalog:
   '@types/html-to-text': ^9.0.4
   '@types/js-yaml': ^4.0.9
   '@types/markdown-it': ^14.2.0
-  '@types/node': ^24.19.2
+  '@types/node': ^26.6.6
   '@types/node-schedule': ^2.1.8
   '@types/progress': ^2.0.7
   '@types/qrcode': ^1.5.6

@@ -58,7 +58,7 @@ Keep credentials and runtime state out of Git.
 
 - Release only `el-bot` through `.github/workflows/release.yml` using npm OIDC.
 - Build and smoke-test the exact tarball before the publish job; npm must not publish raw catalog/workspace manifests.
-- Verify installed framework/Nest imports and CLI JSON output, including Node.js 22.18.0 compatibility.
+- Verify installed framework/Nest imports and CLI JSON output on the current Node.js LTS pinned in `.node-version` across Linux, Windows and macOS.
 - The Git tag must equal `v<packages/el-bot/package.json version>` and that version must not already exist on npm.
 - Prereleases use the `next` npm tag, stable releases use `latest`.
 - `pnpm release` bumps, commits, tags and pushes; do not run it as a validation command.

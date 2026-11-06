@@ -80,7 +80,7 @@ AppSecret 在本机填写，QQ 登录与绑定由本人完成。先核对版本�
 
 ### 环境与安装
 
-仓库开发使用 Node.js 24（见 `.node-version`）和 pnpm 11.24.0（见 `packageManager`）。
+仓库开发使用当前 LTS Node.js 26.13.0（见 `.node-version`）和 pnpm 11.24.0（见 `packageManager`）。
 
 ```sh
 pnpm add el-bot

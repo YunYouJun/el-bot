@@ -1,7 +1,7 @@
 # Monorepo 开发
 
 工程约定参考 [starter-monorepo](https://github.com/YunYouJun/starter-monorepo)。
-使用 `.node-version` 指定的 Node.js 24 和 `packageManager` 固定的 pnpm 11.24.0。
+使用 `.node-version` 指定的当前 LTS Node.js 26.13.0 和 `packageManager` 固定的 pnpm 11.24.0。
 
 ## 目录与职责
 
@@ -42,7 +42,7 @@ pnpm docs:preview
 
 `pnpm dev` 保留为 demo 开发入口；`pnpm dev:simple` 启动简单示例。
 运行机器人需要配置 QQ/NapCat 连接，这些命令不属于无凭证工程验证。
-CI 使用 `pnpm install --frozen-lockfile`，禁止在 CI 隐式改写锁文件。
+CI 使用 `pnpm install --frozen-lockfile`，禁止在 CI 隐式改写锁文件。CI 与发布前安装包验证均在 Linux、Windows、macOS 上使用 `.node-version` 指定的当前 LTS，升级 LTS 时统一修改该文件。
 
 ## 新增包
 
@@ -54,8 +54,8 @@ CI 使用 `pnpm install --frozen-lockfile`，禁止在 CI 隐式改写锁文件�
 
 ## 依赖与兼容性
 
-依赖版本集中在 catalog。Node.js 使用 24，TypeScript 保留 5.9，匹配 sagiri 和类型文档工具支持范围。此次检查中 TypeScript 最新版为 7，但 sagiri 仍要求 `^5.0.0`，TypeDoc 尚不支持 7；不强行跨主版本升级。
-Chalk 升级为 6；`@types/node` 使用与 Node 24 对应的最新版本；c12 保留稳定版 3，避免将 RC 作为稳定更新引入。
+依赖版本集中在 catalog。Node.js 使用当前 LTS 26，TypeScript 保留 5.9，匹配 sagiri 和类型文档工具支持范围。此次检查中 TypeScript 最新版为 7，但 sagiri 仍要求 `^5.0.0`，TypeDoc 尚不支持 7；不强行跨主版本升级。
+Chalk 升级为 6；`@types/node` 使用与 Node 26 对应的最新版本；c12 保留稳定版 3，避免将 RC 作为稳定更新引入。
 `el-bot` 是 `el-bot` / `el` 可执行命令的唯一发布者，`apps/qq-codex` 保持私有。
 CLI 将内部 Codex 客户端与 QQ 官方协议实现打包，第三方运行时依赖独立声明。
 框架使用的工作区 `qq-sdk` 同样构建进发布包，由包内 `#qq-sdk` 映射引用，安装时不依赖 registry 中的同名版本。
@@ -139,7 +139,7 @@ npm publish ./dist/el-bot-<版本>.tgz --dry-run --access public --tag next --ig
 ### 旧依赖的已知限制
 
 库与 Nest 入口编译为 ESM，并在真实安装后的消费者项目中执行导入和严格 TypeScript 检查。
-`mirai-ts@2.4.8` 的导出路径与 tarball 不一致，NapCat 的 ESM 产物缺少 JSON import attribute，构建时将这两项运行代码打包以兼容普通 Node.js。
+`mirai-ts@2.4.8` 的事件声明通过 pnpm 补丁使用 EventEmitter 的默认事件类型，兼容 Node 26 类型定义；其导出路径与 tarball 不一致，NapCat 的 ESM 产物缺少 JSON import attribute，构建时将这两项运行代码打包以兼容普通 Node.js。
 发布包同时携带公开声明所需的 `@types/ws`、`@types/node-schedule`，并按上游 Axios 定义补充 `resty-client@0.0.5` 漏发的两个类型；不关闭消费者类型检查。
 
 工作区的 `plugins/feeder` 已升级到 `rss-feed-emitter` 4，以 Node.js 原生 `fetch` 移除 `request`、`tough-cookie`、`uuid` 依赖链。上游 `skipFirstLoad` 的首次加载标记通过 pnpm 补丁修复，并由本地 HTTP RSS 回归测试覆盖。`socks>ip-address` 和 `pm2>js-yaml` 的兼容覆盖分别保留安全修复版本。插件不包含在 `el-bot` 发布包中。
