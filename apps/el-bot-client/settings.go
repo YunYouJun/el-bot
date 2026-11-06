@@ -12,6 +12,7 @@ type CloudSettings struct {
 	SSHHost string `json:"sshHost"`
 }
 type Settings struct {
+	Locale           string        `json:"locale"`
 	Cloud            CloudSettings `json:"cloud"`
 	NodePath         string        `json:"nodePath"`
 	CLIPath          string        `json:"cliPath"`

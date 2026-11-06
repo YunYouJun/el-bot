@@ -54,27 +54,6 @@ function render(svg, width) {
   return new Resvg(svg, { fitTo: { mode: 'width', value: width } }).render()
 }
 
-function canonicalIco(svg) {
-  // Render vector frames directly to avoid architecture-dependent raster resizing.
-  const sizes = [16, 24, 32, 48, 64, 256]
-  const images = sizes.map(size => render(svg, size).asPng())
-  const directory = Buffer.alloc(6 + sizes.length * 16)
-  directory.writeUInt16LE(1, 2)
-  directory.writeUInt16LE(sizes.length, 4)
-  let offset = directory.length
-  for (const [index, size] of sizes.entries()) {
-    const entry = 6 + index * 16
-    directory[entry] = size % 256
-    directory[entry + 1] = size % 256
-    directory.writeUInt16LE(1, entry + 4)
-    directory.writeUInt16LE(32, entry + 6)
-    directory.writeUInt32LE(images[index].length, entry + 8)
-    directory.writeUInt32LE(offset, entry + 12)
-    offset += images[index].length
-  }
-  return Buffer.concat([directory, ...images])
-}
-
 function canonicalIcns(data) {
   assert.equal(data.toString('ascii', 0, 4), 'icns')
   assert.equal(data.readUInt32BE(4), data.length)
@@ -115,23 +94,20 @@ try {
       throw result.error ?? new Error(result.stderr || 'Tauri icon generation failed.')
   }
   outputs.set('assets/brand/el-bot-app-icon.svg', appIcon)
-  outputs.set('apps/el-bot-client/public/favicon.svg', appIcon)
   outputs.set('docs/public/favicon.svg', appIcon)
   outputs.set('docs/public/brand/el-bot-mark.svg', source)
   outputs.set('docs/public/logo.png', render(source, 512).asPng())
   const manifest = JSON.parse(await readFile(join(root, 'docs/public/manifest.json'), 'utf8'))
   outputs.set('docs/public/manifest.json', `${JSON.stringify({ ...manifest, theme_color: color }, null, 2)}\n`)
-  const icons = 'apps/el-bot-client/src-tauri/icons'
+  const icons = 'apps/el-bot-client/icons'
   outputs.set(`${icons}/ElBot.icon/icon.json`, `${JSON.stringify(composerIcon, null, 2)}\n`)
   outputs.set(`${icons}/ElBot.icon/Assets/cloud.svg`, composerForeground)
   outputs.set(`${icons}/icon.png`, await readFile(join(temporary, 'app/icon.png')))
-  outputs.set(`${icons}/icon.ico`, canonicalIco(appIcon))
   outputs.set(`${icons}/icon.icns`, canonicalIcns(await readFile(join(temporary, 'mac/icon.icns'))))
   outputs.set(`${icons}/macos-icon.png`, render(macIcon, 512).asPng())
   const tray = render(trayIcon, 32)
   assert.equal(tray.pixels.length, 32 * 32 * 4)
   outputs.set(`${icons}/tray-icon.png`, tray.asPng())
-  outputs.set(`${icons}/tray-icon.rgba`, tray.pixels)
   let mismatches = 0
   for (const [relative, content] of outputs) {
     const path = join(root, relative)

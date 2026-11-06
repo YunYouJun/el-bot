@@ -41,7 +41,6 @@ catalog:
   '@octokit/webhooks': ^14.2.0
   '@octokit/webhooks-methods': ^6.0.0
   '@resvg/resvg-js': ^2.6.2
-  '@tauri-apps/api': ^2.12.1
   '@tauri-apps/cli': ^2.12.1
   '@types/fs-extra': ^11.0.4
   '@types/gradient-string': ^1.1.6

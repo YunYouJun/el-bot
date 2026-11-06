@@ -1,6 +1,0 @@
-{
-  "identifier": "main",
-  "description": "Bundled bot control interface only",
-  "windows": ["main"],
-  "permissions": ["allow-load-settings", "allow-save-settings", "allow-save-cloud-settings", "allow-open-cloud", "allow-bot-command", "allow-reply-settings", "allow-dsh-persona", "allow-open-persona-manager", "allow-open-local-program", "core:event:allow-listen", "core:event:allow-unlisten"]
-}

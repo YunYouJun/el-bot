@@ -754,6 +754,26 @@ func (msgs Messages) PreferencesSaved() string {
 	return Catalog.Format(msgs.locale, "preferencesSaved", nil)
 }
 
+// MessageFormat says "Message format"
+// in the language the app shows.
+func MessageFormat() string { return In(i18n.Locale()).MessageFormat() }
+
+// MessageFormat says "Message format"
+// in the language of msgs.
+func (msgs Messages) MessageFormat() string {
+	return Catalog.Format(msgs.locale, "messageFormat", nil)
+}
+
+// ImageTheme says "Image theme"
+// in the language the app shows.
+func ImageTheme() string { return In(i18n.Locale()).ImageTheme() }
+
+// ImageTheme says "Image theme"
+// in the language of msgs.
+func (msgs Messages) ImageTheme() string {
+	return Catalog.Format(msgs.locale, "imageTheme", nil)
+}
+
 // Image says "Image card"
 // in the language the app shows.
 func Image() string { return In(i18n.Locale()).Image() }

@@ -11,13 +11,13 @@
   },
   "macos": {
     "minimumSystemVersion": "13.0",
-    "icon": "src-tauri/icons/ElBot.icon",
+    "icon": "icons/ElBot.icon",
     "signingIdentity": "-",
     "infoPlist": {
       "CFBundleIconFile": "icon.icns"
     }
   },
   "resources": [
-    "src-tauri/icons/icon.icns"
+    "icons/icon.icns"
   ]
 }

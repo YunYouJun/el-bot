@@ -1,12 +1,12 @@
-# 云伯特 · Yun Bot
+# 云 Bot · Yun Bot
 
-正式客户端已迁移到 **MyGo 0.7.4 + Go 1.27.3**，中文名称为「云伯特」，英文名称为 **Yun Bot**。默认开发、构建、菜单栏和安装包入口均使用 `apps/el-bot-client` 中的 Go 程序。旧 Vue／Tauri 源码保留作对照，仍参与 TypeScript 检查，可通过该包的 `legacy:dev`／`legacy:build` 显式运行。
+正式客户端使用 **MyGo 0.7.4 + Go 1.27.3**，中文名称为「云 Bot」，英文名称为 **Yun Bot**。开发、构建、菜单栏和安装包入口均使用 `apps/el-bot-client` 中的 Go 程序；迁移完成后，旧 Vue／Tauri 对照源码已移除。
 
 macOS 主窗口使用 **AppKit + SwiftUI**：系统分栏侧栏、统一工具栏、原生设置表单、文件选择器和 SF Symbols；快捷入口读取本机已安装应用的真实图标。MyGo 负责窗口生命周期、托盘、菜单与国际化，Go 控制器持有唯一状态与固定命令白名单。Swift 界面通过有限 JSON 事件桥复用同一套逻辑，不内嵌 WebView。Windows／Linux 保留 MyGo 绘制界面。
 
 ## 语言与本机安装
 
-macOS 工具栏（其他平台侧栏）提供「简体中文」「English」，托盘及「显示 → 语言」也可切换。界面、状态和原生菜单即时切换，偏好由 MyGo 保存到系统应用设置，重启后保留。macOS 系统应用名及原生对话框的系统文案在重新打开应用后跟随所选语言；「跟随系统」恢复系统语言。第三方返回的未知错误保留原文。
+macOS 工具栏和「设置 → 语言」（其他平台侧栏）提供「跟随系统」「简体中文」「English」，托盘及「显示 → 语言」也可切换。当前选择在界面中保持可见，界面、状态和原生菜单即时切换；偏好写入 `~/.el-bot/client.json`，MyGo 同时保留系统应用设置，重启后即使所选语言与系统语言相同也不会退回「跟随系统」。macOS 系统应用名及原生对话框的系统文案在重新打开应用后跟随所选语言；「跟随系统」恢复系统语言。第三方返回的未知错误保留原文。
 
 安装沿用应用标识 `cn.elpsy.elbot.client` 和 `~/.el-bot/client.json`，已有 SSH 主机别名、本机路径和未知设置字段继续保留。语言切换不修改机器人配置。关窗销毁原生窗口、释放界面资源，进程和托盘保持运行；托盘、Dock 或再次打开应用会重建窗口。退出客户端不会停止云端或独立运行的本机机器人。
 
@@ -17,7 +17,7 @@ pnpm client:build
 ./script/build_and_run.sh                # 构建、备份旧 Yun Bot.app、安装并打开
 ```
 
-macOS 安装到 `/Applications/Yun Bot.app`；旧安装包备份到仓库忽略目录 `.el-bot/backups/desktop/`。源码构建需要 Go，macOS 还需 Xcode Command Line Tools 的 Swift 编译器；分层图标需要 Xcode 26+，默认构建不需要 Cargo。构建脚本先生成 arm64／x86_64 通用的 `libYunBotNative.dylib`，仅打入 macOS 资源并随应用签名。旧 Tauri 构建仍需其 Rust 工具链。
+macOS 安装到 `/Applications/Yun Bot.app`；旧安装包备份到仓库忽略目录 `.el-bot/backups/desktop/`。源码构建需要 Go，macOS 还需 Xcode Command Line Tools 的 Swift 编译器；分层图标需要 Xcode 26+。构建脚本先生成 arm64／x86_64 通用的 `libYunBotNative.dylib`，仅打入 macOS 资源并随应用签名。图标生成使用 Tauri CLI 的 `icon` 子命令，但不构建 Tauri 应用，也不需要 Rust 工具链。
 
 ## 日常使用
 
@@ -86,11 +86,11 @@ el-bot codex preferences --message-format markdown --json
 
 ## 构建和分发
 
-旧 Vue 对照界面的侧栏与机器人状态卡使用 `BotMascot.vue` 三弧云朵角色，支持鼠标跟随、轻微转头和眨眼；窗口失焦、隐藏或开启“减少动态效果”时静止。状态卡根据真实任务状态显示思考、完成与异常表情。
+macOS 原生界面使用系统侧栏、统一工具栏、SF Symbols 与真实应用图标；Windows／Linux 使用 MyGo 绘制的对应界面。QQ 机器人资料图片保留在 `assets/avatars`，来源和生成提示词见同目录的 `README.md`。
 
-品牌图标按 [YunLeFun/icons 规范](https://github.com/YunLeFun/icons/blob/main/docs/guide/contributing.md)分为透明主体 `el-bot-mark` 和满幅无圆角的 `el-bot-app-icon`。原有 `assets/brand/el-bot-mark.svg` 保持不变，继续用于文档 logo；`assets/brand/el-bot-cloud.svg` 是客户端角色、应用 SVG、PNG、ICO、ICNS、Icon Composer 分层源和 macOS 菜单栏模板共用的云朵源。默认正面主体宽度为 72%，静态图标的圆角只在 macOS ICNS 导出阶段应用一次，菜单栏使用单色模板适配明暗外观。
+品牌图标按 [YunLeFun/icons 规范](https://github.com/YunLeFun/icons/blob/main/docs/guide/contributing.md)分为透明主体 `el-bot-mark` 和满幅无圆角的 `el-bot-app-icon`。原有 `assets/brand/el-bot-mark.svg` 保持不变，继续用于文档 logo；`assets/brand/el-bot-cloud.svg` 是应用 SVG、PNG、ICNS、Icon Composer 分层源和 macOS 菜单栏模板共用的云朵源。默认正面主体宽度为 72%，静态图标的圆角只在 macOS ICNS 导出阶段应用一次，菜单栏使用单色模板适配明暗外观。
 
-macOS 26 及以上使用生成的 `apps/el-bot-client/src-tauri/icons/ElBot.icon` 分层图标：品牌蓝底板和透明云朵矢量前景分离，主体保持背景宽度的 72%，由系统处理 Liquid Glass 高光、折射、圆角和外观适配。MyGo 根据 `mygo.json` 的 `macos.icon` 调用 Xcode 编译此资源，将 `Assets.car` 放入应用并设置 `CFBundleIconName`；同时携带原有的 `icon.icns` 作为静态回退。旧系统保留最高 1024 × 1024 的静态 ICNS 回退，`macos-icon.png` 仍是该静态版本的预览。Windows / Linux 图标和独立品牌 mark 不受分层材质影响。原生分层规范见 Apple 的[应用图标指南](https://developer.apple.com/design/human-interface-guidelines/app-icons)。
+macOS 26 及以上使用生成的 `apps/el-bot-client/icons/ElBot.icon` 分层图标：品牌蓝底板和透明云朵矢量前景分离，主体保持背景宽度的 72%，由系统处理 Liquid Glass 高光、折射、圆角和外观适配。MyGo 根据 `mygo.json` 的 `macos.icon` 调用 Xcode 编译此资源，将 `Assets.car` 放入应用并设置 `CFBundleIconName`；同时携带原有的 `icon.icns` 作为静态回退。旧系统保留最高 1024 × 1024 的静态 ICNS 回退，`macos-icon.png` 仍是该静态版本的预览。Windows / Linux 图标和独立品牌 mark 不受分层材质影响。原生分层规范见 Apple 的[应用图标指南](https://developer.apple.com/design/human-interface-guidelines/app-icons)。
 
 macOS 打包 CI 使用 `macos-26` / `macos-26-intel`，并通过 `apps/el-bot-client/scripts/check-macos-icon.mjs` 检查实际 `.app` 中的默认、深色、着色图层及原生高光，避免工具链缺失时仅带静态图标。该脚本也可手动运行，参数为打包后的 `.app` 路径。
 
@@ -102,7 +102,7 @@ macOS 打包 CI 使用 `macos-26` / `macos-26-intel`，并通过 `apps/el-bot-cl
 
 ### CI 打包与发布
 
-`.github/workflows/desktop.yml` 是可复用的原生打包流程，普通 CI 与标签发布均调用它，也可从 Actions 手动触发。流程使用冻结的 pnpm 锁文件和 Go 模块校验和，验证图标、Go 测试、原生构建及保留的 Vue 类型检查，再生成安装包。
+`.github/workflows/desktop.yml` 是可复用的原生打包流程，普通 CI 与标签发布均调用它，也可从 Actions 手动触发。流程使用冻结的 pnpm 锁文件和 Go 模块校验和，验证图标、Go 测试与原生构建，再生成安装包。
 
 | 构建环境 | 架构 | 安装包 |
 | --- | --- | --- |
@@ -115,18 +115,16 @@ macOS 打包 CI 使用 `macos-26` / `macos-26-intel`，并通过 `apps/el-bot-cl
 
 macOS 预览包使用 ad-hoc 签名，没有开发者证书签名和 Apple 公证；Windows 预览包尚未配置发布者证书。正式分发需补齐对应证书与公证，Release 会明确说明当前签名状态。本机 `pnpm clients:build` 仍只生成本机安装包。
 
-桌面 API 与国际化依据：[MyGo 官方文档](https://mygo.egoist.dev/docs/native)。旧 Tauri 构建作为显式对照入口保留。
+桌面 API 与国际化依据：[MyGo 官方文档](https://mygo.egoist.dev/docs/native)。
 
 ## 云乐坊设计体系
 
-原生客户端复用 el-bot 品牌图形与分层应用图标。macOS 使用系统侧栏材质、强调色、动态文字和标准控件，跟随系统深浅色；其他平台在 Go 主题中映射品牌蓝色、表面、间距和字体语义。完整人物卡管理留在 DSH Web，桌面只提供摘要、快捷选择与管理入口。
-
-旧 Vue 对照界面继续保留 `@yunlefun/ui`、`@yunlefun/vue` 和已同步的 `YlfAgent*` 组件，源码与许可不因宿主迁移而删除；它们不进入 MyGo 原生运行时。需要继续同步旧组件时，仍使用 `scripts/sync-design-agent.mjs`。
+原生客户端复用 el-bot 品牌图形与分层应用图标。macOS 使用系统侧栏材质、强调色、动态文字和标准控件，跟随系统深浅色。Windows 使用 MyGo 原生窗口的隐藏标题栏、Mica 背景、系统强调色和 Segoe UI Variable，菜单栏在不使用时收起；不支持 Mica 的系统自动回退到普通表面。其他平台继续在 Go 主题中映射品牌蓝色、表面、间距和字体语义。完整人物卡管理留在 DSH Web，桌面只提供摘要、快捷选择与管理入口。
 
 ## 实现与验证
 
 - `apps/qq-codex/src/control.ts`：本机 IPC、身份验证、后台进程与结构化结果。
 - `apps/qq-codex/src/lifecycle.ts`：初始化与关闭协调、逐项清理。
-- `apps/el-bot-client`：Go 控制器、双语目录、系统菜单栏／托盘、macOS AppKit／SwiftUI 界面及有限事件桥；关闭窗口驻留、重复打开唤起同一实例。只允许固定 CLI 操作、本机应用和云端部署命令。
+- `apps/el-bot-client`：Go 控制器、双语目录、系统菜单栏／托盘、macOS AppKit／SwiftUI 界面及有限事件桥、Windows Fluent 对齐界面；关闭窗口驻留、重复打开唤起同一实例。只允许固定 CLI 操作、本机应用和云端部署命令。
 
 自动验证覆盖控制令牌、实例隔离、锁不匹配、任务中停止、重复关闭、清理失败和两个客户端并发启动同一模拟进程。测试不建立 QQ 连接、不启动模型任务。完整仓库测试、lint、typecheck 以及精确 CLI tarball 的安装检查继续保留。

@@ -74,6 +74,8 @@
   "readPreferences": "Load reply settings",
   "savePreferences": "Save reply settings",
   "preferencesSaved": "Reply settings saved.",
+  "messageFormat": "Message format",
+  "imageTheme": "Image theme",
   "image": "Image card",
   "markdown": "Markdown card",
   "text": "Plain text",

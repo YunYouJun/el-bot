@@ -57,6 +57,12 @@ func TestNativeDraftEditsDoNotChangeSavedSettings(t *testing.T) {
 	if state.Host != "existing" || state.Draft["sshHost"] != "draft-host" || !state.Pending {
 		t.Fatal("native snapshot does not preserve controller state")
 	}
+	if len(state.Languages) != 3 || state.LocalePreference != "" {
+		t.Fatalf("native snapshot languages = %+v, preference = %q", state.Languages, state.LocalePreference)
+	}
+	if len(state.Programs) != 4 || state.Programs[0].Name != "codex" || state.Programs[0].Action == "" {
+		t.Fatalf("native snapshot programs = %+v", state.Programs)
+	}
 	if state.Strings["openCloud"] == "" || state.Strings["sidebar"] == "" {
 		t.Fatal("native UI did not receive translated labels")
 	}

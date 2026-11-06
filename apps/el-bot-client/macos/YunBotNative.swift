@@ -6,6 +6,19 @@ private struct Choice: Decodable, Identifiable {
     let name: String
     var id: String { value }
 }
+private struct Language: Decodable, Identifiable {
+    let tag: String
+    let name: String
+    var id: String { tag }
+}
+private struct Program: Decodable, Identifiable {
+    let name: String
+    let title: String
+    let action: String
+    let bundleIdentifier: String
+    let path: String
+    var id: String { name }
+}
 private struct Preferences: Decodable {
     var messageFormat: String
     var imageTheme: String
@@ -13,9 +26,11 @@ private struct Preferences: Decodable {
 private struct Snapshot: Decodable {
     let page: String
     let locale: String
+    let localePreference: String
+    let languages: [Language]
     let strings: [String: String]
     let draft: [String: String]
-    let appPaths: [String: String]
+    let programs: [Program]
     let host: String
     let pending: Bool
     let localExpanded: Bool
@@ -63,12 +78,10 @@ private typealias ActionCallback = @convention(c) (UInt, UnsafePointer<UInt8>?, 
     func binding(_ field: String) -> Binding<String> {
         Binding(get: { self.state.draft[field] ?? "" }, set: { self.send("edit", $0, field: field) })
     }
-    func appIcon(_ program: String) -> NSImage {
-        let configured = state.appPaths[program] ?? ""
-        let key = program + ":" + configured
+    func appIcon(_ program: Program) -> NSImage {
+        let key = program.name + ":" + program.path
         if let cached = icons[key] { return cached }
-        let identifiers = ["codex": "com.openai.codex", "qq": "com.tencent.qq", "codebuddy": "com.tencent.codebuddycn", "dsh": "com.deepseek.dsh"]
-        let path = configured.isEmpty ? NSWorkspace.shared.urlForApplication(withBundleIdentifier: identifiers[program] ?? "")?.path : configured
+        let path = program.path.isEmpty ? NSWorkspace.shared.urlForApplication(withBundleIdentifier: program.bundleIdentifier)?.path : program.path
         let icon = path.map { NSWorkspace.shared.icon(forFile: $0) }
             ?? NSImage(systemSymbolName: "app.dashed", accessibilityDescription: nil)!
         icons[key] = icon
@@ -100,8 +113,15 @@ private struct Detail: View {
     private var heading: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(model.text(model.state.page)).font(.title2.bold())
-            Text(model.text(model.state.page == "personas" ? "personasDescription" : "homeDescription"))
+            Text(model.text(descriptionKey))
                 .font(.callout).foregroundStyle(.secondary)
+        }
+    }
+    private var descriptionKey: String {
+        switch model.state.page {
+        case "personas": "personasDescription"
+        case "settings": "settingsDescription"
+        default: "homeDescription"
         }
     }
     @ViewBuilder private var messages: some View {
@@ -143,16 +163,15 @@ private struct Detail: View {
             VStack(alignment: .leading, spacing: 12) {
                 Label(model.text("programs"), systemImage: "square.grid.2x2").font(.headline)
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
-                    ForEach(["codex", "qq", "codebuddy", "dsh"], id: \.self) { program in
-                        let key = ["codex": "openCodex", "qq": "openQq", "codebuddy": "openCodebuddy", "dsh": "openDsh"][program]!
-                        Button { model.send("openProgram", program) } label: {
+                    ForEach(model.state.programs) { program in
+                        Button { model.send("openProgram", program.name) } label: {
                             VStack(spacing: 9) {
                                 Image(nsImage: model.appIcon(program)).resizable().interpolation(.high).frame(width: 38, height: 38).accessibilityHidden(true)
-                                Text(["codex": "Codex", "qq": "QQ", "codebuddy": "CodeBuddy", "dsh": "DSH"][program]!).font(.callout)
+                                Text(program.title).font(.callout)
                             }.frame(maxWidth: .infinity).padding(.vertical, 10)
                         }
                         .buttonStyle(.bordered).disabled(model.state.pending)
-                        .help(model.text(key)).accessibilityLabel(model.text(key))
+                        .help(program.action).accessibilityLabel(program.action)
                     }
                 }
             }
@@ -209,43 +228,54 @@ private struct Detail: View {
         }
     }
     private var settings: some View {
-        Form {
-            if !model.state.error.isEmpty || !model.state.note.isEmpty || model.state.pending { messages }
-            Section {
-                TextField(model.text("sshHost"), text: model.binding("sshHost"))
-                    .disabled(model.state.pending).autocorrectionDisabled()
-                Text(model.text("cloudHint")).font(.caption).foregroundStyle(.secondary)
-                Button(model.text("saveCloud")) { model.send("saveCloud") }.disabled(model.state.pending)
-            } header: { Label(model.text("cloud"), systemImage: "cloud") }
-            Section {
-                ForEach(["nodePath", "cliPath", "configPath", "credentialsPath", "statePath", "codexAppPath", "codebuddyAppPath", "dshAppPath", "qqAppPath"], id: \.self) { key in
+        VStack(alignment: .leading, spacing: 0) {
+            heading.padding(.horizontal, 28).padding(.top, 24).padding(.bottom, 12)
+            if !model.state.error.isEmpty || !model.state.note.isEmpty || model.state.pending {
+                messages.padding(.horizontal, 28).padding(.bottom, 10)
+            }
+            Form {
+                Section {
+                    Picker(model.text("language"), selection: Binding(get: { model.state.localePreference }, set: { model.send("locale", $0) })) {
+                        ForEach(model.state.languages) { language in Text(language.name).tag(language.tag) }
+                    }
+                } header: { Label(model.text("language"), systemImage: "globe") }
+                Section {
+                    TextField(model.text("sshHost"), text: model.binding("sshHost"))
+                        .disabled(model.state.pending).autocorrectionDisabled()
+                    Text(model.text("cloudHint")).font(.caption).foregroundStyle(.secondary)
+                    Button(model.text("saveCloud")) { model.send("saveCloud") }.disabled(model.state.pending)
+                } header: { Label(model.text("cloud"), systemImage: "cloud") }
+                Section {
+                    ForEach(["nodePath", "cliPath", "configPath", "credentialsPath", "statePath", "codexAppPath", "codebuddyAppPath", "dshAppPath", "qqAppPath"], id: \.self) { key in
+                        HStack {
+                            TextField(model.text(key), text: model.binding(key)).autocorrectionDisabled()
+                            Button { model.send("choosePath", field: key) } label: { Image(systemName: "folder") }
+                                .help(model.text("choose")).accessibilityLabel(model.text("choose") + " " + model.text(key))
+                        }.disabled(model.state.pending)
+                    }
+                    Text(model.text("savedPathsHint")).font(.caption).foregroundStyle(.secondary)
+                    Button(model.text("saveSettings")) { model.send("saveLocal") }.disabled(model.state.pending)
+                } header: { Label(model.text("environment"), systemImage: "terminal") }
+                Section {
+                    Picker(model.text("messageFormat"), selection: Binding(get: { model.state.preferences.messageFormat }, set: { model.send("editPreference", $0, field: "messageFormat") })) {
+                        ForEach(["image", "markdown", "text"], id: \.self) { Text(model.text($0)).tag($0) }
+                    }
+                    Picker(model.text("imageTheme"), selection: Binding(get: { model.state.preferences.imageTheme }, set: { model.send("editPreference", $0, field: "imageTheme") })) {
+                        ForEach(["light", "dark"], id: \.self) { Text(model.text($0)).tag($0) }
+                    }
                     HStack {
-                        TextField(model.text(key), text: model.binding(key)).autocorrectionDisabled()
-                        Button { model.send("choosePath", field: key) } label: { Image(systemName: "folder") }
-                            .help(model.text("choose")).accessibilityLabel(model.text("choose") + " " + model.text(key))
-                    }.disabled(model.state.pending)
-                }
-                Text(model.text("savedPathsHint")).font(.caption).foregroundStyle(.secondary)
-                Button(model.text("saveSettings")) { model.send("saveLocal") }.disabled(model.state.pending)
-            } header: { Label(model.text("environment"), systemImage: "terminal") }
-            Section {
-                Picker(model.text("preferences"), selection: Binding(get: { model.state.preferences.messageFormat }, set: { model.send("editPreference", $0, field: "messageFormat") })) {
-                    ForEach(["image", "markdown", "text"], id: \.self) { Text(model.text($0)).tag($0) }
-                }
-                Picker(model.text("image"), selection: Binding(get: { model.state.preferences.imageTheme }, set: { model.send("editPreference", $0, field: "imageTheme") })) {
-                    ForEach(["light", "dark"], id: \.self) { Text(model.text($0)).tag($0) }
-                }
-                HStack {
-                    Button(model.text("readPreferences")) { model.send("readPreferences") }
-                    Button(model.text("savePreferences")) { model.send("savePreferences") }.disabled(!model.state.preferencesLoaded)
-                }
-            } header: { Label(model.text("preferences"), systemImage: "bubble.left.and.text.bubble.right") }
-            .disabled(model.state.pending)
-            Section {
-                Button { model.send("logs") } label: { Label(model.text("refreshLogs"), systemImage: "arrow.clockwise") }.disabled(model.state.pending)
-                Text(model.state.logs.isEmpty ? model.text("noLogs") : model.state.logs).font(.caption.monospaced()).textSelection(.enabled)
-            } header: { Label(model.text("logs"), systemImage: "text.alignleft") }
-        }.formStyle(.grouped)
+                        Button(model.text("readPreferences")) { model.send("readPreferences") }
+                        Button(model.text("savePreferences")) { model.send("savePreferences") }.disabled(!model.state.preferencesLoaded)
+                    }
+                } header: { Label(model.text("preferences"), systemImage: "bubble.left.and.text.bubble.right") }
+                .disabled(model.state.pending)
+                Section {
+                    Button { model.send("logs") } label: { Label(model.text("refreshLogs"), systemImage: "arrow.clockwise") }.disabled(model.state.pending)
+                    Text(model.state.logs.isEmpty ? model.text("noLogs") : model.state.logs).font(.caption.monospaced()).textSelection(.enabled)
+                } header: { Label(model.text("logs"), systemImage: "text.alignleft") }
+            }
+            .formStyle(.grouped)
+        }
     }
 }
 
@@ -341,9 +371,15 @@ private struct Detail: View {
             if let row = pages.firstIndex(of: state.page) { outline.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false) }
             lastLocale = state.locale; lastPage = state.page
         }
-        language.removeAllItems()
-        language.addItems(withTitles: ["简体中文", "English", model.text("followSystem")])
-        language.selectItem(at: state.locale.hasPrefix("en") ? 1 : 0)
+        let titles = state.languages.map(\.name)
+        let existing = (0..<language.numberOfItems).compactMap { language.item(at: $0)?.title }
+        if existing != titles {
+            language.removeAllItems()
+            language.addItems(withTitles: titles)
+        }
+        if let index = state.languages.firstIndex(where: { $0.tag == state.localePreference }) {
+            language.selectItem(at: index)
+        }
         language.setAccessibilityLabel(model.text("language"))
         languageItem?.label = model.text("language")
         outline.setAccessibilityLabel(model.text("appName"))
@@ -387,7 +423,11 @@ private struct Detail: View {
         return item
     }
     @objc func openCloud() { model.send("openCloud") }
-    @objc func changeLanguage() { model.send("locale", language.indexOfSelectedItem == 2 ? "" : language.indexOfSelectedItem == 0 ? "zh-Hans" : "en") }
+    @objc func changeLanguage() {
+        let index = language.indexOfSelectedItem
+        guard model.state.languages.indices.contains(index) else { return }
+        model.send("locale", model.state.languages[index].tag)
+    }
 }
 
 @MainActor private var hosts: [UInt: NativeHost] = [:]

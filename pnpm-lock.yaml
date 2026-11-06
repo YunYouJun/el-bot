@@ -36,9 +36,6 @@ catalogs:
     '@resvg/resvg-js':
       specifier: ^2.6.2
       version: 2.6.2
-    '@tauri-apps/api':
-      specifier: ^2.12.1
-      version: 2.12.1
     '@tauri-apps/cli':
       specifier: ^2.12.1
       version: 2.12.1
@@ -353,19 +350,6 @@ importers:
         version: 5.0.3(@types/node@24.19.1)(vite@8.3.2(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.105.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))
 
   apps/el-bot-client:
-    dependencies:
-      '@tauri-apps/api':
-        specifier: 'catalog:'
-        version: 2.12.1
-      '@yunlefun/ui':
-        specifier: 'catalog:'
-        version: 0.0.6(sass@1.105.1)
-      '@yunlefun/vue':
-        specifier: 'catalog:'
-        version: 0.4.2(sass@1.105.1)(vue@3.5.43(typescript@5.9.3))
-      vue:
-        specifier: 'catalog:'
-        version: 3.5.43(typescript@5.9.3)
     devDependencies:
       '@resvg/resvg-js':
         specifier: 'catalog:'
@@ -373,21 +357,6 @@ importers:
       '@tauri-apps/cli':
         specifier: 'catalog:'
         version: 2.12.1
-      '@vitejs/plugin-vue':
-        specifier: 'catalog:'
-        version: 6.0.9(vite@8.3.2(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.105.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))(vue@3.5.43(typescript@5.9.3))
-      sass:
-        specifier: 'catalog:'
-        version: 1.105.1
-      typescript:
-        specifier: 'catalog:'
-        version: 5.9.3
-      vite:
-        specifier: 'catalog:'
-        version: 8.3.2(@types/node@24.19.1)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.105.1)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1)
-      vue-tsc:
-        specifier: 'catalog:'
-        version: 3.3.12(typescript@5.9.3)
 
   apps/qq-codex:
     dependencies:
@@ -2304,9 +2273,6 @@ packages:
     resolution: {integrity: sha512-AG8sI+6nfrDvN6ixuHJL9LaJTf3//0V5VITZYW3UOaIuSVexnEzsbMu4LH/JhMfRTxwhUXPnLqkl1DlzkZbRtg==}
     peerDependencies:
       vue: ^2.7.0 || ^3.0.0
-
-  '@tauri-apps/api@2.12.1':
-    resolution: {integrity: sha512-DeyFHa3wynpyoqTDikDEDGTJIq4LQ5USfolQGRmGIWT6JMADyxZBTDa5cAdT3tDg73rUXufPaCwN7aXBos4OnQ==}
 
   '@tauri-apps/cli-darwin-arm64@2.12.1':
     resolution: {integrity: sha512-8bMnbpJ2jKO/ufrOPL65EMHC3ptw7fzeraoQkwibyfGLqIl+UCWsC0152kmNbW6r9NvVQduXqAZF5mH1QgTWhw==}
@@ -7324,8 +7290,6 @@ snapshots:
     dependencies:
       '@tanstack/virtual-core': 3.17.11
       vue: 3.5.43(typescript@5.9.3)
-
-  '@tauri-apps/api@2.12.1': {}
 
   '@tauri-apps/cli-darwin-arm64@2.12.1':
     optional: true

@@ -30,6 +30,7 @@ type app struct {
 	preferences                               Preferences
 	personas                                  *PersonaResult
 	personaSelection                          string
+	localePreference                          string
 	avatar                                    *ui.Bitmap
 	native                                    *nativeView
 	nativeCallback                            uintptr
@@ -192,7 +193,7 @@ func (a *app) show(page string) {
 		a.invalidate()
 		return
 	}
-	a.win = mygo.NewWindow(mygo.WindowOptions{Title: t("appName"), Width: 960, Height: 720, MinWidth: 780, MinHeight: 580, Hidden: true, Content: ui.View(a.view)})
+	a.win = mygo.NewWindow(platformWindowOptions(mygo.WindowOptions{Title: t("appName"), Width: 960, Height: 720, MinWidth: 780, MinHeight: 580, Hidden: true, Content: ui.View(a.view)}))
 	w := a.win
 	w.OnReadyToShow(func() {
 		native, err := a.attachNative(w)
@@ -217,6 +218,7 @@ func (a *app) show(page string) {
 }
 
 func (a *app) ready() {
+	a.applyLocalePreference()
 	mygo.App.SetName(t("appName"))
 	icon, _ := assets.ReadFile("resources/tray.png")
 	tray, err := mygo.NewTray(mygo.TrayOptions{ID: "yun-bot", Icon: icon, IconIsTemplate: runtime.GOOS == "darwin", ToolTip: t("appName")})
@@ -229,15 +231,7 @@ func (a *app) ready() {
 	a.updateMenus()
 	a.show("quickActions")
 	mygo.App.OnLocaleChanged(func(string) {
-		mygo.App.SetName(t("appName"))
-		if a.win != nil {
-			a.win.SetTitle(t("appName"))
-		}
-		if a.tray != nil {
-			a.tray.SetToolTip(t("appName"))
-		}
-		a.updateMenus()
-		a.invalidate()
+		a.refreshLocale()
 	})
 	mygo.App.OnWillQuit(func(*mygo.QuitEvent) {
 		if a.tray != nil {
@@ -266,7 +260,7 @@ func main() {
 	a := &app{settings: s, draft: s, settingsPath: *path, page: "quickActions", err: err, personaSelection: "default", preferences: Preferences{"markdown", "light"}}
 	data, _ := assets.ReadFile("resources/avatar.webp")
 	a.avatar, _ = ui.DecodeBitmap(data)
-	mygo.App.SetName("Yun Bot")
+	mygo.App.SetName(t("appName"))
 	if !mygo.App.RequestSingleInstanceLock() {
 		return
 	}

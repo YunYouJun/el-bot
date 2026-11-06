@@ -120,7 +120,7 @@ func TestCatalogsAreCompleteAndTranslateNativeIdentity(t *testing.T) {
 	if len(en) != len(zh) {
 		t.Fatal("catalog keys differ")
 	}
-	if got := []string{locales.Catalog.Format("en", "appName", nil), locales.Catalog.Format("zh-Hans", "appName", nil)}; !reflect.DeepEqual(got, []string{"Yun Bot", "云伯特"}) {
+	if got := []string{locales.Catalog.Format("en", "appName", nil), locales.Catalog.Format("zh-Hans", "appName", nil)}; !reflect.DeepEqual(got, []string{"Yun Bot", "云 Bot"}) {
 		t.Fatalf("unexpected translated identity: %v", got)
 	}
 }

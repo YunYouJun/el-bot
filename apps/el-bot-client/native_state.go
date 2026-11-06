@@ -19,12 +19,21 @@ type nativeChoice struct {
 	Value string `json:"value"`
 	Name  string `json:"name"`
 }
+type nativeProgram struct {
+	Name             string `json:"name"`
+	Title            string `json:"title"`
+	Action           string `json:"action"`
+	BundleIdentifier string `json:"bundleIdentifier"`
+	Path             string `json:"path"`
+}
 type nativeState struct {
 	Page               string            `json:"page"`
 	Locale             string            `json:"locale"`
+	LocalePreference   string            `json:"localePreference"`
+	Languages          []languageChoice  `json:"languages"`
 	Strings            map[string]string `json:"strings"`
 	Draft              map[string]string `json:"draft"`
-	AppPaths           map[string]string `json:"appPaths"`
+	Programs           []nativeProgram   `json:"programs"`
 	Host               string            `json:"host"`
 	Pending            bool              `json:"pending"`
 	LocalExpanded      bool              `json:"localExpanded"`
@@ -46,23 +55,45 @@ type nativeState struct {
 	PersonaChoices     []nativeChoice    `json:"personaChoices"`
 }
 
-func (a *app) nativeSnapshot() []byte {
+var nativeCatalogKeys = func() []string {
 	var catalog map[string]json.RawMessage
-	_ = json.Unmarshal(nativeCatalog, &catalog)
-	texts := map[string]string{}
+	if json.Unmarshal(nativeCatalog, &catalog) != nil {
+		return nil
+	}
+	keys := make([]string, 0, len(catalog))
 	for key := range catalog {
 		if !strings.HasPrefix(key, "@") {
-			texts[key] = locales.Catalog.Format(i18n.Locale(), key, nil)
+			keys = append(keys, key)
 		}
 	}
+	return keys
+}()
+
+func (a *app) nativePrograms() []nativeProgram {
+	programs := make([]nativeProgram, 0, len(programEntries))
+	for _, program := range programEntries {
+		programs = append(programs, nativeProgram{
+			Name:             program.Name,
+			Title:            program.Title,
+			Action:           t(program.ActionKey),
+			BundleIdentifier: program.BundleID,
+			Path:             a.settings.programPath(program.Name),
+		})
+	}
+	return programs
+}
+
+func (a *app) nativeSnapshot() []byte {
+	texts := map[string]string{}
+	for _, key := range nativeCatalogKeys {
+		texts[key] = locales.Catalog.Format(i18n.Locale(), key, nil)
+	}
 	s := nativeState{
-		Page: a.page, Locale: i18n.Locale(), Strings: texts,
-		Draft: a.draft.fields(),
-		AppPaths: map[string]string{
-			"codex": a.settings.CodexAppPath, "qq": a.settings.QqAppPath,
-			"codebuddy": a.settings.CodebuddyAppPath, "dsh": a.settings.DshAppPath,
-		},
-		Host: a.settings.Cloud.SSHHost, Pending: a.pending, LocalExpanded: a.localExpanded,
+		Page: a.page, Locale: i18n.Locale(), LocalePreference: a.localePreference,
+		Languages: languageChoices(), Strings: texts,
+		Draft:    a.draft.fields(),
+		Programs: a.nativePrograms(),
+		Host:     a.settings.Cloud.SSHHost, Pending: a.pending, LocalExpanded: a.localExpanded,
 		Phase: phaseLabel(a.status.Phase), PhaseKey: a.status.Phase,
 		QQ: connectionLabel(a.status.QQ), Agent: textOr(a.status.Agent, "Codex"),
 		AgentConnection: connectionLabel(a.status.Codex),
@@ -152,7 +183,7 @@ func decodeNativeEvent(data []byte) (nativeEvent, error) {
 	case "locale":
 		valid = event.Value == "" || event.Value == "en" || event.Value == "zh-Hans"
 	case "openProgram":
-		valid = event.Value == "codex" || event.Value == "qq" || event.Value == "codebuddy" || event.Value == "dsh"
+		_, valid = programEntryFor(event.Value)
 	case "edit", "choosePath":
 		var s Settings
 		valid = s.field(event.Field) != nil && (event.Action != "choosePath" || event.Field != "sshHost")
@@ -189,7 +220,7 @@ func (a *app) handleNativeEvent(data []byte) {
 	case "navigate":
 		a.navigate(e.Value)
 	case "locale":
-		mygo.App.SetLocale(e.Value)
+		a.setLocale(e.Value)
 	case "openCloud":
 		a.launchCloud(false)
 	case "managePersonas":

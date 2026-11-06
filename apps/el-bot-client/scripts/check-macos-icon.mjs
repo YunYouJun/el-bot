@@ -23,6 +23,6 @@ for (const appearance of ['NSAppearanceNameAqua', 'NSAppearanceNameDarkAqua', 'I
 }
 assert(assets.some(asset => asset.AssetType === 'Vector' && asset.Name.endsWith('/cloud')), 'Missing vector cloud artwork.')
 const fallback = await readFile(join(resources, plistValue('CFBundleIconFile')))
-const expectedFallback = await readFile(fileURLToPath(new URL('../src-tauri/icons/icon.icns', import.meta.url)))
+const expectedFallback = await readFile(fileURLToPath(new URL('../icons/icon.icns', import.meta.url)))
 assert(fallback.equals(expectedFallback), 'The static fallback must match the generated 72% icon.')
 console.log(`Verified ${name}: layered default, dark and tinted icons, native glass lighting and unchanged ICNS fallback.`)
