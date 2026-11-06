@@ -23,6 +23,7 @@ RUN chmod -R a+rX /opt/el-bot-dsh \
 COPY --chmod=0644 entrypoint.sh /opt/dsh-runtime/entrypoint.sh
 COPY --chmod=0644 cutover.mjs /opt/dsh-runtime/cutover.mjs
 COPY --chmod=0644 health.mjs healthcheck.mjs history.mjs security-smoke.mjs /opt/dsh-runtime/
+COPY --chmod=0644 tool-runtime.mjs tool-runtime-smoke.mjs /opt/dsh-runtime/
 RUN mkdir -p /opt/dsh-qq-workspaces && chmod 0755 /opt/dsh-qq-workspaces /opt/dsh-runtime /opt/el-bot-dsh
 
 ENV NODE_ENV=production

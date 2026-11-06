@@ -26,7 +26,7 @@ node apps/dsh-cloud/migrate.mjs .el-bot/dsh-cloud-staging
 
 快照包含会话日志、标题缓存、工作区、QQ 会话偏好和工作目录。它不复制其他提供方的密钥、账号登录凭据或会话锁。容器内沿用原本的 HOME 路径，所以日志、会话 ID、cwd 和祖先关系无需改写；标题缓存也可以按原会话标识恢复。宿主上的数据实际位于部署目录的 `home/` 下。本机其他项目只保留历史和目录标识，项目源码需要另行迁移。
 
-把 `Dockerfile`、`.dockerignore`、`entrypoint.sh`、`cutover.mjs`、`health.mjs`、`healthcheck.mjs`、`history.mjs`、`security-smoke.mjs`、`compose.yaml` 放入部署目录，将打包产物解压到该目录的 `dsh/`（其中应直接包含 `package.json`、`cordis.patch.yml`、`dist/`）。profile 的 bundles 增加 `@el-bot/dsh`，原分组插件路径替换为 `@el-bot/dsh/qq-workspaces`，具体配置见 `packages/dsh/README.md`。镜像包含 Git，以支持公开仓库导入。`home/` 必须由容器 UID 1000 读写，目录权限 `700`、凭据文件 `600`。快照、`.env` 与真实 profile 只保留在私有目录，不进入 Git，也不进入镜像。
+把 `Dockerfile`、`.dockerignore`、`entrypoint.sh`、`cutover.mjs`、`health.mjs`、`healthcheck.mjs`、`history.mjs`、`security-smoke.mjs`、`tool-runtime.mjs`、`tool-runtime-smoke.mjs`、`compose.yaml` 放入部署目录，将打包产物解压到该目录的 `dsh/`（其中应直接包含 `package.json`、`cordis.patch.yml`、`dist/`）。profile 的 bundles 增加 `@el-bot/dsh`，原分组插件路径替换为 `@el-bot/dsh/qq-workspaces`，具体配置见 `packages/dsh/README.md`。镜像包含 Git，以支持公开仓库导入。`home/` 必须由容器 UID 1000 读写，目录权限 `700`、凭据文件 `600`。快照、`.env` 与真实 profile 只保留在私有目录，不进入 Git，也不进入镜像。
 
 ```sh
 docker compose build
