@@ -10,7 +10,7 @@ let package = Package(
     ],
     targets: [
         .target(name: "YunCore", resources: [.process("Resources")]),
-        .target(name: "YunUI", dependencies: ["YunCore"]),
+        .target(name: "YunUI", dependencies: ["YunCore"], resources: [.process("Resources")]),
         .testTarget(name: "YunCoreTests", dependencies: ["YunCore"]),
     ]
 )

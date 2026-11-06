@@ -19,6 +19,17 @@ public struct PairingResult: Codable, Sendable {
     public let device: Device
 }
 
+public enum SessionCategory: String, CaseIterable, Sendable {
+    case all
+    case qq
+
+    public var localizationKey: String { "sessions.category.\(rawValue)" }
+
+    public func includes(_ session: SessionSummary) -> Bool {
+        self == .all || session.source?.platform == rawValue
+    }
+}
+
 public struct SessionSummary: Codable, Sendable, Identifiable, Hashable {
     public let id: String
     public let title: String
@@ -27,6 +38,22 @@ public struct SessionSummary: Codable, Sendable, Identifiable, Hashable {
     public let workspace: String?
     public let provider: String?
     public let model: String?
+    public let source: SessionSource?
+    public var displayTitle: String { source?.name ?? title }
+
+    public init(
+        id: String, title: String, updatedAt: Date, running: Bool,
+        workspace: String?, provider: String?, model: String?, source: SessionSource? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.updatedAt = updatedAt
+        self.running = running
+        self.workspace = workspace
+        self.provider = provider
+        self.model = model
+        self.source = source
+    }
 }
 
 public struct ModelRoute: Codable, Sendable, Hashable {
@@ -86,7 +113,8 @@ extension SessionSummary {
             running: running,
             workspace: workspace,
             provider: route?.provider,
-            model: route?.model
+            model: route?.model,
+            source: source
         )
     }
 }

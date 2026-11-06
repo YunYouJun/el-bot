@@ -1,9 +1,17 @@
 import SwiftUI
 import YunCore
 
-private enum SessionConversationKind: Equatable {
+private enum SessionConversationKind: String {
     case direct
     case group
+
+    init?(session: SessionSummary) {
+        if let kind = session.source?.kind, let value = Self(rawValue: kind) {
+            self = value
+        } else {
+            self.init(workspace: session.workspace)
+        }
+    }
 
     init?(workspace: String?) {
         guard let workspace else { return nil }
@@ -51,6 +59,16 @@ private enum SessionConversationKind: Equatable {
     }
 }
 
+struct QQPlatformIcon: View {
+    var body: some View {
+        Image("qq", bundle: .module)
+            .resizable()
+            .scaledToFit()
+            .foregroundStyle(Color.accentColor)
+            .accessibilityLabel("QQ")
+    }
+}
+
 private struct YunStringsKey: EnvironmentKey { static let defaultValue = YunStrings() }
 public extension EnvironmentValues {
     var yunStrings: YunStrings {
@@ -68,19 +86,32 @@ public struct SessionRows<Destination: Hashable>: View {
     }
     public var body: some View {
         ForEach(sessions) { session in
-            let kind = SessionConversationKind(workspace: session.workspace)
+            let kind = SessionConversationKind(session: session)
             NavigationLink(value: destination(session.id)) {
                 HStack(spacing: 10) {
-                    Image(systemName: kind?.symbol ?? "bubble.left.and.bubble.right")
-                        .foregroundStyle(kind == .group ? Color.orange : Color.accentColor)
-                        .frame(width: 24)
+                    Group {
+                        if session.source?.platform == "qq" {
+                            QQPlatformIcon()
+                        } else {
+                            Image(systemName: kind?.symbol ?? "bubble.left.and.bubble.right")
+                                .foregroundStyle(kind == .group ? Color.orange : Color.accentColor)
+                        }
+                    }
+                    .frame(width: 24, height: 24)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(session.title).lineLimit(1).fontWeight(.medium)
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            Text(session.displayTitle).lineLimit(1).fontWeight(.medium)
+                            Spacer(minLength: 0)
+                            Text(session.updatedAt, format: .dateTime.month(.twoDigits).day(.twoDigits).hour().minute())
+                                .font(.caption2).foregroundStyle(.tertiary)
+                        }
                         if kind != nil || session.workspace != nil {
                             HStack(spacing: 6) {
                                 if let kind {
-                                    Text(text[kind.localizationKey])
+                                    Label(text[kind.localizationKey], systemImage: kind.symbol)
+                                        .labelStyle(.titleAndIcon)
                                         .font(.caption2.weight(.semibold))
+                                        .fixedSize()
                                         .foregroundStyle(kind == .group ? Color.orange : Color.accentColor)
                                         .padding(.horizontal, 7)
                                         .padding(.vertical, 2)
@@ -97,13 +128,21 @@ public struct SessionRows<Destination: Hashable>: View {
                                 }
                             }
                         }
-                        if let model = session.model { Text(model).font(.caption2).foregroundStyle(.tertiary).lineLimit(1) }
+                        if let message = session.source?.lastMessage {
+                            Text(messagePreview(message))
+                                .font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                        }
                     }
                     Spacer(minLength: 0)
                     if session.running { ProgressView().controlSize(.small) }
                 }.padding(.vertical, 4)
             }
         }
+    }
+    private func messagePreview(_ message: SessionInboundMessage) -> String {
+        let content = message.text.isEmpty ? text["chat.message.\(message.type)"] : message.text
+        if let sender = message.senderName { return "\(sender): \(content)" }
+        return content
     }
 }
 
@@ -154,14 +193,15 @@ public struct ChatBrowser: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var selected: String?
     @State private var search = ""
+    @State private var category: SessionCategory = .all
     @State private var path: [String] = []
     public init(store: ChatStore) { self.store = store }
     private var visible: [SessionSummary] {
         store.sessions.filter {
-            search.isEmpty || [$0.title, $0.workspace, $0.provider, $0.model]
+            category.includes($0) && (search.isEmpty || [$0.title, $0.workspace, $0.provider, $0.model, $0.source?.platform]
                 .compactMap { $0 }
                 .joined(separator: " ")
-                .localizedCaseInsensitiveContains(search)
+                .localizedCaseInsensitiveContains(search))
         }
     }
     private var compact: Bool {
@@ -193,12 +233,54 @@ public struct ChatBrowser: View {
         }
         .overlay { if visible.isEmpty { ContentUnavailableView(text["sessions.empty"], systemImage: "bubble.left.and.bubble.right") } }
         .searchable(text: $search, prompt: text["sessions.search"])
+        .safeAreaInset(edge: .top, spacing: 0) { categoryPicker }
         .navigationTitle(text["tab.sessions"])
         .refreshable { await store.refresh() }
         .toolbar {
             Button { Task { selected = await store.create() } } label: { Label(text["sessions.new"], systemImage: "square.and.pencil") }
                 .disabled(store.busy).accessibilityIdentifier("newSession")
         }
+    }
+    private var categoryPicker: some View {
+        HStack(spacing: 4) {
+            ForEach(SessionCategory.allCases, id: \.self) { item in
+                Button {
+                    category = item
+                } label: {
+                    HStack(spacing: 5) {
+                        if item == .qq {
+                            QQPlatformIcon()
+                                .frame(width: 16, height: 16)
+                                .accessibilityHidden(true)
+                        }
+                        Text(text[item.localizationKey])
+                    }
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(category == item ? .primary : .secondary)
+                    .frame(maxWidth: .infinity, minHeight: 36)
+                    .background {
+                        if category == item {
+                            RoundedRectangle(cornerRadius: 7)
+                                .fill(.background)
+                                .shadow(color: .black.opacity(0.08), radius: 2, y: 1)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(text[item.localizationKey])
+                .accessibilityAddTraits(category == item ? .isSelected : [])
+                .accessibilityIdentifier("sessionCategory.\(item.rawValue)")
+            }
+        }
+        .padding(4)
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(.bar, ignoresSafeAreaEdges: [])
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(text["sessions.category"])
+        .accessibilityIdentifier("sessionCategory")
     }
     private var splitBrowser: some View {
         NavigationSplitView {
@@ -212,6 +294,7 @@ public struct ChatBrowser: View {
             List { sessionRows }
                 .overlay { if visible.isEmpty { ContentUnavailableView(text["sessions.empty"], systemImage: "bubble.left.and.bubble.right") } }
                 .searchable(text: $search, prompt: text["sessions.search"])
+                .safeAreaInset(edge: .top, spacing: 0) { categoryPicker }
                 .navigationTitle(text["tab.sessions"])
                 .refreshable { await store.refresh() }
                 .toolbar {

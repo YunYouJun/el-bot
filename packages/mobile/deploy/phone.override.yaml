@@ -1,0 +1,8 @@
+# Compatibility for existing rc.5 images; fresh images preload this adapter in entrypoint.sh.
+# Copy apps/dsh-cloud/tool-runtime.mjs alongside this compose file before applying.
+services:
+  dsh:
+    environment:
+      NODE_OPTIONS: --import=/opt/dsh-runtime/tool-runtime.mjs
+    volumes:
+      - ./tool-runtime.mjs:/opt/dsh-runtime/tool-runtime.mjs:ro

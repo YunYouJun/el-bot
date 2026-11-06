@@ -1,18 +1,19 @@
 {
   "name": "@el-bot/mobile",
   "type": "module",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "private": true,
   "description": "Paired native companion access to a cloud DSH instance",
   "license": "AGPL-3.0",
-  "exports": { ".": "./dist/index.mjs" },
+  "exports": { ".": "./dist/index.mjs", "./client": "./dist/client.js" },
   "bin": { "yun-bot-mobile": "./dist/cli.mjs" },
   "files": ["cordis.patch.yml", "dist"],
   "dsh": {
+    "client": { "platform": "web" },
     "bundle": { "patch": "./cordis.patch.yml" },
     "compatibility": { "dshReleases": { "0.2.1-rc.5": "compatible" } }
   },
-  "scripts": { "build": "tsdown", "typecheck": "tsc --noEmit" },
+  "scripts": { "build": "tsdown && tsdown --config tsdown.client.config.ts", "typecheck": "tsc --noEmit" },
   "dependencies": {
     "@yunlefun/sso": "catalog:"
   },

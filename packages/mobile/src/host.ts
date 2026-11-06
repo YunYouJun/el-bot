@@ -39,7 +39,14 @@ interface Controller {
   follow: (request: { address: { kind: 'session', sessionId: string }, maxMessages: number }, signal: AbortSignal) => AsyncIterable<Snapshot | RecordEntry>
   page: (request: { address: { kind: 'session', sessionId: string }, throughSeq: number, beforeSeq: number, maxMessages: number }, signal: AbortSignal) => Promise<{ records: RecordEntry[], hasMore: boolean }>
 }
-interface Workspace { id: string, title: string, sessionIds: readonly string[] }
+interface Workspace { id: string, title: string, path?: string, sessionIds: readonly string[] }
+export interface QQWorkspaceGrouping {
+  workspaces: { c2c: { path: string }, group: { path: string } }
+}
+export interface QQConversationMetadata {
+  summaries: (sessionIds: string[]) => Promise<Record<string, NonNullable<SessionSummary['source']>>>
+  details: (sessionId: string) => Promise<SessionSummary['source']>
+}
 interface Registry {
   list: () => Workspace[]
   create: (path: string, title: string) => Promise<Workspace>
@@ -109,13 +116,27 @@ function displayTitle(values: Record<string, unknown>, id: string) {
   return id.slice(0, 8)
 }
 
+function sessionSource(workspace?: Workspace, grouping?: QQWorkspaceGrouping): SessionSummary['source'] {
+  // Use the QQ adapter's directory identity, independent of editable titles.
+  if (workspace?.path && grouping) {
+    if (workspace.path === grouping.workspaces.c2c.path)
+      return { platform: 'qq', kind: 'direct' }
+    if (workspace.path === grouping.workspaces.group.path)
+      return { platform: 'qq', kind: 'group' }
+    return
+  }
+  const scope = workspace?.path?.replaceAll('\\', '/').match(/\/\.dsh-qqbot\/workspaces\/\d+\/(private|groups)\/?$/)?.[1]
+  if (scope)
+    return { platform: 'qq', kind: scope === 'groups' ? 'group' : 'direct' }
+}
+
 /** Uses DSH's public controller so viewing is cold-safe and prompting retains native admission and dedup. */
 export class DshMobileHost implements MobileHost {
   private readonly controller: Controller
   private readonly workspaces: Registry
   private readonly creations = new Map<string, Promise<string>>()
 
-  constructor(controller: unknown, workspaces: unknown, private readonly settings: MobileSettings, private readonly streamText: (stream: unknown[]) => string) {
+  constructor(controller: unknown, workspaces: unknown, private readonly settings: MobileSettings, private readonly streamText: (stream: unknown[]) => string, private readonly qqGrouping?: () => QQWorkspaceGrouping | undefined, private readonly qqMetadata?: () => QQConversationMetadata | undefined) {
     for (const method of ['list', 'create', 'modelCatalog', 'selectModel', 'prompt', 'follow', 'page']) {
       if (typeof record(controller)[method] !== 'function')
         throw new Error(`DSH Session Controller capability is unavailable: ${method}`)
@@ -128,20 +149,40 @@ export class DshMobileHost implements MobileHost {
 
   async list(signal: AbortSignal): Promise<SessionSummary[]> {
     const { items } = await this.controller.list({}, signal)
-    const groups = new Map(this.workspaces.list().flatMap(workspace => workspace.sessionIds.map(id => [id, workspace.title] as const)))
+    const groups = new Map(this.workspaces.list().flatMap(workspace => workspace.sessionIds.map(id => [id, workspace] as const)))
+    const grouping = this.qqGrouping?.()
+    const metadata: Record<string, NonNullable<SessionSummary['source']>> = await this.qqMetadata?.()?.summaries(items.map(item => item.sessionId)).catch(() => ({})) ?? {}
     return items.filter(item => item.origin !== 'subagent').map((item) => {
       const values = item.projections?.values ?? {}
       const selection = projectedModelRoute(values)
+      const workspace = groups.get(item.sessionId)
+      const source = sessionSource(workspace, grouping)
+      const detail = source && metadata[item.sessionId]?.kind === source.kind ? metadata[item.sessionId] : undefined
       return {
         id: item.sessionId,
         title: displayTitle(values, item.sessionId),
-        updatedAt: new Date(item.updatedAt).toISOString(),
+        updatedAt: new Date(Math.max(item.updatedAt, Date.parse(detail?.lastMessage?.createdAt ?? '') || 0)).toISOString(),
         running: item.running,
-        workspace: groups.get(item.sessionId),
+        workspace: workspace?.title,
+        ...source ? { source: detail ?? source } : {},
         provider: selection?.provider,
         model: selection?.model,
       }
     })
+  }
+
+  async information(id: string, signal: AbortSignal): Promise<SessionSummary> {
+    const session = (await this.list(signal)).find(row => row.id === id)
+    if (!session)
+      throw new MobileError(404, 'session_not_found')
+    if (signal.aborted)
+      throw signal.reason
+    if (!session.source)
+      return session
+    const source = await this.qqMetadata?.()?.details(id).catch(() => undefined)
+    if (signal.aborted)
+      throw signal.reason
+    return source?.kind === session.source.kind ? { ...session, source } : session
   }
 
   async conversation(id: string, signal: AbortSignal, before?: number): Promise<Conversation> {

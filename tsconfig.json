@@ -40,6 +40,8 @@
   ],
   "exclude": [
     "packages/dsh/src/client.ts",
+    "packages/mobile/src/client.ts",
+    "packages/mobile/src/client.test.ts",
     "packages/dsh/web/**",
     "**/dist/**",
     "**/node_modules/**",

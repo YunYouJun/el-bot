@@ -1,5 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "rootDir": "src", "types": ["node"], "noEmit": true },
+  "compilerOptions": { "lib": ["ESNext", "DOM"], "rootDir": "src", "types": ["node"], "noEmit": true },
   "include": ["src/**/*.ts"]
 }

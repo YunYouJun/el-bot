@@ -8,13 +8,20 @@ private final class ChatFixture: @unchecked Sendable {
     var authorizations: [String] = []
     var modelSelections: [String] = []
     let reconcileAccepted: Bool
-    init(reconcileAccepted: Bool = false) { self.reconcileAccepted = reconcileAccepted }
+    let informationAvailable: Bool
+    init(reconcileAccepted: Bool = false, informationAvailable: Bool = true) {
+        self.reconcileAccepted = reconcileAccepted
+        self.informationAvailable = informationAvailable
+    }
     let sessionJSON = """
     {"id":"shared-session","title":"Shared conversation","updatedAt":"2026-11-06T00:00:00Z","running":false}
     """
     func respond(_ request: URLRequest) -> Result<Data, Error> {
         lock.lock(); defer { lock.unlock() }
         authorizations.append(request.value(forHTTPHeaderField: "Authorization") ?? "")
+        if request.httpMethod == "GET", request.url?.path.hasSuffix("/info") == true {
+            return informationAvailable ? .success(Data(sessionJSON.utf8)) : .failure(URLError(.unsupportedURL))
+        }
         if request.httpMethod == "GET", request.url?.path.hasSuffix("/models") == true {
             return .success(Data("""
             {
@@ -72,6 +79,27 @@ private final class ChatFixture: @unchecked Sendable {
             : []
         let encoded = String(decoding: try! JSONEncoder().encode(messages), as: UTF8.self)
         return .success(Data("{\"session\":\(sessionJSON),\"messages\":\(encoded),\"hasMore\":false,\"cursor\":1}".utf8))
+    }
+}
+
+@Test @MainActor func conversationInformationIsReadOnlyAndKeepsOlderServicesUsable() async throws {
+    for available in [true, false] {
+        let host = UUID().uuidString.lowercased() + ".invalid"
+        let fixture = ChatFixture(informationAvailable: available)
+        ChatProtocol.fixtures.set(fixture, host: host)
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [ChatProtocol.self]
+        let api = MobileAPI(endpoint: try Endpoint("https://" + host), token: "fixture-credential", session: URLSession(configuration: configuration))
+        let session = try MobileJSON.decoder().decode(SessionSummary.self, from: Data(fixture.sessionJSON.utf8))
+        let model = ConversationStore(session: session, client: api)
+        await model.switchModel(provider: "openai", model: "gpt-6-luna")
+        await model.loadInformation()
+        #expect(model.information?.id == (available ? session.id : nil))
+        #expect(model.informationErrorKey == (available ? nil : "chat.info.unavailable"))
+        #expect(model.summary.id == session.id)
+        #expect(model.currentModel?.model == "gpt-6-luna")
+        #expect(!model.loadingInformation)
+        #expect(fixture.requests.isEmpty)
     }
 }
 

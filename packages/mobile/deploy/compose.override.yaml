@@ -11,6 +11,8 @@ services:
     restart: unless-stopped
     init: true
     read_only: true
+    environment:
+      DSH_WEB_GATEWAY: http://dsh:3082
     volumes:
       - ./mobile/dist:/opt/mobile-proxy:ro
     networks: [default, mobile-edge]

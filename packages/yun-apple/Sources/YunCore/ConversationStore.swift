@@ -14,6 +14,9 @@ import Observation
     public private(set) var loadingModels = false
     public private(set) var switchingModel = false
     public private(set) var modelErrorKey: String?
+    public private(set) var information: SessionSummary?
+    public private(set) var loadingInformation = false
+    public private(set) var informationErrorKey: String?
     private var cursor: Int?
     private let client: MobileAPI
     private let outbox: PendingMessages
@@ -88,6 +91,20 @@ import Observation
             if !Task.isCancelled {
                 modelErrorKey = (error as? CompanionError)?.localizationKey ?? "error.unavailable"
             }
+        }
+    }
+
+    public func loadInformation() async {
+        guard !loadingInformation else { return }
+        loadingInformation = true
+        informationErrorKey = nil
+        defer { loadingInformation = false }
+        do {
+            let value = try await client.sessionInformation(summary.id)
+            guard !Task.isCancelled, value.id == summary.id else { return }
+            information = value
+        } catch {
+            if !Task.isCancelled { informationErrorKey = "chat.info.unavailable" }
         }
     }
 

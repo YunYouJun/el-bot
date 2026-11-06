@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		02FEA122DFCD990C4E8B90D5 /* YunCore in Frameworks */ = {isa = PBXBuildFile; productRef = D10A9346A2BE370E6CA774F3 /* YunCore */; };
+		11C50C58BF524D5B648941A3 /* MobileDSHWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ADFD09734D047F7C620B446 /* MobileDSHWebView.swift */; };
+		11EE1422404BA61D224700BB /* PhoneControlStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFC84945C49830C80D0EF80 /* PhoneControlStore.swift */; };
 		12DD0A6332E576F9CB3B98A6 /* YunUI in Frameworks */ = {isa = PBXBuildFile; productRef = 230A02706766BDB1F224CFCB /* YunUI */; };
 		43806AD30DBBFC221E9B2B5C /* MobileRoot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D00932A9C7BECCAE2D100E4 /* MobileRoot.swift */; };
 		5269DEDAAB0676B0D74F113C /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 172ADD788D39A10E73B89A8E /* AppPreferences.swift */; };
@@ -26,7 +28,9 @@
 		6DDC8B4D77DEF00DCCE05FD4 /* ElBot.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = ElBot.icon; sourceTree = "<group>"; };
 		6F95F86FA57274B302FF33B1 /* MobileBotStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileBotStatusView.swift; sourceTree = "<group>"; };
 		72A895CDFEDEF4AA73A98E2F /* YunIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YunIOSApp.swift; sourceTree = "<group>"; };
+		7ADFD09734D047F7C620B446 /* MobileDSHWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileDSHWebView.swift; sourceTree = "<group>"; };
 		8B7D9E905E61123B061AD75B /* MobileSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileSettings.swift; sourceTree = "<group>"; };
+		9BFC84945C49830C80D0EF80 /* PhoneControlStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneControlStore.swift; sourceTree = "<group>"; };
 		9D00932A9C7BECCAE2D100E4 /* MobileRoot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileRoot.swift; sourceTree = "<group>"; };
 		F1CDD738CD9ECC966E536F0F /* yun-apple */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "yun-apple"; path = "../../packages/yun-apple"; sourceTree = SOURCE_ROOT; };
 		F7FF153BE0FE47C5ABFBE9C3 /* Yun.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Yun.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -71,8 +75,10 @@
 				135696DEE11C3A0E41093CFA /* DeviceToolsStore.swift */,
 				6F95F86FA57274B302FF33B1 /* MobileBotStatusView.swift */,
 				4C3A892E9A105326ADE7DFE7 /* MobileDeviceToolsView.swift */,
+				7ADFD09734D047F7C620B446 /* MobileDSHWebView.swift */,
 				9D00932A9C7BECCAE2D100E4 /* MobileRoot.swift */,
 				8B7D9E905E61123B061AD75B /* MobileSettings.swift */,
+				9BFC84945C49830C80D0EF80 /* PhoneControlStore.swift */,
 				72A895CDFEDEF4AA73A98E2F /* YunIOSApp.swift */,
 			);
 			path = Sources;
@@ -173,9 +179,11 @@
 				5269DEDAAB0676B0D74F113C /* AppPreferences.swift in Sources */,
 				7803C7AE0FB5A5402022AEA4 /* DeviceToolsStore.swift in Sources */,
 				F26A8A6823FEF4203F2349A1 /* MobileBotStatusView.swift in Sources */,
+				11C50C58BF524D5B648941A3 /* MobileDSHWebView.swift in Sources */,
 				531BD11193F02C8431C1DFA3 /* MobileDeviceToolsView.swift in Sources */,
 				43806AD30DBBFC221E9B2B5C /* MobileRoot.swift in Sources */,
 				CA951056FC91EAE52DE61DDD /* MobileSettings.swift in Sources */,
+				11EE1422404BA61D224700BB /* PhoneControlStore.swift in Sources */,
 				E3A88A63972B52A2092AE496 /* YunIOSApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -104,19 +104,75 @@ public actor ICtrlClient {
 
     public func deviceInfo() async throws -> DeviceToolJSON { try await authorized("device_info") }
 
+    /// Closed app vocabulary, validated by the native lease before reaching the local runner.
+    public func execute(_ command: PhoneCommand, channel: PhoneChannel) async -> PhoneReceipt {
+        var attempted = false
+        var launched = false
+        var returned = false
+        do {
+            try command.validate(for: channel)
+            try Task.checkCancellation()
+            let info = try await deviceInfo()
+            guard info["system"]["screen_locked"].bool == false else { throw ICtrlError.execution }
+            try command.validate(for: channel)
+            try Task.checkCancellation()
+            attempted = true
+            let opened = try await authorized("launch_app", params: ["bundle_id": .string(command.app.bundleID)])
+            guard Self.didOpenApp(opened, bundleID: command.app.bundleID) else { throw ICtrlError.execution }
+            launched = true
+            if command.returnToYun {
+                try await Task.sleep(for: .milliseconds(1500))
+                try Task.checkCancellation()
+                let home = "cn.elpsy.elbot.client"
+                let reply = try await authorized("launch_app", params: ["bundle_id": .string(home)])
+                guard Self.didOpenApp(reply, bundleID: home) else { throw ICtrlError.execution }
+                returned = true
+            }
+            return PhoneReceipt(id: command.id, status: .succeeded, launched: launched, returnedToYun: returned)
+        } catch {
+            // A lost runner response may have performed the action. Never retry it.
+            return PhoneReceipt(id: command.id, status: attempted ? .unknown : .failed, launched: launched, returnedToYun: returned)
+        }
+    }
+
+    nonisolated static func didOpenApp(_ reply: DeviceToolJSON, bundleID: String) -> Bool {
+        guard reply["system_alert"].bool != true,
+              reply["message"].string == "Opened \(bundleID)." else { return false }
+        if let foreground = reply["foreground_app"].string, !foreground.isEmpty { return foreground == bundleID }
+        // Some iOS versions omit foreground identity. The authenticated runner
+        // still must explicitly acknowledge the exact installed app it opened.
+        return true
+    }
+
     /// Fixed, non-account-changing acceptance flow; no model-provided parameters.
     public func openSamplePage() async throws {
-        _ = try await authorized("open_url", params: ["url": .string("https://example.com")])
+        _ = try await authorized("launch_app", params: ["bundle_id": .string(ICtrlBrowserSample.bundleID)])
+        _ = try await authorized("open_url", params: ["url": .string(ICtrlBrowserSample.url)])
     }
 
     public func readSamplePage() async throws -> DeviceToolJSON {
         let info = try await deviceInfo()
-        guard info["system"]["screen_locked"].bool == false,
-              info["system"]["foreground_is_browser"].bool == true,
-              let browser = info["system"]["foreground_app"].string, !browser.isEmpty else { throw ICtrlError.execution }
-        return try await authorized("page_source", params: [
-            "bundle_id": .string(browser), "visible_only": .bool(true), "max_elements": .number(100),
+        guard info["system"]["screen_locked"].bool == false else { throw ICtrlError.execution }
+        if let foreground = info["system"]["foreground_app"].string,
+           foreground != ICtrlBrowserSample.bundleID { throw ICtrlError.execution }
+        let tree = try await authorized("page_source", params: [
+            "bundle_id": .string(ICtrlBrowserSample.bundleID), "visible_only": .bool(true), "max_elements": .number(100),
         ])
+        if let text = tree["source"].string, ICtrlBrowserSample.containsPageBody(text) {
+            return .object(["bundle_id": .string(ICtrlBrowserSample.bundleID), "source": .string(text), "read_method": .string("accessibility")])
+        }
+        try Task.checkCancellation()
+        let screenshot = try await authorized("screenshot", params: [
+            "bundle_id": .string(ICtrlBrowserSample.bundleID), "format": .string("jpeg"), "scale": .number(1),
+        ])
+        let image = try ICtrlBrowserSample.imageData(screenshot, deviceInfo: info)
+        let text = try ICtrlBrowserSample.recognize(image)
+        try Task.checkCancellation()
+        return .object(["bundle_id": .string(ICtrlBrowserSample.bundleID), "source": .string(text), "read_method": .string("vision")])
+    }
+
+    public nonisolated static func samplePageMatches(_ page: DeviceToolJSON) -> Bool {
+        page["bundle_id"].string == ICtrlBrowserSample.bundleID && ICtrlBrowserSample.containsPageBody(page["source"].string ?? "")
     }
 
     public func returnToYun() async throws {

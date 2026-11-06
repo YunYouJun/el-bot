@@ -103,3 +103,99 @@ it('allocates a new native session without interpreting a request ID as a resume
     await rm(directory, { recursive: true, force: true })
   }
 })
+
+it('classifies QQ sources by workspace identity rather than editable names', async () => {
+  const workspaces = [
+    { id: 'private', path: '/home/bot/.dsh-qqbot/workspaces/123/private', title: 'Renamed private', sessionIds: ['direct'] },
+    { id: 'groups', path: '/home/bot/.dsh-qqbot/workspaces/123/groups', title: 'Renamed group', sessionIds: ['group'] },
+    { id: 'native', path: '/home/bot/.dsh-qqbot/workspace/mobile', title: 'QQ · 群聊', sessionIds: ['native'] },
+    { id: 'other', path: '/projects/qq/groups', title: 'QQ · 私聊', sessionIds: ['other'] },
+  ]
+  const items = ['direct', 'group', 'native', 'other', 'ungrouped'].map(sessionId => ({ sessionId, updatedAt: Date.now(), running: false }))
+  const controller = {
+    list: async () => ({ items }),
+    create() {},
+    modelCatalog() {},
+    selectModel() {},
+    prompt() {},
+    follow() {},
+    page() {},
+  }
+  const host = new DshMobileHost(controller, { list: () => workspaces, create() {} }, { publicBaseUrl: 'https://bot.test' }, () => '')
+  const rows = await host.list(new AbortController().signal)
+  expect(rows.map(row => row.source)).toEqual([
+    { platform: 'qq', kind: 'direct' },
+    { platform: 'qq', kind: 'group' },
+    undefined,
+    undefined,
+    undefined,
+  ])
+  expect(rows[0].workspace).toBe('Renamed private')
+})
+
+it('uses the live QQ adapter to recognize customized workspace directories', async () => {
+  const privatePath = '/custom/bot/direct'
+  const groupPath = '/custom/bot/rooms'
+  const controller = {
+    list: async () => ({ items: ['direct', 'group', 'unrelated'].map(sessionId => ({ sessionId, updatedAt: Date.now(), running: false })) }),
+    create() {},
+    modelCatalog() {},
+    selectModel() {},
+    prompt() {},
+    follow() {},
+    page() {},
+  }
+  const workspaces = {
+    list: () => [
+      { id: 'one', path: privatePath, title: 'Private', sessionIds: ['direct'] },
+      { id: 'two', path: groupPath, title: 'Rooms', sessionIds: ['group'] },
+      { id: 'three', path: '/old/.dsh-qqbot/workspaces/999/groups', title: 'Old bot', sessionIds: ['unrelated'] },
+    ],
+    create() {},
+  }
+  const host = new DshMobileHost(controller, workspaces, { publicBaseUrl: 'https://bot.test' }, () => '', () => ({ workspaces: { c2c: { path: privatePath }, group: { path: groupPath } } }))
+  expect((await host.list(new AbortController().signal)).map(row => row.source)).toEqual([
+    { platform: 'qq', kind: 'direct' },
+    { platform: 'qq', kind: 'group' },
+    undefined,
+  ])
+})
+
+it('enriches only matching QQ sessions and resolves details without opening or prompting an agent', async () => {
+  const controller = {
+    list: async () => ({ items: ['group', 'native'].map(sessionId => ({ sessionId, updatedAt: 0, running: false })) }),
+    create: vi.fn(),
+    modelCatalog: vi.fn(),
+    selectModel: vi.fn(),
+    prompt: vi.fn(),
+    follow: vi.fn(),
+    page: vi.fn(),
+  }
+  const source = {
+    platform: 'qq' as const,
+    kind: 'group' as const,
+    peerId: 'allowed',
+    appId: '123',
+    name: 'Book club',
+    lastMessage: { id: 'message', senderId: 'member', senderName: 'Alice', text: 'Hello', type: 'text', createdAt: '2026-11-07T00:00:00.000Z' },
+  }
+  const metadata = {
+    summaries: vi.fn(async () => ({ group: source, native: source })),
+    details: vi.fn(async () => ({ ...source, memberCount: 6 })),
+  }
+  const host = new DshMobileHost(controller, {
+    list: () => [{ id: 'qq', title: 'QQ', path: '/custom/groups', sessionIds: ['group'] }],
+    create: vi.fn(),
+  }, { publicBaseUrl: 'https://bot.test' }, () => '', () => ({ workspaces: { c2c: { path: '/custom/private' }, group: { path: '/custom/groups' } } }), () => metadata)
+  const signal = new AbortController().signal
+  const list = await host.list(signal)
+  expect(list[0]?.source).toEqual(source)
+  expect(list[0]?.updatedAt).toBe(source.lastMessage.createdAt)
+  expect(list[1]?.source).toBeUndefined()
+  expect((await host.information('group', signal)).source).toMatchObject({ name: 'Book club', memberCount: 6 })
+  await host.information('native', signal)
+  expect(metadata.details).toHaveBeenCalledExactlyOnceWith('group')
+  await expect(host.information('missing', signal)).rejects.toThrow('session_not_found')
+  expect(controller.prompt).not.toHaveBeenCalled()
+  expect(controller.follow).not.toHaveBeenCalled()
+})

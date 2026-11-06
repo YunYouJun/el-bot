@@ -1,7 +1,7 @@
 http:
   routers:
     yun-bot-mobile:
-      rule: Host(`bot.yunle.fun`) && PathPrefix(`/el-bot/mobile/v1/`)
+      rule: Host(`bot.yunle.fun`)
       entryPoints: [websecure]
       service: yun-bot-mobile
       tls:

@@ -7,12 +7,38 @@ export interface Device {
   expiresAt: string
 }
 
+export interface SessionSource {
+  platform: 'qq'
+  kind: 'direct' | 'group'
+  appId?: string
+  peerId?: string
+  name?: string
+  description?: string
+  category?: string
+  tags?: string[]
+  memberCount?: number
+  groupInfoStatus?: 'available' | 'forbidden' | 'unavailable'
+  botStateStatus?: 'available' | 'forbidden' | 'unavailable'
+  bot?: { joinedAt?: string, role?: string, receiveMode?: string, allowProactive?: boolean }
+  lastMessage?: {
+    id: string
+    senderId: string
+    senderName?: string
+    senderRole?: string
+    senderIsBot?: boolean
+    text: string
+    createdAt: string
+    type: string
+  }
+}
+
 export interface SessionSummary {
   id: string
   title: string
   updatedAt: string
   running: boolean
   workspace?: string
+  source?: SessionSource
   provider?: string
   model?: string
 }
@@ -62,9 +88,10 @@ export interface BotStatus {
   checkedAt: string
 }
 
-/** Only these capabilities are reachable from a paired phone. */
+/** Conversation and status capabilities of the paired companion API. */
 export interface MobileHost {
   list: (signal: AbortSignal) => Promise<SessionSummary[]>
+  information?: (id: string, signal: AbortSignal) => Promise<SessionSummary>
   conversation: (id: string, signal: AbortSignal, before?: number) => Promise<Conversation>
   models: (id: string, signal: AbortSignal) => Promise<SessionModelCatalog>
   selectModel: (id: string, route: ModelRoute, signal: AbortSignal) => Promise<ModelRoute>
@@ -74,7 +101,11 @@ export interface MobileHost {
 }
 
 export interface MobileContext {
+  tools: import('./phone').PhoneTools
+  get?: (name: string) => unknown
+  connection: { authenticatedUrl: (baseUrl: string) => string }
   webServer: {
+    getOrigin: () => string
     register: (route: { kind: 'prefix', path: string, handler: (req: IncomingMessage, res: ServerResponse) => Promise<void> }) => () => void
   }
   sessionController: unknown
@@ -83,6 +114,8 @@ export interface MobileContext {
 }
 
 export interface MobileSettings {
+  phone?: { enabled: boolean }
+  web?: { enabled: boolean, port?: number }
   profileDirectory?: string
   publicBaseUrl: string
   appId?: string

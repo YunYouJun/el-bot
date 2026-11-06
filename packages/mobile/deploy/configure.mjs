@@ -19,5 +19,5 @@ manifest.dependencies ??= {}
 manifest.dependencies['@el-bot/mobile'] = 'file:/opt/dsh-runtime/node_modules/@el-bot/mobile'
 manifest.dsh.profile.bundles.push('@el-bot/mobile')
 writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, { mode: 0o600 })
-writeFileSync(patchPath, `${patch}\n- id: el-bot-mobile\n  config:\n    publicBaseUrl: https://bot.yunle.fun\n`, { mode: 0o600 })
+writeFileSync(patchPath, `${patch}\n- id: el-bot-mobile\n  config:\n    publicBaseUrl: https://bot.yunle.fun\n    web:\n      enabled: true\n      port: 3082\n`, { mode: 0o600 })
 process.stdout.write('Mobile bundle configured; existing settings retained; private backups created\n')

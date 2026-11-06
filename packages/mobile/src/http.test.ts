@@ -80,6 +80,7 @@ it('gates cloud operations behind pairing, preserves prompt identity and revokes
   const session = { id: 'existing-session', title: 'Existing chat', running: false, updatedAt: new Date().toISOString() }
   const host: MobileHost = {
     list: vi.fn(async () => [session]),
+    information: vi.fn<NonNullable<MobileHost['information']>>(async () => ({ ...session, source: { platform: 'qq', kind: 'group', peerId: 'allowed', name: 'Book club' } })),
     conversation: vi.fn(async () => ({ session, messages: [], cursor: 0, hasMore: false })),
     models: vi.fn(async () => ({ current: { provider: 'tokenlink', model: 'hy4' }, groups: [] })),
     selectModel: vi.fn(async (_id, route) => ({ ...route, reasoningEffort: 'medium' })),
@@ -95,12 +96,17 @@ it('gates cloud operations behind pairing, preserves prompt identity and revokes
   const url = `http://127.0.0.1:${address.port}${API_PATH}`
   try {
     expect((await fetch(`${url}/sessions`)).status).toBe(401)
+    expect((await fetch(`${url}/sessions/existing-session/info`)).status).toBe(401)
+    expect(host.information).not.toHaveBeenCalled()
     expect(host.list).not.toHaveBeenCalled()
     const paired = await fetch(`${url}/pair`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ code: pairing.code, deviceName: 'iPhone' }) })
     expect(paired.status).toBe(200)
     const { token } = await paired.json() as { token: string }
     const headers = { 'authorization': `Bearer ${token}`, 'content-type': 'application/json' }
     expect((await fetch(`${url}/sessions`, { headers })).status).toBe(200)
+    expect(await (await fetch(`${url}/sessions/existing-session/info`, { headers })).json()).toMatchObject({ source: { peerId: 'allowed', name: 'Book club' } })
+    expect(host.information).toHaveBeenCalledExactlyOnceWith('existing-session', expect.any(AbortSignal))
+    expect((await fetch(`${url}/sessions/existing-session/info`, { headers, method: 'POST' })).status).toBe(404)
     expect(await (await fetch(`${url}/sessions/existing-session/models`, { headers })).json()).toEqual({
       current: { provider: 'tokenlink', model: 'hy4' },
       groups: [],

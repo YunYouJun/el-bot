@@ -68,6 +68,47 @@ public actor MobileAPI {
         try await request("GET", path: ["device"])
     }
 
+    public func openPhoneChannel(requestId: String, apps: [PhoneApp]) async throws -> PhoneChannel {
+        struct Body: Encodable { let requestId: String; let apps: [PhoneApp] }
+        let value: PhoneChannel = try await request("POST", path: ["phone", "channel"], body: JSONEncoder().encode(Body(requestId: requestId, apps: apps)))
+        try value.validate()
+        guard value.apps == apps else { throw CompanionError.invalidResponse }
+        return value
+    }
+
+    public func nextPhoneCommand(_ channel: PhoneChannel) async throws -> PhoneCommand? {
+        struct Poll: Decodable, Sendable { let command: PhoneCommand? }
+        let value: Poll = try await request("GET", path: ["phone", "next"], phoneChannel: channel.channel)
+        if let command = value.command { try command.validate(for: channel) }
+        return value.command
+    }
+
+    public func completePhoneCommand(_ receipt: PhoneReceipt, channel: PhoneChannel) async throws {
+        let _: OK = try await request("POST", path: ["phone", "results"], body: JSONEncoder().encode(receipt), phoneChannel: channel.channel)
+    }
+
+    public func closePhoneChannel(_ channel: PhoneChannel) async throws {
+        let _: OK = try await request("DELETE", path: ["phone", "channel"], phoneChannel: channel.channel)
+    }
+
+    public func webLaunch() async throws -> DSHWebLaunch {
+        let body = try JSONEncoder().encode(["access": "owner-web"])
+        return try await request("POST", path: ["web", "ticket"], body: body)
+    }
+
+    public func webCookie() async throws -> HTTPCookie {
+        let launch = try await webLaunch()
+        let (bytes, response) = try await session.bytes(for: launch.request(for: endpoint))
+        var count = 0
+        for try await _ in bytes {
+            count += 1
+            guard count <= 4096 else { throw CompanionError.invalidResponse }
+        }
+        try Task.checkCancellation()
+        guard let response = response as? HTTPURLResponse else { throw CompanionError.invalidResponse }
+        return try DSHWebLaunch.cookie(from: response, for: endpoint)
+    }
+
     public func sessions() async throws -> [SessionSummary] {
         let value: SessionList = try await request("GET", path: ["sessions"])
         return value.items
@@ -81,6 +122,10 @@ public actor MobileAPI {
 
     public func conversation(_ id: String, before: Int? = nil) async throws -> Conversation {
         try await request("GET", path: ["sessions", id], before: before)
+    }
+
+    public func sessionInformation(_ id: String) async throws -> SessionSummary {
+        try await request("GET", path: ["sessions", id, "info"])
     }
 
     public func models(for id: String) async throws -> SessionModelCatalog {
@@ -133,7 +178,7 @@ public actor MobileAPI {
     }
 
     fileprivate func request<Value: Decodable & Sendable>(
-        _ method: String, path: [String], body: Data? = nil, before: Int? = nil
+        _ method: String, path: [String], body: Data? = nil, before: Int? = nil, phoneChannel: String? = nil
     ) async throws -> Value {
         var url = endpoint.origin.appending(path: "el-bot/mobile/v1")
         for part in path { url.appendPathComponent(part) }
@@ -143,6 +188,7 @@ public actor MobileAPI {
         request.timeoutInterval = 20
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         if let token { request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization") }
+        if let phoneChannel { request.setValue(phoneChannel, forHTTPHeaderField: "X-Yun-Phone-Channel") }
         if let body {
             request.httpBody = body
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")

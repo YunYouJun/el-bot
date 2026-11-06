@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { AccountSyncConfig, VerifyIdentityProof } from './account'
 import type { DeviceStore } from './auth'
 import type { AccountDiscoveryConfig, AccountEnrollmentResult, AccountInstance } from './discovery'
+import type { PhoneRelay } from './phone'
 import type { MobileHost } from './types'
 import { Buffer } from 'node:buffer'
 import { randomUUID } from 'node:crypto'
@@ -126,6 +127,7 @@ export function mobileRoutes(
     redeem?: (ticket: string, enrollment: Omit<AccountEnrollmentResult, 'ticket' | 'expiresAt'>) => Promise<unknown>
     now?: () => number
   },
+  phone?: PhoneRelay,
 ) {
   return async (req: IncomingMessage, res: ServerResponse) => {
     req.setTimeout(10_000, () => req.destroy())
@@ -214,6 +216,29 @@ export function mobileRoutes(
       const device = devices.authorize(req.headers.authorization)
       if (!device)
         throw new MobileError(401, 'unauthorized')
+      if (path[0] === 'phone') {
+        if (!phone)
+          throw new MobileError(503, 'phone_not_configured')
+        const channel = typeof req.headers['x-yun-phone-channel'] === 'string' ? req.headers['x-yun-phone-channel'] : undefined
+        if (path.length === 2 && path[1] === 'channel' && req.method === 'POST') {
+          const request = await body(req)
+          json(res, 201, await phone.open(device.id, identifier(request.requestId), request.apps))
+        }
+        else if (path.length === 2 && path[1] === 'channel' && req.method === 'DELETE') {
+          if (!channel)
+            throw new MobileError(403, 'phone_channel_required')
+          phone.stop(device.id, channel)
+          json(res, 200, { ok: true })
+        }
+        else if (path.length === 2 && path[1] === 'next' && req.method === 'GET') {
+          json(res, 200, phone.next(device.id, channel))
+        }
+        else if (path.length === 2 && path[1] === 'results' && req.method === 'POST') {
+          json(res, 200, phone.complete(device.id, channel, await body(req)))
+        }
+        else { throw new MobileError(404, 'not_found') }
+        return
+      }
       if (path.length === 1 && path[0] === 'device') {
         if (req.method === 'GET') {
           json(res, 200, device)
@@ -301,6 +326,12 @@ export function mobileRoutes(
           return
         }
         const id = identifier(path[1])
+        if (path.length === 3 && path[2] === 'info' && req.method === 'GET') {
+          if (!host.information)
+            throw new MobileError(503, 'information_unavailable')
+          json(res, 200, await host.information(id, signal))
+          return
+        }
         if (path.length === 2 && req.method === 'GET') {
           const before = url.searchParams.get('before')
           const cursor = before === null ? undefined : Number(before)

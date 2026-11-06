@@ -10,6 +10,7 @@ import YunCore
     private(set) var report: String?
     private(set) var elapsed: TimeInterval?
     private(set) var busy = false
+    private(set) var sampleFound = false
     private(set) var operation: Operation?
     private let client = ICtrlClient()
     private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
@@ -37,6 +38,7 @@ import YunCore
             case .pair:
                 status = try await client.pair()
             case .read:
+                sampleFound = false
                 report = try await client.deviceInfo().formatted
                 elapsed = nil
             case .smoke:
@@ -50,7 +52,7 @@ import YunCore
         }
     }
 
-    func clearReport() { report = nil; elapsed = nil }
+    func clearReport() { report = nil; elapsed = nil; sampleFound = false }
 
     #if DEBUG
     /// Only acceptance metadata, never device contents, keys or page text.
@@ -61,7 +63,7 @@ import YunCore
             "paired": .bool(status?.paired == true),
             "error": errorKey.map(DeviceToolJSON.string) ?? .null,
             "elapsed": elapsed.map(DeviceToolJSON.number) ?? .null,
-            "sample_found": .bool(report?.localizedCaseInsensitiveContains("Example Domain") == true),
+            "sample_found": .bool(sampleFound),
         ])
         let url = URL.cachesDirectory.appendingPathComponent("device-tools-verification.json")
         try? Data(value.formatted.utf8).write(to: url, options: [.atomic, .completeFileProtection])
@@ -98,6 +100,7 @@ import YunCore
     private func runSmoke() async throws {
         report = nil
         elapsed = nil
+        sampleFound = false
         let started = Date()
         let worker = Task { @MainActor [client] () throws -> DeviceToolJSON in
             _ = try await client.deviceInfo()
@@ -107,7 +110,7 @@ import YunCore
             for attempt in 0..<3 {
                 try await Task.sleep(for: .milliseconds(attempt == 0 ? 1200 : 800))
                 page = try await client.readSamplePage()
-                if page.formatted.localizedCaseInsensitiveContains("Example Domain") { break }
+                if ICtrlClient.samplePageMatches(page) { break }
             }
             try Task.checkCancellation()
             // Return even when the page didn't expose its contents. That is a
@@ -134,6 +137,7 @@ import YunCore
         try Task.checkCancellation()
         elapsed = Date().timeIntervalSince(started)
         report = page.formatted
-        guard page.formatted.localizedCaseInsensitiveContains("Example Domain") else { throw ICtrlError.execution }
+        sampleFound = ICtrlClient.samplePageMatches(page)
+        guard sampleFound else { throw ICtrlError.execution }
     }
 }

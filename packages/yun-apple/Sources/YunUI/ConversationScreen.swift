@@ -12,6 +12,8 @@ private struct ContentOffsetKey: PreferenceKey {
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
 }
 
+private struct ConversationInfoPresentation: Identifiable { let id: String }
+
 private extension Color {
     static var userBubble: Color {
         Color.accentColor
@@ -34,6 +36,7 @@ public struct ConversationScreen: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var followLatest = true
     @State private var lastOffset: CGFloat?
+    @State private var information: ConversationInfoPresentation?
     public init(session: SessionSummary, client: MobileAPI) {
         _model = State(initialValue: ConversationStore(session: session, client: client))
     }
@@ -102,7 +105,16 @@ public struct ConversationScreen: View {
                 }
             }
         }
-        .navigationTitle(model.summary.title)
+        .navigationTitle(model.summary.displayTitle)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button { information = ConversationInfoPresentation(id: model.summary.id) } label: {
+                    Label(text["chat.info.title"], systemImage: "info.circle")
+                }
+                .accessibilityIdentifier("conversationInfo")
+            }
+        }
+        .sheet(item: $information) { _ in ConversationInfoView(model: model) }
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
