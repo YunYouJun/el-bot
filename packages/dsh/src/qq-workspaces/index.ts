@@ -1,10 +1,12 @@
 import type { GroupingOptions, HostContext, QQManager, Route } from './contracts'
+import type { ModelProjections, ModelSelection } from './model-selection'
 import { mkdir, realpath, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { homedir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { installHooks, WorkspaceGrouping } from './grouping'
+import { legacySelection, projectedModel } from './model-selection'
 
 export const name = 'el-bot-qq-workspaces'
 export const inject = ['workspaceRegistry', 'sessionPersistence']
@@ -63,7 +65,10 @@ export async function apply(ctx: HostContext, settings: Settings): Promise<void>
   const namespace = await loadModule(specifier)
   const module = namespace as { SessionManager: { prototype: QQManager } }
   const grouping = new WorkspaceGrouping(ctx, options, workspaces)
-  const legacySelections = new WeakMap<object, { current: Route | undefined, assembled: Route | undefined }>()
+  const legacySelections = new WeakMap<object, ModelSelection>()
+  const projections = ctx.get?.('sessionProjections') as ModelProjections | undefined
+  if (projections)
+    grouping.readLegacy = record => projectedModel(projections, record)
   grouping.selectLegacy = async (record, route) => {
     let selection = legacySelections.get(record.agent)
     if (!selection) {
@@ -74,8 +79,18 @@ export async function apply(ctx: HostContext, settings: Settings): Promise<void>
       }
       if (!agentModule.installModelSelection)
         throw new Error('The Web host does not support scoped model selection')
-      selection = { current: route, assembled: undefined }
-      agentModule.installModelSelection(record.agent.ctx, selection)
+      if (!projections || !grouping.manager?.modelResolver)
+        throw new Error('The Web host does not expose shared model selection and QQ preferences')
+      const resolver = grouping.manager.modelResolver
+      const shared = legacySelection(projections, record, route, selected => resolver.setOverride(record.sessionKey, selected))
+      selection = shared.selection
+      const dispose = agentModule.installModelSelection(record.agent.ctx, selection)
+      const agentContext = record.agent.ctx as Pick<HostContext, 'effect'>
+      agentContext.effect(() => () => {
+        shared.dispose()
+        if (typeof dispose === 'function')
+          dispose()
+      }, 'el-bot.qq-model-selection')
       legacySelections.set(record.agent, selection)
     }
     selection.current = route

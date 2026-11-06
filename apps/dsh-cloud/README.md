@@ -38,6 +38,14 @@ docker compose ps
 
 云端默认使用 `DeepSeek API → deepseek-flash`。启动时 `cutover.mjs` 对现有 QQ 私聊和群聊调用宿主原生模型切换，检查历史前缀和分组，再记录 `~/.dsh-qqbot/cloud-cutover.json`。后续启动不再覆盖用户选择。TokenLink → Hy4 保留；使用它的机器仍需能正常访问 TokenLink 内网入口。
 
+## OpenAI API 与客户端切换
+
+从 el-bot 客户端点击「打开云端 DSH」，在账号菜单的「设置 → 模型 → 添加模型提供商」中选择内置 `openai`，填写专用 OpenAI API Key 并保存。DSH 将密钥写入云端 `~/.dsh/.credentials.yaml`（权限 `600`），提供方配置只记录 `apiKeyEnv: OPENAI_API_KEY`。桌面客户端不保存 Key。内置目录随 DSH 依赖更新，具体模型能否调用取决于 OpenAI 项目的权限和额度。
+
+在「小云 Bot · 私聊」或「小云 Bot · 群聊」中打开要调整的会话，点击输入框下方的模型名称，即可在 OpenAI、DeepSeek 等已配置提供方间切换。选择应用于下一次请求，保留会话历史；正在执行的请求继续使用开始时的选择。QQ 分组适配读取宿主持久化的模型选择，并同步该会话的 QQ 模型偏好，使 QQ 后续消息、会话恢复及模型分支沿用同一选择。不同 QQ 会话分别保存偏好，无需为切换模型重启机器人。
+
+验收需要同时检查界面选择和会话日志中实际请求的 `provider`／`model`。仅看模型按钮或回复内容不能证明已切换成功。还应重启后复查偏好和历史。云机必须能够通过 HTTPS 访问 `https://api.openai.com/v1`；连接超时、DNS 或地区访问问题需要先解决，已保存 Key 不代表真实调用已通过。网络未就绪时保留可用的原模型。
+
 ## 运维与恢复
 
 个人云机部署位置为 `/srv/yunlefun/el-bot-dsh`，容器名 `el-bot-dsh`。服务器的固定公网出口需要加入 QQ 开放平台白名单。检查 `home/.dsh-qqbot/workspace-grouping-status.json`、`cloud-cutover.json` 和容器健康状态，再通过真实私聊与群聊验证收发。

@@ -29,6 +29,7 @@ export class WorkspaceGrouping {
   private managerListeners = new Set<(manager: QQManager) => void>()
   onCaptured?: () => void
   selectLegacy?: (record: PeerRecord, route: Route) => Promise<void>
+  readLegacy?: (record: PeerRecord) => Route | undefined
   readonly scope = new AsyncLocalStorage<Scope>()
   readonly queues = new Map<string, Promise<unknown>>()
   closed = false
@@ -60,8 +61,8 @@ export class WorkspaceGrouping {
   }
 
   currentRoute(record: PeerRecord): Route | undefined {
-    const selected = record.agent.model?.current() ?? record.agent.options
-    return selected?.provider && selected.model ? { provider: selected.provider, model: selected.model } : undefined
+    const selected = record.agent.model?.current() ?? this.readLegacy?.(record) ?? record.agent.options
+    return selected?.provider && selected.model ? { ...selected, provider: selected.provider, model: selected.model } : undefined
   }
 
   async selectModel(record: PeerRecord, route: Route): Promise<void> {

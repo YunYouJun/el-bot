@@ -1,6 +1,6 @@
 /** Structural contracts keep the adapter independent of the host's private npm registry. */
 export type Scope = 'c2c' | 'group'
-export interface Route { provider: string, model: string }
+export interface Route { provider: string, model: string, reasoningEffort?: string }
 export interface Header { id: string, cwd?: string, parentSession?: string }
 export interface Workspace {
   path: string
@@ -10,6 +10,7 @@ export interface Workspace {
   attachSession: (id: string) => Promise<void>
 }
 export interface HostContext {
+  get?: (name: string) => unknown
   provide?: (name: string, value: unknown) => unknown
   baseUrl?: string
   loader?: { internal?: { import: (specifier: string, baseUrl: string, options: object) => Promise<unknown> } }
@@ -27,7 +28,7 @@ export interface PeerRecord {
   peerId: string
   agent: {
     status: string
-    session: { header: Header }
+    session: { header: Header, append?: (type: string, data: Route) => unknown }
     model?: { current: () => Route | undefined, select: (route: Route) => unknown }
     options?: Partial<Route>
     ctx?: unknown
@@ -35,6 +36,7 @@ export interface PeerRecord {
   }
 }
 export interface QQManager {
+  modelResolver?: { setOverride: (key: string, route: Route) => void }
   ctx: HostContext
   config: { appId: string, access: { c2cAllow: string[] } }
   host: { sessionHeader: (id: string) => Promise<Header | undefined> }

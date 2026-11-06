@@ -248,6 +248,19 @@ describe('official QQ workspace lifecycle', () => {
     expect(f.world.archived.has(parent)).toBe(true)
   })
 
+  it('resumes the durable Web choice before applying stale QQ model preferences', async () => {
+    const f = await fixture()
+    const record = await f.manager.getOrCreate('c2c', 'owner', 'owner', { scope: 'c2c', targetId: 'owner', msgId: '' })
+    record.agent.model = undefined
+    record.agent.options = { provider: 'deepseek-api', model: 'deepseek-flash' }
+    const openai = { provider: 'openai', model: 'gpt-6-luna' }
+    f.grouping.readLegacy = () => openai
+    f.grouping.selectLegacy = vi.fn(async () => {})
+    await f.grouping.organize(f.manager, record, Manager.prototype.rebuildSession)
+    expect(f.grouping.selectLegacy).toHaveBeenCalledWith(record, openai)
+    expect(f.world.forks).toBe(0)
+  })
+
   it('does not archive the source if the new workspace membership cannot be committed', async () => {
     const f = await fixture()
     f.world.current.set('qqbot:123:c2c:owner', 'source')
@@ -286,4 +299,5 @@ describe('official QQ workspace lifecycle', () => {
     await f.grouping.migrateExisting()
     expect(f.manager.records.size).toBe(0)
   })
+
 })
