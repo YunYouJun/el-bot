@@ -1,0 +1,11 @@
+# Run from the existing DSH compose directory. Keep the current home bind and image.
+services:
+  dsh:
+    volumes:
+      - ./mobile:/opt/dsh-runtime/node_modules/@el-bot/mobile:ro
+    networks: !override
+      - mobile-edge
+networks:
+  mobile-edge:
+    external: true
+    name: dokploy-network

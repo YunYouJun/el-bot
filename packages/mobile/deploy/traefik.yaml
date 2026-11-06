@@ -1,0 +1,13 @@
+http:
+  routers:
+    yun-bot-mobile:
+      rule: Host(`bot.yunle.fun`) && PathPrefix(`/el-bot/mobile/v1/`)
+      entryPoints: [websecure]
+      service: yun-bot-mobile
+      tls:
+        certResolver: letsencrypt
+  services:
+    yun-bot-mobile:
+      loadBalancer:
+        servers:
+          - url: http://el-bot-dsh:3080
