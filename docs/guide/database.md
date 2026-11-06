@@ -50,7 +50,7 @@ module.exports = {
 
 用法与 Mongoose 一致，更多请参见 [Mongoose 文档](https://mongoosejs.com/docs/guide.html)。
 
-[user.schema.ts](https://github.com/YunYouJun/el-bot/blob/dev/src/db/schemas/user.schema.ts)
+[user.schema.ts](https://github.com/YunYouJun/el-bot/blob/main/src/db/schemas/user.schema.ts)
 
 ```js
 import { User } from "../schemas/user.schema.ts";

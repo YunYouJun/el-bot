@@ -115,7 +115,7 @@ npm trust github el-bot --repo YunYouJun/el-bot --file release.yml --allow-publi
 
 ### 每次发布
 
-1. 提交并推送本次代码，确保默认分支 `dev` 的 CI 通过，且工作区干净。
+1. 提交并推送本次代码，确保默认分支 `main` 的 CI 通过，且工作区干净。
 2. 运行 `pnpm release`，在交互中选择尚未发布的版本；该命令只更新 `packages/el-bot/package.json`，生成 Conventional Commit、`v<版本>` 标签并推送。
 3. 标签触发工作流：校验标签与包版本一致、确认 npm 不存在该版本，然后执行 lint、构建、类型检查、测试、文档构建、安装包测试与 Tauri 五个平台/架构的原生打包。所有检查通过后才发布 npm。
 4. prerelease 版本（例如 `1.0.0-rc.3`）发布到 `next`，正式版本发布到 `latest`；npm 发布成功后生成 GitHub Release，并上传通过验证的客户端安装包及 SHA-256 校验文件。

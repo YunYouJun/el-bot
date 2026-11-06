@@ -299,7 +299,7 @@ limit:
 
 ## 黑名单 blacklist
 
-[blacklist](https://github.com/YunYouJun/el-bot/blob/dev/src/plugins/blacklist/)
+[blacklist](https://github.com/YunYouJun/el-bot/blob/main/src/plugins/blacklist/)
 
 <chat-panel title="聊天记录">
   <chat-message :id="910426929" nickname="云游君">el block qq 114514</chat-message>
@@ -310,7 +310,7 @@ limit:
 
 ## 能不能好好说话 nbnhhsh
 
-[nbnhhsh](https://github.com/YunYouJun/el-bot/blob/dev/src/plugins/nbnhhsh/)
+[nbnhhsh](https://github.com/YunYouJun/el-bot/blob/main/src/plugins/nbnhhsh/)
 
 <chat-panel title="聊天记录">
   <chat-message :id="910426929" nickname="云游君">el nbnhhsh yysy qs</chat-message>

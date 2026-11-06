@@ -29,7 +29,7 @@ Codex 子命令从 `1.0.0-beta.17` 起提供：`pnpm add -g el-bot@next`。新�
 
 ### 使用 AI 接入
 
-把 [AI 接入提示词](https://github.com/YunYouJun/el-bot/blob/dev/docs/codex/ai-setup.md)和项目路径交给本机助手。
+把 [AI 接入提示词](https://github.com/YunYouJun/el-bot/blob/main/docs/codex/ai-setup.md)和项目路径交给本机助手。
 助手使用 `el-bot codex init --no-prompt` 创建配置，通过 `check` / `check --all` 检查登录与 QQ API；
 你在本机填写 AppSecret，并在 QQ 私聊完成绑定。不要把密钥或完整状态发给 AI。
 文档站部署后提供 [llms.txt](https://docs.bot.elpsy.cn/llms.txt) 与 [完整 Markdown](https://docs.bot.elpsy.cn/llms-full.txt)。

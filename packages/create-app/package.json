@@ -9,7 +9,7 @@
     "url": "https://www.yunyoujun.cn"
   },
   "license": "AGPL-3.0",
-  "homepage": "https://github.com/YunYouJun/el-bot/blob/dev/packages/create-app#readme",
+  "homepage": "https://github.com/YunYouJun/el-bot/blob/main/packages/create-app#readme",
   "bin": {
     "create-el-bot": "dist/index.mjs"
   },
