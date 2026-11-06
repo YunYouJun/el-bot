@@ -2,6 +2,7 @@ import SwiftUI
 
 struct StatusView: View {
     @Environment(AppStore.self) private var store
+    @Environment(\.locale) private var locale
 
     private var stateKey: String { "status." + (store.online ? (store.status?.state ?? "unknown") : "unknown") }
 
@@ -34,6 +35,6 @@ struct StatusView: View {
             .navigationTitle("tab.status")
             .refreshable { await store.refresh() }
             .task { await store.refresh() }
-        }
+        }.id(locale.identifier)
     }
 }

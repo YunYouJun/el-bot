@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(AppStore.self) private var store
+    @Environment(\.locale) private var locale
     @AppStorage("language") private var language = "system"
     @State private var confirmDisconnect = false
 
@@ -35,6 +36,6 @@ struct SettingsView: View {
                 Button("settings.disconnect", role: .destructive) { Task { await store.disconnect() } }
                 Button("action.cancel", role: .cancel) {}
             } message: { Text("settings.disconnect.detail") }
-        }
+        }.id(locale.identifier)
     }
 }

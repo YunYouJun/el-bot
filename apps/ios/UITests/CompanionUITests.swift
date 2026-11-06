@@ -16,9 +16,16 @@ final class CompanionUITests: XCTestCase {
             app.swipeUp()
             app.buttons["pairDevice"].tap()
         }
-        let connected = app.buttons["Status"].waitForExistence(timeout: 25)
+        let connected = app.buttons["newSession"].waitForExistence(timeout: 25)
         attach(app, name: "Pairing result")
         XCTAssertTrue(connected)
+        if app.buttons["设置"].exists {
+            app.buttons["设置"].tap()
+            app.buttons["languagePicker"].tap()
+            app.buttons["English"].tap()
+            XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+            app.buttons["Conversations"].tap()
+        }
         XCTAssertTrue(app.buttons["newSession"].exists)
         attach(app, name: "Conversations")
         try verifyModelContext(app)
@@ -30,6 +37,7 @@ final class CompanionUITests: XCTestCase {
         app.buttons["languagePicker"].tap()
         app.buttons["简体中文"].tap()
         XCTAssertTrue(app.buttons["会话"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["设置"].waitForExistence(timeout: 5))
         attach(app, name: "Chinese settings")
         app.buttons["会话"].tap()
         attach(app, name: "Chinese conversations")

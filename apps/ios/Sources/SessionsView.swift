@@ -3,6 +3,7 @@ import YunBotCore
 
 struct SessionsView: View {
     @Environment(AppStore.self) private var store
+    @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     @State private var search = ""
     @State private var path: [SessionSummary] = []
@@ -62,6 +63,6 @@ struct SessionsView: View {
                     try? await Task.sleep(for: .seconds(5))
                 }
             }
-        }
+        }.id(locale.identifier)
     }
 }
