@@ -1,13 +1,26 @@
 import { createApp } from 'vue'
+import { followHostTheme } from './host-theme'
+import ManualManager from './ManualManager.vue'
 import PersonaManager from './PersonaManager.vue'
-import '@yunlefun/ui/css'
 import './style.css'
 
-const scheme = window.matchMedia('(prefers-color-scheme: dark)')
-function theme() {
-  document.documentElement.classList.toggle('ylf-theme-dark', scheme.matches)
-  document.documentElement.style.colorScheme = scheme.matches ? 'dark' : 'light'
+let stopTheme = followHostTheme()
+function restoreTheme(event: PageTransitionEvent) {
+  if (event.persisted)
+    stopTheme = followHostTheme()
 }
-theme()
-scheme.addEventListener('change', theme)
-createApp(PersonaManager).mount('#app')
+function pauseTheme() {
+  stopTheme()
+}
+window.addEventListener('pagehide', pauseTheme)
+window.addEventListener('pageshow', restoreTheme)
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    stopTheme()
+    window.removeEventListener('pagehide', pauseTheme)
+    window.removeEventListener('pageshow', restoreTheme)
+  })
+}
+const manual = window.location.pathname.startsWith('/el-bot/manual')
+document.title = manual ? '手动接管 · el-bot' : '人物卡 · el-bot'
+createApp(manual ? ManualManager : PersonaManager).mount('#app')

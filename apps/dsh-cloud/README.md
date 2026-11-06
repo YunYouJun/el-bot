@@ -72,8 +72,14 @@ docker compose run --rm --no-deps --entrypoint node dsh /opt/dsh-runtime/securit
 docker compose up -d --no-deps dsh
 ```
 
-`security-smoke.mjs` 使用镜像内真实 Cordis、工具管线与 QQ SDK，在临时目录模拟身份、命令、引用与按钮事件，验证局部工具、嵌套调用及“允许”策略无法绕过群聊 guard，同时确认主人工具可用。它不启动 QQ 连接，不读取真实凭据，不调用模型，不向真实用户或群发送消息。可进一步使用 `docker run --network none --entrypoint node <镜像> /opt/dsh-runtime/security-smoke.mjs` 在无数据挂载和无网络环境验收。
+`security-smoke.mjs` 使用镜像内真实 Cordis、工具管线与 QQ SDK，在临时目录模拟身份、命令、引用与按钮事件，验证局部工具、嵌套调用及“允许”策略无法绕过群聊 guard，同时确认主人工具可用。同时验证主人手动接管的原文发送、预览去重、暂停／恢复隔离与流式取消。它不启动 QQ 连接，不读取真实凭据，不调用模型，不向真实用户或群发送消息。可进一步使用 `docker run --network none --entrypoint node <镜像> /opt/dsh-runtime/security-smoke.mjs` 在无数据挂载和无网络环境验收。
 
 上线后检查本轮健康状态、群白名单、人物卡新版本和安全 journal 权限，再由已获准测试群验证真实 @ 收发。离线模拟通过和机器人在线不代表已经完成真实群消息的端到端验收。旧 DSH 会话日志保留原有历史；不能把背景缓冲有效期当成历史日志删除策略。
 
 未 @ 的待处理群消息存于 `home/.dsh-qqbot/group-history/<AppID>/`，文件名为群键摘要，目录 `700`、文件 `600`，原子替换。每组遵循现有 `historyLimit`，并设硬上限 100 条、单条 4000 字符、有效期 24 小时；模型回复后沿用官方插件的清空行为。只接管指定 AppID，不影响其他机器人。初始化需要固定 QQ 插件 `0.5.5`；持久化文件损坏会明确报错，不覆盖原数据。
+
+## 手动接管部署验收
+
+手动接管随 `@el-bot/dsh/qq-security` 加载，不改动既有主人、群白名单或人物卡选择。更新整个 `@el-bot/dsh` 构建产物（含共享 chunk、`dist/client.js` 与 `dist/web/`），保留 Mobile Compose override。使用镜像内真实 SDK 的 `security-smoke.mjs` 完成无网络验收，再切换唯一接收实例。新版本 `runtime.json` 应有 `manualEnabled: true`，并与本轮连接健康同时检查。
+
+通过已有 DSH 登录入口，在侧栏打开「手动接管」。检查未登录访问 `/el-bot/manual/api` 被拒绝，主人只看到白名单会话；具体操作、限流、超时和平台权限核验见 [主人手动接管](../../packages/dsh/README.md#主人手动接管)。部署与界面离线验收不会代替目标 QQ 的主动发送权限确认。

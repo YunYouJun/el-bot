@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import type { PersonaImport, PersonaLibraryState, PersonaPreview, PersonaResult } from '../../persona/src/types'
-import YlfButton from '@yunlefun/vue/components/YlfButton.vue'
-import YlfCard from '@yunlefun/vue/components/YlfCard.vue'
 import { computed, onMounted, ref, shallowRef } from 'vue'
 import xiaoyun from '../../persona/examples/xiaoyun.md?raw'
 import { renderPersonaPreview } from './persona-preview'
@@ -111,12 +109,15 @@ function changeRevision(event: Event) {
 
 <template>
   <section class="personas" aria-label="人物卡管理" :aria-busy="busy">
-    <YlfCard :hoverable="false" class="persona-current">
+    <header class="page-heading">
+      <div><h1>人物卡</h1><p>管理此机器人的人物设定，预览后启用。</p></div>
+    </header>
+    <section class="dsh-section persona-current">
       <div><span class="persona-eyebrow">当前人设 · {{ instance }}</span><h2>{{ activeName }}</h2><p>用于此 DSH 实例的 QQ 机器人。切换后下一次任务准入开始新会话，当前任务会继续完成。</p></div>
-      <YlfButton variant="secondary" size="sm" :disabled="blocked" @click="perform('list')">
+      <button type="button" class="dsh-button" data-variant="outline" data-size="sm" :disabled="blocked" @click="perform('list')">
         刷新人物卡
-      </YlfButton>
-    </YlfCard>
+      </button>
+    </section>
     <p v-if="error" class="error" role="alert">
       {{ error }}
     </p>
@@ -124,7 +125,7 @@ function changeRevision(event: Event) {
       {{ notice }}
     </p>
     <div class="persona-layout">
-      <YlfCard :hoverable="false" class="persona-collection">
+      <section class="dsh-section persona-collection">
         <h2>我的人物卡</h2>
         <button class="persona-choice" :aria-pressed="!example && !preview" @click="showDefault">
           <strong>✧ 默认助手</strong><small>使用任务程序原有风格</small>
@@ -139,19 +140,19 @@ function changeRevision(event: Event) {
             <strong>☁ 小云 · 示例</strong><small>元气、爱代码、擅长休眠</small>
           </button>
         </template>
-      </YlfCard>
-      <YlfCard :hoverable="false" class="persona-preview">
+      </section>
+      <section class="dsh-section persona-preview">
         <div class="section-heading">
           <div><span class="persona-eyebrow">{{ example ? '示例 · 尚未导入' : enabled ? '正在使用' : preview ? '人物卡预览' : '默认风格' }}</span><h2>{{ example ? '小云' : preview?.metadata.name ?? '默认助手' }}</h2></div>
-          <YlfButton v-if="example" :disabled="blocked" @click="perform('import', undefined, undefined, { kind: 'text', name: 'xiaoyun.md', text: xiaoyun })">
+          <button v-if="example" type="button" class="dsh-button" :disabled="blocked" @click="perform('import', undefined, undefined, { kind: 'text', name: 'xiaoyun.md', text: xiaoyun })">
             导入小云示例
-          </YlfButton>
-          <YlfButton v-else-if="preview" :disabled="blocked || enabled" @click="perform('use', preview.metadata.id, preview.hash)">
+          </button>
+          <button v-else-if="preview" type="button" class="dsh-button" :disabled="blocked || enabled" @click="perform('use', preview.metadata.id, preview.hash)">
             {{ enabled ? '已启用此版本' : '启用此版本' }}
-          </YlfButton>
-          <YlfButton v-else :disabled="blocked || !library?.active" @click="perform('disable')">
+          </button>
+          <button v-else type="button" class="dsh-button" :disabled="blocked || !library?.active" @click="perform('disable')">
             使用默认人设
-          </YlfButton>
+          </button>
         </div>
         <template v-if="body">
           <p>{{ example ? '诞生于互联网的元气机械少女，爱代码，也擅长休眠。' : preview?.metadata.description }}</p>
@@ -163,9 +164,9 @@ function changeRevision(event: Event) {
               <option v-for="revision in card.revisions" :key="revision.hash" :value="revision.hash">
                 {{ revision.metadata.version || new Date(revision.importedAt).toLocaleString() }} · {{ revision.hash.slice(0, 8) }}
               </option>
-            </select><YlfButton v-if="card.source.kind !== 'text'" variant="secondary" size="sm" :disabled="blocked" @click="perform('update', preview.metadata.id)">
+            </select><button v-if="card.source.kind !== 'text'" type="button" class="dsh-button" data-variant="outline" data-size="sm" :disabled="blocked" @click="perform('update', preview.metadata.id)">
               检查更新
-            </YlfButton>
+            </button>
           </div>
           <p class="persona-source">
             来源：{{ source }}
@@ -176,9 +177,9 @@ function changeRevision(event: Event) {
         <p v-else class="default-description">
           保留任务程序原有的回答风格。你也可以导入一张人物卡，让助手拥有自己的设定和说话方式。
         </p>
-      </YlfCard>
+      </section>
     </div>
-    <YlfCard :hoverable="false">
+    <section class="dsh-section">
       <form class="settings-form persona-import" @submit.prevent="importLocation">
         <h2>导入人物卡</h2><p>支持 Markdown 和可选的 YAML 元数据。导入保存到此机器人，预览后再启用。</p>
         <div class="persona-import-fields">
@@ -187,88 +188,84 @@ function changeRevision(event: Event) {
           </template>
         </div>
         <div class="actions settings-actions">
-          <YlfButton v-if="kind !== 'file'" type="submit" variant="secondary" :disabled="blocked || !location.trim()">
+          <button v-if="kind !== 'file'" type="submit" class="dsh-button" data-variant="outline" :disabled="blocked || !location.trim()">
             {{ busy ? '处理中…' : '导入并预览' }}
-          </YlfButton><label v-if="kind === 'file'" class="persona-file-picker">选择本机文件<input type="file" accept=".md,.markdown,text/markdown,text/plain" :disabled="blocked" @change="importFile"></label>
+          </button><label v-if="kind === 'file'" class="persona-file-picker">选择本机文件<input type="file" accept=".md,.markdown,text/markdown,text/plain" :disabled="blocked" @change="importFile"></label>
         </div>
       </form>
-    </YlfCard>
+    </section>
   </section>
 </template>
 
 <style scoped>
-.personas {
-  display: grid;
-  gap: var(--ylf-space-4);
-}
 .persona-current,
 .persona-meta,
 .persona-revisions {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--ylf-space-3);
+  gap: var(--bot-space-3);
 }
 .persona-current {
   justify-content: space-between;
 }
 .persona-current h2,
 .persona-preview h2 {
-  margin: var(--ylf-space-1) 0 0;
-  font-size: var(--ylf-text-lg);
+  margin: var(--bot-space-1) 0 0;
+  font-size: var(--bot-text-base);
 }
 .persona-current p,
 .persona-preview p {
-  font-size: var(--ylf-text-sm);
+  font-size: var(--bot-text-sm);
 }
 .persona-eyebrow,
 .persona-meta,
 .persona-source {
-  color: var(--ylf-c-text-3);
-  font-size: var(--ylf-text-xs);
+  color: var(--bot-muted);
+  font-size: var(--bot-text-xs);
 }
 .persona-layout {
   display: grid;
-  grid-template-columns: 210px minmax(0, 1fr);
+  grid-template-columns: 224px minmax(0, 1fr);
   align-items: start;
-  gap: var(--ylf-space-4);
+  gap: var(--bot-space-4);
 }
 .persona-collection h2 {
   margin-top: 0;
-  font-size: var(--ylf-text-sm);
+  font-size: var(--bot-text-sm);
 }
 .persona-choice {
   display: block;
   width: 100%;
-  padding: var(--ylf-space-3);
-  margin-top: var(--ylf-space-2);
+  padding: var(--bot-space-3);
+  margin-top: var(--bot-space-2);
   text-align: left;
-  border: 1px solid transparent;
-  border-radius: var(--ylf-radius);
-  color: var(--ylf-c-text);
+  border: 0.5px solid transparent;
+  border-radius: var(--bot-radius);
+  color: var(--bot-text);
   background: transparent;
   overflow-wrap: anywhere;
 }
-.persona-choice:hover {
-  background: var(--ylf-c-bg-soft);
+.persona-choice:hover:not(:disabled) {
+  background: var(--bot-hover);
 }
 .persona-choice[aria-pressed='true'] {
-  border-color: var(--ylf-c-brand);
-  background: var(--ylf-c-brand-soft);
+  background: var(--bot-selected);
 }
 .persona-choice strong {
-  font-size: var(--ylf-text-sm);
+  font-size: var(--bot-text-sm);
+  font-weight: 500;
 }
 .persona-choice small {
   display: block;
-  margin-top: var(--ylf-space-1);
-  font-size: var(--ylf-text-xs);
-  color: var(--ylf-c-text-3);
+  margin-top: var(--bot-space-1);
+  font-size: var(--bot-text-xs);
+  color: var(--bot-muted);
   font-weight: 400;
 }
 .persona-choice strong small {
   display: inline;
-  color: var(--ylf-c-brand);
+  color: var(--bot-accent);
 }
 .persona-preview {
   min-width: 0;
@@ -277,39 +274,42 @@ function changeRevision(event: Event) {
   overflow-wrap: anywhere;
 }
 .persona-revisions {
-  margin-top: var(--ylf-space-4);
-  font-size: var(--ylf-text-xs);
+  margin-top: var(--bot-space-4);
+  font-size: var(--bot-text-xs);
 }
 .persona-revisions select {
   width: auto;
   max-width: 100%;
   flex: 1;
-  font-size: var(--ylf-text-xs);
+  font-size: var(--bot-text-xs);
 }
 .persona-markdown {
   max-height: 420px;
   overflow-y: auto;
-  margin-top: var(--ylf-space-4);
-  padding-top: var(--ylf-space-4);
-  border-top: 1px solid var(--ylf-c-border);
+  margin-top: var(--bot-space-4);
+  padding-top: var(--bot-space-4);
+  border-top: 1px solid var(--bot-border);
   overflow-wrap: anywhere;
-  font-size: var(--ylf-text-sm);
-  line-height: var(--ylf-leading-body);
+  font-size: var(--dsh-content-font-size, var(--bot-text-base));
+  line-height: var(--bot-leading);
 }
 .persona-markdown :deep(h1) {
-  font-size: var(--ylf-text-lg);
+  font-size: var(--bot-text-lg);
 }
 .persona-markdown :deep(h2) {
-  font-size: var(--ylf-text-base);
-  margin-top: var(--ylf-space-6);
+  font-size: var(--bot-text-base);
+  margin-top: var(--bot-space-6);
 }
 .persona-markdown :deep(pre) {
   white-space: pre-wrap;
 }
+.persona-markdown :deep(code) {
+  font-family: var(--ds-font-family-code, monospace);
+}
 .persona-markdown :deep(blockquote) {
   margin-inline: 0;
-  padding-left: var(--ylf-space-3);
-  border-left: 2px solid var(--ylf-c-border);
+  padding-left: var(--bot-space-3);
+  border-left: 2px solid var(--bot-border);
 }
 .persona-import {
   max-width: none;
@@ -317,34 +317,34 @@ function changeRevision(event: Event) {
 .persona-import-fields {
   display: grid;
   grid-template-columns: 170px minmax(0, 1fr);
-  gap: var(--ylf-space-4);
+  gap: var(--bot-space-4);
 }
 .persona-import-fields label {
-  margin-top: var(--ylf-space-3);
+  margin-top: var(--bot-space-3);
 }
 .settings-form .persona-file-picker {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--ylf-space-2);
+  gap: var(--bot-space-2);
   margin: 0;
-  font-size: var(--ylf-text-xs);
+  font-size: var(--bot-text-xs);
 }
 .persona-file-picker input {
   max-width: 230px;
-  font-size: var(--ylf-text-xs);
+  font-size: var(--bot-text-xs);
 }
 .default-description {
   min-height: 100px;
 }
-@media (max-width: 1000px) {
+@media (max-width: 760px) {
   .persona-layout {
     grid-template-columns: 1fr;
   }
   .persona-collection {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--ylf-space-2);
+    gap: var(--bot-space-2);
   }
   .persona-collection h2,
   .persona-collection > p {
@@ -358,7 +358,7 @@ function changeRevision(event: Event) {
 @media (max-width: 600px) {
   .persona-import-fields {
     grid-template-columns: 1fr;
-    gap: var(--ylf-space-2);
+    gap: var(--bot-space-2);
   }
 }
 </style>

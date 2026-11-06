@@ -83,6 +83,7 @@ function manager() {
 describe('qQ transport authorization', () => {
   it('denies unknown groups, non-owner DMs, guilds and mismatched reply routes before downstream work', async () => {
     const { policy } = await fixture()
+    policy.observeMetadata = vi.fn()
     const next = vi.fn()
     for (const ctx of [
       inbound(policy, { groupOpenid: 'uninvited' }),
@@ -95,6 +96,7 @@ describe('qQ transport authorization', () => {
       await policy.middleware(ctx, next)
       expect(ctx.stop).toHaveBeenCalled()
     }
+    expect(policy.observeMetadata).not.toHaveBeenCalled()
     expect(next).not.toHaveBeenCalled()
   })
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { existsSync } from 'node:fs'
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
@@ -30,7 +30,7 @@ async function main() {
   const { QQBot, mentionGate, historyBuffer, quoteRef, slashCommand } = await load('@tencent-connect/qqbot-nodejs')
   const modulePath = resolve(process.argv[2] ?? '/opt/el-bot-dsh/dist/qq-security.mjs')
   const security = await import(pathToFileURL(modulePath).href)
-  const { QQSecurity, SecurityStore, protectGateway } = security
+  const { QQSecurity, SecurityStore, protectGateway, manualRuntime } = security
   const directory = await mkdtemp(join(tmpdir(), 'qq-security-smoke-'))
   const policy = new QQSecurity({ appId: '123', ownerOpenId: 'owner', groupAllow: ['group-a', 'group-b'] }, new SecurityStore(join(directory, 'state.json')), '/work/groups')
   const ctx = new Context()
@@ -41,11 +41,18 @@ async function main() {
   await consumer.await()
   ctx.provide('qqWorkspaceGrouping', { watchManager: () => () => {} })
   ctx.provide('loader', { internal: { import: specifier => import(specifier) } })
+  ctx.provide('webServer', { register: () => () => {} })
+  ctx.provide('connection', { requestRejection: () => 401 })
+  ctx.provide('sessionController', { list: async () => ({ items: [] }) })
   const securityFiber = ctx.plugin(security, { appId: '124', ownerOpenId: 'owner', groupAllow: [], profileDirectory: '/opt/dsh-runtime' })
   await securityFiber.await()
   assert.equal(ctx.get('qqRuntimeSecurity')?.mode, 'chat-only')
   await securityFiber.dispose()
-  const undo = protectGateway(QQBot.prototype, policy)
+  const preferences = join(directory, 'prefs.json')
+  await writeFile(preferences, JSON.stringify({ sessionIds: { 'qqbot:123:group:group-a': 'group-test', 'qqbot:123:c2c:owner': 'owner-test' } }))
+  const manual = manualRuntime({ sessionController: { list: async () => ({ items: [] }) } }, policy, directory, preferences)
+  await manual.controller.initialize()
+  const undo = protectGateway(QQBot.prototype, policy, undefined, manual.hooks)
   const report = { sdk: false, quotes: false, commands: false, tools: false, monotonicGuard: false, owner: false, offline: true }
   try {
     ctx.tools.guard(policy.guard)
@@ -96,6 +103,11 @@ async function main() {
       sent.push(args)
       return { id: 'offline' }
     }
+    let streamFrames = 0
+    bot.messageApi.sendC2CStreamMessage = async () => {
+      streamFrames++
+      return { id: 'offline-stream' }
+    }
     bot.acknowledgeInteraction = async () => {}
     let commands = 0
     const slash = slashCommand({ autoHelp: false, commands: [{ name: 'preset', handler: () => {
@@ -141,6 +153,32 @@ async function main() {
     await bot.emit('interaction', {}, { id: 'owner-button', scene: 'c2c', user_openid: 'owner' })
     assert.equal(decisions, 1)
     report.sdk = true
+    // Manual sends use the raw text endpoint only after an owner preview is confirmed.
+    await bot.emit('ready')
+    const selected = (await manual.controller.view()).sessions.find(row => row.scope === 'group')
+    await manual.controller.request({ operation: 'begin', target: selected.id })
+    const lease = (await manual.controller.view()).sessions.find(row => row.id === selected.id).lease
+    const original = '  Manual 原文\n**literal** <@all>  '
+    const preview = await manual.controller.request({ operation: 'preview', target: selected.id, lease: lease.id, text: original, mode: 'proactive' })
+    const result = await manual.controller.request({ operation: 'send', preview: preview.id })
+    assert.equal(result.status, 'sent')
+    assert.equal(sent.at(-1)[3].content, original)
+    assert.equal(sent.at(-1)[3].msg_type, 0)
+    const count = sent.length
+    await manual.controller.request({ operation: 'send', preview: preview.id })
+    assert.equal(sent.length, count)
+    assert.throws(() => bot.sendText({ scope: 'group', targetId: 'group-a', msgId: 'group-1' }, 'automatic'), /paused/)
+    await manual.controller.request({ operation: 'end', target: selected.id, lease: lease.id })
+    assert.throws(() => bot.sendText({ scope: 'group', targetId: 'group-a', msgId: 'group-1' }, 'late automatic'), /earlier/)
+    const privateChat = (await manual.controller.view()).sessions.find(row => row.scope === 'c2c')
+    const stream = bot.openStream({ target: { scope: 'c2c', targetId: 'owner', msgId: 'private' } })
+    await manual.controller.request({ operation: 'begin', target: privateChat.id })
+    await stream.update('late streaming output')
+    assert.equal(streamFrames, 0)
+    report.manualRawText = true
+    report.manualDedup = true
+    report.manualPauseAndResume = true
+    report.manualStreamCancellation = true
     process.stdout.write(`${JSON.stringify(report)}\n`)
   }
   finally {

@@ -50,28 +50,38 @@ export function personaRoutes(ctx: PersonaContext, service: PersonaService) {
       catch (error) { json(res, 400, { ok: false, error: error instanceof Error ? error.message : '人物卡操作失败。' }) }
       return
     }
-    if (req.method !== 'GET' && req.method !== 'HEAD') {
-      res.writeHead(405).end()
-      return
-    }
-    const relative = pathname.slice(WEB_PATH.length).replace(/^\//, '') || 'index.html'
-    if (relative !== 'index.html' && !/^assets\/[\w.-]+$/i.test(relative)) {
-      res.writeHead(404).end()
-      return
-    }
-    try {
-      const bytes = await readFile(fileURLToPath(new URL(`./web/${relative}`, import.meta.url)))
-      const mime = relative.endsWith('.css') ? 'text/css' : relative.endsWith('.js') ? 'text/javascript' : relative.endsWith('.svg') ? 'image/svg+xml' : 'text/html'
-      res.writeHead(200, {
-        'content-type': `${mime}; charset=utf-8`,
-        'cache-control': relative === 'index.html' ? 'no-store' : 'private, max-age=86400',
-        'x-content-type-options': 'nosniff',
-        'referrer-policy': 'no-referrer',
-        'x-frame-options': 'SAMEORIGIN',
-        'content-security-policy': 'default-src \'self\'; style-src \'self\' \'unsafe-inline\'; img-src \'self\' data:; connect-src \'self\'; frame-ancestors \'self\'; base-uri \'none\'',
-      })
-      res.end(req.method === 'HEAD' ? undefined : bytes)
-    }
-    catch { res.writeHead(404).end() }
+    await panelAsset(req, res, WEB_PATH)
   } })
+}
+
+/** Shared authenticated panel assets; callers must perform owner admission first. */
+export async function panelAsset(req: IncomingMessage, res: ServerResponse, prefix: string) {
+  const pathname = new URL(req.url ?? '/', 'http://localhost').pathname
+  if (pathname === prefix && (req.method === 'GET' || req.method === 'HEAD')) {
+    res.writeHead(308, { 'location': `${prefix}/`, 'cache-control': 'no-store' }).end()
+    return
+  }
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    res.writeHead(405).end()
+    return
+  }
+  const relative = pathname.slice(prefix.length).replace(/^\//, '') || 'index.html'
+  if (relative !== 'index.html' && !/^assets\/[\w.-]+$/i.test(relative)) {
+    res.writeHead(404).end()
+    return
+  }
+  try {
+    const bytes = await readFile(fileURLToPath(new URL(`./web/${relative}`, import.meta.url)))
+    const mime = relative.endsWith('.css') ? 'text/css' : relative.endsWith('.js') ? 'text/javascript' : relative.endsWith('.svg') ? 'image/svg+xml' : 'text/html'
+    res.writeHead(200, {
+      'content-type': `${mime}; charset=utf-8`,
+      'cache-control': relative === 'index.html' ? 'no-store' : 'private, max-age=86400',
+      'x-content-type-options': 'nosniff',
+      'referrer-policy': 'no-referrer',
+      'x-frame-options': 'SAMEORIGIN',
+      'content-security-policy': 'default-src \'self\'; style-src \'self\' \'unsafe-inline\'; img-src \'self\' data:; connect-src \'self\'; frame-ancestors \'self\'; base-uri \'none\'',
+    })
+    res.end(req.method === 'HEAD' ? undefined : bytes)
+  }
+  catch { res.writeHead(404).end() }
 }

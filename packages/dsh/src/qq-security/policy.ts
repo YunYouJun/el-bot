@@ -3,6 +3,7 @@ import type { PeerRecord } from '../qq-workspaces/contracts'
 import type { AgentPayload, InboundContext, ProtectedAgent, SecurityManager, SecuritySettings, Target } from './contracts'
 import { createHash } from 'node:crypto'
 import { resolve, sep } from 'node:path'
+import { ManualError } from './manual-types'
 import { SecurityStore } from './store'
 
 export const GROUP_CHAT_PROMPT = `You are 小云, a fictional QQ chat companion. Reply in short Chinese sentences, usually one to three sentences.
@@ -33,6 +34,13 @@ export class QQSecurity {
   private busy = new Set<string>()
   private openQueues = new Map<string, Promise<unknown>>()
   private closed = false
+  observeMetadata?: (message: InboundContext['message']) => void
+  manual?: {
+    paused: (id: string) => boolean
+    automaticAllowed: (id: string, msgId?: string) => boolean
+    observe: (id: string, messageId: string, text: string, canReply: boolean) => boolean
+    pausedSession: (sessionId: string) => boolean
+  }
 
   constructor(settings: SecuritySettings, readonly store: SecurityStore, private readonly groupDirectory: string, private readonly now = Date.now) {
     if (!/^\d+$/.test(settings.appId) || !/^[\w-]{1,128}$/.test(settings.ownerOpenId)
@@ -46,6 +54,63 @@ export class QQSecurity {
   }
 
   private key(...parts: string[]) { return digest(this.appId, ...parts) }
+
+  targetId(scope: string, peer: string) { return this.key('manual-target', scope, peer) }
+
+  allowed(scope: string, peer: string) {
+    return !this.closed && (scope === 'c2c' ? peer === this.owner : scope === 'group' && this.groups.has(peer))
+  }
+
+  assertAutomatic(target: Target) {
+    if (this.manual && !this.manual.automaticAllowed(this.targetId(target.scope, target.targetId), target.msgId ?? target.eventId))
+      throw new Error('Automatic output is paused or belongs to an earlier handoff')
+  }
+
+  async manualQuota(scope: string, peer: string) {
+    if (!this.allowed(scope, peer))
+      throw new ManualError(403, 'not_found')
+    return this.store.take([
+      { key: this.key('manual-owner', scope, peer), limit: 4, duration: MINUTE },
+      { key: this.key(scope === 'group' ? 'group' : 'manual-private', peer), limit: 12, duration: MINUTE },
+      { key: this.key(scope === 'group' ? 'group-day' : 'manual-private-day', peer), limit: 200, duration: DAY },
+      { key: this.key('global'), limit: 40, duration: MINUTE },
+      { key: this.key('global-day'), limit: 1000, duration: DAY },
+    ])
+  }
+
+  async manualReply(scope: string, peer: string, msgId: string) {
+    if (!this.allowed(scope, peer))
+      throw new ManualError(403, 'not_found')
+    const admitted = this.replies.get(this.replyKey({ scope, targetId: peer, msgId }))
+    if (!admitted || admitted.until <= this.now() || admitted.remaining <= 0)
+      throw new ManualError(409, 'reply_expired')
+    if (!await this.store.take([{ key: this.key('manual-reply', scope, peer, msgId), limit: 2, duration: DAY }]))
+      throw new ManualError(409, 'reply_expired')
+    admitted.remaining--
+  }
+
+  async drain(scope: 'c2c' | 'group', peer: string) {
+    const record = this.manager?.getSessionRecord?.(scope, peer)
+    if (!record || record.agent.status === 'idle')
+      return
+    const agent = record.agent as PeerRecord['agent'] & { cancel?: (cause: { kind: 'user' }) => void }
+    if (typeof agent.cancel !== 'function')
+      throw new Error('The host cannot stop the active QQ turn')
+    agent.cancel({ kind: 'user' })
+    await agent.whenIdle()
+  }
+
+  private observe(ctx: InboundContext, scope: string, peer: string, canReply: boolean) {
+    const id = this.targetId(scope, peer)
+    const fresh = this.manual?.observe(id, ctx.message.messageId, ctx.message.content, canReply)
+    if (this.manual?.paused(id)) {
+      if (canReply && fresh)
+        this.allowReply(ctx.replyTarget)
+      ctx.stop('qq-security:manual')
+      return true
+    }
+    return false
+  }
 
   private replyKey(target: Target) { return this.key('reply', target.scope, target.targetId, target.msgId ?? '') }
 
@@ -63,6 +128,7 @@ export class QQSecurity {
   outbound(target: Target, text: string): string {
     if (this.closed)
       throw new Error('QQ security is stopped')
+    this.assertAutomatic(target)
     if (target.scope === 'c2c' && target.targetId === this.owner)
       return text
     if (target.scope !== 'group' || !this.groups.has(target.targetId) || !target.msgId)
@@ -74,9 +140,15 @@ export class QQSecurity {
     return text.replace(/<qqbot-[^>]*>/gi, '').replace(/<@[^>]*>/g, '').slice(0, 1200)
   }
 
-  interaction(event: { scene?: string, user_openid?: string, group_openid?: string, group_member_openid?: string }) {
-    return !this.closed && event.scene === 'c2c' && event.user_openid === this.owner
-      && !event.group_openid && !event.group_member_openid
+  interaction(event: { id?: string, scene?: string, user_openid?: string, group_openid?: string, group_member_openid?: string }) {
+    const id = this.targetId('c2c', this.owner)
+    if (this.closed || event.scene !== 'c2c' || event.user_openid !== this.owner
+      || event.group_openid || event.group_member_openid || this.manual?.paused(id)) {
+      return false
+    }
+    if (event.id)
+      this.manual?.observe(id, event.id, '[主人互动]', false)
+    return true
   }
 
   readonly middleware = async (ctx: InboundContext, next: () => Promise<void>) => {
@@ -92,6 +164,9 @@ export class QQSecurity {
         ctx.stop('qq-security:owner')
         return
       }
+      this.observeMetadata?.(msg)
+      if (this.observe(ctx, 'c2c', this.owner, true))
+        return
       this.namespaceQuote(ctx, 'c2c', this.owner)
       await next()
       return
@@ -103,7 +178,10 @@ export class QQSecurity {
       return
     }
     const group = msg.groupOpenid
+    this.observeMetadata?.(msg)
     const mentioned = msg.rawEventType === 'GROUP_AT_MESSAGE_CREATE' || msg.mentions?.some(item => item.is_you === true)
+    if (this.observe(ctx, 'group', group, Boolean(mentioned)))
+      return
     // Bound context before the upstream history store or attachment downloader sees it.
     msg.attachments = []
     msg.msgElements = []
@@ -247,6 +325,8 @@ export class QQSecurity {
   readonly guard = ({ agent }: { agent?: object }): string | undefined => {
     if (!agent)
       return
+    if (this.pausedAgent(agent))
+      return 'This conversation is under manual control'
     if (this.isGroup(agent))
       return 'QQ groups are chat-only; tools cannot be authorized here'
     const record = this.record(agent)
@@ -266,11 +346,15 @@ export class QQSecurity {
   }
 
   preStep({ agent, turn }: AgentPayload): { kind: 'reject' } | undefined {
+    if (this.pausedAgent(agent))
+      return { kind: 'reject' }
     if (this.isGroup(agent) && this.requests.get(agent) === turn)
       return { kind: 'reject' }
   }
 
   async request({ agent, turn }: AgentPayload, config: { maxTokens?: number, [key: string]: unknown }) {
+    if (this.pausedAgent(agent))
+      throw new Error('This conversation is under manual control')
     if (!this.isGroup(agent))
       return config
     const record = this.record(agent)
@@ -287,5 +371,12 @@ export class QQSecurity {
       throw new Error('Group model budget exhausted')
     }
     return { ...config, maxTokens: Math.min(config.maxTokens ?? MAX_OUTPUT_TOKENS, MAX_OUTPUT_TOKENS) }
+  }
+
+  private pausedAgent(agent: object) {
+    const record = this.record(agent)
+    const sessionId = (agent as Partial<PeerRecord['agent']>).session?.header.id
+    return Boolean((record && this.manual?.paused(this.targetId(record.scope, record.peerId)))
+      || (sessionId && this.manual?.pausedSession(sessionId)))
   }
 }
