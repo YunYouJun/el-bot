@@ -7,12 +7,15 @@ export interface OfficialQQAdapterOptions extends QQCredentials {
   onError?: (error: Error) => void
 }
 
-/** Official QQ C2C adapter. Passive replies retain the original message and sequence. */
+const GROUP_SEEN_LIMIT = 10000
+
+/** Official QQ adapter. Passive replies retain the original chat, message and sequence. */
 export class OfficialQQAdapter implements BotAdapter {
   readonly platform = 'qq'
   readonly id: string
   private gateway?: QQGateway
   private readonly client: QQBotClient
+  private readonly seenGroups = new Set<string>()
 
   constructor(private readonly options: OfficialQQAdapterOptions) {
     this.id = options.id ?? `qq:official:${options.appId}`
@@ -39,6 +42,37 @@ export class OfficialQQAdapter implements BotAdapter {
           reply: content => this.client.reply(message.author.user_openid, message.id, content, ++sequence),
         })
       },
+      onGroupMessage: async (message) => {
+        const key = JSON.stringify([message.group_openid, message.id])
+        if (this.seenGroups.has(key))
+          return
+        this.seenGroups.add(key)
+        let sequence = 0
+        try {
+          await dispatch({
+            adapterId: this.id,
+            platform: this.platform,
+            accountId: this.options.appId,
+            id: message.id,
+            text: message.content,
+            sender: { id: message.author.member_openid, name: message.author.username },
+            chat: { id: message.group_openid, type: 'group' },
+            // Full-message events do not reliably identify mentions of this bot.
+            addressed: message.eventType === 'GROUP_AT_MESSAGE_CREATE',
+            raw: message.raw,
+            reply: content => this.client.replyGroup(message.group_openid, message.id, content, ++sequence),
+          })
+        }
+        catch (error) {
+          this.seenGroups.delete(key)
+          throw error
+        }
+        if (this.seenGroups.size > GROUP_SEEN_LIMIT) {
+          const oldest = this.seenGroups.values().next().value
+          if (oldest !== undefined)
+            this.seenGroups.delete(oldest)
+        }
+      },
     })
     await this.gateway.start()
   }
@@ -46,5 +80,6 @@ export class OfficialQQAdapter implements BotAdapter {
   stop() {
     this.gateway?.stop()
     this.gateway = undefined
+    this.seenGroups.clear()
   }
 }

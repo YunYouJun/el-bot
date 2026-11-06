@@ -6,7 +6,7 @@ el-bot 的平台接入按实际协议分成两个可选包，每个包内部保�
 | --- | --- |
 | `el-bot` | 平台注册与启停、消息分发、命令和业务插件 |
 | `@el-bot/plugin-wecom` | 官方企微 SDK、智能机器人收发与回复、群 Webhook、可选外部转发、独立 CLI |
-| `@el-bot/plugin-qq` | NapCat 连接与消息适配、官方 QQ C2C 适配、旧 QQ 接口兼容 |
+| `@el-bot/plugin-qq` | NapCat 连接与消息适配、官方 QQ 私聊与全量群消息适配、旧 QQ 接口兼容 |
 | `@el-bot/plugin-grok` | Grok Bot 官方 Webhook 问答及鉴权结果回调，业务插件 |
 | `qq-sdk` | 已存在的 QQ 底层 API 与回调验证工具，由 QQ 插件复用 |
 
@@ -52,9 +52,11 @@ await bot.send('work', { id: 'authorized-recipient', type: 'dm' }, '任务已完
 
 ## QQ 插件
 
-NapCat 使用 `qqPlugin({ type: 'napcat', connection })`，官方 QQ C2C 使用 `qqPlugin({ type: 'official', appId, secret })`。完整配置见仓库的 `packages/plugin-qq/README.md`。
+NapCat 使用 `qqPlugin({ type: 'napcat', connection })`，官方 QQ 使用 `qqPlugin({ type: 'official', appId, secret })`，同时支持私聊文本、群 @ 消息和全量群消息。全量模式需要机器人加入目标群、具备平台权限，并在群内开启「接收所有消息」。完整配置见仓库的 `packages/plugin-qq/README.md`。
 
-旧应用不必立即改配置：没有平台插件且未设置 `legacyQQ: false` 时，仍使用原来的 NapCat 配置。默认客户端改为延迟创建，企微应用不会初始化 NapCat。旧 QQ 消息钩子和回复方法保留；官方 C2C 与企微使用统一消息上下文。
+群消息使用 `group_openid` 标识群、`member_openid` 标识发送者，通过 `onSession` 接收；附件和结构化内容保留在 `session.raw`。普通群消息不默认执行命令，专门的 @ 事件或以机器人名称开头的命令才进入命令处理。`reply()` 绑定原群和原消息，群内重复推送在进程内去重。此适配不提供历史消息拉取；`el-bot codex` 遥控仍仅接入私聊。
+
+旧应用不必立即改配置：没有平台插件且未设置 `legacyQQ: false` 时，仍使用原来的 NapCat 配置。默认客户端改为延迟创建，企微应用不会初始化 NapCat。旧 QQ 消息钩子和回复方法保留；官方 QQ 与企微使用统一消息上下文。
 
 ## 消息与生命周期
 

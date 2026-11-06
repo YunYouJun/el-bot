@@ -131,7 +131,16 @@ export class QQBotClient {
 
   /** Send a passive C2C text, Markdown or media reply with a caller-managed sequence. */
   reply(openId: string, messageId: string, content: string | QQMarkdownReply | QQMediaReply, sequence: number): Promise<unknown> {
-    return this.request(`/v2/users/${encodeURIComponent(openId)}/messages`, {
+    return this.replyTo(`/v2/users/${encodeURIComponent(openId)}/messages`, messageId, content, sequence)
+  }
+
+  /** Group media must be uploaded for this group, separately from C2C media. */
+  replyGroup(groupOpenId: string, messageId: string, content: string | QQMarkdownReply | QQMediaReply, sequence: number): Promise<unknown> {
+    return this.replyTo(`/v2/groups/${encodeURIComponent(groupOpenId)}/messages`, messageId, content, sequence)
+  }
+
+  private replyTo(path: string, messageId: string, content: string | QQMarkdownReply | QQMediaReply, sequence: number): Promise<unknown> {
+    return this.request(path, {
       ...(typeof content === 'string'
         ? { content, msg_type: 0 }
         : 'media' in content

@@ -1,6 +1,6 @@
 import type { RequestListener } from 'node:http'
 import type { AddressInfo } from 'node:net'
-import type { QQMarkdownReply } from './types'
+import type { GroupMessage, QQMarkdownReply } from './types'
 import { Buffer } from 'node:buffer'
 import { once } from 'node:events'
 import { createServer } from 'node:http'
@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { WebSocketServer } from 'ws'
 import { generateSeed } from '../validation'
 import { QQApiError, QQBotClient } from './client'
-import { parseC2CMessage, QQGateway } from './gateway'
+import { parseC2CMessage, parseGroupMessage, QQGateway } from './gateway'
 import { createQQWebhookHandler } from './webhook'
 
 const cleanup: (() => Promise<void> | void)[] = []
@@ -51,7 +51,41 @@ function event() {
   }
 }
 
+function groupEvent(t = 'GROUP_MESSAGE_CREATE') {
+  return {
+    ...event(),
+    t,
+    d: {
+      ...event().d,
+      group_openid: 'group',
+      author: { member_openid: 'member', username: '小明' },
+    },
+  }
+}
+
 describe('official QQ REST and gateway', () => {
+  it('sends group replies to the encoded group endpoint with passive identity and exclusive content fields', async () => {
+    const calls: { url: string, auth?: string, body: unknown }[] = []
+    const { client } = await api(async (req, res) => {
+      let body = ''
+      for await (const chunk of req) body += chunk
+      if (req.url === '/token') {
+        res.end(JSON.stringify({ access_token: 'token', expires_in: 7200 }))
+        return
+      }
+      calls.push({ url: req.url!, auth: req.headers.authorization, body: JSON.parse(body) })
+      res.end(JSON.stringify({ id: 'reply' }))
+    })
+    await client.replyGroup('group/a', 'incoming', '收到', 1)
+    await client.replyGroup('group/a', 'incoming', { markdown: { content: '**收到**' } }, 2)
+    await client.replyGroup('group/a', 'incoming', { media: { file_info: 'group-upload' } }, 3)
+    expect(calls).toEqual([
+      { url: '/v2/groups/group%2Fa/messages', auth: 'QQBot token', body: { msg_type: 0, content: '收到', msg_id: 'incoming', msg_seq: 1 } },
+      { url: '/v2/groups/group%2Fa/messages', auth: 'QQBot token', body: { msg_type: 2, markdown: { content: '**收到**' }, msg_id: 'incoming', msg_seq: 2 } },
+      { url: '/v2/groups/group%2Fa/messages', auth: 'QQBot token', body: { msg_type: 7, media: { file_info: 'group-upload' }, msg_id: 'incoming', msg_seq: 3 } },
+    ])
+  })
+
   it('sends Markdown and C2C command buttons without mutually exclusive text fields', async () => {
     let received: unknown
     const { client } = await api(async (req, res) => {
@@ -194,9 +228,8 @@ describe('official QQ REST and gateway', () => {
               d: { session_id: 'session' },
             }),
           )
-          socket.send(
-            JSON.stringify({ ...event(), t: 'GROUP_AT_MESSAGE_CREATE' }),
-          )
+          socket.send(JSON.stringify(groupEvent('GROUP_AT_MESSAGE_CREATE')))
+          socket.send(JSON.stringify(groupEvent()))
           socket.send(JSON.stringify(event()))
         }
         if (payload.op === 1)
@@ -234,6 +267,8 @@ describe('official QQ REST and gateway', () => {
   })
 
   it('rejects missing identities and card contents', () => {
+    expect(parseC2CMessage(groupEvent())).toBeUndefined()
+    expect(parseC2CMessage(groupEvent('GROUP_AT_MESSAGE_CREATE'))).toBeUndefined()
     expect(parseC2CMessage({ ...event(), t: 'AT_MESSAGE_CREATE', d: { ...event().d, author: { id: 'owner' }, channel_id: 'channel', guild_id: 'guild' } })).toBeUndefined()
     expect(parseC2CMessage({ ...event(), t: 'DIRECT_MESSAGE_CREATE' })).toBeUndefined()
     expect(
@@ -243,6 +278,58 @@ describe('official QQ REST and gateway', () => {
       parseC2CMessage({ ...event(), d: { ...event().d, message_type: 3 } }),
     ).toBeUndefined()
     expect(() => generateSeed('')).toThrow('secret')
+  })
+})
+
+describe('official QQ group messages', () => {
+  it.each(['GROUP_MESSAGE_CREATE', 'GROUP_AT_MESSAGE_CREATE'])('accepts %s and preserves native rich content', (type) => {
+    const payload = groupEvent(type)
+    const raw = {
+      ...payload.d,
+      message_type: 103,
+      attachments: [{ content_type: 'image/jpeg', url: 'https://example.com/image.jpg' }],
+      mentions: [{ member_openid: 'other-member' }],
+      ark_data: { ark_type: 'miniapp', fields: { title: '卡片' } },
+      msg_elements: [{ content: '引用内容', msg_elements: [{ content: '嵌套内容' }] }],
+      message_scene: { source: 'default', ext: ['msg_idx=reference'] },
+    }
+    expect(parseGroupMessage({ ...payload, d: raw })).toEqual({
+      eventType: type,
+      id: 'message',
+      group_openid: 'group',
+      author: { member_openid: 'member', username: '小明' },
+      content: 'hello',
+      timestamp: raw.timestamp,
+      raw,
+    })
+  })
+
+  it('accepts attachment-only messages without synthesizing a text command', () => {
+    const payload = groupEvent()
+    const raw = { ...payload.d, content: undefined, attachments: [{ content_type: 'voice', url: 'https://example.com/audio' }] }
+    const message = parseGroupMessage({ ...payload, d: raw })
+    expect(message?.content).toBe('')
+    expect(message?.raw).toBe(raw)
+  })
+
+  it.each([
+    { id: '' },
+    { author: { user_openid: 'private-user' } },
+    { author: { member_openid: '' } },
+    { group_openid: '' },
+    { group_openid: 123 },
+    { content: { text: 'invalid' } },
+    { timestamp: 'invalid' },
+  ])('rejects invalid routing or content: %j', (invalid) => {
+    const payload = groupEvent()
+    expect(parseGroupMessage({ ...payload, d: { ...payload.d, ...invalid } })).toBeUndefined()
+  })
+
+  it('rejects private, channel and non-dispatch envelopes', () => {
+    expect(parseGroupMessage(event())).toBeUndefined()
+    expect(parseGroupMessage(groupEvent('AT_MESSAGE_CREATE'))).toBeUndefined()
+    expect(parseGroupMessage({ ...groupEvent(), op: 13 })).toBeUndefined()
+    expect(parseGroupMessage(null)).toBeUndefined()
   })
 })
 
@@ -302,5 +389,27 @@ describe('signed QQ webhook', () => {
       (await handler(request(JSON.stringify(event()), '1725442341'))).status,
     ).toBe(401)
     expect(onMessage).not.toHaveBeenCalled()
+  })
+
+  it('dispatches signed group events only to the opt-in group callback', async () => {
+    const onMessage = vi.fn(async () => {})
+    const onGroupMessage = vi.fn(async (_message: GroupMessage) => {})
+    const handler = createQQWebhookHandler({ appId: 'app', secret, onMessage, onGroupMessage })
+    for (const type of ['GROUP_MESSAGE_CREATE', 'GROUP_AT_MESSAGE_CREATE']) {
+      expect(await (await handler(request(JSON.stringify(groupEvent(type))))).json()).toEqual({ op: 12 })
+    }
+    expect(onMessage).not.toHaveBeenCalled()
+    expect(onGroupMessage.mock.calls.map(call => call[0])).toMatchObject([
+      { eventType: 'GROUP_MESSAGE_CREATE', group_openid: 'group' },
+      { eventType: 'GROUP_AT_MESSAGE_CREATE', group_openid: 'group' },
+    ])
+    const privateOnly = createQQWebhookHandler({ appId: 'app', secret, onMessage })
+    expect(await (await privateOnly(request(JSON.stringify(groupEvent())))).json()).toEqual({ op: 12 })
+    expect(onMessage).not.toHaveBeenCalled()
+
+    const original = request(JSON.stringify(groupEvent()))
+    const tampered = new Request(original.url, { method: 'POST', headers: original.headers, body: JSON.stringify(groupEvent('GROUP_AT_MESSAGE_CREATE')) })
+    expect((await handler(tampered)).status).toBe(401)
+    expect(onGroupMessage).toHaveBeenCalledTimes(2)
   })
 })

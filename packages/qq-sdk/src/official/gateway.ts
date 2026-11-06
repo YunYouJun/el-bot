@@ -1,4 +1,4 @@
-import type { C2CMessage, GatewayOptions, GatewayPayload } from './types'
+import type { C2CMessage, GatewayOptions, GatewayPayload, GroupMessage } from './types'
 import WebSocket from 'ws'
 import { isRecord, QQApiError, QQBotClient } from './client'
 
@@ -32,6 +32,44 @@ export function parseC2CMessage(payload: unknown): C2CMessage | undefined {
     author: { user_openid: message.author.user_openid },
     content: message.content,
     timestamp: message.timestamp,
+  }
+}
+
+export function parseGroupMessage(payload: unknown): GroupMessage | undefined {
+  if (
+    !isRecord(payload)
+    || payload.op !== 0
+    || (payload.t !== 'GROUP_MESSAGE_CREATE' && payload.t !== 'GROUP_AT_MESSAGE_CREATE')
+    || !isRecord(payload.d)
+  ) {
+    return
+  }
+  const message = payload.d
+  if (
+    !isRecord(message.author)
+    || typeof message.author.member_openid !== 'string'
+    || !message.author.member_openid
+    || typeof message.group_openid !== 'string'
+    || !message.group_openid
+    || typeof message.id !== 'string'
+    || !message.id
+    || (message.content !== undefined && typeof message.content !== 'string')
+    || typeof message.timestamp !== 'string'
+    || !Number.isFinite(Date.parse(message.timestamp))
+  ) {
+    return
+  }
+  return {
+    eventType: payload.t,
+    id: message.id,
+    group_openid: message.group_openid,
+    author: {
+      member_openid: message.author.member_openid,
+      ...(typeof message.author.username === 'string' ? { username: message.author.username } : {}),
+    },
+    content: message.content ?? '',
+    timestamp: message.timestamp,
+    raw: message,
   }
 }
 
@@ -158,12 +196,15 @@ export class QQGateway {
           this.options.onReady?.()
         }
         const message = parseC2CMessage(payload)
+        const groupMessage = this.options.onGroupMessage ? parseGroupMessage(payload) : undefined
         this.dispatch = this.dispatch
           .then(async () => {
             if (socket !== this.socket || socket.readyState !== WebSocket.OPEN)
               return
             if (message)
               await this.options.onMessage(message)
+            if (groupMessage)
+              await this.options.onGroupMessage?.(groupMessage)
             if (socket === this.socket && socket.readyState === WebSocket.OPEN && typeof payload.s === 'number')
               this.sequence = payload.s
           })

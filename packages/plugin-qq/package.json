@@ -2,7 +2,7 @@
   "name": "@el-bot/plugin-qq",
   "type": "module",
   "version": "0.0.1",
-  "description": "QQ platform plugin for el-bot with NapCat and official C2C adapters",
+  "description": "QQ platform plugin for el-bot with NapCat and official private/group messaging adapters",
   "license": "AGPL-3.0",
   "sideEffects": false,
   "exports": {

@@ -1,15 +1,14 @@
-import type { C2CMessage } from './types'
+import type { GatewayOptions } from './types'
 import { Buffer } from 'node:buffer'
 import nacl from 'tweetnacl'
 import { generateSeed } from '../validation'
 import { isRecord } from './client'
-import { parseC2CMessage } from './gateway'
+import { parseC2CMessage, parseGroupMessage } from './gateway'
 
 /** Verify the exact HTTP body before decoding or dispatching any event. */
-export function createQQWebhookHandler(options: {
+export function createQQWebhookHandler(options: Pick<GatewayOptions, 'onMessage' | 'onGroupMessage'> & {
   appId: string
   secret: string
-  onMessage: (message: C2CMessage) => Promise<void>
 }) {
   const keys = nacl.sign.keyPair.fromSeed(generateSeed(options.secret))
   return async (request: Request): Promise<Response> => {
@@ -59,6 +58,9 @@ export function createQQWebhookHandler(options: {
       const message = parseC2CMessage(payload)
       if (message)
         await options.onMessage(message)
+      const groupMessage = options.onGroupMessage ? parseGroupMessage(payload) : undefined
+      if (groupMessage)
+        await options.onGroupMessage?.(groupMessage)
       return Response.json({ op: 12 })
     }
     catch {

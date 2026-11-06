@@ -48,6 +48,31 @@ await client.reply(ownerOpenId, incomingMessageId, payload, 1)
 调用方负责回复窗口、序号与按钮指令的服务端校验；SDK 不自动将 Markdown 降级为纯文本。
 遥控应用的分页、逐级回退与审批按钮实现位于 `apps/qq-codex`，见[卡片与按钮文档](../../docs/development/codex-remote.md#markdown-卡片与操作按钮)。
 
+## 官方群聊接收与回复
+
+`QQGateway` 和 `createQQWebhookHandler` 都支持可选的 `onGroupMessage`，同时接收 `GROUP_MESSAGE_CREATE` 与 `GROUP_AT_MESSAGE_CREATE`。原有 `onMessage` 继续只接收私聊文本；不设置群回调的应用不会收到群消息，现有 Codex 私聊流程保持不变。
+
+```ts
+import { QQGateway } from 'qq-sdk/official'
+
+const gateway = new QQGateway(client, {
+  onError: error => console.error(error),
+  onMessage: async (message) => {
+    console.info('私聊', message.author.user_openid, message.content)
+  },
+  onGroupMessage: async (message) => {
+    console.info('群聊', message.group_openid, message.author.member_openid, message.content)
+  },
+})
+await gateway.start()
+```
+
+`GroupMessage` 提供经过校验的消息 ID、群 OpenID、成员 OpenID、可选昵称、时间和文本，并通过 `eventType` 区分两种群事件。`raw` 保留完整原始事件体，包含附件、@ 列表、卡片和嵌套消息；纯附件消息的 `content` 可为空。SDK 不把结构化内容当成私聊执行输入。全量消息需要在平台开通事件权限，并在目标群的机器人设置中开启「接收所有消息」；这不等于拉取任意历史记录。
+
+`client.replyGroup(groupOpenId, messageId, payload, sequence)` 使用 `/v2/groups/{group_openid}/messages` 进行被动回复，支持与私聊相同的文本、Markdown 或媒体消息结构。调用方管理序号、去重及回复窗口；群聊限制为 5 分钟内、每条消息最多回复 5 次。媒体的 `file_info` 必须来自对应群的上传接口，不能复用 `uploadImage()` 的私聊上传结果。
+
+协议参考：[全量群消息](https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_message_create.html)、[群 @ 消息](https://bot.q.qq.com/wiki/develop/api-v2/autogen/event/group_at_message_create.html)、[群消息发送](https://bot.q.qq.com/wiki/develop/api-v2/autogen/api/v2_groups_group_openid_messages.post.html)。
+
 ## 本地图片上传
 
 `uploadImage(openId, bytes, fileName)` 支持直接上传本地 PNG/JPEG（最多 20 MiB），无需公网文件服务器。SDK 使用官方分片上传流程，校验文件摘要，在平台提供的 HTTPS 预签名地址 PUT 数据；不会把 QQ 凭据发送给存储服务器，不自动重试失败分片，也不会发送主动消息。

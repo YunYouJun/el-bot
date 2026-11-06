@@ -14,6 +14,19 @@ export interface C2CMessage {
   timestamp: string
 }
 
+export type GroupMessageEvent = 'GROUP_MESSAGE_CREATE' | 'GROUP_AT_MESSAGE_CREATE'
+
+/** Validated group routing fields, with the complete native body retained in raw. */
+export interface GroupMessage {
+  eventType: GroupMessageEvent
+  id: string
+  group_openid: string
+  author: { member_openid: string, username?: string }
+  content: string
+  timestamp: string
+  raw: Record<string, unknown>
+}
+
 /** Official inline keyboard, using either a template or an explicit layout. */
 export interface QQKeyboard {
   id?: string
@@ -68,7 +81,9 @@ export interface GatewayPayload {
 
 export interface GatewayOptions {
   onDisconnect?: () => void
+  /** Private text only; group events never enter this callback. */
   onMessage: (message: C2CMessage) => Promise<void>
+  onGroupMessage?: (message: GroupMessage) => Promise<void>
   onError: (error: Error) => void
   onReady?: () => void
   reconnectMs?: number
