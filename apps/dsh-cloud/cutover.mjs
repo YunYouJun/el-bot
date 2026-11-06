@@ -42,6 +42,11 @@ export async function apply(ctx, route) {
     const peerId = rest.slice(colon + 1)
     if (!['c2c', 'group'].includes(scope))
       continue
+    const access = manager.config.access
+    const mode = scope === 'c2c' ? access.c2cMode : access.groupMode
+    const allow = scope === 'c2c' ? access.c2cAllow : access.groupAllow
+    if (mode === 'disabled' || (mode === 'allowlist' && !allow?.includes(peerId)))
+      continue
     const sender = scope === 'c2c' ? peerId : manager.config.access.c2cAllow[0]
     const record = await manager.getOrCreate(scope, peerId, sender, { scope, targetId: peerId, msgId: '' })
     const before = manager.host.sessionEvents(record.agent.session)

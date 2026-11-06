@@ -27,6 +27,7 @@ export default defineConfig({
       'plugins/feeder/src/**/*.test.ts',
       'packages/*/{src,test}/**/*.test.ts',
       'apps/*/{src,test}/**/*.test.ts',
+      'apps/dsh-cloud/*.test.mjs',
     ],
     restoreMocks: true,
   },

@@ -1,6 +1,6 @@
 services:
   dsh:
-    image: el-bot/dsh-cloud:0.2.1-rc.5-qq0.5.5-personas0.1.0
+    image: el-bot/dsh-cloud:0.2.1-rc.5-qq0.5.5-personas0.1.0-models1-security1
     container_name: el-bot-dsh
     pull_policy: never
     build: .
@@ -28,7 +28,7 @@ services:
         max-size: 10m
         max-file: '3'
     healthcheck:
-      test: [CMD, node, -e, "const ip=Object.values(require('node:os').networkInterfaces()).flat().find(x=>x.family==='IPv4'&&!x.internal).address;fetch('http://'+ip+':3080').then(r=>process.exit(r.ok||r.status===401?0:1)).catch(()=>process.exit(1))"]
+      test: [CMD, node, /opt/dsh-runtime/healthcheck.mjs]
       interval: 30s
       timeout: 5s
       start_period: 120s

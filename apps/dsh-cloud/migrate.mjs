@@ -23,6 +23,11 @@ const key = credentials.refs?.TOKENLINK_API_KEY
 const deepseekKey = credentials.refs?.DEEPSEEK_API_KEY
 if (!official?.config?.appId || !official.config.appSecret || !tokenlink || typeof key !== 'string' || typeof deepseekKey !== 'string')
   throw new Error('Bound QQ bot, TokenLink and DeepSeek credentials are required')
+const access = official.config.access
+if (access?.c2cMode !== 'allowlist' || access.c2cAllow?.length !== 1)
+  throw new Error('Cloud QQ security requires exactly one authenticated private-chat owner')
+// New migrations admit no groups implicitly. Existing explicit allowlists may be retained.
+const groupAllow = access.groupMode === 'allowlist' ? access.groupAllow ?? [] : []
 
 const home = join(output, 'home')
 const dsh = join(home, '.dsh')
@@ -70,7 +75,11 @@ const cloudPatch = [
   { id: 'llm-pi-ai', config: { providers: { tokenlink, 'deepseek-api': deepseek } } },
   { id: 'agent-default-model', config: { provider: 'deepseek-api', model: 'deepseek-flash' } },
   ...patch.filter(row => ['ui-settings-general', 'ui-chat', 'ui-settings', 'ui-settings-account'].includes(row.id)),
-  { ...official, disabled: false, inject: ['qqWorkspaceGrouping'] },
+  { ...official, disabled: false, inject: ['qqWorkspaceGrouping', 'qqRuntimeHealth', 'qqRuntimeSecurity'], config: {
+    ...official.config,
+    requireMention: true,
+    access: { ...access, groupMode: 'allowlist', groupAllow },
+  } },
   { insert: [{
     id: 'el-bot-qq-workspaces',
     name: '@el-bot/dsh/qq-workspaces',
@@ -79,6 +88,19 @@ const cloudPatch = [
       profileDirectory: join(sourceHome, '.dsh/profiles/cloud'),
       privateTitle: '小云 Bot · 私聊',
       groupTitle: '小云 Bot · 群聊',
+    },
+  }, {
+    id: 'el-bot-cloud-health',
+    name: 'file:///opt/dsh-runtime/health.mjs',
+    config: { appId: official.config.appId },
+  }, {
+    id: 'el-bot-qq-security',
+    name: '@el-bot/dsh/qq-security',
+    config: {
+      appId: official.config.appId,
+      ownerOpenId: access.c2cAllow[0],
+      groupAllow,
+      profileDirectory: join(sourceHome, '.dsh/profiles/cloud'),
     },
   }, {
     id: 'el-bot-cloud-cutover',

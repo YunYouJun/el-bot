@@ -2,5 +2,9 @@
 !Dockerfile
 !entrypoint.sh
 !cutover.mjs
+!health.mjs
+!healthcheck.mjs
+!history.mjs
+!security-smoke.mjs
 !dsh/
 !dsh/**
