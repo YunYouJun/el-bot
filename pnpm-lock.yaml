@@ -284,7 +284,7 @@ overrides:
 
 patchedDependencies:
   mirai-ts@2.4.8: b35dfb9c6b6910658850b66ee5746d591e35e10a5fb93705c223a45b5d5f5e64
-  rss-feed-emitter@4.0.0: 7245bd3cb783eb3702b72ccdb473f1a38a0223c72cdc2ad91105684ec4aab9ed
+  rss-feed-emitter@4.0.0: 8ad8b1485d15025859dc16988963bb8f20e9677fd1165c17039650192f72a30c
 
 importers:
 
@@ -862,7 +862,7 @@ importers:
     dependencies:
       rss-feed-emitter:
         specifier: 'catalog:'
-        version: 4.0.0(patch_hash=7245bd3cb783eb3702b72ccdb473f1a38a0223c72cdc2ad91105684ec4aab9ed)
+        version: 4.0.0(patch_hash=8ad8b1485d15025859dc16988963bb8f20e9677fd1165c17039650192f72a30c)
 
   plugins/niubi:
     dependencies:
@@ -10254,7 +10254,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  rss-feed-emitter@4.0.0(patch_hash=7245bd3cb783eb3702b72ccdb473f1a38a0223c72cdc2ad91105684ec4aab9ed):
+  rss-feed-emitter@4.0.0(patch_hash=8ad8b1485d15025859dc16988963bb8f20e9677fd1165c17039650192f72a30c):
     dependencies:
       feedparser: 2.6.0
 

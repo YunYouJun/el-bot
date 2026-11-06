@@ -142,6 +142,6 @@ npm publish ./dist/el-bot-<版本>.tgz --dry-run --access public --tag next --ig
 `mirai-ts@2.4.8` 的事件声明通过 pnpm 补丁使用 EventEmitter 的默认事件类型，兼容 Node 26 类型定义；其导出路径与 tarball 不一致，NapCat 的 ESM 产物缺少 JSON import attribute，构建时将这两项运行代码打包以兼容普通 Node.js。
 发布包同时携带公开声明所需的 `@types/ws`、`@types/node-schedule`，并按上游 Axios 定义补充 `resty-client@0.0.5` 漏发的两个类型；不关闭消费者类型检查。
 
-工作区的 `plugins/feeder` 已升级到 `rss-feed-emitter` 4，以 Node.js 原生 `fetch` 移除 `request`、`tough-cookie`、`uuid` 依赖链。上游 `skipFirstLoad` 的首次加载标记通过 pnpm 补丁修复，并由本地 HTTP RSS 回归测试覆盖。`socks>ip-address` 和 `pm2>js-yaml` 的兼容覆盖分别保留安全修复版本。插件不包含在 `el-bot` 发布包中。
+工作区的 `plugins/feeder` 已升级到 `rss-feed-emitter` 4，以 Node.js 原生 `fetch` 移除 `request`、`tough-cookie`、`uuid` 依赖链。上游 `skipFirstLoad` 的首次加载标记通过 pnpm 补丁修复，并由本地 HTTP RSS 回归测试覆盖正常加载、首次失败后恢复与去重。`socks>ip-address` 和 `pm2>js-yaml` 的兼容覆盖分别保留安全修复版本。插件不包含在 `el-bot` 发布包中。
 
 截至 2026-11-06，本次升级后的生产依赖审计无已知告警。完整工作区审计仍有两个开发工具告警：Markdown lint 链的 [KaTeX](https://github.com/advisories/GHSA-238p-pmpm-9mq7) 与 ESLint 链的 [minimatch](https://github.com/advisories/GHSA-g3hv-75wg-m249)。其修复版超出上游声明的版本范围，本次不强制跨主版本覆盖；待上游兼容升级后再处理。审计结果随公告更新，以 `pnpm audit` 的当前输出为准。

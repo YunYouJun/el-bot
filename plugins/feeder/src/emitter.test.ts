@@ -2,7 +2,7 @@ import { createServer } from 'node:http'
 import RssFeedEmitter from 'rss-feed-emitter'
 import { expect, it, vi } from 'vitest'
 
-it('skips the initial feed, emits subsequent items once and removes subscriptions', async () => {
+it.each(['none', 'http', 'xml'])('skips the first successful load and emits updates once (initial failure: %s)', async (initialFailure) => {
   let revision = 1
   let requests = 0
   const received: { title: string, link: string }[] = []
@@ -12,6 +12,11 @@ it('skips the initial feed, emits subsequent items once and removes subscription
   emitter.on('error', error => errors.push(error))
   const server = createServer((_request, response) => {
     requests++
+    if (initialFailure !== 'none' && requests === 1) {
+      response.statusCode = initialFailure === 'http' ? 503 : 200
+      response.end(initialFailure === 'http' ? '' : 'invalid XML')
+      return
+    }
     response.setHeader('Content-Type', 'application/rss+xml')
     response.end(`<?xml version="1.0"?>
       <rss version="2.0"><channel><title>Fixture feed</title><link>https://example.test/</link><description>Local fixture</description>
@@ -33,7 +38,7 @@ it('skips the initial feed, emits subsequent items once and removes subscription
     const previousRequests = requests
     await vi.waitFor(() => expect(requests).toBeGreaterThan(previousRequests + 1), { timeout: 3000, interval: 10 })
     expect(received).toHaveLength(1)
-    expect(errors).toEqual([])
+    expect(errors).toHaveLength(initialFailure === 'none' ? 0 : 1)
     emitter.remove(url)
     expect(emitter.list).toHaveLength(0)
   }
