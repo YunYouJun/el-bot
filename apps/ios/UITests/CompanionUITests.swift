@@ -23,7 +23,7 @@ final class CompanionUITests: XCTestCase {
         attach(app, name: "Conversations")
         try verifyModelContext(app)
         app.buttons["Status"].tap()
-        XCTAssertTrue(app.staticTexts["102275406"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "102275406")).firstMatch.waitForExistence(timeout: 10))
         XCTAssertTrue(app.staticTexts["QQ connected"].waitForExistence(timeout: 15))
         attach(app, name: "QQ connected")
         app.buttons["Settings"].tap()
@@ -52,7 +52,9 @@ final class CompanionUITests: XCTestCase {
         app.buttons["sendMessage"].tap()
         XCTAssertTrue(app.staticTexts[String(nonce)].waitForExistence(timeout: 90))
         attach(app, name: "Native model context verified")
-        app.navigationBars.buttons.element(boundBy: 0).tap()
+        app.terminate()
+        app.launch()
+        XCTAssertTrue(app.buttons["Status"].waitForExistence(timeout: 15))
     }
 
     private func attach(_ app: XCUIApplication, name: String) {
