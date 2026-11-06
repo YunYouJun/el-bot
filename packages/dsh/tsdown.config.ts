@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'tsdown'
 
 export default defineConfig({
-  entry: { 'index': 'src/index.ts', 'cli': 'src/cli.ts', 'qq-workspaces': 'src/qq-workspaces/index.ts' },
+  entry: { 'index': 'src/index.ts', 'cli': 'src/cli.ts', 'qq-workspaces': 'src/qq-workspaces/index.ts', 'qq-security': 'src/qq-security/index.ts' },
   format: ['esm'],
   platform: 'node',
   target: 'node22',

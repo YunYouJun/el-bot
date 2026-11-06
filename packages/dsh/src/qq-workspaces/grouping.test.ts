@@ -300,4 +300,21 @@ describe('official QQ workspace lifecycle', () => {
     expect(f.manager.records.size).toBe(0)
   })
 
+  it('does not restore conversations excluded by the current QQ access policy', async () => {
+    const f = await fixture()
+    const access: QQManager['config']['access'] = {
+      c2cMode: 'allowlist',
+      c2cAllow: ['owner'],
+      groupMode: 'allowlist',
+      groupAllow: ['test-room'],
+    }
+    Object.assign(f.manager.config.access, access)
+    const ids = { 'qqbot:123:group:uninvited': 'denied-group', 'qqbot:123:c2c:stranger': 'denied-user' }
+    for (const id of Object.values(ids))
+      f.world.headers.set(id, { id, cwd: f.root })
+    await writeFile(f.options.prefsFile, JSON.stringify({ sessionIds: ids }))
+    await f.grouping.migrateExisting()
+    expect(f.manager.records.size).toBe(0)
+    expect(f.world.archived.size).toBe(0)
+  })
 })

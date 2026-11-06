@@ -84,4 +84,6 @@ HTTPS 来源拒绝 URL 内用户名密码、明文 HTTP 和跳转到 HTTP。Git 
 
 预览不执行 HTML、不加载远程图片，也不打开卡内链接。启用前应阅读完整设定；使用、改编和分发时保留作者、来源和许可证。
 
-小云示例来自 [YunYouJun/yun 人物卡](https://github.com/YunYouJun/yun/blob/49620e465500a384070cb6c8a71b0cabc006a636/persona/xiaoyun.md)，单独遵循原文的 **CC BY-NC-SA 4.0** 许可。示例只补充 frontmatter、绝对来源链接和当前导入说明，角色设定与口吻保留原文；原始设定继续维护在上游仓库。
+小云示例来自 [YunYouJun/yun 人物卡](https://github.com/YunYouJun/yun/blob/49620e465500a384070cb6c8a71b0cabc006a636/persona/xiaoyun.md)，单独遵循原文的 **CC BY-NC-SA 4.0** 许可。示例保留原角色设定与口吻，补充 frontmatter、来源链接、导入说明和标明出处的 el-bot 群聊边界；原始设定继续维护在上游仓库。已有实例追加补充节即可保留自行调整的其他设定。
+
+群聊运行时防护由 [`@el-bot/dsh/qq-security`](../../packages/dsh/README.md#群聊防护) 执行：仅主人私聊拥有工具、管理和审批入口，群聊不因人物卡中的“主人”或聊天中的自称获得权限。

@@ -176,6 +176,15 @@ export class WorkspaceGrouping {
       const peer = parsePeer(key, this.options.appId)
       if (!peer || typeof id !== 'string' || !id)
         continue
+      const access = manager.config.access
+      if (peer.scope === 'group' && (access.groupMode === 'disabled'
+        || (access.groupMode === 'allowlist' && !access.groupAllow?.includes(peer.peerId)))) {
+        continue
+      }
+      if (peer.scope === 'c2c' && (access.c2cMode === 'disabled'
+        || (access.c2cMode === 'allowlist' && !access.c2cAllow.includes(peer.peerId)))) {
+        continue
+      }
       // /new can mint a preference before a session exists. Do not create it here.
       if (!await manager.host.sessionHeader(id))
         continue
