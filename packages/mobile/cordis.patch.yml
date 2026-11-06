@@ -1,0 +1,3 @@
+- insert:
+    - id: el-bot-mobile
+      name: '@el-bot/mobile'

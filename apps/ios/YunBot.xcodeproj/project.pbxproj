@@ -1,0 +1,532 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		039E1DE29A0B148D8C84C5AB /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = AFE4E09EBCFB1A13453E3B73 /* Localizable.strings */; };
+		04FA932393975F60CCF3361E /* CompanionUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09695C25A1A42B16D514C227 /* CompanionUITests.swift */; };
+		2DE52E0ED9FAF984338D529D /* KeychainVault.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BF6E1084FDD3E3F893BF38 /* KeychainVault.swift */; };
+		38B724084742F9B46346AD78 /* SessionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A145B8C0DDB3F7D61CD02812 /* SessionsView.swift */; };
+		3F4DD3FBA3F3DA89713351CF /* YunBotCore in Frameworks */ = {isa = PBXBuildFile; productRef = FA6F391BC402E0D958D32C00 /* YunBotCore */; };
+		4BB20F11129B40359B087622 /* StatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0C03D5ABB595C9BB060177 /* StatusView.swift */; };
+		5AE011A68A7AECA81469852D /* ConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E1A8CDF235AE0980B7843C /* ConversationView.swift */; };
+		5DE05691AA2238CE2CEE5DF0 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B93D2DF67E19ABE1C69FD726 /* SettingsView.swift */; };
+		7A93A05EEDF40480542B52E1 /* AppStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05309C7C673B9541DF7E8E89 /* AppStore.swift */; };
+		99B61EA0B227236D6DF8D943 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C36233B639CD1A2C575CB3A9 /* Assets.xcassets */; };
+		AB8C478F08C609C499E0084F /* ConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90800A74A12272A45CD25E4F /* ConnectionView.swift */; };
+		AC223C7E999CD95AE12CC81F /* YunBotApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F77C3B26B9FEEF9E3AEB2A /* YunBotApp.swift */; };
+		EE03BEBE8777E93396C49BBD /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = E9723BCCF84FF9A379D23435 /* InfoPlist.strings */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		090BF1765F9FAA16CDF9FCEE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8349C3E3602606091F0FD831 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 54B71895A6982D73E69E8890;
+			remoteInfo = YunBot;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		04E1A8CDF235AE0980B7843C /* ConversationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationView.swift; sourceTree = "<group>"; };
+		05309C7C673B9541DF7E8E89 /* AppStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStore.swift; sourceTree = "<group>"; };
+		09695C25A1A42B16D514C227 /* CompanionUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionUITests.swift; sourceTree = "<group>"; };
+		11BF6E1084FDD3E3F893BF38 /* KeychainVault.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainVault.swift; sourceTree = "<group>"; };
+		35ABBA7FA818D33F30020157 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		4A0C03D5ABB595C9BB060177 /* StatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusView.swift; sourceTree = "<group>"; };
+		607826A52B0F57E41D1116BD /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		8015E7A726A343630A747358 /* YunBotCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = YunBotCore; path = Modules/YunBotCore; sourceTree = SOURCE_ROOT; };
+		90800A74A12272A45CD25E4F /* ConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionView.swift; sourceTree = "<group>"; };
+		975F90E83CA7BC640DB97C44 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		97F77C3B26B9FEEF9E3AEB2A /* YunBotApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YunBotApp.swift; sourceTree = "<group>"; };
+		A0AF3F1C0CAA586F3E7F34A4 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		A145B8C0DDB3F7D61CD02812 /* SessionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionsView.swift; sourceTree = "<group>"; };
+		B93D2DF67E19ABE1C69FD726 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		C36233B639CD1A2C575CB3A9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		DC80AE31DF206EBDD0899141 /* YunBot.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = YunBot.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E044CCB611CAD6E2882486D3 /* YunBotUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = YunBotUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8EF6D5914A0B940ECD06DE5D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3F4DD3FBA3F3DA89713351CF /* YunBotCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		32294F05667EAA1AA196A4CC /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				05309C7C673B9541DF7E8E89 /* AppStore.swift */,
+				90800A74A12272A45CD25E4F /* ConnectionView.swift */,
+				04E1A8CDF235AE0980B7843C /* ConversationView.swift */,
+				11BF6E1084FDD3E3F893BF38 /* KeychainVault.swift */,
+				A145B8C0DDB3F7D61CD02812 /* SessionsView.swift */,
+				B93D2DF67E19ABE1C69FD726 /* SettingsView.swift */,
+				4A0C03D5ABB595C9BB060177 /* StatusView.swift */,
+				97F77C3B26B9FEEF9E3AEB2A /* YunBotApp.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		8E9505694F5CC5209AD76A15 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DC80AE31DF206EBDD0899141 /* YunBot.app */,
+				E044CCB611CAD6E2882486D3 /* YunBotUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		99D5EAC35514947D0EBD8FF9 = {
+			isa = PBXGroup;
+			children = (
+				ECA98D95CA6733D19D027292 /* Packages */,
+				CC52CE2F71D4244191258A79 /* Resources */,
+				32294F05667EAA1AA196A4CC /* Sources */,
+				D3C1AFA213579181D5506491 /* UITests */,
+				8E9505694F5CC5209AD76A15 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CC52CE2F71D4244191258A79 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				C36233B639CD1A2C575CB3A9 /* Assets.xcassets */,
+				E9723BCCF84FF9A379D23435 /* InfoPlist.strings */,
+				AFE4E09EBCFB1A13453E3B73 /* Localizable.strings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		D3C1AFA213579181D5506491 /* UITests */ = {
+			isa = PBXGroup;
+			children = (
+				09695C25A1A42B16D514C227 /* CompanionUITests.swift */,
+			);
+			path = UITests;
+			sourceTree = "<group>";
+		};
+		ECA98D95CA6733D19D027292 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				8015E7A726A343630A747358 /* YunBotCore */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		54B71895A6982D73E69E8890 /* YunBot */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 91FE4EF3CD878119E83959FD /* Build configuration list for PBXNativeTarget "YunBot" */;
+			buildPhases = (
+				2C1E5F1313741AE8EAEC8F94 /* Sources */,
+				C6EFA3D5A0C075CCDDF7A9AE /* Resources */,
+				8EF6D5914A0B940ECD06DE5D /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = YunBot;
+			packageProductDependencies = (
+				FA6F391BC402E0D958D32C00 /* YunBotCore */,
+			);
+			productName = YunBot;
+			productReference = DC80AE31DF206EBDD0899141 /* YunBot.app */;
+			productType = "com.apple.product-type.application";
+		};
+		5C91994BEC21FB231B42B9A6 /* YunBotUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8B99781D992DA94DBD811EBA /* Build configuration list for PBXNativeTarget "YunBotUITests" */;
+			buildPhases = (
+				6CC97A68AA96B3B6944DC057 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D441B73200DC4934153B90D3 /* PBXTargetDependency */,
+			);
+			name = YunBotUITests;
+			packageProductDependencies = (
+			);
+			productName = YunBotUITests;
+			productReference = E044CCB611CAD6E2882486D3 /* YunBotUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		8349C3E3602606091F0FD831 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					54B71895A6982D73E69E8890 = {
+						DevelopmentTeam = "";
+					};
+					5C91994BEC21FB231B42B9A6 = {
+						DevelopmentTeam = "";
+						TestTargetID = 54B71895A6982D73E69E8890;
+					};
+				};
+			};
+			buildConfigurationList = 589543B19513601C49B97A39 /* Build configuration list for PBXProject "YunBot" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+				"zh-Hans",
+			);
+			mainGroup = 99D5EAC35514947D0EBD8FF9;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				12F4C77D99C15840EF7A0D89 /* XCLocalSwiftPackageReference "Modules/YunBotCore" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 8E9505694F5CC5209AD76A15 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				54B71895A6982D73E69E8890 /* YunBot */,
+				5C91994BEC21FB231B42B9A6 /* YunBotUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C6EFA3D5A0C075CCDDF7A9AE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				99B61EA0B227236D6DF8D943 /* Assets.xcassets in Resources */,
+				EE03BEBE8777E93396C49BBD /* InfoPlist.strings in Resources */,
+				039E1DE29A0B148D8C84C5AB /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2C1E5F1313741AE8EAEC8F94 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7A93A05EEDF40480542B52E1 /* AppStore.swift in Sources */,
+				AB8C478F08C609C499E0084F /* ConnectionView.swift in Sources */,
+				5AE011A68A7AECA81469852D /* ConversationView.swift in Sources */,
+				2DE52E0ED9FAF984338D529D /* KeychainVault.swift in Sources */,
+				38B724084742F9B46346AD78 /* SessionsView.swift in Sources */,
+				5DE05691AA2238CE2CEE5DF0 /* SettingsView.swift in Sources */,
+				4BB20F11129B40359B087622 /* StatusView.swift in Sources */,
+				AC223C7E999CD95AE12CC81F /* YunBotApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6CC97A68AA96B3B6944DC057 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				04FA932393975F60CCF3361E /* CompanionUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D441B73200DC4934153B90D3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 54B71895A6982D73E69E8890 /* YunBot */;
+			targetProxy = 090BF1765F9FAA16CDF9FCEE /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		AFE4E09EBCFB1A13453E3B73 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				975F90E83CA7BC640DB97C44 /* en */,
+				A0AF3F1C0CAA586F3E7F34A4 /* zh-Hans */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		E9723BCCF84FF9A379D23435 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				35ABBA7FA818D33F30020157 /* en */,
+				607826A52B0F57E41D1116BD /* zh-Hans */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		19C27BAFADC78BB6876CD894 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = Config/Simulator.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Yun Bot";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = fun.yunle.yunbot;
+				PRODUCT_NAME = "Yun Bot";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3FEB8A6280A9F585B90CD1B7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = Config/Simulator.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Yun Bot";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = fun.yunle.yunbot;
+				PRODUCT_NAME = "Yun Bot";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		573176B03C5A7EE87E262B85 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		5D5B6F57178592C9D32E2AE4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		833BB5AC0D39A37CAF1D37B9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = fun.yunle.yunbot.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = YunBot;
+			};
+			name = Release;
+		};
+		D318A829A0FBFCE4F8ECAC4E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = fun.yunle.yunbot.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = YunBot;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		589543B19513601C49B97A39 /* Build configuration list for PBXProject "YunBot" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				573176B03C5A7EE87E262B85 /* Debug */,
+				5D5B6F57178592C9D32E2AE4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8B99781D992DA94DBD811EBA /* Build configuration list for PBXNativeTarget "YunBotUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D318A829A0FBFCE4F8ECAC4E /* Debug */,
+				833BB5AC0D39A37CAF1D37B9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		91FE4EF3CD878119E83959FD /* Build configuration list for PBXNativeTarget "YunBot" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				19C27BAFADC78BB6876CD894 /* Debug */,
+				3FEB8A6280A9F585B90CD1B7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		12F4C77D99C15840EF7A0D89 /* XCLocalSwiftPackageReference "Modules/YunBotCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Modules/YunBotCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		FA6F391BC402E0D958D32C00 /* YunBotCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = YunBotCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 8349C3E3602606091F0FD831 /* Project object */;
+}
