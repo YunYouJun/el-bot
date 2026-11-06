@@ -42,17 +42,6 @@ struct MobileBotStatusView: View {
                 .font(.subheadline)
                 .padding(22)
                 .background(.background, in: RoundedRectangle(cornerRadius: 26))
-                VStack(alignment: .leading, spacing: 20) {
-                    interaction("hand.draw", title: "status.bot.scroll.title", detail: "status.bot.scroll.detail")
-                    Divider()
-                    interaction("hand.tap", title: "status.bot.tap.title", detail: "status.bot.tap.detail")
-                }
-                .padding(22)
-                .background(.background, in: RoundedRectangle(cornerRadius: 26))
-                Text(text["status.description"])
-                    .font(.footnote).foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 8)
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 32)
@@ -66,17 +55,6 @@ struct MobileBotStatusView: View {
         .navigationBarTitleDisplayMode(.inline)
         .refreshable { await store.refresh() }
         .task { await store.refresh() }
-    }
-
-    private func interaction(_ symbol: String, title: String, detail: String) -> some View {
-        HStack(alignment: .top, spacing: 16) {
-            Image(systemName: symbol).font(.title2).foregroundStyle(BotCompanionHero.blue)
-                .frame(width: 30)
-            VStack(alignment: .leading, spacing: 6) {
-                Text(text[title]).font(.subheadline.weight(.semibold))
-                Text(text[detail]).font(.subheadline).foregroundStyle(.secondary)
-            }
-        }
     }
 }
 
