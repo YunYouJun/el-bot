@@ -1,9 +1,5 @@
 ignoreWorkspaceRootCheck: true
-
 minimumReleaseAgeExcludePrune: true
-minimumReleaseAgeExclude:
-  - hono@4.13.13
-
 trustPolicy: no-downgrade
 shamefullyHoist: true
 shellEmulator: true
@@ -20,8 +16,10 @@ packages:
 overrides:
   oxfmt>tinypool: 2.1.2
   pm2>js-yaml: ^4.3.2
-  request>form-data: ^2.5.6
-  request>qs: ^6.16.0
+  socks>ip-address: ^10.7.6
+
+patchedDependencies:
+  rss-feed-emitter@4.0.0: patches/rss-feed-emitter@4.0.0.patch
 
 allowBuilds:
   '@nestjs/core': false
@@ -32,23 +30,23 @@ allowBuilds:
 
 catalog:
   '@antfu/eslint-config': ^9.5.1
-  '@hono/node-server': ^2.1.3
+  '@hono/node-server': ^2.1.6
   '@iconify-json/ri': ^1.2.10
-  '@nestjs/cli': ^12.0.8
-  '@nestjs/common': ^12.1.2
-  '@nestjs/core': ^12.1.2
-  '@nestjs/platform-express': ^12.1.2
+  '@nestjs/cli': ^12.0.11
+  '@nestjs/common': ^12.3.3
+  '@nestjs/core': ^12.3.3
+  '@nestjs/platform-express': ^12.3.3
   '@octokit/webhooks': ^14.2.0
   '@octokit/webhooks-methods': ^6.0.0
   '@resvg/resvg-js': ^2.6.2
-  '@tauri-apps/api': ^2.12.1
-  '@tauri-apps/cli': ^2.12.1
+  '@tauri-apps/api': ^2.12.4
+  '@tauri-apps/cli': ^2.12.4
   '@types/fs-extra': ^11.0.4
   '@types/gradient-string': ^1.1.6
   '@types/html-to-text': ^9.0.4
   '@types/js-yaml': ^4.0.9
   '@types/markdown-it': ^14.2.0
-  '@types/node': ^24.19.1
+  '@types/node': ^24.19.2
   '@types/node-schedule': ^2.1.8
   '@types/progress': ^2.0.7
   '@types/qrcode': ^1.5.6
@@ -56,12 +54,12 @@ catalog:
   '@types/ws': ^8.18.2
   '@types/xml2js': ^0.4.14
   '@types/yargs': ^17.0.35
-  '@unocss/eslint-plugin': ^66.10.5
-  '@vitejs/plugin-vue': ^6.0.9
+  '@unocss/eslint-plugin': ^66.12.0
+  '@vitejs/plugin-vue': ^6.0.10
   '@yunlefun/ui': 0.0.6
   '@yunlefun/vue': 0.4.2
   ajv: ^8.20.0
-  axios: ^1.20.0
+  axios: ^1.21.0
   bumpp: ^12.3.0
   c12: ^3.3.4
   chalk: ^6.0.1
@@ -71,54 +69,54 @@ catalog:
   consola: ^3.4.2
   cross-env: ^10.1.0
   dayjs: ^1.11.23
-  dotenv: ^18.0.5
+  dotenv: ^18.0.9
   enquirer: ^2.4.1
-  eslint: ^10.12.0
+  eslint: ^10.14.0
   eslint-plugin-format: ^2.0.1
   events: ^3.3.0
   fast-glob: ^3.3.3
   fs-extra: ^11.4.1
   gradient-string: ^3.0.0
-  hono: ^4.13.13
+  hono: ^4.13.16
   hookable: ^6.1.2
   html-to-text: ^10.0.1
   husky: ^9.1.7
-  js-yaml: ^5.4.2
+  js-yaml: ^5.5.0
   lint-staged: ^17.6.0
-  markdown-it: ^14.3.2
+  markdown-it: ^14.3.3
   mirai-ts: ^2.4.8
-  mongoose: ^9.10.4
+  mongoose: ^9.12.0
   node-napcat-ts: ^0.4.25
-  node-schedule: ^2.1.1
+  node-schedule: ^2.1.2
   nodemon: ^3.1.14
   picocolors: ^1.1.1
-  playwright: ^1.63.0
-  pm2: ^7.0.4
+  playwright: ^1.64.1
+  pm2: ^7.1.2
   progress: ^2.0.3
   publint: ^0.3.25
   qq-guild-bot: ^2.9.5
   qrcode: ^1.5.4
   reflect-metadata: ^0.2.2
-  rettiwt-api: ^7.1.4
-  rss-feed-emitter: ^3.2.4
+  rettiwt-api: ^7.1.5
+  rss-feed-emitter: ^4.0.0
   rss-parser: ^3.13.0
   sagiri: ^5.0.0
-  sass: ^1.105.1
+  sass: ^1.107.0
   shelljs: ^0.10.0
-  shiki: ^4.5.0
+  shiki: ^4.6.0
   ts-loader: ^9.6.2
-  tsdown: ^0.23.0
+  tsdown: ^0.23.5
   tsx: ^4.23.15
   tweetnacl: ^1.0.3
   typedoc: ^0.28.20
   typescript: ^5.9.3
-  vite: ^8.3.2
+  vite: ^8.3.6
 
   vite-node: ^6.0.0
   vitepress: 2.0.0-alpha.20
-  vitest: ^5.0.3
-  vue: ^3.5.43
-  vue-tsc: ^3.3.12
+  vitest: ^5.1.0
+  vue: ^3.5.44
+  vue-tsc: ^3.3.14
   winston: ^3.19.0
-  ws: ^8.22.0
+  ws: ^8.22.1
   yargs: ^18.2.0

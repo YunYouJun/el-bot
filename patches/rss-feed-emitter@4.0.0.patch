@@ -1,0 +1,14 @@
+diff --git a/src/FeedManager.js b/src/FeedManager.js
+index 5551f2fb394f1ed043c589a7a9ac82f524785de7..9add656e8c872a531ee020352358e11762f930f9 100644
+--- a/src/FeedManager.js
++++ b/src/FeedManager.js
+@@ -114,8 +114,8 @@ class FeedManager {
+     this.populateNewItemsInFeed(data, innerFirst);
+     if (firstload && !this.instance.skipFirstLoad) {
+       this.instance.emit(`initial-load:${this.feed.url}`, { url: this.feed.url, items: this.feed.items });
+-      this.feed.failedFirstLoad = false;
+     }
++    this.feed.failedFirstLoad = false;
+   }
+ }
+ 

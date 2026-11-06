@@ -1,6 +1,5 @@
 import type { Bot } from 'el-bot'
 import type { MessageType } from 'mirai-ts'
-import type { EventEmitter } from 'node:events'
 import type { IFeeder } from './feeder.scheme'
 import consola from 'consola'
 import RssFeedEmitter from 'rss-feed-emitter'
@@ -8,7 +7,7 @@ import { Feeder } from './feeder.scheme'
 
 const feeder = new RssFeedEmitter({
   skipFirstLoad: true,
-}) as RssFeedEmitter & EventEmitter
+})
 
 export default async function (ctx: Bot) {
   const { cli } = ctx
