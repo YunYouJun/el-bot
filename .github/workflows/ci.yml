@@ -14,6 +14,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  ios:
+    name: Build native iOS companion
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Test HTTPS client
+        run: swift test --package-path apps/ios/Modules/YunBotCore
+      - name: Generate Xcode project
+        run: |
+          if ! command -v xcodegen >/dev/null 2>&1; then
+            brew install xcodegen
+          fi
+          xcodegen generate --spec apps/ios/project.yml
+      - name: Build unsigned simulator app and UI tests
+        run: >-
+          xcodebuild -quiet -project apps/ios/YunBot.xcodeproj -scheme YunBot
+          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
+          -derivedDataPath apps/ios/DerivedData CODE_SIGNING_ALLOWED=NO build-for-testing
+
   desktop:
     name: Build native installers
     uses: ./.github/workflows/desktop.yml
