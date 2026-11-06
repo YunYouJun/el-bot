@@ -12,9 +12,9 @@
     "website": "https://docs.bot.elpsy.cn/",
     "source": {
       "repository": "YunYouJun/el-bot",
-      "ref": "dev",
+      "ref": "main",
       "path": "assets/brand/el-bot-mark.svg",
-      "url": "https://github.com/YunYouJun/el-bot/blob/dev/assets/brand/el-bot-mark.svg",
+      "url": "https://github.com/YunYouJun/el-bot/blob/main/assets/brand/el-bot-mark.svg",
       "sync": true
     }
   },
@@ -31,9 +31,9 @@
     "website": "https://docs.bot.elpsy.cn/",
     "source": {
       "repository": "YunYouJun/el-bot",
-      "ref": "dev",
+      "ref": "main",
       "path": "assets/brand/el-bot-app-icon.svg",
-      "url": "https://github.com/YunYouJun/el-bot/blob/dev/assets/brand/el-bot-app-icon.svg",
+      "url": "https://github.com/YunYouJun/el-bot/blob/main/assets/brand/el-bot-app-icon.svg",
       "sync": true
     }
   }

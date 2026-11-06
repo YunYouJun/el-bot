@@ -1,0 +1,50 @@
+diff --git a/src/Feed.js b/src/Feed.js
+--- a/src/Feed.js
++++ b/src/Feed.js
+@@ -154,9 +154,10 @@
+   fetchData() {
+-    return new Promise((resolve) => {
++    return new Promise((resolve, reject) => {
+       const items = [];
+       let settled = false;
+-      const settle = () => {
++      const settle = (error) => {
+         if (settled) return;
+         settled = true;
+-        resolve(items);
++        if (error) reject(error);
++        else resolve(items);
+       };
+@@ -177,4 +178,5 @@
+         if (settled) return;
+-        this.handleError(new FeedError(`Cannot parse ${this.url} XML`, 'invalid_feed', this.url));
+-        settle();
++        const error = new FeedError(`Cannot parse ${this.url} XML`, 'invalid_feed', this.url);
++        this.handleError(error);
++        settle(error);
+       });
+@@ -183,3 +185,3 @@
+       this.get(feedparser).then((ok) => {
+-        if (!ok) settle();
++        if (!ok) settle(new FeedError(`Cannot fetch ${this.url}`, 'fetch_url_error', this.url));
+       });
+diff --git a/src/FeedManager.js b/src/FeedManager.js
+--- a/src/FeedManager.js
++++ b/src/FeedManager.js
+@@ -102,3 +102,9 @@
+   async getContent(firstload) {
+-    const items = await this.feed.fetchData();
++    let items;
++    try {
++      items = await this.feed.fetchData();
++    } catch {
++      // fetchData already emitted the error; keep the first successful load pending.
++      return;
++    }
+     const data = {
+@@ -116,4 +122,4 @@
+       this.instance.emit(`initial-load:${this.feed.url}`, { url: this.feed.url, items: this.feed.items });
+-      this.feed.failedFirstLoad = false;
+     }
++    this.feed.failedFirstLoad = false;
+   }

@@ -78,6 +78,8 @@ dist
 # Desktop build products
 apps/el-bot-client/build/
 apps/el-bot-client/resources/darwin/
+**/src-tauri/target/
+**/src-tauri/gen/schemas/
 
 # Local QQ credentials, pairing and Codex session state
 .el-bot/

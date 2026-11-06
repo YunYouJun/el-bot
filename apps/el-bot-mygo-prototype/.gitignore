@@ -1,0 +1,6 @@
+/build/
+/.mygo/
+mygo_windows_*.syso
+/el-bot-mygo-prototype
+/.agents/
+__pycache__/

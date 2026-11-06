@@ -25,6 +25,9 @@
     "el-bot-web": "https://github.com/ElpsyCN/el-bot-web"
   },
   "scripts": {
+    "mygo:dev": "go -C apps/el-bot-mygo-prototype tool mygo dev",
+    "mygo:build": "go -C apps/el-bot-mygo-prototype tool mygo build",
+    "mygo:check": "go -C apps/el-bot-mygo-prototype run . --check",
     "icons:generate": "pnpm --filter @el-bot/client icons:generate",
     "icons:check": "pnpm --filter @el-bot/client icons:check",
     "client:dev": "pnpm --filter @el-bot/client desktop:dev",

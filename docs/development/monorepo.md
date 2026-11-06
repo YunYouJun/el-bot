@@ -1,8 +1,8 @@
 # Monorepo 开发
 
 工程约定参考 [starter-monorepo](https://github.com/YunYouJun/starter-monorepo)。
-使用 `.node-version` 指定的 Node.js 26.13.0 LTS 和 `packageManager` 固定的 pnpm 11.24.0。
-CI 主矩阵和企微问答容器使用相同 Node.js 版本，保留 Node.js 22.18.0 的最低兼容性测试。库的 `engines` 下限与 tsdown 的 `node22` 构建目标继续保留，使用方无需同步提高最低版本。
+使用 `.node-version` 指定的当前 LTS Node.js 26.13.0 和 `packageManager` 固定的 pnpm 11.24.0。
+发布流程保留 Node.js 22.18.0 的最低兼容性验证，库的 `engines` 下限与 tsdown 的 `node22` 构建目标继续保留。
 
 ## 目录与职责
 
@@ -44,7 +44,7 @@ pnpm docs:preview
 
 `pnpm dev` 保留为 demo 开发入口；`pnpm dev:simple` 启动简单示例。
 运行机器人需要配置 QQ/NapCat 连接，这些命令不属于无凭证工程验证。
-CI 使用 `pnpm install --frozen-lockfile`，禁止在 CI 隐式改写锁文件。
+CI 使用 `pnpm install --frozen-lockfile`，禁止在 CI 隐式改写锁文件。CI 与发布前安装包验证均在 Linux、Windows、macOS 上使用 `.node-version` 指定的当前 LTS，升级 LTS 时统一修改该文件。
 
 ## 新增包
 
@@ -56,8 +56,8 @@ CI 使用 `pnpm install --frozen-lockfile`，禁止在 CI 隐式改写锁文件�
 
 ## 依赖与兼容性
 
-依赖版本集中在 catalog。Node.js 开发及部署使用 26.13.0 LTS，TypeScript 保留 5.9，匹配 sagiri 和类型文档工具支持范围。此前依赖检查中 TypeScript 最新版为 7，但 sagiri 仍要求 `^5.0.0`，TypeDoc 尚不支持 7；不强行跨主版本升级。
-Chalk 使用 6；`@types/node` 暂保留 24 系列，本次只升级运行环境；c12 保留稳定版 3，避免将 RC 作为稳定更新引入。
+依赖版本集中在 catalog。Node.js 使用当前 LTS 26，TypeScript 保留 5.9，匹配 sagiri 和类型文档工具支持范围。此次检查中 TypeScript 最新版为 7，但 sagiri 仍要求 `^5.0.0`，TypeDoc 尚不支持 7；不强行跨主版本升级。
+Chalk 升级为 6；`@types/node` 使用与 Node 26 对应的最新版本；c12 保留稳定版 3，避免将 RC 作为稳定更新引入。
 `el-bot` 是 `el-bot` / `el` 可执行命令的唯一发布者，`apps/qq-codex` 保持私有。
 CLI 将内部 Codex 客户端与 QQ 官方协议实现打包，第三方运行时依赖独立声明。
 框架使用的工作区 `qq-sdk` 同样构建进发布包，由包内 `#qq-sdk` 映射引用，安装时不依赖 registry 中的同名版本。
@@ -117,7 +117,7 @@ npm trust github el-bot --repo YunYouJun/el-bot --file release.yml --allow-publi
 
 ### 每次发布
 
-1. 提交并推送本次代码，确保默认分支 `dev` 的 CI 通过，且工作区干净。
+1. 提交并推送本次代码，确保默认分支 `main` 的 CI 通过，且工作区干净。
 2. 运行 `pnpm release`，在交互中选择尚未发布的版本；该命令只更新 `packages/el-bot/package.json`，生成 Conventional Commit、`v<版本>` 标签并推送。
 3. 标签触发工作流：校验标签与包版本一致、确认 npm 不存在该版本，然后执行 lint、构建、类型检查、测试、文档构建、安装包测试与 Tauri 五个平台/架构的原生打包。所有检查通过后才发布 npm。
 4. prerelease 版本（例如 `1.0.0-rc.3`）发布到 `next`，正式版本发布到 `latest`；npm 发布成功后生成 GitHub Release，并上传通过验证的客户端安装包及 SHA-256 校验文件。
@@ -141,8 +141,9 @@ npm publish ./dist/el-bot-<版本>.tgz --dry-run --access public --tag next --ig
 ### 旧依赖的已知限制
 
 库与 Nest 入口编译为 ESM，并在真实安装后的消费者项目中执行导入和严格 TypeScript 检查。
-`mirai-ts@2.4.8` 的导出路径与 tarball 不一致，NapCat 的 ESM 产物缺少 JSON import attribute，构建时将这两项运行代码打包以兼容普通 Node.js。
+`mirai-ts@2.4.8` 的事件声明通过 pnpm 补丁使用 EventEmitter 的默认事件类型，兼容 Node 26 类型定义；其导出路径与 tarball 不一致，NapCat 的 ESM 产物缺少 JSON import attribute，构建时将这两项运行代码打包以兼容普通 Node.js。
 发布包同时携带公开声明所需的 `@types/ws`、`@types/node-schedule`，并按上游 Axios 定义补充 `resty-client@0.0.5` 漏发的两个类型；不关闭消费者类型检查。
 
-本次升级固定了旧依赖链中可兼容升级的 `form-data`、`qs` 和 `js-yaml` 修复版。工作区的旧 `plugins/feeder` 仍使用停止维护的 `rss-feed-emitter` / `request`，存在 `request`、`tough-cookie`、`uuid` 上游告警；该插件不包含在本次 `el-bot` 发布包中。
-旧框架的文件匹配依赖 `fast-glob` / `micromatch`，其 `braces` 依赖仍有[深层模式导致栈耗尽的告警](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)，截至本次发布没有上游修复版。勿将不可信输入直接用作文件匹配模式。Codex 遥控入口不使用该匹配链路；本次发布并不声明整个旧框架已清除全部审计告警。
+工作区的 `plugins/feeder` 已升级到 `rss-feed-emitter` 4，以 Node.js 原生 `fetch` 移除 `request`、`tough-cookie`、`uuid` 依赖链。上游 `skipFirstLoad` 的首次加载标记通过 pnpm 补丁修复，并由本地 HTTP RSS 回归测试覆盖正常加载、首次失败后恢复与去重。`socks>ip-address` 和 `pm2>js-yaml` 的兼容覆盖分别保留安全修复版本。插件不包含在 `el-bot` 发布包中。
+
+截至 2026-11-06，本次升级后的生产依赖审计无已知告警。完整工作区审计仍有两个开发工具告警：Markdown lint 链的 [KaTeX](https://github.com/advisories/GHSA-238p-pmpm-9mq7) 与 ESLint 链的 [minimatch](https://github.com/advisories/GHSA-g3hv-75wg-m249)。其修复版超出上游声明的版本范围，本次不强制跨主版本覆盖；待上游兼容升级后再处理。审计结果随公告更新，以 `pnpm audit` 的当前输出为准。

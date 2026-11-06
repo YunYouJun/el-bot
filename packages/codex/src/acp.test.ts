@@ -1,5 +1,6 @@
 import type { RpcNotification } from './types'
 import { realpath } from 'node:fs/promises'
+import { dirname } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -77,7 +78,7 @@ describe('aCP agent task control', () => {
     expect(await client.inspectThread('saved', cwd)).toBe('ready')
     expect(await client.inspectThread('missing', cwd)).toBe('missing')
     await client.thread({ cwd, model: 'fixture-model' })
-    await expect(client.thread({ cwd: '/tmp' })).rejects.toThrow('allowlist')
+    await expect(client.thread({ cwd: dirname(cwd) })).rejects.toThrow('allowlist')
     await expect(client.request('session/prompt', {})).rejects.toThrow('unavailable')
   })
 
@@ -91,7 +92,7 @@ describe('aCP agent task control', () => {
   })
 
   it('passes only selected provider variables and strips QQ credentials', () => {
-    expect(agentEnvironment({ PATH: '/bin', HOME: '/home/example', DEEPSEEK_API_KEY: 'provider-key', QQ_BOT_SECRET: 'bot-secret', UNSELECTED: 'value' }, ['DEEPSEEK_API_KEY', 'QQ_BOT_SECRET']))
+    expect(agentEnvironment({ PATH: '/bin', HOME: '/home/example', DEEPSEEK_API_KEY: 'provider-key', QQ_BOT_APP_SECRET: 'bot-secret', UNSELECTED: 'value' }, ['DEEPSEEK_API_KEY', 'QQ_BOT_APP_SECRET']))
       .toEqual({ PATH: '/bin', HOME: '/home/example', DEEPSEEK_API_KEY: 'provider-key' })
   })
 })

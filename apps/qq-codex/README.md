@@ -31,7 +31,7 @@ pnpm cli agent --profile codebuddy start
 - `--config`、`--credentials`、`--state`：为所有命令指定文件路径。
 - `el-bot agent --help`、`el-bot agent init --help`、`el-bot --version`：核对功能与版本。
 
-凭据支持 `QQ_BOT_APP_ID` 与 `QQ_BOT_SECRET` 环境变量；原 `QQ_BOT_APP_SECRET` 仍兼容。
+凭据使用 `QQ_BOT_APP_ID` 与 `QQ_BOT_APP_SECRET` 环境变量。
 在 QQ 中发送 `/help` 或 `/menu` 查看分组帮助和快捷按钮；`/?` 或单独发送「帮助」「菜单」也可打开。
 `/help 2` 查看项目与会话，`/help 3` 查看审批与回答；`/projects [页码]` 点选项目。
 任务卡片上可随时打开「帮助菜单」；「输入任务」仅填写草稿，「新建会话」先确认，历史结果保留。

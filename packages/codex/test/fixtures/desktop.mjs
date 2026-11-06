@@ -24,6 +24,6 @@ createInterface({ input: process.stdin }).on('line', (line) => {
   else if (message.method === 'tools/call') {
     if (message.params._meta.threadId !== 'dedicated-chat')
       process.exit(2)
-    send({ content: [{ type: 'text', text: JSON.stringify({ tool: message.params.name, arguments: message.params.arguments, pipe: process.env.CODEX_APP_TOOLS_PIPE_PATH, qqSecret: process.env.QQ_BOT_SECRET }) }] })
+    send({ content: [{ type: 'text', text: JSON.stringify({ tool: message.params.name, arguments: message.params.arguments, pipe: process.env.CODEX_APP_TOOLS_PIPE_PATH, qqSecret: process.env.QQ_BOT_APP_SECRET }) }] })
   }
 })

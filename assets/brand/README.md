@@ -5,7 +5,7 @@
 - `el-bot-mark.svg` 保留原有天线机器人品牌 mark：透明背景、64 × 64 网格，关键内容位于 6..58 安全区域，继续用于文档 logo。
 - `el-bot-cloud.svg` 是客户端和应用图标共用的三弧云朵源：中央大弧、左右小弧和平底，参考 YunLeFun/icons 的 `home-mark` 外轮廓。`cloud-body` 与 `cloud-eyes` 分开维护，独立轮廓宽 52 单位，方便同一套眼睛在客户端运动、在图标中定格。
 - `el-bot-app-icon.svg` 从云朵源生成：主体等比缩放至背景宽度的 72%，左右各留白 14%；满幅品牌蓝背景，无外层圆角、透明边角或系统阴影。独立品牌 mark 保持原始尺寸。
-- `metadata.json` 使用 YunLeFun 的产品、变体、分类与上游来源格式；两个变体已登记到 [YunLeFun/icons 源码集合](https://github.com/YunLeFun/icons)，从本仓库的 `dev` 分支单向同步。npm 消费需等待包含这两个变体的版本发布。
+- `metadata.json` 使用 YunLeFun 的产品、变体、分类与上游来源格式；两个变体已登记到 [YunLeFun/icons 源码集合](https://github.com/YunLeFun/icons)，从本仓库的 `main` 分支单向同步。npm 消费需等待包含这两个变体的版本发布。
 
 ```sh
 pnpm icons:generate

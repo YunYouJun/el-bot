@@ -84,7 +84,7 @@ describe('codeBuddy and dsh integration', () => {
     const paths = resolvePaths({ profile: 'codebuddy' }, directory, directory)
     await initialize(paths, { agent: 'codebuddy', project: directory, name: 'demo', prompt: false })
     expect(await readConfig(paths.config)).toMatchObject({ agent: 'codebuddy', codexHome: undefined })
-    for (const extra of [{ agent: 'shell' }, { codexHome: '/codex' }, { management: { enabled: true } }, { desktop: {} }, { agentEnvAllowlist: ['QQ_BOT_SECRET'] }]) {
+    for (const extra of [{ agent: 'shell' }, { codexHome: '/codex' }, { management: { enabled: true } }, { desktop: {} }, { agentEnvAllowlist: ['QQ_BOT_APP_SECRET'] }]) {
       await writeFile(paths.config, JSON.stringify({ agent: 'codebuddy', projects: { demo: directory }, ...extra }))
       await expect(readConfig(paths.config)).rejects.toThrow()
     }

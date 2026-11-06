@@ -17,7 +17,7 @@ describe('safe actionable failures', () => {
   })
 
   it('does not disclose provider messages, credentials, local paths or links in the QQ report', () => {
-    const error = { codexErrorInfo: 'other', message: 'secret-key /Users/private/profile https://private.example?token=secret', additionalDetails: 'QQ_BOT_SECRET=private' }
+    const error = { codexErrorInfo: 'other', message: 'secret-key /Users/private/profile https://private.example?token=secret', additionalDetails: 'QQ_BOT_APP_SECRET=private' }
     const text = failureText(failureCode(error))
     expect(text).toContain('错误类型：unknown')
     expect(text).not.toContain('secret')

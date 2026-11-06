@@ -1,0 +1,1029 @@
+{
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "label": "open",
+  "roots": {
+    "mygo": 91513,
+    "tauri": 85338
+  },
+  "coalitions": {
+    "mygo": 146889,
+    "tauri": 147489
+  },
+  "machTimebase": [
+    125,
+    3
+  ],
+  "secondsPerRound": 15,
+  "rounds": [
+    {
+      "elapsedSeconds": 15.098776959,
+      "summary": {
+        "mygo": {
+          "footprintMedianMiB": 63.64252471923828,
+          "footprintRangeMiB": [
+            63.64252471923828,
+            64.06439971923828
+          ],
+          "cpuPercent": 0.015704642875637567,
+          "processCount": 2
+        },
+        "tauri": {
+          "footprintMedianMiB": 105.08251953125,
+          "footprintRangeMiB": [
+            104.98876953125,
+            105.47314453125
+          ],
+          "cpuPercent": 0.1535069169041826,
+          "processCount": 6
+        }
+      },
+      "samples": [
+        {
+          "elapsedSeconds": 1.008910042,
+          "apps": {
+            "mygo": {
+              "footprintMiB": 63.83002471923828,
+              "cpuPercent": 0.0,
+              "processes": {
+                "92661": {
+                  "start": 9145388713667,
+                  "cpuNs": 285400166,
+                  "footprintBytes": 11764336,
+                  "rssBytes": 33832960
+                },
+                "91513": {
+                  "start": 9145366307419,
+                  "cpuNs": 1004664583,
+                  "footprintBytes": 55166296,
+                  "rssBytes": 114573312
+                }
+              }
+            },
+            "tauri": {
+              "footprintMiB": 105.28564453125,
+              "cpuPercent": 0.2356958401649054,
+              "processes": {
+                "85734": {
+                  "start": 9144879707099,
+                  "cpuNs": 266361458,
+                  "footprintBytes": 12272240,
+                  "rssBytes": 33046528
+                },
+                "85680": {
+                  "start": 9144875132241,
+                  "cpuNs": 17991041,
+                  "footprintBytes": 3064216,
+                  "rssBytes": 9027584
+                },
+                "85558": {
+                  "start": 9144865714886,
+                  "cpuNs": 366950375,
+                  "footprintBytes": 38404912,
+                  "rssBytes": 49496064
+                },
+                "85555": {
+                  "start": 9144865650593,
+                  "cpuNs": 59413500,
+                  "footprintBytes": 5505600,
+                  "rssBytes": 11403264
+                },
+                "85543": {
+                  "start": 9144865020694,
+                  "cpuNs": 194066833,
+                  "footprintBytes": 20268040,
+                  "rssBytes": 41336832
+                },
+                "85338": {
+                  "start": 9144852693590,
+                  "cpuNs": 788634250,
+                  "footprintBytes": 30884992,
+                  "rssBytes": 98844672
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsedSeconds": 1.007393917,
+          "apps": {
+            "mygo": {
+              "footprintMiB": 63.64252471923828,
+              "cpuPercent": 0.04428922911592288,
+              "processes": {
+                "92661": {
+                  "start": 9145388713667,
+                  "cpuNs": 285400166,
+                  "footprintBytes": 11764336,
+                  "rssBytes": 33832960
+                },
+                "91513": {
+                  "start": 9145366307419,
+                  "cpuNs": 1005110750,
+                  "footprintBytes": 54969688,
+                  "rssBytes": 114311168
+                }
+              }
+            },
+            "tauri": {
+              "footprintMiB": 105.08251953125,
+              "cpuPercent": 0.14372471141296358,
+              "processes": {
+                "85734": {
+                  "start": 9144879707099,
+                  "cpuNs": 266361458,
+                  "footprintBytes": 12272240,
+                  "rssBytes": 33046528
+                },
+                "85680": {
+                  "start": 9144875132241,
+                  "cpuNs": 17991041,
+                  "footprintBytes": 3064216,
+                  "rssBytes": 9027584
+                },
+                "85558": {
+                  "start": 9144865714886,
+                  "cpuNs": 367463083,
+                  "footprintBytes": 38404912,
+                  "rssBytes": 49496064
+                },
+                "85555": {
+                  "start": 9144865650593,
+                  "cpuNs": 59413500,
+                  "footprintBytes": 5505600,
+                  "rssBytes": 11403264
+                },
+                "85543": {
+                  "start": 9144865020694,
+                  "cpuNs": 194109333,
+                  "footprintBytes": 20268040,
+                  "rssBytes": 41336832
+                },
+                "85338": {
+                  "start": 9144852693590,
+                  "cpuNs": 789526916,
+                  "footprintBytes": 30672000,
+                  "rssBytes": 98631680
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsedSeconds": 1.0091275,
+          "apps": {
+            "mygo": {
+              "footprintMiB": 63.64252471923828,
+              "cpuPercent": 0.0,
+              "processes": {
+                "92661": {
+                  "start": 9145388713667,
+                  "cpuNs": 285400166,
+                  "footprintBytes": 11764336,
+                  "rssBytes": 33832960
+                },
+                "91513": {
+                  "start": 9145366307419,
+                  "cpuNs": 1005110750,
+                  "footprintBytes": 54969688,
+                  "rssBytes": 114311168
+                }
+              }
+            },
+            "tauri": {
+              "footprintMiB": 105.08251953125,
+              "cpuPercent": 0.0,
+              "processes": {
+                "85734": {
+                  "start": 9144879707099,
+                  "cpuNs": 266361458,
+                  "footprintBytes": 12272240,
+                  "rssBytes": 33046528
+                },
+                "85680": {
+                  "start": 9144875132241,
+                  "cpuNs": 17991041,
+                  "footprintBytes": 3064216,
+                  "rssBytes": 9027584
+                },
+                "85558": {
+                  "start": 9144865714886,
+                  "cpuNs": 367463083,
+                  "footprintBytes": 38404912,
+                  "rssBytes": 49496064
+                },
+                "85555": {
+                  "start": 9144865650593,
+                  "cpuNs": 59413500,
+                  "footprintBytes": 5505600,
+                  "rssBytes": 11403264
+                },
+                "85543": {
+                  "start": 9144865020694,
+                  "cpuNs": 194109333,
+                  "footprintBytes": 20268040,
+                  "rssBytes": 41336832
+                },
+                "85338": {
+                  "start": 9144852693590,
+                  "cpuNs": 789526916,
+                  "footprintBytes": 30672000,
+                  "rssBytes": 98631680
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsedSeconds": 1.007622375,
+          "apps": {
+            "mygo": {
+              "footprintMiB": 63.64252471923828,
+              "cpuPercent": 0.0,
+              "processes": {
+                "92661": {
+                  "start": 9145388713667,
+                  "cpuNs": 285400166,
+                  "footprintBytes": 11764336,
+                  "rssBytes": 33832960
+                },
+                "91513": {
+                  "start": 9145366307419,
+                  "cpuNs": 1005110750,
+                  "footprintBytes": 54969688,
+                  "rssBytes": 114311168
+                }
+              }
+            },
+            "tauri": {
+              "footprintMiB": 105.08251953125,
+              "cpuPercent": 0.2682138732776751,
+              "processes": {
+                "85734": {
+                  "start": 9144879707099,
+                  "cpuNs": 266361458,
+                  "footprintBytes": 12272240,
+                  "rssBytes": 33046528
+                },
+                "85680": {
+                  "start": 9144875132241,
+                  "cpuNs": 17991041,
+                  "footprintBytes": 3064216,
+                  "rssBytes": 9027584
+                },
+                "85558": {
+                  "start": 9144865714886,
+                  "cpuNs": 368650541,
+                  "footprintBytes": 38421296,
+                  "rssBytes": 49512448
+                },
+                "85555": {
+                  "start": 9144865650593,
+                  "cpuNs": 59413500,
+                  "footprintBytes": 5505600,
+                  "rssBytes": 11403264
+                },
+                "85543": {
+                  "start": 9144865020694,
+                  "cpuNs": 194109333,
+                  "footprintBytes": 20268040,
+                  "rssBytes": 41336832
+                },
+                "85338": {
+                  "start": 9144852693590,
+                  "cpuNs": 791042041,
+                  "footprintBytes": 30655616,
+                  "rssBytes": 98631680
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsedSeconds": 1.007008458,
+          "apps": {
+            "mygo": {
+              "footprintMiB": 63.64252471923828,
+              "cpuPercent": 0.003848031234708855,
+              "processes": {
+                "92661": {
+                  "start": 9145388713667,
+                  "cpuNs": 285400166,
+                  "footprintBytes": 11764336,
+                  "rssBytes": 33832960
+                },
+                "91513": {
+                  "start": 9145366307419,
+                  "cpuNs": 1005149500,
+                  "footprintBytes": 54969688,
+                  "rssBytes": 114311168
+                }
+              }
+            },
+            "tauri": {
+              "footprintMiB": 105.08251953125,
+              "cpuPercent": 0.09940333589531777,
+              "processes": {
+                "85734": {
+                  "start": 9144879707099,
+                  "cpuNs": 266361458,
+                  "footprintBytes": 12272240,
+                  "rssBytes": 33046528
+                },
+                "85680": {
+                  "start": 9144875132241,
+                  "cpuNs": 17991041,
+                  "footprintBytes": 3064216,
+                  "rssBytes": 9027584
+                },
+                "85558": {
+                  "start": 9144865714886,
+                  "cpuNs": 369143166,
+                  "footprintBytes": 38421296,
+                  "rssBytes": 49512448
+                },
+                "85555": {
+                  "start": 9144865650593,
+                  "cpuNs": 59413500,
+                  "footprintBytes": 5505600,
+                  "rssBytes": 11403264
+                },
+                "85543": {
+                  "start": 9144865020694,
+                  "cpuNs": 194137416,
+                  "footprintBytes": 20268040,
+                  "rssBytes": 41336832
+                },
+                "85338": {
+                  "start": 9144852693590,
+                  "cpuNs": 791522333,
+                  "footprintBytes": 30655616,
+                  "rssBytes": 98631680
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsedSeconds": 1.008234583,
+          "apps": {
+            "mygo": {
+              "footprintMiB": 63.64252471923828,
+              "cpuPercent": 0.0,
+              "processes": {
+                "92661": {
+                  "start": 9145388713667,
+                  "cpuNs": 285400166,
+                  "footprintBytes": 11764336,
+                  "rssBytes": 33832960
+                },
+                "91513": {
+                  "start": 9145366307419,
+                  "cpuNs": 1005149500,
+                  "footprintBytes": 54969688,
+                  "rssBytes": 114311168
+                }
+              }
+            },
+            "tauri": {
+              "footprintMiB": 105.08251953125,
+              "cpuPercent": 0.0,
+              "processes": {
+                "85734": {
+                  "start": 9144879707099,
+                  "cpuNs": 266361458,
+                  "footprintBytes": 12272240,
+                  "rssBytes": 33046528
+                },
+                "85680": {
+                  "start": 9144875132241,
+                  "cpuNs": 17991041,
+                  "footprintBytes": 3064216,
+                  "rssBytes": 9027584
+                },
+                "85558": {
+                  "start": 9144865714886,
+                  "cpuNs": 369143166,
+                  "footprintBytes": 38421296,
+                  "rssBytes": 49512448
+                },
+                "85555": {
+                  "start": 9144865650593,
+                  "cpuNs": 59413500,
+                  "footprintBytes": 5505600,
+                  "rssBytes": 11403264
+                },
+                "85543": {
+                  "start": 9144865020694,
+                  "cpuNs": 194137416,
+                  "footprintBytes": 20268040,
+                  "rssBytes": 41336832
+                },
+                "85338": {
+                  "start": 9144852693590,
+                  "cpuNs": 791522333,
+                  "footprintBytes": 30655616,
+                  "rssBytes": 98631680
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsedSeconds": 1.005822167,
+          "apps": {
+            "mygo": {
+              "footprintMiB": 63.64252471923828,
+              "cpuPercent": 0.0,
+              "processes": {
+                "92661": {
+                  "start": 9145388713667,
+                  "cpuNs": 285400166,
+                  "footprintBytes": 11764336,
+                  "rssBytes": 33832960
+                },
+                "91513": {
+                  "start": 9145366307419,
+                  "cpuNs": 1005149500,
+                  "footprintBytes": 54969688,
+                  "rssBytes": 114311168
+                }
+              }
+            },
+            "tauri": {
+              "footprintMiB": 105.00439453125,
+              "cpuPercent": 0.29729827976638734,
+              "processes": {
+                "85734": {
+                  "start": 9144879707099,
+                  "cpuNs": 266361458,
+                  "footprintBytes": 12272240,
+                  "rssBytes": 33046528
+                },
+                "85680": {
+                  "start": 9144875132241,
+                  "cpuNs": 17991041,
+                  "footprintBytes": 3064216,
+                  "rssBytes": 9027584
+                },
+                "85558": {
+                  "start": 9144865714886,
+                  "cpuNs": 370511375,
+                  "footprintBytes": 38421296,
+                  "rssBytes": 49512448
+                },
+                "85555": {
+                  "start": 9144865650593,
+                  "cpuNs": 59413500,
+                  "footprintBytes": 5505600,
+                  "rssBytes": 11403264
+                },
+                "85543": {
+                  "start": 9144865020694,
+                  "cpuNs": 194137416,
+                  "footprintBytes": 20268040,
+                  "rssBytes": 41336832
+                },
+                "85338": {
+                  "start": 9144852693590,
+                  "cpuNs": 793144416,
+                  "footprintBytes": 30573696,
+                  "rssBytes": 98582528
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsedSeconds": 1.001743667,
+          "apps": {
+            "mygo": {
+              "footprintMiB": 63.64252471923828,
+              "cpuPercent": 0.003922260883132691,
+              "processes": {
+                "92661": {
+                  "start": 9145388713667,
+                  "cpuNs": 285400166,
+                  "footprintBytes": 11764336,
+                  "rssBytes": 33832960
+                },
+                "91513": {
+                  "start": 9145366307419,
+                  "cpuNs": 1005188791,
+                  "footprintBytes": 54969688,
+                  "rssBytes": 114311168
+                }
+              }
+            },
+            "tauri": {
+              "footprintMiB": 104.98876953125,
+              "cpuPercent": 0.10807824752637045,
+              "processes": {
+                "85734": {
+                  "start": 9144879707099,
+                  "cpuNs": 266361458,
+                  "footprintBytes": 12272240,
+                  "rssBytes": 33046528
+                },
+                "85680": {
+                  "start": 9144875132241,
+                  "cpuNs": 17991041,
+                  "footprintBytes": 3064216,
+                  "rssBytes": 9027584
+                },
+                "85558": {
+                  "start": 9144865714886,
+                  "cpuNs": 371041208,
+                  "footprintBytes": 38404912,
+                  "rssBytes": 49496064
+                },
+                "85555": {
+                  "start": 9144865650593,
+                  "cpuNs": 59413500,
+                  "footprintBytes": 5505600,
+                  "rssBytes": 11403264
+                },
+                "85543": {
+                  "start": 9144865020694,
+                  "cpuNs": 194164458,
+                  "footprintBytes": 20268040,
+                  "rssBytes": 41336832
+                },
+                "85338": {
+                  "start": 9144852693590,
+                  "cpuNs": 793670208,
+                  "footprintBytes": 30573696,
+                  "rssBytes": 98582528
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsedSeconds": 1.005698416,
+          "apps": {
+            "mygo": {
+              "footprintMiB": 63.64252471923828,
+              "cpuPercent": 0.0,
+              "processes": {
+                "92661": {
+                  "start": 9145388713667,
+                  "cpuNs": 285400166,
+                  "footprintBytes": 11764336,
+                  "rssBytes": 33832960
+                },
+                "91513": {
+                  "start": 9145366307419,
+                  "cpuNs": 1005188791,
+                  "footprintBytes": 54969688,
+                  "rssBytes": 114311168
+                }
+              }
+            },
+            "tauri": {
+              "footprintMiB": 104.98876953125,
+              "cpuPercent": 0.00913544244858391,
+              "processes": {
+                "85734": {
+                  "start": 9144879707099,
+                  "cpuNs": 266361458,
+                  "footprintBytes": 12272240,
+                  "rssBytes": 33046528
+                },
+                "85680": {
+                  "start": 9144875132241,
+                  "cpuNs": 17991041,
+                  "footprintBytes": 3064216,
+                  "rssBytes": 9027584
+                },
+                "85558": {
+                  "start": 9144865714886,
+                  "cpuNs": 371133083,
+                  "footprintBytes": 38404912,
+                  "rssBytes": 49496064
+                },
+                "85555": {
+                  "start": 9144865650593,
+                  "cpuNs": 59413500,
+                  "footprintBytes": 5505600,
+                  "rssBytes": 11403264
+                },
+                "85543": {
+                  "start": 9144865020694,
+                  "cpuNs": 194164458,
+                  "footprintBytes": 20268040,
+                  "rssBytes": 41336832
+                },
+                "85338": {
+                  "start": 9144852693590,
+                  "cpuNs": 793670208,
+                  "footprintBytes": 30573696,
+                  "rssBytes": 98582528
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsedSeconds": 1.005172042,
+          "apps": {
+            "mygo": {
+              "footprintMiB": 63.64252471923828,
+              "cpuPercent": 0.0,
+              "processes": {
+                "92661": {
+                  "start": 9145388713667,
+                  "cpuNs": 285400166,
+                  "footprintBytes": 11764336,
+                  "rssBytes": 33832960
+                },
+                "91513": {
+                  "start": 9145366307419,
+                  "cpuNs": 1005188791,
+                  "footprintBytes": 54969688,
+                  "rssBytes": 114311168
+                }
+              }
+            },
+            "tauri": {
+              "footprintMiB": 104.98876953125,
+              "cpuPercent": 0.2308933101026302,
+              "processes": {
+                "85734": {
+                  "start": 9144879707099,
+                  "cpuNs": 266361458,
+                  "footprintBytes": 12272240,
+                  "rssBytes": 33046528
+                },
+                "85680": {
+                  "start": 9144875132241,
+                  "cpuNs": 17991041,
+                  "footprintBytes": 3064216,
+                  "rssBytes": 9027584
+                },
+                "85558": {
+                  "start": 9144865714886,
+                  "cpuNs": 372209291,
+                  "footprintBytes": 38404912,
+                  "rssBytes": 49496064
+                },
+                "85555": {
+                  "start": 9144865650593,
+                  "cpuNs": 59413500,
+                  "footprintBytes": 5505600,
+                  "rssBytes": 11403264
+                },
+                "85543": {
+                  "start": 9144865020694,
+                  "cpuNs": 194164458,
+                  "footprintBytes": 20268040,
+                  "rssBytes": 41336832
+                },
+                "85338": {
+                  "start": 9144852693590,
+                  "cpuNs": 794914875,
+                  "footprintBytes": 30573696,
+                  "rssBytes": 98582528
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsedSeconds": 1.006886542,
+          "apps": {
+            "mygo": {
+              "footprintMiB": 63.64252471923828,
+              "cpuPercent": 0.002693948013856759,
+              "processes": {
+                "92661": {
+                  "start": 9145388713667,
+                  "cpuNs": 285400166,
+                  "footprintBytes": 11764336,
+                  "rssBytes": 33832960
+                },
+                "91513": {
+                  "start": 9145366307419,
+                  "cpuNs": 1005215916,
+                  "footprintBytes": 54969688,
+                  "rssBytes": 114311168
+                }
+              }
+            },
+            "tauri": {
+              "footprintMiB": 104.98876953125,
+              "cpuPercent": 0.07883211929949502,
+              "processes": {
+                "85734": {
+                  "start": 9144879707099,
+                  "cpuNs": 266361458,
+                  "footprintBytes": 12272240,
+                  "rssBytes": 33046528
+                },
+                "85680": {
+                  "start": 9144875132241,
+                  "cpuNs": 17991041,
+                  "footprintBytes": 3064216,
+                  "rssBytes": 9027584
+                },
+                "85558": {
+                  "start": 9144865714886,
+                  "cpuNs": 372609083,
+                  "footprintBytes": 38404912,
+                  "rssBytes": 49496064
+                },
+                "85555": {
+                  "start": 9144865650593,
+                  "cpuNs": 59413500,
+                  "footprintBytes": 5505600,
+                  "rssBytes": 11403264
+                },
+                "85543": {
+                  "start": 9144865020694,
+                  "cpuNs": 194186500,
+                  "footprintBytes": 20268040,
+                  "rssBytes": 41336832
+                },
+                "85338": {
+                  "start": 9144852693590,
+                  "cpuNs": 795286791,
+                  "footprintBytes": 30573696,
+                  "rssBytes": 98582528
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsedSeconds": 1.006486208,
+          "apps": {
+            "mygo": {
+              "footprintMiB": 63.64252471923828,
+              "cpuPercent": 0.0,
+              "processes": {
+                "92661": {
+                  "start": 9145388713667,
+                  "cpuNs": 285400166,
+                  "footprintBytes": 11764336,
+                  "rssBytes": 33832960
+                },
+                "91513": {
+                  "start": 9145366307419,
+                  "cpuNs": 1005215916,
+                  "footprintBytes": 54969688,
+                  "rssBytes": 114311168
+                }
+              }
+            },
+            "tauri": {
+              "footprintMiB": 104.98876953125,
+              "cpuPercent": 0.0,
+              "processes": {
+                "85734": {
+                  "start": 9144879707099,
+                  "cpuNs": 266361458,
+                  "footprintBytes": 12272240,
+                  "rssBytes": 33046528
+                },
+                "85680": {
+                  "start": 9144875132241,
+                  "cpuNs": 17991041,
+                  "footprintBytes": 3064216,
+                  "rssBytes": 9027584
+                },
+                "85558": {
+                  "start": 9144865714886,
+                  "cpuNs": 372609083,
+                  "footprintBytes": 38404912,
+                  "rssBytes": 49496064
+                },
+                "85555": {
+                  "start": 9144865650593,
+                  "cpuNs": 59413500,
+                  "footprintBytes": 5505600,
+                  "rssBytes": 11403264
+                },
+                "85543": {
+                  "start": 9144865020694,
+                  "cpuNs": 194186500,
+                  "footprintBytes": 20268040,
+                  "rssBytes": 41336832
+                },
+                "85338": {
+                  "start": 9144852693590,
+                  "cpuNs": 795286791,
+                  "footprintBytes": 30573696,
+                  "rssBytes": 98582528
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsedSeconds": 1.005990083,
+          "apps": {
+            "mygo": {
+              "footprintMiB": 63.98627471923828,
+              "cpuPercent": 0.0,
+              "processes": {
+                "92661": {
+                  "start": 9145388713667,
+                  "cpuNs": 285400166,
+                  "footprintBytes": 12124784,
+                  "rssBytes": 32833536
+                },
+                "91513": {
+                  "start": 9145366307419,
+                  "cpuNs": 1005215916,
+                  "footprintBytes": 54969688,
+                  "rssBytes": 113786880
+                }
+              }
+            },
+            "tauri": {
+              "footprintMiB": 105.17626953125,
+              "cpuPercent": 0.33137752114401314,
+              "processes": {
+                "85734": {
+                  "start": 9144879707099,
+                  "cpuNs": 266361458,
+                  "footprintBytes": 12354160,
+                  "rssBytes": 32260096
+                },
+                "85680": {
+                  "start": 9144875132241,
+                  "cpuNs": 17991041,
+                  "footprintBytes": 3064216,
+                  "rssBytes": 9027584
+                },
+                "85558": {
+                  "start": 9144865714886,
+                  "cpuNs": 374276291,
+                  "footprintBytes": 38470448,
+                  "rssBytes": 49168384
+                },
+                "85555": {
+                  "start": 9144865650593,
+                  "cpuNs": 59413500,
+                  "footprintBytes": 5521984,
+                  "rssBytes": 11354112
+                },
+                "85543": {
+                  "start": 9144865020694,
+                  "cpuNs": 194186500,
+                  "footprintBytes": 20284424,
+                  "rssBytes": 39567360
+                },
+                "85338": {
+                  "start": 9144852693590,
+                  "cpuNs": 796953208,
+                  "footprintBytes": 30590080,
+                  "rssBytes": 98402304
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsedSeconds": 1.006554334,
+          "apps": {
+            "mygo": {
+              "footprintMiB": 64.06439971923828,
+              "cpuPercent": 0.17282981566298636,
+              "processes": {
+                "92661": {
+                  "start": 9145388713667,
+                  "cpuNs": 285923500,
+                  "footprintBytes": 12206704,
+                  "rssBytes": 31801344
+                },
+                "91513": {
+                  "start": 9145366307419,
+                  "cpuNs": 1006432208,
+                  "footprintBytes": 54969688,
+                  "rssBytes": 112525312
+                }
+              }
+            },
+            "tauri": {
+              "footprintMiB": 105.47314453125,
+              "cpuPercent": 0.3933633651216289,
+              "processes": {
+                "85734": {
+                  "start": 9144879707099,
+                  "cpuNs": 266948666,
+                  "footprintBytes": 12436080,
+                  "rssBytes": 31752192
+                },
+                "85680": {
+                  "start": 9144875132241,
+                  "cpuNs": 17991041,
+                  "footprintBytes": 3064216,
+                  "rssBytes": 9027584
+                },
+                "85558": {
+                  "start": 9144865714886,
+                  "cpuNs": 374715666,
+                  "footprintBytes": 38552368,
+                  "rssBytes": 46923776
+                },
+                "85555": {
+                  "start": 9144865650593,
+                  "cpuNs": 59683791,
+                  "footprintBytes": 5538368,
+                  "rssBytes": 11288576
+                },
+                "85543": {
+                  "start": 9144865020694,
+                  "cpuNs": 194493375,
+                  "footprintBytes": 20317192,
+                  "rssBytes": 35946496
+                },
+                "85338": {
+                  "start": 9144852693590,
+                  "cpuNs": 799308875,
+                  "footprintBytes": 30688384,
+                  "rssBytes": 97632256
+                }
+              }
+            }
+          }
+        },
+        {
+          "elapsedSeconds": 1.006126625,
+          "apps": {
+            "mygo": {
+              "footprintMiB": 64.06439971923828,
+              "cpuPercent": 0.007976133222793901,
+              "processes": {
+                "92661": {
+                  "start": 9145388713667,
+                  "cpuNs": 285923500,
+                  "footprintBytes": 12206704,
+                  "rssBytes": 31801344
+                },
+                "91513": {
+                  "start": 9145366307419,
+                  "cpuNs": 1006512458,
+                  "footprintBytes": 54969688,
+                  "rssBytes": 112525312
+                }
+              }
+            },
+            "tauri": {
+              "footprintMiB": 105.45751953125,
+              "cpuPercent": 0.10692004100378519,
+              "processes": {
+                "85734": {
+                  "start": 9144879707099,
+                  "cpuNs": 266948666,
+                  "footprintBytes": 12436080,
+                  "rssBytes": 31752192
+                },
+                "85680": {
+                  "start": 9144875132241,
+                  "cpuNs": 17991041,
+                  "footprintBytes": 3064216,
+                  "rssBytes": 9027584
+                },
+                "85558": {
+                  "start": 9144865714886,
+                  "cpuNs": 375073250,
+                  "footprintBytes": 38552368,
+                  "rssBytes": 46923776
+                },
+                "85555": {
+                  "start": 9144865650593,
+                  "cpuNs": 59876000,
+                  "footprintBytes": 5538368,
+                  "rssBytes": 11288576
+                },
+                "85543": {
+                  "start": 9144865020694,
+                  "cpuNs": 194594458,
+                  "footprintBytes": 20317192,
+                  "rssBytes": 35946496
+                },
+                "85338": {
+                  "start": 9144852693590,
+                  "cpuNs": 799733750,
+                  "footprintBytes": 30672000,
+                  "rssBytes": 97632256
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "processNames": [
+    "85338 <worktree>/apps/el-bot-client/src-tauri/target/release/bundle/macos/el-bot Client.app/Contents/MacOS/el-bot-client",
+    "85543 /System/Library/Frameworks/WebKit.framework/Versions/A/XPCServices/com.apple.WebKit.GPU.xpc/Contents/MacOS/com.apple.WebKit.GPU",
+    "85555 /System/Library/Frameworks/WebKit.framework/Versions/A/XPCServices/com.apple.WebKit.Networking.xpc/Contents/MacOS/com.apple.WebKit.Networking",
+    "85558 /System/Library/Frameworks/WebKit.framework/Versions/A/XPCServices/com.apple.WebKit.WebContent.xpc/Contents/MacOS/com.apple.WebKit.WebContent",
+    "85680 /System/Library/Frameworks/AudioToolbox.framework/XPCServices/com.apple.audio.SandboxHelper.xpc/Contents/MacOS/com.apple.audio.SandboxHelper",
+    "85734 /System/Library/Frameworks/AppKit.framework/Versions/C/XPCServices/ThemeWidgetControlViewService.xpc/Contents/MacOS/ThemeWidgetControlViewService",
+    "91513 <worktree>/apps/el-bot-mygo-prototype/build/darwin-arm64/el-bot-mygo-prototype.app/Contents/MacOS/el-bot-mygo-prototype",
+    "92661 /System/Library/Frameworks/AppKit.framework/Versions/C/XPCServices/ThemeWidgetControlViewService.xpc/Contents/MacOS/ThemeWidgetControlViewService"
+  ]
+}

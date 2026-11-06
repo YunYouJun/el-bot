@@ -23,7 +23,7 @@ for (const key of Object.keys(environment)) {
     delete environment[key]
 }
 environment.QQ_BOT_APP_ID = 'package-smoke-app'
-environment.QQ_BOT_SECRET = 'package-smoke-secret'
+environment.QQ_BOT_APP_SECRET = 'package-smoke-secret'
 environment.HOME = join(temporary, 'home')
 environment.USERPROFILE = environment.HOME
 
@@ -294,7 +294,7 @@ try {
   run(process.execPath, [...profileArgs, 'recover'], consumer, false)
   await rm(`${isolatedPaths.state}.lock`)
   assert.equal(await readFile(isolatedPaths.state, 'utf8'), snapshot)
-  await writeFile(isolatedPaths.envFile, 'QQ_BOT_APP_ID="another-app"\nQQ_BOT_SECRET="package-smoke-secret"\n')
+  await writeFile(isolatedPaths.envFile, 'QQ_BOT_APP_ID="another-app"\nQQ_BOT_APP_SECRET="package-smoke-secret"\n')
   run(process.execPath, [...profileArgs, 'recover'], consumer, false)
   run(process.execPath, [...profileArgs, 'check', '--qq'], consumer, false)
   assert.equal(await readFile(isolatedPaths.state, 'utf8'), snapshot)

@@ -20,7 +20,7 @@ export async function initialize(paths: CliPaths, options: InitOptions): Promise
     throw new Error('配置、凭据和状态必须使用不同的文件路径。')
   const hasEnv = existsSync(paths.envFile)
   let appId = process.env.QQ_BOT_APP_ID ?? ''
-  let secret = process.env.QQ_BOT_SECRET ?? process.env.QQ_BOT_APP_SECRET ?? ''
+  let secret = process.env.QQ_BOT_APP_SECRET ?? ''
   if (!hasEnv && options.prompt && process.stdin.isTTY) {
     const questions = []
     if (!appId)
@@ -45,7 +45,7 @@ export async function initialize(paths: CliPaths, options: InitOptions): Promise
     if (paths.codexHome && (!options.agent || options.agent === 'codex'))
       await mkdir(paths.codexHome, { recursive: true, mode: 0o700 })
     if (!hasEnv) {
-      await writeFile(paths.envFile, `# QQ official bot credentials. Keep this file private.\nQQ_BOT_APP_ID="${appId}"\nQQ_BOT_SECRET="${secret}"\n`, { flag: 'wx', mode: 0o600 })
+      await writeFile(paths.envFile, `# QQ official bot credentials. Keep this file private.\nQQ_BOT_APP_ID="${appId}"\nQQ_BOT_APP_SECRET="${secret}"\n`, { flag: 'wx', mode: 0o600 })
       created.push(paths.envFile)
     }
     await writeFile(paths.config, `${JSON.stringify({ projects: { [name]: project }, defaultProject: name, ...(options.agent && options.agent !== 'codex' ? { agent: options.agent } : paths.codexHome ? { codexHome: paths.codexHome } : {}), transport: 'websocket', sandbox: false, messageFormat: 'markdown' }, null, 2)}\n`, { flag: 'wx', mode: 0o600 })

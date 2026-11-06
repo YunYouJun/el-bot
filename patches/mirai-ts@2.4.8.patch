@@ -1,0 +1,13 @@
+diff --git a/dist/index.d.ts b/dist/index.d.ts
+index d7649e674322d4c642d5e4417ca020a4b6542be9..463162d081f7de634385d2896f3d6236fab654e3 100644
+--- a/dist/index.d.ts
++++ b/dist/index.d.ts
+@@ -2202,7 +2202,7 @@ declare class Mirai {
+     /**
+      * 事件触发器
+      */
+-    eventEmitter: events<[never]>;
++    eventEmitter: events;
+     constructor(userMahSetting?: Partial<MiraiApiHttpSetting>, userOptions?: MiraiOptions);
+     about(): Promise<void>;
+     /**

@@ -84,7 +84,7 @@ describe('codex app-server stdio', () => {
   })
 
   it('interrupts turns and strips QQ credentials from the subprocess', async () => {
-    vi.stubEnv('QQ_BOT_SECRET', 'should-not-reach-codex')
+    vi.stubEnv('QQ_BOT_APP_SECRET', 'should-not-reach-codex')
     const codex = client()
     const notice = vi.fn()
     codex.on('notification', notice)

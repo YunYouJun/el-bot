@@ -12,7 +12,7 @@ export default defineConfig({
   themeConfig: {
     logo: '/brand/el-bot-mark.svg',
     socialLinks: [{ icon: 'github', link: 'https://github.com/YunYouJun/el-bot' }],
-    editLink: { pattern: 'https://github.com/YunYouJun/el-bot/edit/dev/docs/:path', text: '编辑此页' },
+    editLink: { pattern: 'https://github.com/YunYouJun/el-bot/edit/main/docs/:path', text: '编辑此页' },
     search: { provider: 'local' },
     outline: { label: '本页目录' },
     footer: { message: 'AGPL-3.0 Licensed', copyright: 'Copyright © 2020-present YunYouJun' },
