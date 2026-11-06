@@ -50,7 +50,7 @@ xcodebuild -project apps/ios/YunBot.xcodeproj -scheme YunBot \
 现有云机使用 Traefik，部署示例位于 `packages/mobile/deploy`：
 
 1. 构建 `@el-bot/mobile`，将其 `package.json`、`cordis.patch.yml`、`dist`、`deploy` 放入现有部署目录的 `mobile/`。
-2. 保留原镜像和 home 挂载，合并 `compose.override.yaml`。例子连接 `dokploy-network`，DSH 仅监听该容器网络地址，宿主端口仍只绑定 `127.0.0.1`。
+2. 保留原镜像和 home 挂载，合并 `compose.override.yaml`。DSH 保持原来的 bridge 网络及 `127.0.0.1` 端口映射；独立 Node 代理连接 bridge 和 `dokploy-network`，只转发移动 API，不挂载 DSH home 或模型凭据。
 3. 容器内执行 `deploy/configure.mjs`，为现有 cloud profile 增加 bundle 和 HTTPS origin；脚本先备份配置，拒绝重复添加。可在维护窗口先复制脚本、配置，再重建服务，使挂载生效。
 4. 把 `traefik.yaml` 安装到 Traefik 动态配置目录。域名 DNS 指向云机；示例使用 Let's Encrypt TLS challenge，DNS 记录为仅 DNS。
 5. 重建 DSH 后确认健康、QQ 已连接，HTTPS 无凭据访问返回 401，根路径和通用 RPC 路径返回 404，再生成手机配对码。

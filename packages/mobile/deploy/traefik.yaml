@@ -10,4 +10,4 @@ http:
     yun-bot-mobile:
       loadBalancer:
         servers:
-          - url: http://el-bot-dsh:3080
+          - url: http://el-bot-mobile-proxy:3081
