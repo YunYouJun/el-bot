@@ -26,7 +26,7 @@ pnpm --filter @el-bot/dsh pack --pack-destination /tmp/el-bot-dsh-artifacts
 
 profile patch 里的 `- id: el-bot-personas` 用于覆盖 bundle patch 已插入条目的配置；`el-bot-qq-workspaces` 和 `el-bot-qq-security` 需要显式放进 `insert`。
 
-不要把两台实例指向同一个 profile。库保存在 profile 的 `el-bot-personas/`。通过 DSH 登录后，在侧栏「机器人」→「人物卡」上传 Markdown 文件，或导入 HTTPS 原文／公开 Git 仓库；预览后显式启用。`#el-bot-personas` 可直接定位面板，认证仍使用 DSH 根路径登录入口。管理页和接口 `/el-bot/personas/` 均校验宿主连接身份，不能绕过登录。
+不要把两台实例指向同一个 profile。库保存在 profile 的 `el-bot-personas/`。通过 DSH 登录后，在侧栏「机器人」→「人物卡」上传 Markdown 文件，从内置精选目录单卡导入 DSH 人设广场，或导入 HTTPS 原文／公开 Git 仓库；预览后显式启用。`#el-bot-personas` 可直接定位面板，认证仍使用 DSH 根路径登录入口。管理页和接口 `/el-bot/personas/` 均校验宿主连接身份，不能绕过登录。
 
 人物卡、手动接管和定时群发页面遵循 DSH 的控件与间距规范。同源 iframe 会同步宿主实际生效的深浅色、语义颜色、字体和圆角，切换宿主主题或自定义配色时无需刷新；独立打开或无法读取宿主时跟随系统主题。主题适配仅用于 DSH Web 插件，小云客户端继续使用各平台原生 UI。
 
@@ -176,5 +176,7 @@ AI 总结会把窗口内的群文本发送给该群当前选择的模型提供�
 Web 宿主通过 `sessionProjections` 的 `modelSelection` 同步模型选择：输入框模型菜单的选择优先于 QQ 恢复参数，并写回该 QQ 会话的持久偏好；QQ `/model` 分支也更新同一投影。适配监听器随 agent 释放，已替换的旧 agent 不再回写偏好。OpenAI Key 的添加和客户端切换步骤见 [`apps/dsh-cloud/README.md`](../../apps/dsh-cloud/README.md#openai-api-与客户端切换)。
 
 人物卡仅在 QQ `getOrCreate` 任务准入时固定。切换后，空闲的旧角色会话按 QQ `/new` 方式创建新会话，旧历史保留；正在运行的任务保持原快照。选择和会话绑定都持久化，重启后仍能判断是否需要新会话。人设以普通上下文加入 `system-prompt/assemble`，不更改 AGENTS、工具、审批和普通 Web 会话。
+
+精选目录静态打包自 [`huaizhuanghub/dsh-persona-repository`](https://github.com/huaizhuanghub/dsh-persona-repository)，审核基线为 commit `bf402d0`，当前 7 张卡。目录运行时不会请求上游 manifest；每张卡展示作者和自身许可证，单卡导入复用公开 Git 流程，默认引用 `main` 并记录实际 commit。导入后只进入预览，不自动启用。「检查更新」会重新读取来源。上游同名的 `dafeiyu` 未列入精选目录，以免覆盖内置的 whyever77 适配版本。
 
 客户端通过已认证 SSH 执行随包构建的 `dist/cli.mjs --profile cloud` 读取摘要；仅开放 `--use <id> --revision <sha256>`、`--disable` 这两种修改，不接收任意远程命令。小云、大肥鱼示例及许可证见[人物卡指南](../../docs/development/personas.md)。

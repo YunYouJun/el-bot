@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { PersonaImport, PersonaLibraryState, PersonaPreview, PersonaResult } from '../../persona/src/types'
+import type { CuratedPersonaCard } from './persona-market'
 import { computed, onMounted, ref, shallowRef } from 'vue'
 import dafeiyu from '../../persona/examples/dafeiyu.md?raw'
 import personaTemplate from '../../persona/examples/template.md?raw'
 import xiaoyun from '../../persona/examples/xiaoyun.md?raw'
+import { curatedPersonaImport, curatedPersonaKey, curatedPersonaMarket } from './persona-market'
 import { renderPersonaPreview } from './persona-preview'
 
 const examples = [
@@ -17,6 +19,7 @@ const library = shallowRef<PersonaLibraryState>()
 const preview = shallowRef<PersonaPreview>()
 const exampleID = ref<ExampleID | undefined>('xiaoyun')
 const busy = ref(false)
+const marketBusy = ref('')
 const error = ref('')
 const notice = ref('')
 const kind = ref<'file' | 'url' | 'git'>('file')
@@ -30,6 +33,16 @@ const body = computed(() => exampleCard.value ? exampleCard.value.text.replace(/
 const rendered = computed(() => renderPersonaPreview(body.value))
 const card = computed(() => library.value?.cards.find(card => card.metadata.id === preview.value?.metadata.id))
 const enabled = computed(() => !exampleCard.value && !!preview.value && library.value?.active?.id === preview.value.metadata.id && library.value.active.hash === preview.value.hash)
+const importedMarketSources = computed(() => {
+  const sources = new Set<string>()
+  for (const card of library.value?.cards ?? []) {
+    for (const revision of card.revisions) {
+      if (revision.source.kind === 'git')
+        sources.add(`${revision.source.repository}\n${revision.source.path}`)
+    }
+  }
+  return sources
+})
 const activeName = computed(() => {
   const state = library.value
   if (!state)
@@ -116,6 +129,18 @@ async function importFile(event: Event) {
   }
   catch (e) { error.value = String(e) }
   finally { element.value = '' }
+}
+async function importMarketPersona(item: CuratedPersonaCard) {
+  if (blocked.value)
+    return
+  marketBusy.value = item.path
+  try {
+    await perform('import', undefined, undefined, curatedPersonaImport(item))
+  }
+  finally { marketBusy.value = '' }
+}
+function marketPersonaImported(item: CuratedPersonaCard) {
+  return importedMarketSources.value.has(curatedPersonaKey(item))
 }
 function changeRevision(event: Event) {
   void perform('preview', preview.value?.metadata.id, (event.target as HTMLSelectElement).value)
@@ -204,6 +229,35 @@ function downloadTemplate() {
         </p>
       </section>
     </div>
+    <section class="dsh-section persona-market">
+      <div class="section-heading">
+        <div>
+          <span class="persona-eyebrow">精选人设 · DSH 人设广场</span><h2>从社区挑一张</h2>
+          <p>目录随插件静态审核，逐卡保留作者与许可。点击后从公开 Git 导入并停在此处预览，不会自动启用。</p>
+        </div>
+        <a class="dsh-button persona-market-link" data-variant="outline" :href="curatedPersonaMarket.browseURL" target="_blank" rel="noopener noreferrer">
+          浏览完整广场
+        </a>
+      </div>
+      <div class="persona-market-grid">
+        <article v-for="item in curatedPersonaMarket.cards" :key="item.path" class="persona-market-card">
+          <div class="persona-market-heading">
+            <div><h3>{{ item.name }}</h3><span>@{{ item.author }}</span></div>
+            <span class="persona-market-license">{{ item.license }}</span>
+          </div>
+          <p>{{ item.summary }}</p>
+          <div class="persona-market-tags" aria-label="人物卡标签">
+            <span v-for="tag in item.tags" :key="tag">{{ tag }}</span>
+          </div>
+          <button type="button" class="dsh-button" data-variant="outline" data-size="sm" :disabled="blocked" :aria-label="`导入并预览 ${item.name}`" @click="importMarketPersona(item)">
+            {{ marketBusy === item.path ? '正在导入…' : marketPersonaImported(item) ? '重新导入并预览' : '导入并预览' }}
+          </button>
+        </article>
+      </div>
+      <p class="persona-market-note">
+        审核于 {{ curatedPersonaMarket.reviewedAt }} · 基线 {{ curatedPersonaMarket.reviewedCommit.slice(0, 8) }} · 上游 {{ curatedPersonaMarket.ref }}。每次导入会记录实际 commit，之后可用「检查更新」获取新版。
+      </p>
+    </section>
     <section class="dsh-section">
       <form class="settings-form persona-import" @submit.prevent="importLocation">
         <h2>导入人物卡</h2><p>支持 Markdown 和可选的 YAML 元数据。导入保存到此机器人，预览后再启用。</p>
@@ -344,6 +398,72 @@ function downloadTemplate() {
 }
 .persona-import {
   max-width: none;
+}
+.persona-market-link {
+  flex: none;
+  text-decoration: none;
+}
+.persona-market-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: var(--bot-space-3);
+  margin-top: var(--bot-space-4);
+}
+.persona-market-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bot-space-2);
+  min-width: 0;
+  padding: var(--bot-space-4);
+  border: 0.5px solid var(--bot-border);
+  border-radius: var(--bot-radius);
+  background: var(--bot-input-bg);
+}
+.persona-market-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--bot-space-2);
+}
+.persona-market-heading h3 {
+  margin: 0;
+}
+.persona-market-heading div > span,
+.persona-market-note {
+  color: var(--bot-muted);
+  font-size: var(--bot-text-xs);
+}
+.persona-market-license {
+  flex: none;
+  padding: 1px 7px;
+  border: 0.5px solid var(--bot-border);
+  border-radius: 999px;
+  color: var(--bot-secondary);
+  font-size: 11px;
+}
+.persona-market-card > p {
+  flex: 1;
+  margin: 0;
+  font-size: var(--bot-text-sm);
+}
+.persona-market-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bot-space-1);
+}
+.persona-market-tags span {
+  padding: 0 6px;
+  border-radius: 999px;
+  color: var(--bot-muted);
+  background: var(--bot-hover);
+  font-size: 11px;
+}
+.persona-market-card > .dsh-button {
+  width: 100%;
+  margin-top: var(--bot-space-1);
+}
+.persona-market-note {
+  margin: var(--bot-space-4) 0 0;
 }
 .persona-template {
   display: flex;
