@@ -12,7 +12,7 @@ pnpm icons:generate
 pnpm icons:check
 ```
 
-生成脚本位于 `apps/el-bot-client/scripts/generate-icons.mjs`。应用 SVG、文档 favicon、PNG、ICNS、Icon Composer 分层源和菜单栏模板均由脚本生成，不单独修改。文档 logo 仍从原有品牌 mark 生成。
+生成脚本位于 `apps/el-bot-client/scripts/generate-icons.mjs`。应用 SVG、PNG、ICNS、Icon Composer 分层源和菜单栏模板均由脚本生成，不单独修改。文档 logo、favicon 与 `logo.png` 使用 `el-bot-cloud.svg` 的透明背景版本，不套用方形应用底板。
 
 应用 SVG 保持方形原稿。macOS 的静态 ICNS 在平台导出阶段应用一次圆角与外围留白，主体仍占蓝色背景宽度的 72%；Windows / Linux PNG 使用同样的主体比例和满幅背景。macOS 菜单栏使用未增加应用底板留白的云朵轮廓，输出 32 px 单色 alpha 模板，由系统适配明暗外观。
 

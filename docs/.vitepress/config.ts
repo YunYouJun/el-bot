@@ -10,7 +10,7 @@ export default defineConfig({
     ['link', { rel: 'describedby', href: '/llms.txt' }],
   ],
   themeConfig: {
-    logo: '/brand/el-bot-mark.svg',
+    logo: '/brand/el-bot-cloud.svg',
     socialLinks: [{ icon: 'github', link: 'https://github.com/YunYouJun/el-bot' }],
     editLink: { pattern: 'https://github.com/YunYouJun/el-bot/edit/main/docs/:path', text: '编辑此页' },
     search: { provider: 'local' },

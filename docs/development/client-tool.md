@@ -129,7 +129,7 @@ el-bot codex preferences --message-format markdown --json
 
 macOS 与 iOS 业务界面均使用 SwiftUI 系统组件；Mac 仅在文件选择、应用图标和单实例锁等边界使用 AppKit / Darwin。QQ 机器人资料图片继续保留在 `assets/avatars`。
 
-品牌图标按 [YunLeFun/icons 规范](https://github.com/YunLeFun/icons/blob/main/docs/guide/contributing.md)分为透明主体 `el-bot-mark` 和满幅无圆角的 `el-bot-app-icon`。原有 `assets/brand/el-bot-mark.svg` 保持不变，继续用于文档 logo；`assets/brand/el-bot-cloud.svg` 是应用 SVG、PNG、ICNS、Icon Composer 分层源和 macOS 菜单栏模板共用的云朵源。默认正面主体宽度为 72%，静态图标的圆角只在 macOS ICNS 导出阶段应用一次，菜单栏使用单色模板适配明暗外观。
+品牌图标按 [YunLeFun/icons 规范](https://github.com/YunLeFun/icons/blob/main/docs/guide/contributing.md)分为透明主体 `el-bot-mark` 和满幅无圆角的 `el-bot-app-icon`。`assets/brand/el-bot-mark.svg` 保留用于外部图标集合与兼容场景；docs 站顶部 logo、favicon 和 `logo.png` 改用透明的 `assets/brand/el-bot-cloud.svg` 云朵标，都不套用方形应用底板。云朵源同时是应用 SVG、PNG、ICNS、Icon Composer 分层源和 macOS 菜单栏模板的图形来源。默认正面主体宽度为 72%，静态图标的圆角只在 macOS ICNS 导出阶段应用一次，菜单栏使用单色模板适配明暗外观。
 
 macOS 26 及以上使用 `apps/el-bot-client/icons/ElBot.icon` 分层图标，由构建脚本调用 Xcode 编译 `Assets.car` 并设置 `CFBundleIconName`；品牌蓝底板与透明云朵前景分离，主体保持背景宽度的 72%。macOS 14/15 使用同包中的静态 `icon.icns` 回退。系统负责原生高光、折射、圆角与外观适配；Windows/Linux 图标不受影响。
 
