@@ -13,4 +13,4 @@ const prompt = personaPrompt('帮我检查这个项目', await library.active())
 
 导入和更新不会自动启用；`select(null)` 停用，`preview(id, hash)` 读取历史快照。调用方选择实例目录，并在选中版本变化时创建新会话。详见[人物卡指南](../../docs/development/personas.md)。
 
-程序源码遵循 AGPL-3.0。`examples/xiaoyun.md` 来自 YunYouJun/yun，单独遵循文中声明的 CC BY-NC-SA 4.0 许可。
+程序源码遵循 AGPL-3.0。`examples/xiaoyun.md` 来自 YunYouJun/yun，单独遵循文中声明的 CC BY-NC-SA 4.0 许可；`examples/dafeiyu.md` 来自 huaizhuanghub/dsh-persona-dafeiyu，单独遵循 MIT 许可（全文见 `examples/dafeiyu.LICENSE`）。

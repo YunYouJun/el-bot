@@ -31,6 +31,21 @@ describe('portable character cards', () => {
     expect(personaPrompt('/run work', parsed)).toContain('Current user task:\n/run work')
     expect(personaPrompt('original')).toBe('original')
   })
+  it('ships valid offline examples', async () => {
+    for (const [file, id, license] of [
+      ['xiaoyun.md', 'xiaoyun', 'CC-BY-NC-SA-4.0'],
+      ['dafeiyu.md', 'dafeiyu', 'MIT'],
+    ] as const) {
+      const text = await readFile(new URL(`../examples/${file}`, import.meta.url), 'utf8')
+      const parsed = parsePersona(text, file)
+      expect(parsed.metadata).toMatchObject({ id, license })
+      expect(parsed.body.length).toBeGreaterThan(0)
+      const { library } = await fixture()
+      const card = await library.import({ kind: 'text', name: file, text })
+      await library.select(card.metadata.id)
+      expect((await library.active())?.hash).toBe(card.hash)
+    }
+  })
   it('rejects oversized, empty, HTML and malformed cards', () => {
     for (const text of ['', '---\nname: missing', '---\nname: [broken\n---\nbody', '<!doctype html><html>login', '\0', 'x'.repeat(MAX_CARD_BYTES + 1)])
       expect(() => parsePersona(text, 'cloud.md')).toThrow()
