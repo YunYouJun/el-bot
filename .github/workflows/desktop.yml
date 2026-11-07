@@ -43,8 +43,12 @@ jobs:
           workspaces: apps/el-bot-client/native
       - run: pnpm install --frozen-lockfile
       - run: pnpm icons:check
-      - run: pnpm --filter @el-bot/client typecheck
+      # nsh has no Intel macOS binary; the x64 job only needs to package the Apple app.
+      - name: Typecheck native client
+        if: matrix.label == 'macos-arm64'
+        run: pnpm --filter @el-bot/client typecheck
       - name: Test native client without connecting bots
+        if: matrix.label == 'macos-arm64'
         run: pnpm test:client
       - name: Build SwiftUI native installers
         run: pnpm --filter @el-bot/client desktop:build --platform ${{ matrix.target }}

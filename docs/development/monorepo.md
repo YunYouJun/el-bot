@@ -44,7 +44,7 @@ pnpm docs:preview
 
 `pnpm dev` 保留为 demo 开发入口；`pnpm dev:simple` 启动简单示例。
 运行机器人需要配置 QQ/NapCat 连接，这些命令不属于无凭证工程验证。
-CI 使用 `pnpm install --frozen-lockfile`，禁止在 CI 隐式改写锁文件。CI 与发布前安装包验证均使用 `.node-version` 指定的当前 LTS，升级 LTS 时统一修改该文件。普通 CI 在 Linux 和 Windows 上执行构建、Node 单元测试、原生客户端测试和 tarball 安装；包级 `typecheck:packages`、浏览器单元测试和浏览器 CLI 冒烟只在 Linux 执行。macOS 构建、原生测试与安装包由 desktop workflow 覆盖，避免重复运行；Windows 跳过需要 Chromium 的卡片渲染测试，完整的浏览器覆盖保留在 Linux。
+CI 使用 `pnpm install --frozen-lockfile`，禁止在 CI 隐式改写锁文件。CI 与发布前安装包验证均使用 `.node-version` 指定的当前 LTS，升级 LTS 时统一修改该文件。普通 CI 在 Linux 和 Windows 上执行构建、Node 单元测试、原生客户端测试和 tarball 安装；包级 `typecheck:packages`、浏览器单元测试和浏览器 CLI 冒烟只在 Linux 执行。macOS 构建、原生测试与安装包由 desktop workflow 覆盖，避免重复运行；Windows 跳过需要 Chromium 的卡片渲染测试，完整的浏览器覆盖保留在 Linux。Intel macOS 只执行打包，类型检查与原生测试在 Apple Silicon 上执行，避免从源码编译没有 Intel 二进制分发的 nsh。
 
 ## 新增包
 
