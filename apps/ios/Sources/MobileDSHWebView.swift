@@ -27,6 +27,7 @@ struct MobileDSHWebView: View {
                         ProgressView(text["web.loading"]).padding().background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
                     }
                 }
+                .background(Color(uiColor: controller.surfaceBackground).ignoresSafeArea())
                 .toolbar {
                     ToolbarItemGroup(placement: .topBarLeading) {
                         Button { controller.webView.goBack() } label: { Image(systemName: "chevron.left") }
@@ -157,6 +158,7 @@ private struct DSHWebSurface: UIViewRepresentable {
     private(set) var errorKey: String?
     private(set) var canGoBack = false
     private(set) var canGoForward = false
+    private(set) var pageBackground: UIColor = .systemBackground
     private var origin: URL?
     private var generation = 0
     private var responseStatus = 0
@@ -203,6 +205,12 @@ private struct DSHWebSurface: UIViewRepresentable {
         webView.navigationDelegate = self
         webView.uiDelegate = self
         webView.accessibilityIdentifier = "dshWebView"
+        // WebKit derives underPageBackgroundColor from the page and the web
+        // view's base color. Without a system base it stays white until the
+        // first paint, which shows up as a white flash in dark mode.
+        webView.isOpaque = false
+        webView.backgroundColor = .systemBackground
+        webView.scrollView.backgroundColor = .systemBackground
         // A failure dependency survives WebKit re-enabling its own recognizer.
         pinchBlocker.cancelsTouchesInView = false
         webView.scrollView.addGestureRecognizer(pinchBlocker)
@@ -215,7 +223,21 @@ private struct DSHWebSurface: UIViewRepresentable {
             webView.observe(\.canGoForward, options: [.initial, .new]) { [weak self] _, _ in
                 Task { @MainActor in self?.updateNavigationState() }
             },
+            webView.observe(\.underPageBackgroundColor, options: [.initial, .new]) { [weak self] _, _ in
+                Task { @MainActor in
+                    guard let self else { return }
+                    // There is no page-derived color before the first
+                    // navigation; keep following the system appearance.
+                    guard self.webView.url != nil else { return }
+                    self.pageBackground = self.webView.underPageBackgroundColor ?? .systemBackground
+                }
+            },
         ]
+    }
+
+    var surfaceBackground: UIColor {
+        guard !loading, webView.url != nil else { return .systemBackground }
+        return pageBackground
     }
 
     private func updateNavigationState() {
