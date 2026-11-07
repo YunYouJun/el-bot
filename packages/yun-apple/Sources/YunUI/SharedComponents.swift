@@ -31,11 +31,17 @@ public struct ClientMessages: View {
 public struct PersonaSummary: View {
     let name: String
     let detail: String
-    public init(name: String, detail: String) { self.name = name; self.detail = detail }
+    let personaID: String?
+    public init(name: String, detail: String, personaID: String? = nil) {
+        self.name = name; self.detail = detail; self.personaID = personaID
+    }
     public var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label(name, systemImage: "person.crop.circle").font(.title2)
-            Text(detail).foregroundStyle(.secondary).textSelection(.enabled)
+        HStack(alignment: .top, spacing: 16) {
+            PersonaAvatar(personaID: personaID, size: 64)
+            VStack(alignment: .leading, spacing: 12) {
+                Text(name).font(.title2)
+                Text(detail).foregroundStyle(.secondary).textSelection(.enabled)
+            }
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
 }

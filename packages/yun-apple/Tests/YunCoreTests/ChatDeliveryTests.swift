@@ -9,9 +9,12 @@ private final class ChatFixture: @unchecked Sendable {
     var modelSelections: [String] = []
     let reconcileAccepted: Bool
     let informationAvailable: Bool
-    init(reconcileAccepted: Bool = false, informationAvailable: Bool = true) {
+    let initiallyEmptyModels: Bool
+    private var modelCatalogReads = 0
+    init(reconcileAccepted: Bool = false, informationAvailable: Bool = true, initiallyEmptyModels: Bool = false) {
         self.reconcileAccepted = reconcileAccepted
         self.informationAvailable = informationAvailable
+        self.initiallyEmptyModels = initiallyEmptyModels
     }
     let sessionJSON = """
     {"id":"shared-session","title":"Shared conversation","updatedAt":"2026-11-06T00:00:00Z","running":false}
@@ -23,6 +26,10 @@ private final class ChatFixture: @unchecked Sendable {
             return informationAvailable ? .success(Data(sessionJSON.utf8)) : .failure(URLError(.unsupportedURL))
         }
         if request.httpMethod == "GET", request.url?.path.hasSuffix("/models") == true {
+            modelCatalogReads += 1
+            if initiallyEmptyModels && modelCatalogReads == 1 {
+                return .success(Data("{\"groups\":[]}".utf8))
+            }
             return .success(Data("""
             {
               "current":{"provider":"tokenlink","model":"hy4"},
@@ -155,6 +162,30 @@ private final class ChatProtocol: URLProtocol, @unchecked Sendable {
     #expect(!model.switchingModel)
     #expect(fixture.modelSelections == ["openai/gpt-6-luna"])
     #expect(fixture.authorizations.allSatisfy { $0 == "Bearer fixture-credential" })
+}
+
+@Test @MainActor func emptyModelCatalogCanRefreshAfterCloudProviderSetupWithoutSendingMessages() async throws {
+    let host = UUID().uuidString.lowercased() + ".invalid"
+    let fixture = ChatFixture(initiallyEmptyModels: true)
+    ChatProtocol.fixtures.set(fixture, host: host)
+    let configuration = URLSessionConfiguration.ephemeral
+    configuration.protocolClasses = [ChatProtocol.self]
+    let api = MobileAPI(endpoint: try Endpoint("https://" + host), token: "fixture-credential", session: URLSession(configuration: configuration))
+    let session = try MobileJSON.decoder().decode(SessionSummary.self, from: Data(fixture.sessionJSON.utf8))
+    let model = ConversationStore(session: session, client: api)
+
+    await model.loadModels()
+    #expect(model.modelCatalog?.groups.isEmpty == true)
+    await model.loadModels()
+    #expect(model.modelCatalog?.groups.isEmpty == true)
+
+    await model.loadModels(force: true)
+    #expect(model.modelCatalog?.groups.count == 2)
+    #expect(model.currentModelName == "Hunyuan 4")
+    #expect(model.modelErrorKey == nil)
+    #expect(!model.loadingModels)
+    #expect(fixture.requests.isEmpty)
+    #expect(fixture.modelSelections.isEmpty)
 }
 
 @Test @MainActor func uncertainSendRetainsItsIdentityAcrossClientRestart() async throws {

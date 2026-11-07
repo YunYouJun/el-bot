@@ -31,16 +31,30 @@ private extension Color {
 }
 
 public struct ConversationScreen: View {
+    private let session: SessionSummary
+    private let client: MobileAPI
+    public init(session: SessionSummary, client: MobileAPI) { self.session = session; self.client = client }
+    public var body: some View {
+        if session.source?.platform == "qq", session.source?.kind == "group" {
+            GroupConversationScreen(session: session, client: client)
+        } else {
+            ModelConversationScreen(session: session, client: client)
+        }
+    }
+}
+
+private struct ModelConversationScreen: View {
     @State private var model: ConversationStore
+    @Environment(\.openModelSetupGuide) private var openModelSetupGuide
     @Environment(\.yunStrings) private var text
     @Environment(\.scenePhase) private var scenePhase
     @State private var followLatest = true
     @State private var lastOffset: CGFloat?
     @State private var information: ConversationInfoPresentation?
-    public init(session: SessionSummary, client: MobileAPI) {
+    init(session: SessionSummary, client: MobileAPI) {
         _model = State(initialValue: ConversationStore(session: session, client: client))
     }
-    public var body: some View {
+    var body: some View {
         ScrollViewReader { reader in
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 18) {
@@ -108,20 +122,25 @@ public struct ConversationScreen: View {
         .navigationTitle(model.summary.displayTitle)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button { information = ConversationInfoPresentation(id: model.summary.id) } label: {
-                    Label(text["chat.info.title"], systemImage: "info.circle")
+                ContextUsageButton(context: model.summary.context) {
+                    information = ConversationInfoPresentation(id: model.summary.id)
                 }
-                .accessibilityIdentifier("conversationInfo")
             }
         }
         .sheet(item: $information) { _ in ConversationInfoView(model: model) }
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
-        .modifier(ConversationInputBar { composer })
+        .modifier(ConversationInputBar {
+            if model.summary.archived == true {
+                Label(text["sessions.error.archived"], systemImage: "archivebox").font(.footnote).padding()
+            } else if model.summary.readOnly == true {
+                Label(text["sessions.historical"], systemImage: "clock.arrow.circlepath").font(.footnote).padding()
+            } else { composer }
+        })
         .task(id: scenePhase) {
             guard scenePhase == .active else { return }
-            await model.loadModels()
+            await model.loadModels(force: true)
             while !Task.isCancelled {
                 await model.refresh()
                 try? await Task.sleep(for: .seconds(model.summary.running ? 2 : 5))
@@ -140,6 +159,21 @@ public struct ConversationScreen: View {
                 }
             }
             .padding(.horizontal, 8)
+            if let catalog = model.modelCatalog, catalog.groups.isEmpty, let openModelSetupGuide {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(text["model.setup.empty"]).font(.caption).foregroundStyle(.secondary)
+                    HStack {
+                        Button(text["model.setup.view_guide"], action: openModelSetupGuide)
+                            .accessibilityIdentifier("modelSetupEmptyGuide")
+                        Spacer()
+                        Button { Task { await model.loadModels(force: true) } } label: {
+                            Label(text["refresh"], systemImage: "arrow.clockwise")
+                        }
+                        .disabled(model.loadingModels)
+                        .accessibilityIdentifier("modelSetupRefresh")
+                    }.font(.caption).buttonStyle(.borderless)
+                }.padding(.horizontal, 8)
+            }
             if #available(iOS 26, macOS 26, *) {
                 GlassEffectContainer(spacing: 8) { composerControls }
             } else {
@@ -263,7 +297,7 @@ public struct ConversationScreen: View {
     }
 }
 
-private struct ConversationInputBar<Bar: View>: ViewModifier {
+struct ConversationInputBar<Bar: View>: ViewModifier {
     @ViewBuilder var bar: () -> Bar
 
     func body(content: Content) -> some View {
@@ -275,7 +309,7 @@ private struct ConversationInputBar<Bar: View>: ViewModifier {
     }
 }
 
-private struct ConversationFieldSurface: ViewModifier {
+struct ConversationFieldSurface: ViewModifier {
     func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: 26, style: .continuous)
         if #available(iOS 26, macOS 26, *) {
@@ -297,7 +331,7 @@ private struct ModelPickerSurface: ViewModifier {
     }
 }
 
-private extension View {
+extension View {
     @ViewBuilder func chatGlassButton(prominent: Bool = false) -> some View {
         if #available(iOS 26, macOS 26, *) {
             if prominent { buttonStyle(.glassProminent) }

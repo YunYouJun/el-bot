@@ -35,3 +35,26 @@ import Testing
     #expect(!SessionCategory.qq.includes(session))
     #expect(SessionCategory.all.includes(session))
 }
+
+@Test func archivedSessionsStayOutOfActiveCategoriesAndKeepTheirStateDuringModelSelection() throws {
+    let data = Data(#"{"id":"archived","title":"History","updatedAt":"2026-11-07T00:00:00Z","running":false,"archived":true,"source":{"platform":"qq","kind":"group"}}"#.utf8)
+    let session = try MobileJSON.decoder().decode(SessionSummary.self, from: data)
+    #expect(!SessionCategory.all.includes(session))
+    #expect(!SessionCategory.qq.includes(session))
+    #expect(SessionCategory.archived.includes(session))
+    #expect(session.selecting(ModelRoute(provider: "example", model: "test")).archived == true)
+}
+
+@Test func groupEntryHasNoDependencyOnConversationHistory() throws {
+    let data = Data(#"{"id":"group-a","source":{"platform":"qq","kind":"group","name":"Test group"},"membership":"joined","allowed":true}"#.utf8)
+    let group = try MobileJSON.decoder().decode(BotGroup.self, from: data)
+    #expect(group.sessionId == nil)
+    #expect(group.canOpen)
+    #expect(group.displayTitle == "Test group")
+    for json in [
+        #"{"id":"group-a","source":{"platform":"qq"},"membership":"left","allowed":true}"#,
+        #"{"id":"group-a","source":{"platform":"qq"},"membership":"joined","allowed":false}"#
+    ] {
+        #expect(!(try MobileJSON.decoder().decode(BotGroup.self, from: Data(json.utf8))).canOpen)
+    }
+}

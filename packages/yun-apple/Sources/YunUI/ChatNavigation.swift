@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import YunCore
 
@@ -80,8 +81,10 @@ public extension EnvironmentValues {
 public struct SessionRows<Destination: Hashable>: View {
     let sessions: [SessionSummary]
     let destination: (String) -> Destination
+    let store: ChatStore?
     @Environment(\.yunStrings) private var text
-    public init(sessions: [SessionSummary], destination: @escaping (String) -> Destination) {
+    public init(sessions: [SessionSummary], store: ChatStore? = nil, destination: @escaping (String) -> Destination) {
+        self.store = store
         self.sessions = sessions; self.destination = destination
     }
     public var body: some View {
@@ -91,13 +94,13 @@ public struct SessionRows<Destination: Hashable>: View {
                 HStack(spacing: 10) {
                     Group {
                         if session.source?.platform == "qq" {
-                            QQPlatformIcon()
+                            QQSessionAvatar(session: session)
                         } else {
                             Image(systemName: kind?.symbol ?? "bubble.left.and.bubble.right")
                                 .foregroundStyle(kind == .group ? Color.orange : Color.accentColor)
                         }
                     }
-                    .frame(width: 24, height: 24)
+                    .frame(width: 30, height: 30)
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
                             Text(session.displayTitle).lineLimit(1).fontWeight(.medium)
@@ -134,9 +137,17 @@ public struct SessionRows<Destination: Hashable>: View {
                         }
                     }
                     Spacer(minLength: 0)
-                    if session.running { ProgressView().controlSize(.small) }
+                    if let operation = store?.sessionOperation, operation.sessionId == session.id {
+                        ProgressView(text[operation.localizationKey])
+                            .font(.caption).controlSize(.small)
+                            .accessibilityIdentifier("sessionOperation.\(session.id)")
+                    } else if session.running { ProgressView().controlSize(.small) }
                 }.padding(.vertical, 4)
             }
+            .accessibilityIdentifier("sessionRow.\(session.id)")
+            .disabled(store?.sessionOperation?.sessionId == session.id)
+            .transition(.opacity)
+            .modifier(SessionManagement(session: session, store: store))
         }
     }
     private func messagePreview(_ message: SessionInboundMessage) -> String {
@@ -146,18 +157,47 @@ public struct SessionRows<Destination: Hashable>: View {
     }
 }
 
+private struct QQSessionAvatar: View {
+    let session: SessionSummary
+
+    var body: some View {
+        if let message = session.source?.lastMessage,
+           let appId = session.source?.appId,
+           !message.senderId.isEmpty {
+            ZStack(alignment: .bottomTrailing) {
+                QQAvatar(appId: appId, openId: message.senderId, name: message.senderName, size: 28)
+                QQPlatformIcon()
+                    .frame(width: 9, height: 9)
+                    .padding(2)
+                    .background(.background, in: Circle())
+                    .offset(x: 2, y: 2)
+            }
+            .frame(width: 30, height: 30)
+            .accessibilityHidden(true)
+        } else {
+            Circle()
+                .fill(Color.accentColor.opacity(0.12))
+                .overlay { QQPlatformIcon().padding(7) }
+                .frame(width: 30, height: 30)
+                .accessibilityHidden(true)
+        }
+    }
+}
+
 public struct GroupedSessionRows<Destination: Hashable>: View {
     let sessions: [SessionSummary]
     let destination: (String) -> Destination
+    let store: ChatStore?
     @Environment(\.yunStrings) private var text
-    public init(sessions: [SessionSummary], destination: @escaping (String) -> Destination) {
+    public init(sessions: [SessionSummary], store: ChatStore? = nil, destination: @escaping (String) -> Destination) {
+        self.store = store
         self.sessions = sessions
         self.destination = destination
     }
     public var body: some View {
         ForEach(SessionTimeline.group(sessions)) { section in
             Section {
-                SessionRows(sessions: section.sessions, destination: destination)
+                SessionRows(sessions: section.sessions, store: store, destination: destination)
             } header: {
                 Text(title(for: section))
                     .font(.caption.weight(.semibold))
@@ -202,17 +242,26 @@ private struct MinimizeSearchToolbar: ViewModifier {
 
 public struct ChatBrowser: View {
     let store: ChatStore
+    @Environment(\.openModelSetupGuide) private var openModelSetupGuide
     @Environment(\.yunStrings) private var text
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selected: String?
     @State private var search = ""
     @State private var category: SessionCategory = .all
     @State private var path: [String] = []
+    @State private var composing = false
+    private static let composeRoute = "__compose__"
+    private enum ManagementSheet: String, Identifiable {
+        case groups
+        var id: String { rawValue }
+    }
+    @State private var managementSheet: ManagementSheet?
     public init(store: ChatStore) { self.store = store }
     private var visible: [SessionSummary] {
         store.sessions.filter {
-            category.includes($0) && (search.isEmpty || [$0.title, $0.workspace, $0.provider, $0.model, $0.source?.platform]
+            $0.blank != true && category.includes($0) && (search.isEmpty || [$0.displayTitle, $0.title, $0.workspace, $0.provider, $0.model, $0.source?.platform]
                 .compactMap { $0 }
                 .joined(separator: " ")
                 .localizedCaseInsensitiveContains(search))
@@ -230,28 +279,88 @@ public struct ChatBrowser: View {
             if compact { compactBrowser }
             else { splitBrowser }
         }
+        .sheet(item: $managementSheet) { _ in
+            NavigationStack {
+                BotGroupsView(store: store) { id in
+                    category = .qq
+                    search = ""
+                    managementSheet = nil
+                    selected = id
+                }
+                .toolbar { ToolbarItem(placement: .cancellationAction) {
+                    Button(text["done"]) { managementSheet = nil }
+                } }
+            }
+            #if os(macOS)
+            .frame(minWidth: 420, minHeight: 440)
+            #endif
+        }
+        .onChange(of: selected) { _, value in
+            if value != nil { composing = false }
+        }
+        .onChange(of: store.sessions.map(\.id)) { _, ids in
+            if let selected, !ids.contains(selected) { self.selected = nil; path = [] }
+        }
         .task(id: scenePhase) {
             guard scenePhase == .active else { return }
             while !Task.isCancelled { await store.refresh(); try? await Task.sleep(for: .seconds(5)) }
         }
+        #if DEBUG
+        .task {
+            guard ProcessInfo.processInfo.arguments.contains("--open-first-group") else { return }
+            for _ in 0..<40 {
+                guard !Task.isCancelled else { return }
+                if let group = store.sessions.first(where: { $0.source?.platform == "qq" && $0.source?.kind == "group" }) {
+                    category = .qq
+                    search = ""
+                    selected = group.id
+                    path = [group.id]
+                    return
+                }
+                try? await Task.sleep(for: .milliseconds(250))
+            }
+        }
+        #endif
     }
-    private var sessionRows: some View {
+    private var sessionSections: some View {
         Group {
-            if let error = store.errorKey { Label(text[error], systemImage: "wifi.exclamationmark").foregroundStyle(.secondary) }
-            GroupedSessionRows(sessions: visible, destination: { $0 })
+            if store.online, openModelSetupGuide != nil {
+                ModelSetupHint()
+            }
+            Section {
+                categoryPicker
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+            }
+            if let error = store.sessionErrorKey ?? store.errorKey {
+                Label(text[error], systemImage: "exclamationmark.circle").foregroundStyle(.secondary)
+                    .accessibilityIdentifier("sessionManagementError")
+            }
+            if visible.isEmpty {
+                Section {
+                    ContentUnavailableView(text["sessions.empty"], systemImage: "bubble.left.and.bubble.right")
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                }
+            } else {
+                GroupedSessionRows(sessions: visible, store: store, destination: { $0 })
+            }
         }
     }
     private var sessionList: some View {
         List(selection: $selected) {
-            sessionRows
+            sessionSections
         }
-        .overlay { if visible.isEmpty { ContentUnavailableView(text["sessions.empty"], systemImage: "bubble.left.and.bubble.right") } }
         .searchable(text: $search, placement: .sidebar, prompt: text["sessions.search"])
-        .safeAreaInset(edge: .top, spacing: 0) { categoryPicker }
         .navigationTitle(text["tab.sessions"])
         .refreshable { await store.refresh() }
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: store.sessionListRevision)
+        .transaction { if reduceMotion { $0.disablesAnimations = true } }
         .toolbar {
-            Button { Task { selected = await store.create() } } label: { Label(text["sessions.new"], systemImage: "square.and.pencil") }
+            Button { managementSheet = .groups } label: { Label(text["groups.title"], systemImage: "person.3") }
+                .accessibilityIdentifier("botGroups")
+            Button { beginCompose() } label: { Label(text["sessions.new"], systemImage: "square.and.pencil") }
                 .disabled(store.busy).accessibilityIdentifier("newSession")
         }
     }
@@ -289,9 +398,7 @@ public struct ChatBrowser: View {
         }
         .padding(4)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
-        .padding(.horizontal)
         .padding(.vertical, 8)
-        .background(.bar, ignoresSafeAreaEdges: [])
         .accessibilityElement(children: .contain)
         .accessibilityLabel(text["sessions.category"])
         .accessibilityIdentifier("sessionCategory")
@@ -305,34 +412,72 @@ public struct ChatBrowser: View {
     }
     private var compactBrowser: some View {
         NavigationStack(path: $path) {
-            List { sessionRows }
-                .overlay { if visible.isEmpty { ContentUnavailableView(text["sessions.empty"], systemImage: "bubble.left.and.bubble.right") } }
+            List { sessionSections }
                 .searchable(text: $search, prompt: text["sessions.search"])
                 .modifier(MinimizeSearchToolbar())
-                .safeAreaInset(edge: .top, spacing: 0) { categoryPicker }
                 .navigationTitle(text["tab.sessions"])
                 .refreshable { await store.refresh() }
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: store.sessionListRevision)
+                .transaction { if reduceMotion { $0.disablesAnimations = true } }
                 .toolbar {
-                    Button { Task { selected = await store.create() } } label: { Label(text["sessions.new"], systemImage: "square.and.pencil") }
+                    Button { managementSheet = .groups } label: { Label(text["groups.title"], systemImage: "person.3") }
+                        .accessibilityIdentifier("botGroups")
+                    Button { beginCompose() } label: { Label(text["sessions.new"], systemImage: "square.and.pencil") }
                         .disabled(store.busy).accessibilityIdentifier("newSession")
                 }
-                .navigationDestination(for: String.self) { _ in conversation }
+                .navigationDestination(for: String.self) { route in
+                    if route == Self.composeRoute { compose } else { conversation }
+                }
                 .onChange(of: selected) { _, newValue in
                     guard let newValue else { return }
+                    composing = false
                     if path != [newValue] { path = [newValue] }
                 }
                 .onChange(of: path) { _, newValue in
-                    if newValue.first != selected { selected = newValue.first }
+                    if let first = newValue.first {
+                        if first == Self.composeRoute {
+                            selected = nil
+                            composing = true
+                        } else {
+                            selected = first
+                            composing = false
+                        }
+                    } else {
+                        composing = false
+                    }
                 }
                 #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
                 .listStyle(.insetGrouped)
                 #endif
         }
     }
     @ViewBuilder private var conversation: some View {
-        if let id = selected, let summary = store.sessions.first(where: { $0.id == id }), let client = store.client {
+        if composing {
+            compose
+        } else if let id = selected, let summary = store.sessions.first(where: { $0.id == id }), let client = store.client {
             ConversationScreen(session: summary, client: client).id(id)
         }
         else { ContentUnavailableView(text["sessions.empty.detail"], systemImage: "bubble.left.and.bubble.right") }
+    }
+
+    @ViewBuilder private var compose: some View {
+        if store.client != nil {
+            ComposeConversationScreen(store: store, onCreated: openCreated)
+        } else {
+            ContentUnavailableView(text["sessions.empty.detail"], systemImage: "bubble.left.and.bubble.right")
+        }
+    }
+
+    private func beginCompose() {
+        selected = nil
+        composing = true
+        if compact { path = [Self.composeRoute] }
+    }
+
+    private func openCreated(_ id: String) {
+        composing = false
+        selected = id
+        if compact { path = [id] }
     }
 }

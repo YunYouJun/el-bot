@@ -39,7 +39,6 @@ struct ConversationInfoView: View {
                     }
                 }
                 if source?.kind == "group" { groupInformation }
-                if let message = source?.lastMessage { receivedMessage(message) }
                 Section(text["chat.info.configuration"]) {
                     if let workspace = summary.workspace { row("chat.info.workspace", workspace) }
                     if let route = model.currentModel {
@@ -48,15 +47,12 @@ struct ConversationInfoView: View {
                         if let effort = route.reasoningEffort { row("chat.info.reasoning", effort) }
                     }
                 }
+                ConversationContextSection(context: summary.context, loading: model.loadingInformation)
                 Section {
                     identifier("chat.info.session_id", model.summary.id)
                     if let appId = source?.appId { identifier("chat.info.app_id", appId) }
                     if let peerId = source?.peerId {
                         identifier(source?.kind == "group" ? "chat.info.group_id" : "chat.info.user_id", peerId)
-                    }
-                    if let message = source?.lastMessage {
-                        identifier("chat.info.sender_id", message.senderId)
-                        identifier("chat.info.message_id", message.id)
                     }
                 } header: {
                     Text(text["chat.info.identifiers"])
@@ -112,17 +108,6 @@ struct ConversationInfoView: View {
                 if let proactive = bot.allowProactive { row("chat.info.proactive", text[proactive ? "chat.info.allowed" : "chat.info.disallowed"]) }
             }
             availability(source?.botStateStatus)
-        }
-    }
-
-    private func receivedMessage(_ message: SessionInboundMessage) -> some View {
-        Section(text["chat.info.received"]) {
-            if let sender = message.senderName { row("chat.info.sender", sender) }
-            if let role = message.senderRole { row("chat.info.role", roleName(role)) }
-            if let isBot = message.senderIsBot { row("chat.info.sender_type", text[isBot ? "chat.info.robot" : "chat.info.person"]) }
-            row("chat.info.message_type", text["chat.message.\(message.type)"])
-            if !message.text.isEmpty { Text(message.text).textSelection(.enabled) }
-            LabeledContent(text["chat.info.received_at"]) { Text(message.createdAt, format: .dateTime.year().month().day().hour().minute()) }
         }
     }
 

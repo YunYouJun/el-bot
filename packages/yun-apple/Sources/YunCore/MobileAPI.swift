@@ -24,6 +24,7 @@ public actor MobileAPI {
     private struct SelectedModel: Decodable, Sendable { let selected: ModelRoute }
     private struct Accepted: Decodable, Sendable { let accepted: Bool }
     private struct OK: Decodable, Sendable { let ok: Bool }
+    private struct RestartRequest: Encodable { let force: Bool }
     private struct ServerError: Decodable { let error: String }
     private struct AccountPreferencesBody: Encodable { let language: String }
 
@@ -114,6 +115,41 @@ public actor MobileAPI {
         return value.items
     }
 
+    public func groupChat(_ id: String, before: Int? = nil) async throws -> GroupChatState {
+        try await request("GET", path: ["sessions", id, "qq"], before: before)
+    }
+
+    public func groupChat(_ id: String, request operation: GroupChatRequest) async throws -> GroupChatResponse {
+        try await request("POST", path: ["sessions", id, "qq"], body: JSONEncoder().encode(operation))
+    }
+
+    public func groupMember(_ id: String, senderId: String) async throws -> GroupMemberProfile {
+        try await request("GET", path: ["sessions", id, "qq", "members", senderId])
+    }
+
+    public func archive(_ id: String, archived: Bool) async throws {
+        let _: OK = try await request("PUT", path: ["sessions", id, "archive"], body: JSONEncoder().encode(["archived": archived]))
+    }
+
+    public func prepareDeletion(_ id: String) async throws -> DeletionConfirmation {
+        try await request("POST", path: ["sessions", id, "deletion"])
+    }
+
+    public func delete(_ id: String, confirmation: String) async throws {
+        let _: OK = try await request("DELETE", path: ["sessions", id], body: JSONEncoder().encode(["confirmation": confirmation]))
+    }
+
+    public func groups() async throws -> [BotGroup] {
+        struct Groups: Decodable, Sendable { let items: [BotGroup] }
+        let value: Groups = try await request("GET", path: ["groups"])
+        return value.items
+    }
+
+    public func openGroup(_ id: String) async throws -> String {
+        let value: CreatedSession = try await request("POST", path: ["groups", id, "conversation"])
+        return value.sessionId
+    }
+
     public func create(requestId: String) async throws -> String {
         let body = try JSONEncoder().encode(CreateRequest(requestId: requestId))
         let value: CreatedSession = try await request("POST", path: ["sessions"], body: body)
@@ -150,6 +186,21 @@ public actor MobileAPI {
 
     public func botStatus() async throws -> BotStatus {
         try await request("GET", path: ["status"])
+    }
+
+    public func restart(force: Bool) async throws {
+        let value: OK = try await request(
+            "POST",
+            path: ["system", "restart"],
+            body: JSONEncoder().encode(RestartRequest(force: force))
+        )
+        guard value.ok else { throw CompanionError.invalidResponse }
+    }
+
+    public func personas(_ operation: PersonaRequest = PersonaRequest(.list)) async throws -> PersonaResponse {
+        let value: PersonaResponse = try await request("POST", path: ["personas"], body: JSONEncoder().encode(operation))
+        guard value.library.version == 1 else { throw CompanionError.invalidResponse }
+        return value
     }
 
     public func accountSyncState() async throws -> AccountSyncState {

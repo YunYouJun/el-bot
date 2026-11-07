@@ -72,8 +72,8 @@ import Observation
         } catch { if !Task.isCancelled { errorKey = (error as? CompanionError)?.localizationKey ?? "error.unavailable" } }
     }
 
-    public func loadModels() async {
-        guard !modelsRestored, !loadingModels else { return }
+    public func loadModels(force: Bool = false) async {
+        guard (!modelsRestored || force), !loadingModels else { return }
         loadingModels = true
         modelErrorKey = nil
         defer { loadingModels = false }

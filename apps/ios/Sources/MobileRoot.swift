@@ -7,6 +7,11 @@ struct MobileRoot: View {
     let chat: ChatStore
     let account: AccountSyncStore
     @State private var web = DSHWebController()
+    @State private var guide: Guide?
+    private enum Guide: String, Identifiable {
+        case modelSetup
+        var id: String { rawValue }
+    }
     @State private var tab: Tab = {
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--show-bot") { return .status }
@@ -33,6 +38,16 @@ struct MobileRoot: View {
                     .navigationTitle(preferences.strings["settings"])
             }.tabItem { Label(preferences.strings["settings"], systemImage: "gearshape") }.tag(Tab.settings)
         }
+        .sheet(item: $guide) { _ in
+            ModelSetupGuide(connected: chat.device != nil) { tab = .web }
+        }
+        .environment(\.openModelSetupGuide, { guide = .modelSetup })
+        .environment(\.openDSHManagement, { tab = .web })
+        #if DEBUG
+        .task {
+            if ProcessInfo.processInfo.arguments.contains("--show-model-guide") { guide = .modelSetup }
+        }
+        #endif
         .task(id: chat.device?.id) { await account.restore() }
         .onChange(of: preferences.language) { _, value in
             guard account.state.linked else { return }

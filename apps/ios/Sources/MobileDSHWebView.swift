@@ -1,4 +1,6 @@
 import Observation
+import CryptoKit
+import SafariServices
 import SwiftUI
 import WebKit
 import YunCore
@@ -25,9 +27,11 @@ struct MobileDSHWebView: View {
                         }.background(.background)
                     } else if controller.loading {
                         ProgressView(text["web.loading"]).padding().background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+                            .accessibilityIdentifier("dshWebLoading")
                     }
                 }
                 .background(Color(uiColor: controller.surfaceBackground).ignoresSafeArea())
+                .toolbarBackground(.hidden, for: .navigationBar)
                 .toolbar {
                     ToolbarItemGroup(placement: .topBarLeading) {
                         Button { controller.webView.goBack() } label: { Image(systemName: "chevron.left") }
@@ -117,6 +121,11 @@ struct MobileDSHWebView: View {
         }
         .navigationTitle(text["web.title"])
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(item: Binding(get: { controller.authorizationPage }, set: { controller.authorizationPage = $0 }), onDismiss: {
+            controller.closeAuthorizationPopup()
+        }) { page in
+            DSHAuthorizationBrowser(url: page.url) { controller.authorizationPage = nil }.ignoresSafeArea()
+        }
         .onChange(of: allowsPinchZoom, initial: true) { _, value in
             controller.setAllowsPinchZoom(value)
         }
@@ -152,6 +161,31 @@ private struct DSHWebSurface: UIViewRepresentable {
     func updateUIView(_ uiView: WKWebView, context: Context) {}
 }
 
+struct DSHAuthorizationPage: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
+private struct DSHAuthorizationBrowser: UIViewControllerRepresentable {
+    let url: URL
+    let close: @MainActor @Sendable () -> Void
+    func makeCoordinator() -> Coordinator { Coordinator(close: close) }
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        let browser = SFSafariViewController(url: url)
+        browser.view.accessibilityIdentifier = "dshAuthorizationBrowser"
+        browser.delegate = context.coordinator
+        return browser
+    }
+    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
+    final class Coordinator: NSObject, SFSafariViewControllerDelegate {
+        let close: @MainActor @Sendable () -> Void
+        init(close: @escaping @MainActor @Sendable () -> Void) { self.close = close }
+        func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
+            Task { @MainActor [close] in close() }
+        }
+    }
+}
+
 @MainActor @Observable final class DSHWebController: NSObject, WKNavigationDelegate, WKUIDelegate {
     @ObservationIgnored let webView: WKWebView
     private(set) var loading = true
@@ -159,7 +193,11 @@ private struct DSHWebSurface: UIViewRepresentable {
     private(set) var canGoBack = false
     private(set) var canGoForward = false
     private(set) var pageBackground: UIColor = .systemBackground
+    var authorizationPage: DSHAuthorizationPage?
     private var origin: URL?
+    private var serverOrigin: URL?
+    @ObservationIgnored private var proxy: DSHLoopbackProxy?
+    @ObservationIgnored private var authorizationPopup: WKWebView?
     private var generation = 0
     private var responseStatus = 0
     private var allowsPinchZoom = false
@@ -277,10 +315,10 @@ private struct DSHWebSurface: UIViewRepresentable {
     }
 
     func connect(_ api: MobileAPI, force: Bool = false) async {
-        if !force, origin == api.endpoint.origin, webView.url != nil, errorKey == nil { return }
+        if !force, serverOrigin == api.endpoint.origin, proxy != nil, webView.url != nil, errorKey == nil { return }
         generation += 1
         let current = generation
-        origin = api.endpoint.origin
+        serverOrigin = api.endpoint.origin
         loading = true
         errorKey = nil
         webView.stopLoading()
@@ -288,13 +326,45 @@ private struct DSHWebSurface: UIViewRepresentable {
             await clearing?.value
             try Task.checkCancellation()
             guard generation == current else { return }
+            closeAuthorizationPopup()
+            await proxy?.stop()
+            proxy = nil
             let cookie = try await api.webCookie()
             try Task.checkCancellation()
             guard generation == current else { return }
-            await webView.configuration.websiteDataStore.httpCookieStore.setCookie(cookie)
+            let key = "dshWebLoopbackPort." + SHA256.hash(data: Data(api.endpoint.origin.absoluteString.utf8)).map { String(format: "%02x", $0) }.joined()
+            let reservedPorts = Set(UserDefaults.standard.dictionaryRepresentation().compactMap { entry -> Int? in
+                guard entry.key.hasPrefix("dshWebLoopbackPort."), entry.key != key else { return nil }
+                return entry.value as? Int
+            })
+            let storedPort = UserDefaults.standard.integer(forKey: key)
+            let preferredPort = reservedPorts.contains(storedPort) ? 0 : (UInt16(exactly: storedPort) ?? 0)
+            var bridge = try makeProxy(origin: api.endpoint.origin, cookie: cookie, port: preferredPort)
+            var local: DSHLoopbackSession
+            do { local = try await bridge.start() }
+            catch {
+                guard preferredPort != 0 else { throw error }
+                await bridge.stop()
+                bridge = try makeProxy(origin: api.endpoint.origin, cookie: cookie, port: 0)
+                local = try await bridge.start()
+            }
+            for _ in 0..<16 where reservedPorts.contains(local.origin.port ?? 0) {
+                await bridge.stop()
+                bridge = try makeProxy(origin: api.endpoint.origin, cookie: cookie, port: 0)
+                local = try await bridge.start()
+            }
+            guard !reservedPorts.contains(local.origin.port ?? 0) else {
+                await bridge.stop()
+                throw CompanionError.invalidResponse
+            }
+            guard generation == current, !Task.isCancelled else { await bridge.stop(); return }
+            proxy = bridge
+            origin = local.origin
+            UserDefaults.standard.set(local.origin.port, forKey: key)
+            await webView.configuration.websiteDataStore.httpCookieStore.setCookie(try local.browserCookie())
             try Task.checkCancellation()
             guard generation == current else { return }
-            webView.load(URLRequest(url: api.endpoint.origin))
+            webView.load(URLRequest(url: local.origin))
         } catch {
             guard !Task.isCancelled, generation == current else { return }
             loading = false
@@ -303,11 +373,22 @@ private struct DSHWebSurface: UIViewRepresentable {
         }
     }
 
+    private func makeProxy(origin: URL, cookie: HTTPCookie, port: UInt16) throws -> DSHLoopbackProxy {
+        try DSHLoopbackProxy(origin: origin, cookie: cookie, preferredPort: port) { [weak self] in
+            Task { @MainActor in self?.authorizationPage = nil }
+        }
+    }
+
     func reset() {
-        guard origin != nil else { return }
+        guard serverOrigin != nil else { return }
         generation += 1
         phoneSession = nil
         origin = nil
+        serverOrigin = nil
+        let previousProxy = proxy
+        proxy = nil
+        Task { await previousProxy?.stop() }
+        closeAuthorizationPopup()
         webView.stopLoading()
         webView.loadHTMLString("", baseURL: nil)
         loading = false
@@ -332,13 +413,18 @@ private struct DSHWebSurface: UIViewRepresentable {
 
     private func allowed(_ url: URL) -> Bool {
         guard let origin else { return false }
-        return url.scheme == "https" && url.host == origin.host && url.port == origin.port
+        return url.scheme == origin.scheme && url.host == origin.host && url.port == origin.port
             && url.user == nil && url.password == nil
             && URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.contains(where: { $0.name == "token" }) != true
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction) async -> WKNavigationActionPolicy {
         guard let url = navigationAction.request.url else { return .cancel }
+        if webView === authorizationPopup {
+            if url.absoluteString == "about:blank" { return .allow }
+            if authorizationURL(url) { authorizationPage = DSHAuthorizationPage(url: url) }
+            return .cancel
+        }
         if origin == nil, url.absoluteString == "about:blank" { return .allow }
         if allowed(url) { return .allow }
         if navigationAction.navigationType == .linkActivated, ["https", "http"].contains(url.scheme) {
@@ -348,6 +434,7 @@ private struct DSHWebSurface: UIViewRepresentable {
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse) async -> WKNavigationResponsePolicy {
+        guard webView === self.webView else { return .allow }
         if navigationResponse.isForMainFrame, let response = navigationResponse.response as? HTTPURLResponse {
             responseStatus = response.statusCode
             if response.statusCode >= 400 {
@@ -361,11 +448,13 @@ private struct DSHWebSurface: UIViewRepresentable {
     }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        guard webView === self.webView else { return }
         applyPinchZoomPreference()
         applyVerticalBouncePreference()
     }
 
     func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        guard webView === self.webView else { return }
         loading = true
         #if DEBUG
         navigationCount += 1
@@ -373,6 +462,7 @@ private struct DSHWebSurface: UIViewRepresentable {
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        guard webView === self.webView else { return }
         applyPinchZoomPreference()
         applyVerticalBouncePreference()
         loading = false
@@ -384,6 +474,25 @@ private struct DSHWebSurface: UIViewRepresentable {
             guard generation == current, let url = webView.url, allowed(url) else { return }
             let dsh = (try? await webView.evaluateJavaScript("Boolean(globalThis.__DSH_BOOT_READY__)")) as? Bool ?? false
             writeReceipt(loaded: true, dshPage: dsh)
+            // [DEBUG-width] Read-only geometry probe; no page content or credentials are captured.
+            if dsh, let geometry = try? await webView.evaluateJavaScript("""
+                JSON.stringify({viewport:innerWidth, screen:screen.width, dpr:devicePixelRatio,
+                  visual:visualViewport && {width:visualViewport.width,scale:visualViewport.scale,offset:visualViewport.offsetLeft},
+                  document:document.documentElement.clientWidth, scroll:document.documentElement.scrollWidth, x:scrollX,
+                  meta:document.querySelector('meta[name="viewport"]')?.content,
+                  elements:[...document.querySelectorAll('body,body > *,main,aside,header,[data-panel],[data-panel-group]')].slice(0,30).map(e=>{
+                    const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {tag:e.tagName,cls:e.className,
+                    x:r.x,width:r.width,scroll:e.scrollWidth,minWidth:s.minWidth,overflow:s.overflowX}})})
+                """) as? String {
+                let scroll = webView.scrollView
+                let metrics: [String: Any] = ["webWidth": webView.bounds.width, "scrollWidth": scroll.contentSize.width,
+                    "offsetX": scroll.contentOffset.x, "zoom":scroll.zoomScale, "minZoom":scroll.minimumZoomScale,
+                    "frameX":webView.frame.origin.x,"safeLeft":webView.safeAreaInsets.left,"safeRight":webView.safeAreaInsets.right,
+                    "page": (try? JSONSerialization.jsonObject(with: Data(geometry.utf8))) ?? [:]]
+                if let data = try? JSONSerialization.data(withJSONObject: metrics, options: [.prettyPrinted, .sortedKeys]) {
+                    try? data.write(to: URL.cachesDirectory.appendingPathComponent("dsh-web-width.json"))
+                }
+            }
             if dsh {
                 if ProcessInfo.processInfo.arguments.contains("--phone-web-smoke"), let phoneSession, !smokeSubmitted {
                     smokeSubmitted = true
@@ -439,9 +548,15 @@ private struct DSHWebSurface: UIViewRepresentable {
         #endif
     }
 
-    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: any Error) { failed(error) }
-    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: any Error) { failed(error) }
-    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) { failed(URLError(.networkConnectionLost)) }
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: any Error) {
+        if webView === self.webView { failed(error) }
+    }
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: any Error) {
+        if webView === self.webView { failed(error) }
+    }
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        if webView === self.webView { failed(URLError(.networkConnectionLost)) }
+    }
 
     private func failed(_ error: any Error) {
         if (error as? URLError)?.code == .cancelled { return }
@@ -452,8 +567,45 @@ private struct DSHWebSurface: UIViewRepresentable {
 
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration,
                  for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+        if navigationAction.request.url?.absoluteString == "about:blank", navigationAction.sourceFrame.isMainFrame {
+            closeAuthorizationPopup()
+            let popup = WKWebView(frame: .zero, configuration: configuration)
+            popup.navigationDelegate = self
+            popup.uiDelegate = self
+            authorizationPopup = popup
+            return popup
+        }
+        if let url = navigationAction.request.url, authorizationURL(url) {
+            authorizationPage = DSHAuthorizationPage(url: url)
+            return nil
+        }
+        if navigationAction.navigationType == .linkActivated,
+           let url = navigationAction.request.url,
+           url.scheme == "https", url.host == "www.yunle.fun",
+           url.port == nil || url.port == 443,
+           url.user == nil, url.password == nil {
+            Task { _ = await UIApplication.shared.open(url) }
+            return nil
+        }
         if let url = navigationAction.request.url, allowed(url) { webView.load(navigationAction.request) }
         return nil
+    }
+
+    private func authorizationURL(_ url: URL) -> Bool {
+        url.scheme == "https" && url.host == "platform.deepseek.com" && (url.port == nil || url.port == 443)
+            && url.path == "/dsh/authorize" && url.user == nil && url.password == nil && url.fragment == nil
+    }
+
+    func webViewDidClose(_ webView: WKWebView) {
+        if webView === authorizationPopup { authorizationPopup = nil; authorizationPage = nil }
+    }
+
+    func closeAuthorizationPopup() {
+        let popup = authorizationPopup
+        authorizationPopup = nil
+        authorizationPage = nil
+        popup?.stopLoading()
+        popup?.evaluateJavaScript("window.close()", completionHandler: nil)
     }
 
     private func writeReceipt(loaded: Bool, dshPage: Bool) {

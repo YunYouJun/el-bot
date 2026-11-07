@@ -7,16 +7,17 @@ struct DesktopRoot: View {
     let chat: ChatStore
     let onReady: (OpenWindowAction) -> Void
     @Environment(\.openWindow) private var openWindow
-    enum Destination: Hashable { case quickActions, personas, cloud, status, session(String) }
+    enum Destination: Hashable { case quickActions, personas, cloud, status, groups, session(String) }
     @State private var selected: Destination? = .cloud
     @State private var search = ""
+    @State private var showArchived = false
     @Environment(\.scenePhase) private var scenePhase
     private var visible: [SessionSummary] {
         chat.sessions.filter {
-            search.isEmpty || [$0.title, $0.workspace, $0.provider, $0.model]
+            ($0.archived == true) == showArchived && (search.isEmpty || [$0.title, $0.workspace, $0.provider, $0.model]
                 .compactMap { $0 }
                 .joined(separator: " ")
-                .localizedCaseInsensitiveContains(search)
+                .localizedCaseInsensitiveContains(search))
         }
     }
     var body: some View {
@@ -27,7 +28,9 @@ struct DesktopRoot: View {
                 Label(store.text("quickActions"), systemImage: "bolt").tag(Destination.quickActions)
                 Label(store.text("personas"), systemImage: "person.crop.rectangle").tag(Destination.personas)
                 if chat.device != nil {
-                    GroupedSessionRows(sessions: visible, destination: Destination.session)
+                    Label(store.text("groups.title"), systemImage: "person.3").tag(Destination.groups)
+                    Toggle(store.text("sessions.category.archived"), isOn: $showArchived)
+                    GroupedSessionRows(sessions: visible, store: chat, destination: Destination.session)
                 }
             }
             .navigationSplitViewColumnWidth(min: 210, ideal: 270, max: 360)
@@ -43,6 +46,8 @@ struct DesktopRoot: View {
                     NativeChatConnection(desktop: store, chat: chat)
                         .navigationTitle(store.text("connect.title"))
                 case .status: CloudBotStatusView(store: chat)
+                case .groups:
+                    BotGroupsView(store: chat) { id in showArchived = false; selected = .session(id) }
                 case .session(let id):
                     if let summary = chat.sessions.first(where: { $0.id == id }), let client = chat.client {
                         ConversationScreen(session: summary, client: client).id(id)

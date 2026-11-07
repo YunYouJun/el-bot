@@ -22,11 +22,13 @@ public struct PairingResult: Codable, Sendable {
 public enum SessionCategory: String, CaseIterable, Sendable {
     case all
     case qq
+    case archived
 
     public var localizationKey: String { "sessions.category.\(rawValue)" }
 
     public func includes(_ session: SessionSummary) -> Bool {
-        self == .all || session.source?.platform == rawValue
+        if self == .archived { return session.archived == true }
+        return session.archived != true && (self == .all || session.source?.platform == rawValue)
     }
 }
 
@@ -35,24 +37,33 @@ public struct SessionSummary: Codable, Sendable, Identifiable, Hashable {
     public let title: String
     public let updatedAt: Date
     public let running: Bool
+    public let blank: Bool?
+    public let readOnly: Bool?
+    public let archived: Bool?
     public let workspace: String?
     public let provider: String?
     public let model: String?
     public let source: SessionSource?
+    public let context: SessionContext?
     public var displayTitle: String { source?.name ?? title }
 
     public init(
         id: String, title: String, updatedAt: Date, running: Bool,
-        workspace: String?, provider: String?, model: String?, source: SessionSource? = nil
+        workspace: String?, provider: String?, model: String?, source: SessionSource? = nil,
+        blank: Bool? = nil, archived: Bool? = nil, readOnly: Bool? = nil, context: SessionContext? = nil
     ) {
         self.id = id
         self.title = title
         self.updatedAt = updatedAt
         self.running = running
+        self.blank = blank
+        self.archived = archived
+        self.readOnly = readOnly
         self.workspace = workspace
         self.provider = provider
         self.model = model
         self.source = source
+        self.context = context
     }
 }
 
@@ -114,7 +125,11 @@ extension SessionSummary {
             workspace: workspace,
             provider: route?.provider,
             model: route?.model,
-            source: source
+            source: source,
+            blank: blank,
+            archived: archived,
+            readOnly: readOnly,
+            context: route?.provider == provider && route?.model == model ? context : nil
         )
     }
 }
@@ -139,6 +154,49 @@ public struct BotStatus: Codable, Sendable {
     public let appId: String
     public let state: String
     public let checkedAt: Date
+    public let runtime: RemoteRuntimeStatus?
+    public let host: RemoteHostStatus?
+}
+
+public struct RemoteHostStatus: Codable, Sendable {
+    public let sampledAt: Date
+    public let stale: Bool
+    public let hostname: String
+    public let cpu: HostCPUStatus
+    public let memory: HostCapacityStatus
+    public let disks: [HostDiskStatus]
+}
+
+public struct HostCPUStatus: Codable, Sendable {
+    public let count: Int
+    public let usagePercent: Double
+    public let sampleSeconds: Double
+}
+
+public struct HostCapacityStatus: Codable, Sendable {
+    public let totalBytes: Int64
+    public let usedBytes: Int64
+    public let availableBytes: Int64
+    public let usagePercent: Double
+}
+
+public struct HostDiskStatus: Codable, Sendable {
+    public let mountPoint: String
+    public let totalBytes: Int64
+    public let usedBytes: Int64
+    public let availableBytes: Int64
+    public let usagePercent: Double
+}
+
+public struct RemoteRuntimeStatus: Codable, Sendable {
+    public let hostname: String
+    public let platform: String
+    public let release: String
+    public let arch: String
+    public let nodeVersion: String
+    public let cpuCount: Int
+    public let uptimeSeconds: Double
+    public let memoryRSSBytes: Int64
 }
 
 public struct Endpoint: Sendable, Equatable {
@@ -181,7 +239,30 @@ public enum CompanionError: Error, Sendable, Equatable {
         case .rateLimited: "error.rate_limit"
         case .unavailable: "error.unavailable"
         case .invalidResponse: "error.response"
-        case .rejected: "error.rejected"
+        case .rejected(let code):
+            switch code {
+            case "session_active": "sessions.error.active"
+            case "session_not_found": "sessions.error.deleted"
+            case "invalid_text": "qq.error.text"
+            case "not_found", "journal_unavailable", "invalid_qq_response": "qq.error.unavailable"
+            case "platform_rejected": "qq.delivery.failed"
+            case "qq_chat_unavailable": "qq.error.upgrade"
+            case "still_pausing": "qq.error.pausing"
+            case "preview_expired", "stale_session": "qq.error.preview"
+            case "lease_expired": "qq.error.lease"
+            case "reply_expired": "qq.error.reply"
+            case "proactive_denied", "40034105": "qq.error.proactive"
+            case "send_in_progress": "qq.error.sending"
+            case "rate_limited": "error.rate_limit"
+            case "session_historical": "sessions.historical"
+            case "session_archived": "sessions.error.archived"
+            case "confirmation_expired", "session_changed": "sessions.error.confirmation"
+            case "session_owner_unavailable": "sessions.error.owner"
+            case "session_management_unavailable", "session_deletion_unsupported", "groups_unavailable": "sessions.error.upgrade"
+            case "restart_unavailable": "error.restart_unavailable"
+            case "group_forbidden": "groups.error.forbidden"
+            default: "error.rejected"
+            }
         }
     }
 }
