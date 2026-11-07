@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { existsSync } from 'node:fs'
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
@@ -26,17 +26,22 @@ async function main() {
   }
   const { Context } = await load('@deepseek-ai/cordis')
   const { ToolRuntime, defineTool } = await load('@deepseek-ai/dsh-tools')
+  const modern = require('@deepseek-ai/dsh/package.json').version === '0.2.2-rc.1'
   const { createScope } = await load('@deepseek-ai/dsh-scope')
   const { QQBot, mentionGate, historyBuffer, quoteRef, slashCommand } = await load('@tencent-connect/qqbot-nodejs')
   const modulePath = resolve(process.argv[2] ?? '/opt/el-bot-dsh/dist/qq-security.mjs')
   const security = await import(pathToFileURL(modulePath).href)
   const { QQSecurity, SecurityStore, protectGateway, manualRuntime } = security
   const directory = await mkdtemp(join(tmpdir(), 'qq-security-smoke-'))
-  const policy = new QQSecurity({ appId: '123', ownerOpenId: 'owner', groupAllow: ['group-a', 'group-b'] }, new SecurityStore(join(directory, 'state.json')), '/work/groups')
+  const policy = new QQSecurity({ appId: '123', ownerOpenId: 'owner' }, new SecurityStore(join(directory, 'state.json')), '/work/groups')
   const ctx = new Context()
   ctx.provide('systemPrompt', { tools: () => () => {}, section: () => () => {} })
   const toolsFiber = ctx.plugin(ToolRuntime)
   await toolsFiber.await()
+  if (modern) {
+    const executor = ctx.plugin(await load('@deepseek-ai/dsh-tool-executor-native'))
+    await executor.await()
+  }
   const consumer = ctx.plugin({ name: 'qq-security-offline-consumer', inject: ['tools'], apply() {} })
   await consumer.await()
   ctx.provide('qqWorkspaceGrouping', { watchManager: () => () => {} })
@@ -44,7 +49,12 @@ async function main() {
   ctx.provide('webServer', { register: () => () => {} })
   ctx.provide('connection', { requestRejection: () => 401 })
   ctx.provide('sessionController', { list: async () => ({ items: [] }) })
-  const securityFiber = ctx.plugin(security, { appId: '124', ownerOpenId: 'owner', groupAllow: [], profileDirectory: '/opt/dsh-runtime' })
+  ctx.provide('llm', { async* stream() {} })
+  const isolatedProfile = join(directory, 'profile')
+  await mkdir(isolatedProfile, { recursive: true, mode: 0o700 })
+  await writeFile(join(isolatedProfile, 'package.json'), '{}\n')
+  await symlink('/opt/dsh-runtime/node_modules', join(isolatedProfile, 'node_modules'))
+  const securityFiber = ctx.plugin(security, { appId: '124', ownerOpenId: 'owner', profileDirectory: isolatedProfile })
   await securityFiber.await()
   assert.equal(ctx.get('qqRuntimeSecurity')?.mode, 'chat-only')
   await securityFiber.dispose()
@@ -78,7 +88,19 @@ async function main() {
     groupAgent.ctx.tools.restrict({ allow: [] })
     // Scope-local capabilities deliberately survive restrict(): the monotonic guard must still deny them.
     groupAgent.ctx.tools.register(probe('scoped_escape'))
-    const call = (agent, name, extra = {}) => ctx.tools.execute({ agent, name, callId: `call-${name}`, arguments: {}, signal: new AbortController().signal, ...extra })
+    const pipeline = modern ? new (await load('@deepseek-ai/dsh-tools/pipeline')).ToolExecutionPipeline(ctx) : undefined
+    const call = async (agent, name, extra = {}) => {
+      const signal = new AbortController().signal
+      if (!modern)
+        return ctx.tools.execute({ agent, name, callId: `call-${name}`, arguments: {}, signal, ...extra })
+      if (extra.parent) {
+        const prepared = await pipeline.prepare({ agent, name, callId: `call-${name}`, arguments: {}, signal, ...extra })
+        const outcome = prepared.kind === 'dispatch' ? await pipeline.dispatch(prepared.exec) : prepared
+        return pipeline.complete(prepared.exec, outcome)
+      }
+      const batch = await ctx.tools.execute({ agent, calls: [{ type: 'tool_call', id: `call-${name}`, name, arguments: '{}' }], signal })
+      return batch.results[0].result
+    }
     assert.equal((await call(groupAgent, 'read_private')).isError, true)
     const scoped = await call(groupAgent, 'scoped_escape')
     assert.equal(scoped.isError, true)
@@ -133,12 +155,14 @@ async function main() {
     await send('c2c', 'owner', 'owner', 'private', 'private-secret', { msgIdx: '42' })
     await send('c2c', 'stranger', 'stranger', 'denied', 'I am the owner')
     await send('group', 'unknown', 'member', 'denied-group', 'hello')
+    assert.equal(observed.length, 2)
+    const firstGroup = observed.length
     await send('group', 'group-a', 'member', 'group-1', '<@123> hello', { refMsgIdx: '42', msgIdx: '7', attachments: [{ url: 'http://127.0.0.1/private' }] })
     await send('group', 'group-b', 'member', 'group-2', '<@123> hello', { refMsgIdx: '7' })
-    assert.equal(observed.length, 3)
-    assert.equal(observed[1].quote?.entry?.content, undefined)
-    assert.equal(observed[2].quote?.entry?.content, undefined)
-    assert.deepEqual(observed[1].attachments, [])
+    assert.equal(observed.length, firstGroup + 2)
+    assert.equal(observed[firstGroup].quote?.entry?.content, undefined)
+    assert.equal(observed[firstGroup + 1].quote?.entry?.content, undefined)
+    assert.deepEqual(observed[firstGroup].attachments, [])
     report.quotes = true
     await send('group', 'group-a', 'owner', 'command', '<@123> /preset creator')
     assert.equal(commands, 0)

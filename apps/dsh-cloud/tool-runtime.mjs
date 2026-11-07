@@ -7,13 +7,17 @@ import { pathToFileURL } from 'node:url'
 // Resolve imports without rewriting vendor files or weakening execution guards.
 const require = createRequire('/opt/dsh-runtime/node_modules/@deepseek-ai/dsh/package.json')
 const manifest = JSON.parse(readFileSync(require.resolve('@deepseek-ai/dsh-tools/package.json'), 'utf8'))
-if (manifest.version !== '0.2.1-rc.5')
+if (!['0.2.1-rc.5', '0.2.2-rc.1'].includes(manifest.version))
   throw new Error('Review the DSH tool runtime identity adapter before upgrading')
-const canonical = pathToFileURL(require.resolve('@deepseek-ai/dsh-tools')).href
-registerHooks({
-  resolve(specifier, context, nextResolve) {
-    if (specifier === '@deepseek-ai/dsh-tools')
-      return { url: canonical, shortCircuit: true }
-    return nextResolve(specifier, context)
-  },
-})
+// rc.1 moved scheduling into executor-owned pipelines and removed that Symbol.
+// Keep the old workaround only for the release that needs it.
+if (manifest.version === '0.2.1-rc.5') {
+  const canonical = pathToFileURL(require.resolve('@deepseek-ai/dsh-tools')).href
+  registerHooks({
+    resolve(specifier, context, nextResolve) {
+      if (specifier === '@deepseek-ai/dsh-tools')
+        return { url: canonical, shortCircuit: true }
+      return nextResolve(specifier, context)
+    },
+  })
+}

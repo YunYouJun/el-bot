@@ -1,12 +1,9 @@
 FROM node:24-bookworm-slim@sha256:6042915a8b58012e6699f998ed96bca43ec9d8582447bdb68bc2445d0fafeb79
 
 WORKDIR /opt/dsh-runtime
-RUN npm install --omit=dev --no-audit --no-fund --save-exact \
-    @deepseek-ai/dsh@0.2.1-rc.5 @tencent-connect/dsh-qqbot@0.5.5 @tencent-connect/qqbot-nodejs@1.0.5 \
-    && npm cache clean --force
 # npm auto-installs the QQ plugin's older prerelease peers at the installation
 # root. Align those peers with the host instead of exempting its version guard.
-RUN node -e 'const fs=require("node:fs");const p=JSON.parse(fs.readFileSync("package.json"));p.overrides=Object.fromEntries(["dsh-agent","dsh-llm","dsh-session","dsh-system-prompt","dsh-user-approval"].map(n=>["@deepseek-ai/"+n,"0.2.1-rc.5"]));fs.writeFileSync("package.json",JSON.stringify(p))' \
+RUN node -e 'const fs=require("node:fs");const p={private:true,dependencies:{"@deepseek-ai/dsh":"0.2.2-rc.1","@tencent-connect/dsh-qqbot":"0.5.5","@tencent-connect/qqbot-nodejs":"1.0.5"},overrides:Object.fromEntries(["dsh-agent","dsh-llm","dsh-session","dsh-system-prompt","dsh-user-approval"].map(n=>["@deepseek-ai/"+n,"0.2.2-rc.1"]))};fs.writeFileSync("package.json",JSON.stringify(p))' \
     && npm install --omit=dev --no-audit --no-fund \
     && npm cache clean --force
 # Bootstrap HTTPS with Node's bundled Mozilla roots before installing Debian's CA bundle.
@@ -24,6 +21,7 @@ COPY --chmod=0644 entrypoint.sh /opt/dsh-runtime/entrypoint.sh
 COPY --chmod=0644 cutover.mjs /opt/dsh-runtime/cutover.mjs
 COPY --chmod=0644 health.mjs healthcheck.mjs history.mjs security-smoke.mjs /opt/dsh-runtime/
 COPY --chmod=0644 tool-runtime.mjs tool-runtime-smoke.mjs /opt/dsh-runtime/
+COPY --chmod=0644 session-management-smoke.mjs group-chat-smoke.mjs /opt/dsh-runtime/
 RUN mkdir -p /opt/dsh-qq-workspaces && chmod 0755 /opt/dsh-qq-workspaces /opt/dsh-runtime /opt/el-bot-dsh
 
 ENV NODE_ENV=production

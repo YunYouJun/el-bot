@@ -44,8 +44,7 @@ export async function apply(ctx, route) {
       continue
     const access = manager.config.access
     const mode = scope === 'c2c' ? access.c2cMode : access.groupMode
-    const allow = scope === 'c2c' ? access.c2cAllow : access.groupAllow
-    if (mode === 'disabled' || (mode === 'allowlist' && !allow?.includes(peerId)))
+    if (mode === 'disabled' || (scope === 'c2c' && mode === 'allowlist' && !access.c2cAllow?.includes(peerId)))
       continue
     const sender = scope === 'c2c' ? peerId : manager.config.access.c2cAllow[0]
     const record = await manager.getOrCreate(scope, peerId, sender, { scope, targetId: peerId, msgId: '' })

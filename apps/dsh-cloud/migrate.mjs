@@ -26,8 +26,8 @@ if (!official?.config?.appId || !official.config.appSecret || !tokenlink || type
 const access = official.config.access
 if (access?.c2cMode !== 'allowlist' || access.c2cAllow?.length !== 1)
   throw new Error('Cloud QQ security requires exactly one authenticated private-chat owner')
-// New migrations admit no groups implicitly. Existing explicit allowlists may be retained.
-const groupAllow = access.groupMode === 'allowlist' ? access.groupAllow ?? [] : []
+const cloudAccess = { ...access, groupMode: 'open' }
+delete cloudAccess.groupAllow
 
 const home = join(output, 'home')
 const dsh = join(home, '.dsh')
@@ -78,7 +78,7 @@ const cloudPatch = [
   { ...official, disabled: false, inject: ['qqWorkspaceGrouping', 'qqRuntimeHealth', 'qqRuntimeSecurity'], config: {
     ...official.config,
     requireMention: true,
-    access: { ...access, groupMode: 'allowlist', groupAllow },
+    access: cloudAccess,
   } },
   { insert: [{
     id: 'el-bot-qq-workspaces',
@@ -99,7 +99,6 @@ const cloudPatch = [
     config: {
       appId: official.config.appId,
       ownerOpenId: access.c2cAllow[0],
-      groupAllow,
       profileDirectory: join(sourceHome, '.dsh/profiles/cloud'),
     },
   }, {

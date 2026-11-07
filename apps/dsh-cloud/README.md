@@ -1,6 +1,6 @@
 # 小云 Bot 云端运行
 
-DSH Web、官方 QQ 插件和自动分组适配放在同一个独立容器中。当前固定 DSH `0.2.1-rc.5`、QQ 插件 `0.5.5`，复用个人云机的 Docker，不修改其他站点。
+DSH Web、官方 QQ 插件和自动分组适配放在同一个独立容器中。当前固定 DSH `0.2.2-rc.1`、QQ 插件 `0.5.5`，复用个人云机的 Docker，不修改其他站点。
 
 ## 桌面与 Web 的分工
 
@@ -62,7 +62,7 @@ Web 恢复与 QQ 恢复同一会话时，持久化写锁可能先于 live agent 
 
 ## 入群防护与升级验收
 
-新迁移要求已有唯一私聊主人，并加载 `@el-bot/dsh/qq-security`；QQ 条目依赖 `qqRuntimeSecurity`。默认没有获准群，不再继承开放群模式。只有原配置已显式列出的群白名单会保留。已有实例升级时，在私有 profile 添加安全条目、指定主人 C2C OpenID 和已确认的测试群 OpenID，并为 QQ 条目补上依赖，见 [`@el-bot/dsh` 群聊防护](../../packages/dsh/README.md#群聊防护)。群内自称主人、群管理命令或审批按钮均不能授权；主人通过绑定私聊使用工具。
+新迁移要求已有唯一私聊主人，并加载 `@el-bot/dsh/qq-security`；QQ 条目依赖 `qqRuntimeSecurity`。群聊天不设白名单，机器人加入的群均可聊天，安全模块将 QQ 插件的群接入固定为 `open`。已有实例升级时，在私有 profile 添加安全条目、指定主人 C2C OpenID，并为 QQ 条目补上依赖，见 [`@el-bot/dsh` 群聊防护](../../packages/dsh/README.md#群聊防护)。群内自称主人、群管理命令或审批按钮均不能授权；主人通过绑定私聊使用工具。
 
 升级前备份现用镜像、profile、人物卡、QQ 偏好和工作区索引，保留已有 Compose override。先构建新镜像，再运行下列离线验收；通过后停止旧接收端，原子替换配置与人物卡选择，再启动新镜像。不要把真实凭据打进镜像，也不要让新旧实例同时连接 QQ。新安全策略接管时群会话从空上下文开始，旧历史仍保留；人物卡变更沿用原有准入换新语义。
 
@@ -74,12 +74,34 @@ docker compose up -d --no-deps dsh
 
 `security-smoke.mjs` 使用镜像内真实 Cordis、工具管线与 QQ SDK，在临时目录模拟身份、命令、引用与按钮事件，验证局部工具、嵌套调用及“允许”策略无法绕过群聊 guard，同时确认主人工具可用。同时验证主人手动接管的原文发送、预览去重、暂停／恢复隔离与流式取消。它不启动 QQ 连接，不读取真实凭据，不调用模型，不向真实用户或群发送消息。可进一步使用 `docker run --network none --entrypoint node <镜像> /opt/dsh-runtime/security-smoke.mjs` 在无数据挂载和无网络环境验收。
 
-上线后检查本轮健康状态、群白名单、人物卡新版本和安全 journal 权限，再由已获准测试群验证真实 @ 收发。离线模拟通过和机器人在线不代表已经完成真实群消息的端到端验收。旧 DSH 会话日志保留原有历史；不能把背景缓冲有效期当成历史日志删除策略。
+上线后检查本轮健康状态、人物卡新版本和安全 journal 权限，再在机器人已加入的测试群验证真实 @ 收发。离线模拟通过和机器人在线不代表已经完成真实群消息的端到端验收。旧 DSH 会话日志保留原有历史；不能把背景缓冲有效期当成历史日志删除策略。
+
+群聊天白名单功能及开关已移除。升级时删除安全条目的旧群列表与模式配置，移除 QQ 插件的旧群列表，并将其 `access.groupMode` 设为 `open`。使用镜像内 `security-smoke.mjs` 完成无网络验收，再重启唯一接收实例。核对本轮 `runtime.json` 的 `groupMode: open`、主人及工具 guard 标记和连接健康。迁移程序同样生成无需逐群授权的配置，并保留群聊工具禁用、数据隔离和限流。
 
 未 @ 的待处理群消息存于 `home/.dsh-qqbot/group-history/<AppID>/`，文件名为群键摘要，目录 `700`、文件 `600`，原子替换。每组遵循现有 `historyLimit`，并设硬上限 100 条、单条 4000 字符、有效期 24 小时；模型回复后沿用官方插件的清空行为。只接管指定 AppID，不影响其他机器人。初始化需要固定 QQ 插件 `0.5.5`；持久化文件损坏会明确报错，不覆盖原数据。
 
 ## 手动接管部署验收
 
-手动接管随 `@el-bot/dsh/qq-security` 加载，不改动既有主人、群白名单或人物卡选择。更新整个 `@el-bot/dsh` 构建产物（含共享 chunk、`dist/client.js` 与 `dist/web/`），保留 Mobile Compose override。使用镜像内真实 SDK 的 `security-smoke.mjs` 完成无网络验收，再切换唯一接收实例。新版本 `runtime.json` 应有 `manualEnabled: true`，并与本轮连接健康同时检查。
+手动接管随 `@el-bot/dsh/qq-security` 加载，保留既有主人和人物卡选择。更新整个 `@el-bot/dsh` 构建产物（含共享 chunk、`dist/client.js` 与 `dist/web/`），保留 Mobile Compose override。使用镜像内真实 SDK 的 `security-smoke.mjs` 完成无网络验收，再切换唯一接收实例。新版本 `runtime.json` 应有 `manualEnabled: true`，并与本轮连接健康同时检查。
 
-通过已有 DSH 登录入口，在侧栏打开「手动接管」。检查未登录访问 `/el-bot/manual/api` 被拒绝，主人只看到白名单会话；具体操作、限流、超时和平台权限核验见 [主人手动接管](../../packages/dsh/README.md#主人手动接管)。部署与界面离线验收不会代替目标 QQ 的主动发送权限确认。
+通过已有 DSH 登录入口，在侧栏「机器人」→「手动接管」打开。检查未登录访问 `/el-bot/manual/api` 被拒绝，主人可查看已绑定会话；具体操作、限流、超时和平台权限核验见 [主人手动接管](../../packages/dsh/README.md#主人手动接管)。部署与界面离线验收不会代替目标 QQ 的主动发送权限确认。
+
+## 定时群发部署验收
+
+定时群发随 `@el-bot/dsh/qq-security` 加载，不需要单独的凭据或额外端口。完整 profile patch 示例见 [`packages/dsh/examples/profile-cordis.patch.yml`](../../packages/dsh/examples/profile-cordis.patch.yml)；云端实例还需保留 `qqRuntimeHealth` 依赖。更新完整 `@el-bot/dsh` 构建产物后，`runtime.json` 应同时包含 `manualEnabled: true` 和 `scheduledEnabled: true`，并与本轮连接健康一起核对。未登录访问 `/el-bot/schedule/api` 必须被拒绝；主人登录后可在「机器人」→「定时群发」创建固定文本、AI 群聊总结或规则统计任务。
+
+AI 总结通过 DSH 的 `llm` 服务调用，默认使用目标群当前选择的模型；也可在安全插件配置中用 `summary.provider`、`summary.model` 指定兜底，取值必须是本实例 `llm-pi-ai` 中真实存在的 provider 和模型 ID（当前云端为 `deepseek-api` / `deepseek-flash`）。生成摘要不进入群会话历史，也不向模型开放工具。部署验收可创建一条停用任务、编辑并删除，确认页面和接口只由主人访问；离线验收不向真实 QQ 发送定时消息。真实发送前仍需在目标群确认 QQ 的「允许主动发送」开关，没有权限时会记录 `40034105`，不会自动重试或改发其他群。具体行为与配额见 [定时群发](../../packages/dsh/README.md#定时群发)。
+
+## DSH 0.2.2-rc.1 升级
+
+2026-11-07 已将云端升级至 `0.2.2-rc.1`，保留 QQ 插件 `0.5.5`、SDK `1.0.5` 和当日已经部署的群聊富媒体更新。DSH 原生 Web 在 768px 以下使用侧栏抽屉，展开不挤压主内容，点击遮罩关闭；无需注入移动布局补丁或重新安装原生 App。
+
+新镜像在安装依赖前声明版本覆盖，避免旧 QQ peer 依赖和旧锁文件留下混合的 Cordis / DSH 树。QQ 安全与 mobile 插件仍使用明确的版本准入，仅支持已验证的 `0.2.1-rc.5` / `0.2.2-rc.1`。新版工具执行改为独立执行器，`tool-runtime.mjs` 只为旧版启用 scheduler Symbol 适配；离线验收同时覆盖新版原生执行器、嵌套调用、单调 guard、归档与实际文件删除。
+
+本次镜像为 `el-bot/dsh-cloud:0.2.2-rc.1-upgrade-20261107`。正式切换前确认任务空闲，并备份到服务器 `backups/dsh-022-20261107.tgz`；旧镜像保留为 `el-bot/dsh-cloud:before-022-20261107`。新增 `compose.upgrade.yaml`，后续操作需要依次加载 `compose.yaml`、`compose.override.yaml`、`compose.phone.yaml`、`compose.native.yaml`、`compose.rich.yaml`、`compose.upgrade.yaml`，保留现有代理、富媒体与工具适配。原包与部署清单位于 `releases/dsh-022-20261107/baseline/`，升级覆盖使用该 release 中独立的插件目录。
+
+正式环境已验证 QQ 本轮 ready 与容器健康、原生会话及历史、模型目录、上下文、人物卡、群目录、Web 票据登录及临时设备撤销。手机尺寸 Chromium / WebKit（390×844）与桌面 Chromium（1280×900）均通过抽屉和控制台检查。此验证未发送真实 QQ 消息或触发模型任务，也不替代 iPhone / Android 真机交互回归。
+
+升级前的 32 份会话文件全部保留原始记录前缀，其中 3 份仅追加新版恢复所需的 `session/end-seed`。5 台设备的身份、令牌摘要与有效期保持不变，提供方凭据、人物卡选择、QQ 模型偏好和删除日志均一致。最终全仓 530 项测试、typecheck 和 lint 均通过，其中包含并行新增的 `packages/yunlefun` 包。
+
+回退前先确认任务空闲并另存当前数据，再停止唯一接收实例，使用升级前五份 Compose 文件和旧镜像恢复。若新版已写入旧版不兼容的存储格式，应在保留升级后数据副本的前提下恢复完整备份；不得覆盖丢弃升级后新增的历史。
