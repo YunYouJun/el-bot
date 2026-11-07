@@ -47,12 +47,11 @@ impl Tray {
         let builder = TrayIconBuilder::new()
             .with_menu(Box::new(menu))
             .with_tooltip("Yun");
-        let tray = if cfg!(target_os = "macos") {
-            builder.with_icon_templated(icon)
-        } else {
-            builder.with_icon(icon)
-        }
-        .build()?;
+        #[cfg(target_os = "macos")]
+        let builder = builder.with_icon_templated(icon);
+        #[cfg(not(target_os = "macos"))]
+        let builder = builder.with_icon(icon);
+        let tray = builder.build()?;
         MenuEvent::set_event_handler(Some(move |event: MenuEvent| {
             let Some(action) = actions.get(&event.id) else {
                 return;

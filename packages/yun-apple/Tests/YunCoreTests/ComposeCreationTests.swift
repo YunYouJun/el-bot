@@ -45,8 +45,9 @@ private final class ComposeProtocol: URLProtocol, @unchecked Sendable {
     override class func canInit(with request: URLRequest) -> Bool { request.url?.host?.hasSuffix(".invalid") == true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
+        let request = self.request
         guard let url = request.url, let fixture = Self.fixtures.get(url.host ?? "") else { return }
-        Task {
+        Task { [self, request] in
             let response = await fixture.respond(request)
             client?.urlProtocol(self, didReceive: HTTPURLResponse(url: url, statusCode: response.status, httpVersion: nil, headerFields: ["Content-Type": "application/json"])!, cacheStoragePolicy: .notAllowed)
             client?.urlProtocol(self, didLoad: Data(response.json.utf8))
