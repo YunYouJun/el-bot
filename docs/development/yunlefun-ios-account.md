@@ -22,3 +22,5 @@ AI Runtime `POST /ai/v1/mobile/el-bot-account` 接受带 entitlement、DPoP 和�
 原生代码位于 `YunCore/YunleAccount.swift`、`YunUI/YunleAccountView.swift`，iOS 设置页接入独立 store。`YunleAccountServing`、传输和安全存储均可注入离线替身；测试覆盖只读登录、DPoP 签名/正文绑定、退出、刷新不确定结果与错误 audience/安装/scope。
 
 配套网站与 Runtime 必须先发布对应代码，再通过云乐坊签名 Registry 登记 `el-bot-ios`。未登记时登录显示未启用，不回退为云端执行客户端。UI 离线预览不代表生产登录已经通过；最终还需在系统认证窗口用真实账号完成一次只读授权，并核对服务端余额与记录。
+
+2026-11-08 已完成生产部署与 Registry 第 20 代登记。在 iPhone 17 Pro（iOS 26.5）模拟器的实际 App 中，用真实账号完成只读授权，核验了余额、预留、累计消耗与空用量状态；终止并重启 App 后，Keychain 登录恢复及在线查询均通过。验证未产生模型扣点。Swift 测试、模拟器构建和真机 arm64 编译通过；尚未安装到物理 iPhone 验证。
