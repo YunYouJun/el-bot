@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.1.0",
   "private": true,
-  "description": "el-bot character cards and QQ workspace integration for DSH",
+  "description": "el-bot character cards, owner takeover and QQ scheduling for DSH",
   "license": "AGPL-3.0",
   "exports": {
     ".": {
@@ -37,9 +37,10 @@
     },
     "compatibility": {
       "dshReleases": {
-        "0.2.1-rc.5": "compatible"
+        "0.2.1-rc.5": "compatible",
+        "0.2.2-rc.1": "compatible"
       },
-      "note": "Character cards, authenticated Web page and QQ admission are verified against DSH 0.2.1-rc.5 and dsh-qqbot 0.5.5"
+      "note": "Character cards, authenticated Web page and QQ admission support DSH 0.2.1-rc.5 and 0.2.2-rc.1 with dsh-qqbot 0.5.5"
     }
   },
   "scripts": {

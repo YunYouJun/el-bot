@@ -4,8 +4,16 @@ import type { PeerRecord } from '../qq-workspaces/contracts'
 export interface SecuritySettings {
   appId: string
   ownerOpenId: string
-  groupAllow?: string[]
   profileDirectory?: string
+  timezone?: string
+  commandMarkdown?: boolean
+  summary?: {
+    provider?: string
+    model?: string
+    reasoningEffort?: string
+    maxTokens?: number
+    timeoutMs?: number
+  }
 }
 
 export interface Target { scope: string, targetId: string, msgId?: string, eventId?: string }
@@ -53,6 +61,7 @@ export interface Gateway {
   off: (event: string, listener: InteractionHandler) => unknown
   send: (options: { target: Target, content?: string, markdown?: { content: string }, [key: string]: unknown }) => unknown
   sendText: (target: Target, content: string) => unknown
+  sendMarkdown?: (target: Target, content: string) => unknown
   sendTextWithKeyboard: (target: Target, content: string, keyboard?: unknown) => unknown
   sendImage: (target: Target, ...args: unknown[]) => unknown
   sendVideo: (target: Target, ...args: unknown[]) => unknown
@@ -65,15 +74,27 @@ export interface Gateway {
 export interface ToolRuntime {
   guard: (check: (execution: { agent?: object }) => string | undefined) => () => void
   restrict: (filter: { allow: string[] }) => () => void
+  register?: (definition: ToolDefinition) => () => void
+}
+export interface ToolDefinition {
+  name: string
+  description: string
+  parameters: Record<string, unknown>
+  output: {
+    schema: Record<string, unknown>
+    render: (args: unknown, value: unknown) => { type: 'text', text: string }[]
+  }
+  execute: (args: unknown, execution: { agent?: object, callId: string, signal: AbortSignal }) => Promise<unknown>
 }
 export type ProtectedAgent = PeerRecord['agent'] & {
   ctx: { tools: ToolRuntime }
 }
 export interface SecurityManager extends ManagedQQ {
   getSessionRecord?: (scope: 'c2c' | 'group', peer: string) => PeerRecord | undefined
+  getEffectiveModel?: (scope: 'c2c' | 'group', peerId: string) => { provider: string, model: string, reasoningEffort?: string } | undefined
   config: {
     appId: string
-    access: { c2cMode?: string, c2cAllow: string[], groupMode?: string, groupAllow?: string[] }
+    access: { c2cMode?: string, c2cAllow: string[], groupMode?: string }
     requireMention?: boolean
     historyLimit?: number
     textChunkLimit?: number
@@ -89,15 +110,21 @@ export interface SecurityEvents {
 export interface SecurityContext {
   tools: ToolRuntime
   qqWorkspaceGrouping: { watchManager: (listener: (manager: SecurityManager) => void) => () => void }
+  llm?: import('./schedule-types').ScheduleLlm
+  logger?: {
+    info?: (message: string) => void
+    warn?: (message: string) => void
+    error?: (message: string) => void
+  }
   get: (name: string) => unknown
   provide: (name: string, service: unknown) => unknown
   on: <K extends keyof SecurityEvents>(name: K, listener: SecurityEvents[K], options?: { global?: boolean, prepend?: boolean }) => () => void
-  effect: (install: () => (() => void), label?: string) => unknown
+  effect: (install: () => (() => void | Promise<void>), label?: string) => unknown
   loader?: { internal?: { import: (specifier: string, baseUrl: string, options: object) => Promise<unknown> } }
   baseUrl?: string
   webServer: import('../contracts').PersonaContext['webServer']
   connection: import('../contracts').PersonaContext['connection']
   sessionController: {
-    list: (request: object, signal: AbortSignal) => Promise<{ items: { sessionId: string, projections?: { values: Record<string, unknown> } }[] }>
+    list: (request: object, signal: AbortSignal) => Promise<{ items: { sessionId: string, running?: boolean, projections?: { values: Record<string, unknown> } }[] }>
   }
 }

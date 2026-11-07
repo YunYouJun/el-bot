@@ -38,7 +38,7 @@ export interface PeerRecord {
 export interface QQManager {
   modelResolver?: { setOverride: (key: string, route: Route) => void }
   ctx: HostContext
-  config: { appId: string, access: { c2cAllow: string[], c2cMode?: string, groupMode?: string, groupAllow?: readonly string[] } }
+  config: { appId: string, access: { c2cAllow: string[], c2cMode?: string, groupMode?: string } }
   host: { sessionHeader: (id: string) => Promise<Header | undefined> }
   registerScopePromptInjection: () => void
   workspaceDir: () => string

@@ -10,8 +10,9 @@ import { ManualControl } from './manual'
 import { ManualError } from './manual-types'
 
 /** A private capability connects owner-confirmed sends to the existing live SDK. */
-export function manualRuntime(ctx: SecurityContext, policy: QQSecurity, profile: string, preferencesFile = join(homedir(), '.dsh-qqbot/model-prefs.json')) {
+export function manualRuntime(ctx: SecurityContext, policy: QQSecurity, profile: string, preferencesFile = join(homedir(), '.dsh-qqbot/model-prefs.json'), captureSend?: <T>(target: Target, text: string, manual: boolean, send: () => Promise<T>) => Promise<T>) {
   const capability = new AsyncLocalStorage<string>()
+  const scheduled = new AsyncLocalStorage<string>()
   const pending = new Map<string, Set<Promise<unknown>>>()
   const streams = new Map<string, Set<{ cancel: () => void }>>()
   let transport: ((target: Target, text: string) => Promise<unknown>) | undefined
@@ -27,6 +28,8 @@ export function manualRuntime(ctx: SecurityContext, policy: QQSecurity, profile:
       return Object.entries(preferences.sessionIds ?? {}).flatMap(([key, sessionId]): ManualTarget[] => {
         const peer = parsePeer(key, policy.appId)
         if (!peer || !policy.allowed(peer.scope, peer.peerId) || typeof sessionId !== 'string' || !sessionId)
+          return []
+        if ((ctx.get?.('workspaceRegistry') as { archivedSessionIds: readonly string[] } | undefined)?.archivedSessionIds.includes(sessionId))
           return []
         const values = items.find(row => row.sessionId === sessionId)?.projections?.values
         const projected = values?.title
@@ -92,7 +95,12 @@ export function manualRuntime(ctx: SecurityContext, policy: QQSecurity, profile:
           }
           if (capability.getStore() !== id(target))
             policy.assertAutomatic(target)
-          const task = Promise.resolve().then(() => original.apply(api, args))
+          const text = name === 'sendRaw' ? (args[3] as { content?: unknown } | undefined)?.content : args[2]
+          const send = () => original.apply(api, args)
+          const scheduledSend = scheduled.getStore() === id(target)
+          const task = Promise.resolve().then(() => target.scope === 'group' && typeof text === 'string' && captureSend
+            ? captureSend(target, text, !scheduledSend && capability.getStore() === id(target), send)
+            : send())
           const entries = pending.get(id(target)) ?? new Set<Promise<unknown>>()
           entries.add(task)
           pending.set(id(target), entries)
@@ -130,5 +138,16 @@ export function manualRuntime(ctx: SecurityContext, policy: QQSecurity, profile:
       }
     },
   }
-  return { controller, hooks }
+  return {
+    controller,
+    hooks,
+    async sendProactive(target: Target, text: string) {
+      if (!transport || !policy.allowed(target.scope, target.targetId))
+        throw new ManualError(503, 'unavailable')
+      const targetId = id(target)
+      if (controller.paused(targetId))
+        throw new ManualError(409, 'manual_active')
+      return scheduled.run(targetId, () => capability.run(targetId, () => transport!({ scope: target.scope, targetId: target.targetId }, text)))
+    },
+  }
 }

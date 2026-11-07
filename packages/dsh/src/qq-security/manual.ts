@@ -34,6 +34,10 @@ export class ManualControl {
 
   constructor(readonly path: string, private readonly bridge: ManualBridge, private readonly now = Date.now) {}
 
+  targets() {
+    return this.bridge.targets()
+  }
+
   async initialize() {
     try {
       if ((await stat(this.path)).size > 2 * 1024 * 1024)
@@ -111,7 +115,7 @@ export class ManualControl {
     return !this.state.leases[id] || Boolean(msgId && this.fresh.get(id)?.has(msgId))
   }
 
-  observe(id: string, messageId: string, text: string, canReply: boolean) {
+  observe(id: string, messageId: string, text: string, canReply: boolean, receivedWhilePaused = false) {
     const seen = this.seen.get(id) ?? new Set<string>()
     if (seen.has(messageId))
       return false
@@ -124,7 +128,7 @@ export class ManualControl {
     this.recent.set(id, entries.slice(-10))
     if (canReply)
       this.anchors.set(id, { id: messageId, expiresAt: this.now() + 240_000 })
-    if (!this.paused(id)) {
+    if (!this.paused(id) && !receivedWhilePaused) {
       const accepted = this.fresh.get(id) ?? new Set<string>()
       accepted.add(messageId)
       if (accepted.size > 128)
@@ -197,11 +201,13 @@ export class ManualControl {
         const seconds = input.seconds ?? 600
         if (!Number.isSafeInteger(seconds) || seconds < 30 || seconds > 1800)
           throw new ManualError(400, 'invalid_duration')
-        if (this.paused(target.id))
+        if (this.paused(target.id) && this.state.leases[target.id]?.phase === 'active')
           return this.view()
-        this.state.leases[target.id] = { id: randomUUID(), expiresAt: this.now() + seconds * 1000, phase: 'pausing' }
-        this.fresh.delete(target.id)
-        await this.save()
+        if (!this.paused(target.id)) {
+          this.state.leases[target.id] = { id: randomUUID(), expiresAt: this.now() + seconds * 1000, phase: 'pausing' }
+          this.fresh.delete(target.id)
+          await this.save()
+        }
         try {
           await this.bridge.drain(target)
           this.state.leases[target.id].phase = 'active'

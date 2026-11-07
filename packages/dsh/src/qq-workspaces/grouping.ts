@@ -177,8 +177,7 @@ export class WorkspaceGrouping {
       if (!peer || typeof id !== 'string' || !id)
         continue
       const access = manager.config.access
-      if (peer.scope === 'group' && (access.groupMode === 'disabled'
-        || (access.groupMode === 'allowlist' && !access.groupAllow?.includes(peer.peerId)))) {
+      if (peer.scope === 'group' && access.groupMode === 'disabled') {
         continue
       }
       if (peer.scope === 'c2c' && (access.c2cMode === 'disabled'

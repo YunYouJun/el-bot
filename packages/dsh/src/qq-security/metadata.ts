@@ -71,13 +71,24 @@ export class QQConversationMetadataStore {
     try {
       if ((await stat(this.path)).size > 1024 * 1024)
         return
-      // Re-project persisted data through the same allowlist as a live event.
+      // Re-project persisted data through the same admission checks as a live event.
       const values = object(JSON.parse(await readFile(this.path, 'utf8')))
-      for (const [key, entry] of Object.entries(values).slice(0, 33)) {
+      for (const [key, entry] of Object.entries(values).slice(0, 1025)) {
         const peer = parsePeer(key, this.appId)
-        if (!peer || !this.allowed(peer.scope, peer.peerId))
+        if (!peer)
           continue
         const value = object(entry)
+        this.peers.set(key, {
+          platform: 'qq',
+          kind: peer.scope === 'group' ? 'group' : 'direct',
+          appId: this.appId,
+          peerId: peer.peerId,
+          name: text(value.name),
+          description: text(value.description, 1000),
+          category: text(value.category),
+        })
+        if (!this.allowed(peer.scope, peer.peerId))
+          continue
         const message = object(value.lastMessage)
         this.observe({
           kind: peer.scope,
@@ -154,6 +165,31 @@ export class QQConversationMetadataStore {
     }
   }
 
+  async groupProfile(peerId: string): Promise<QQConversationMetadata> {
+    const key = `qqbot:${this.appId}:group:${peerId}`
+    const value = this.peers.get(key) ?? { platform: 'qq', kind: 'group', appId: this.appId, peerId }
+    if (this.read)
+      await this.refreshProfile(key, value)
+    const { lastMessage: _message, ...profile } = this.peers.get(key) ?? value
+    return profile
+  }
+
+  groupName(peerId: string): string | undefined {
+    return this.peers.get(`qqbot:${this.appId}:group:${peerId}`)?.name
+  }
+
+  async flush() { await this.save() }
+
+  async clearMessage(scope: Scope, peerId: string) {
+    const key = `qqbot:${this.appId}:${scope}:${peerId}`
+    const current = this.peers.get(key)
+    if (current) {
+      const { lastMessage: _message, ...profile } = current
+      this.peers.set(key, profile)
+      await this.save()
+    }
+  }
+
   async summaries(sessionIds: string[]): Promise<Record<string, QQConversationMetadata>> {
     const result: Record<string, QQConversationMetadata> = {}
     try {
@@ -212,7 +248,7 @@ export class QQConversationMetadataStore {
     const botStateStatus = state.status === 'fulfilled' ? 'available' : access(state.reason)
     this.peers.set(key, {
       ...this.peers.get(key) ?? value,
-      name: text(group.group_name),
+      name: text(group.group_name) ?? value.name,
       description: text(group.group_finger_memo, 1000),
       category: text(group.group_class_text),
       tags: Array.isArray(group.group_tags) ? group.group_tags.slice(0, 12).flatMap(item => text(item, 40) ?? []) : undefined,

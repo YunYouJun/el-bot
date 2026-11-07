@@ -1,13 +1,20 @@
 <script setup lang="ts">
 import type { PersonaImport, PersonaLibraryState, PersonaPreview, PersonaResult } from '../../persona/src/types'
 import { computed, onMounted, ref, shallowRef } from 'vue'
+import dafeiyu from '../../persona/examples/dafeiyu.md?raw'
 import xiaoyun from '../../persona/examples/xiaoyun.md?raw'
 import { renderPersonaPreview } from './persona-preview'
+
+const examples = [
+  { id: 'xiaoyun', name: '小云', icon: '☁', description: '元气、爱代码、擅长休眠', author: 'YunYouJun', license: 'CC-BY-NC-SA-4.0', source: 'YunYouJun/yun · persona/xiaoyun.md', file: 'xiaoyun.md', text: xiaoyun },
+  { id: 'dafeiyu', name: '大肥鱼', icon: '🐟', description: '蓝色大肥鱼：DeepSeek 社区二创鲸鱼娘，傲娇、爱吃白饭', author: 'huaizhuanghub', license: 'MIT', source: 'huaizhuanghub/dsh-persona-dafeiyu · lib/index.js', file: 'dafeiyu.md', text: dafeiyu },
+] as const
+type ExampleID = (typeof examples)[number]['id']
 
 const instance = ref('DSH 机器人')
 const library = shallowRef<PersonaLibraryState>()
 const preview = shallowRef<PersonaPreview>()
-const example = ref(true)
+const exampleID = ref<ExampleID | undefined>('xiaoyun')
 const busy = ref(false)
 const error = ref('')
 const notice = ref('')
@@ -16,10 +23,12 @@ const location = ref('')
 const repositoryPath = ref('persona/xiaoyun.md')
 const gitRef = ref('HEAD')
 const blocked = computed(() => busy.value)
-const body = computed(() => example.value ? xiaoyun.replace(/^---\n[\s\S]*?\n---\n/, '').trim() : preview.value?.body ?? '')
+const exampleCard = computed(() => examples.find(item => item.id === exampleID.value))
+const availableExamples = computed(() => examples.filter(item => !library.value?.cards.some(card => card.metadata.id === item.id)))
+const body = computed(() => exampleCard.value ? exampleCard.value.text.replace(/^---\n[\s\S]*?\n---\n/, '').trim() : preview.value?.body ?? '')
 const rendered = computed(() => renderPersonaPreview(body.value))
 const card = computed(() => library.value?.cards.find(card => card.metadata.id === preview.value?.metadata.id))
-const enabled = computed(() => !example.value && !!preview.value && library.value?.active?.id === preview.value.metadata.id && library.value.active.hash === preview.value.hash)
+const enabled = computed(() => !exampleCard.value && !!preview.value && library.value?.active?.id === preview.value.metadata.id && library.value.active.hash === preview.value.hash)
 const activeName = computed(() => {
   const state = library.value
   if (!state)
@@ -27,8 +36,8 @@ const activeName = computed(() => {
   return state.cards.find(card => card.metadata.id === state.active?.id)?.revisions.find(revision => revision.hash === state.active?.hash)?.metadata.name ?? '默认助手'
 })
 const source = computed(() => {
-  if (example.value)
-    return 'YunYouJun/yun · persona/xiaoyun.md'
+  if (exampleCard.value)
+    return exampleCard.value.source
   const value = preview.value?.source
   return !value ? '' : value.kind === 'git' ? `${value.repository} · ${value.path} @ ${value.commit.slice(0, 8)}` : value.kind === 'file' ? value.path : value.kind === 'url' ? value.url : preview.value?.metadata.homepage || value.name
 })
@@ -45,16 +54,21 @@ async function perform(operation: 'list' | 'import' | 'preview' | 'use' | 'disab
     library.value = result.library
     if (result.preview) {
       preview.value = result.preview
-      example.value = false
+      exampleID.value = undefined
     }
     if (operation === 'use' || operation === 'disable')
       notice.value = '已保存。下一条任务将开始新会话，当前任务会继续完成。'
     if (operation === 'import' || operation === 'update')
       notice.value = '人物卡已保存到此机器人。预览后点击「启用此版本」即可使用。'
-    if (operation === 'list' && result.library.active) {
-      const selected = await request({ operation: 'preview', id: result.library.active.id, revision: result.library.active.hash })
-      preview.value = selected.preview
-      example.value = false
+    if (operation === 'list') {
+      if (result.library.active) {
+        const selected = await request({ operation: 'preview', id: result.library.active.id, revision: result.library.active.hash })
+        preview.value = selected.preview
+        exampleID.value = undefined
+      }
+      else if (exampleID.value && result.library.cards.some(card => card.metadata.id === exampleID.value)) {
+        exampleID.value = examples.find(item => !result.library.cards.some(card => card.metadata.id === item.id))?.id
+      }
     }
   }
   catch (e) { error.value = String(e) }
@@ -74,12 +88,12 @@ async function request(input: object): Promise<PersonaResult & { instance: { tit
 
 function showDefault() {
   preview.value = undefined
-  example.value = false
+  exampleID.value = undefined
   notice.value = ''
 }
-function showExample() {
+function showExample(id: ExampleID) {
   preview.value = undefined
-  example.value = true
+  exampleID.value = id
   notice.value = ''
 }
 async function importLocation() {
@@ -127,25 +141,25 @@ function changeRevision(event: Event) {
     <div class="persona-layout">
       <section class="dsh-section persona-collection">
         <h2>我的人物卡</h2>
-        <button class="persona-choice" :aria-pressed="!example && !preview" @click="showDefault">
+        <button class="persona-choice" :aria-pressed="!exampleCard && !preview" @click="showDefault">
           <strong>✧ 默认助手</strong><small>使用任务程序原有风格</small>
         </button>
-        <button v-for="item in library?.cards ?? []" :key="item.metadata.id" class="persona-choice" :aria-label="`预览 ${item.metadata.name}`" :aria-pressed="!example && preview?.metadata.id === item.metadata.id" :disabled="blocked" @click="perform('preview', item.metadata.id)">
+        <button v-for="item in library?.cards ?? []" :key="item.metadata.id" class="persona-choice" :aria-label="`预览 ${item.metadata.name}`" :aria-pressed="!exampleCard && preview?.metadata.id === item.metadata.id" :disabled="blocked" @click="perform('preview', item.metadata.id)">
           <strong>{{ item.metadata.name }} <small v-if="library?.active?.id === item.metadata.id">已启用</small></strong><small>{{ item.metadata.description || '查看人物设定' }}</small>
         </button>
-        <template v-if="!library?.cards.some(item => item.metadata.id === 'xiaoyun')">
+        <template v-if="availableExamples.length">
           <p class="persona-eyebrow">
             从一个角色开始
-          </p><button class="persona-choice" :aria-pressed="example" @click="showExample">
-            <strong>☁ 小云 · 示例</strong><small>元气、爱代码、擅长休眠</small>
+          </p><button v-for="item in availableExamples" :key="item.id" class="persona-choice" :aria-pressed="exampleCard?.id === item.id" @click="showExample(item.id)">
+            <strong>{{ item.icon }} {{ item.name }} · 示例</strong><small>{{ item.description }}</small>
           </button>
         </template>
       </section>
       <section class="dsh-section persona-preview">
         <div class="section-heading">
-          <div><span class="persona-eyebrow">{{ example ? '示例 · 尚未导入' : enabled ? '正在使用' : preview ? '人物卡预览' : '默认风格' }}</span><h2>{{ example ? '小云' : preview?.metadata.name ?? '默认助手' }}</h2></div>
-          <button v-if="example" type="button" class="dsh-button" :disabled="blocked" @click="perform('import', undefined, undefined, { kind: 'text', name: 'xiaoyun.md', text: xiaoyun })">
-            导入小云示例
+          <div><span class="persona-eyebrow">{{ exampleCard ? '示例 · 尚未导入' : enabled ? '正在使用' : preview ? '人物卡预览' : '默认风格' }}</span><h2>{{ exampleCard?.name ?? preview?.metadata.name ?? '默认助手' }}</h2></div>
+          <button v-if="exampleCard" type="button" class="dsh-button" :disabled="blocked" @click="perform('import', undefined, undefined, { kind: 'text', name: exampleCard.file, text: exampleCard.text })">
+            导入{{ exampleCard.name }}示例
           </button>
           <button v-else-if="preview" type="button" class="dsh-button" :disabled="blocked || enabled" @click="perform('use', preview.metadata.id, preview.hash)">
             {{ enabled ? '已启用此版本' : '启用此版本' }}
@@ -155,9 +169,9 @@ function changeRevision(event: Event) {
           </button>
         </div>
         <template v-if="body">
-          <p>{{ example ? '诞生于互联网的元气机械少女，爱代码，也擅长休眠。' : preview?.metadata.description }}</p>
+          <p>{{ exampleCard?.description ?? preview?.metadata.description }}</p>
           <div class="persona-meta">
-            <span>{{ example ? 'YunYouJun' : preview?.metadata.author || '作者未注明' }}</span><span>{{ example ? 'CC-BY-NC-SA-4.0' : preview?.metadata.license || '许可证未注明' }}</span>
+            <span>{{ exampleCard?.author || preview?.metadata.author || '作者未注明' }}</span><span>{{ exampleCard?.license || preview?.metadata.license || '许可证未注明' }}</span>
           </div>
           <div v-if="preview && card?.revisions.length" class="persona-revisions">
             <label for="persona-revision">预览版本</label><select id="persona-revision" class="form-input" :value="preview.hash" :disabled="blocked" @change="changeRevision">

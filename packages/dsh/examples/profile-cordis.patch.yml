@@ -1,0 +1,48 @@
+# Fresh-profile example for the DSH profile overlay at <profile>/cordis.patch.yml.
+# Merge these entries into an existing profile patch instead of duplicating ids.
+# Replace every placeholder before use. Never commit real AppSecret or OpenID values.
+#
+# The @el-bot/dsh package is registered through dsh.profile.bundles in the
+# profile package.json. Its bundle patch already inserts el-bot-personas, so the
+# persona entry below only overrides that instance's config.
+
+- id: im-qqbot
+  inject: [qqWorkspaceGrouping, qqRuntimeSecurity]
+  config:
+    appId: YOUR_APP_ID
+    appSecret: YOUR_APP_SECRET
+    requireMention: true
+    access:
+      c2cMode: allowlist
+      c2cAllow: [OWNER_C2C_OPENID]
+      groupMode: open
+
+- insert:
+    - id: el-bot-qq-workspaces
+      name: '@el-bot/dsh/qq-workspaces'
+      config:
+        appId: YOUR_APP_ID
+        profileDirectory: /absolute/path/to/.dsh/profiles/cloud
+        privateTitle: 小云 Bot · 私聊
+        groupTitle: 小云 Bot · 群聊
+
+    - id: el-bot-qq-security
+      name: '@el-bot/dsh/qq-security'
+      config:
+        appId: YOUR_APP_ID
+        ownerOpenId: OWNER_C2C_OPENID
+        profileDirectory: /absolute/path/to/.dsh/profiles/cloud
+        timezone: Asia/Shanghai
+        # Set false to force plain-text command replies.
+        commandMarkdown: true
+        # Optional fallback when a group has no selected model.
+        # summary:
+        #   provider: deepseek-api
+        #   model: deepseek-flash
+        #   maxTokens: 800
+        #   timeoutMs: 30000
+
+- id: el-bot-personas
+  config:
+    profileDirectory: /absolute/path/to/.dsh/profiles/cloud
+    title: 小云 Bot

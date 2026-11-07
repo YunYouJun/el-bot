@@ -1,7 +1,6 @@
 import { createApp } from 'vue'
+import AppShell from './AppShell.vue'
 import { followHostTheme } from './host-theme'
-import ManualManager from './ManualManager.vue'
-import PersonaManager from './PersonaManager.vue'
 import './style.css'
 
 let stopTheme = followHostTheme()
@@ -21,6 +20,4 @@ if (import.meta.hot) {
     window.removeEventListener('pageshow', restoreTheme)
   })
 }
-const manual = window.location.pathname.startsWith('/el-bot/manual')
-document.title = manual ? '手动接管 · el-bot' : '人物卡 · el-bot'
-createApp(manual ? ManualManager : PersonaManager).mount('#app')
+createApp(AppShell).mount('#app')

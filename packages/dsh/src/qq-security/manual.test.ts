@@ -205,7 +205,7 @@ describe('manual owner HTTP boundary', () => {
 describe('automatic QQ policy during takeover', () => {
   it('blocks owner commands, model requests and buffered output only in the selected conversation', async () => {
     const f = await fixture()
-    const policy = new QQSecurity({ appId: '123', ownerOpenId: 'owner', groupAllow: ['group-a'] }, new SecurityStore(join(f.directory, 'security.json')), '/groups', f.now)
+    const policy = new QQSecurity({ appId: '123', ownerOpenId: 'owner' }, new SecurityStore(join(f.directory, 'security.json')), '/groups', f.now)
     const privateTarget = { id: policy.targetId('c2c', 'owner'), scope: 'c2c' as const, peerId: 'owner', sessionId: 'owner-session', title: '主人' }
     f.targets.push(privateTarget)
     policy.manual = f.control
@@ -240,4 +240,26 @@ describe('automatic QQ policy during takeover', () => {
     expect(next).toHaveBeenCalledOnce()
     expect(policy.outbound(ctx.replyTarget, 'new automatic response')).toBe('new automatic response')
   })
+})
+
+it('can retry an incomplete pause without creating a new lease or resuming automatic output', async () => {
+  const f = await fixture()
+  vi.mocked(f.bridge.drain).mockRejectedValueOnce(new Error('timeout'))
+  await expect(f.begin()).rejects.toThrow('still_pausing')
+  const lease = (await f.control.view()).sessions[0].lease!
+  expect(lease.phase).toBe('pausing')
+  await f.control.request({ operation: 'begin', target: f.target.id })
+  expect((await f.control.view()).sessions[0].lease).toMatchObject({ id: lease.id, phase: 'active' })
+  expect(f.control.paused(f.target.id)).toBe(true)
+  expect(f.bridge.drain).toHaveBeenCalledTimes(2)
+})
+
+it('never releases a message received during handoff into automatic output when recording outlasts the lease', async () => {
+  const f = await fixture()
+  await f.begin(30)
+  f.advance(31_000)
+  f.control.observe(f.target.id, 'arrived-while-paused', 'recorded after expiry', true, true)
+  expect(f.control.automaticAllowed(f.target.id, 'arrived-while-paused')).toBe(false)
+  f.control.observe(f.target.id, 'genuinely-new', 'arrived after expiry', true)
+  expect(f.control.automaticAllowed(f.target.id, 'genuinely-new')).toBe(true)
 })

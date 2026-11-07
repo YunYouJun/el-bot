@@ -305,8 +305,7 @@ describe('official QQ workspace lifecycle', () => {
     const access: QQManager['config']['access'] = {
       c2cMode: 'allowlist',
       c2cAllow: ['owner'],
-      groupMode: 'allowlist',
-      groupAllow: ['test-room'],
+      groupMode: 'disabled',
     }
     Object.assign(f.manager.config.access, access)
     const ids = { 'qqbot:123:group:uninvited': 'denied-group', 'qqbot:123:c2c:stranger': 'denied-user' }

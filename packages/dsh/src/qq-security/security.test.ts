@@ -19,7 +19,7 @@ async function fixture() {
   let time = 1_800_000_000_000
   const now = () => time
   const store = new SecurityStore(join(directory, 'state.json'), now)
-  const settings = { appId: '123', ownerOpenId: 'owner', groupAllow: ['group-a', 'group-b'] }
+  const settings = { appId: '123', ownerOpenId: 'owner' }
   const policy = new QQSecurity(settings, store, '/work/groups', now)
   return { directory, store, settings, policy, now, advance: (ms: number) => {
     time += ms
@@ -81,12 +81,12 @@ function manager() {
 }
 
 describe('qQ transport authorization', () => {
-  it('denies unknown groups, non-owner DMs, guilds and mismatched reply routes before downstream work', async () => {
+  it('denies malformed group IDs, non-owner DMs, guilds and mismatched reply routes before downstream work', async () => {
     const { policy } = await fixture()
     policy.observeMetadata = vi.fn()
     const next = vi.fn()
     for (const ctx of [
-      inbound(policy, { groupOpenid: 'uninvited' }),
+      inbound(policy, { groupOpenid: '../private' }),
       inbound(policy, { kind: 'c2c', senderId: 'stranger', groupOpenid: undefined }, { scope: 'c2c', targetId: 'stranger' }),
       inbound(policy, { kind: 'guild' }),
       inbound(policy, {}, { scope: 'group', targetId: 'group-b', msgId: 'message-1' }),
@@ -181,12 +181,9 @@ describe('qQ transport authorization', () => {
     await active
   })
 
-  it('persists the 24-hour group ceiling and defaults to no allowed groups', async () => {
+  it('persists the 24-hour group ceiling across restart', async () => {
     const f = await fixture()
     const next = vi.fn()
-    const closed = new QQSecurity({ appId: '123', ownerOpenId: 'owner' }, f.store, '/work/groups')
-    await closed.middleware(inbound(closed), next)
-    expect(next).not.toHaveBeenCalled()
     for (let index = 0; index < 200; index++) {
       f.advance(60_001)
       await f.policy.middleware(inbound(f.policy, { messageId: `day-${index}` }), next)
@@ -203,7 +200,7 @@ describe('qQ transport authorization', () => {
   it('caps global trigger volume across independent groups', async () => {
     const f = await fixture()
     const groups = ['room-0', 'room-1', 'room-2', 'room-3']
-    const policy = new QQSecurity({ ...f.settings, groupAllow: groups }, f.store, '/work/groups', f.now)
+    const policy = new QQSecurity(f.settings, f.store, '/work/groups', f.now)
     const next = vi.fn()
     for (let index = 0; index < 41; index++) {
       await policy.middleware(inbound(policy, {
@@ -231,6 +228,61 @@ describe('qQ transport authorization', () => {
   })
 })
 
+describe('open group chat admission', () => {
+  it('admits a newly discovered group through capture, session creation and bounded model output', async () => {
+    const f = await fixture()
+    const qq = manager()
+    f.policy.attach(qq.value)
+    f.policy.captureInbound = vi.fn(async () => {})
+    const ctx = inbound(f.policy, { groupOpenid: 'new-group' })
+    const next = vi.fn(async () => {
+      const group = await qq.get('group', 'new-group', 'member')
+      expect(qq.masks.get(group.agent)).toEqual([[]])
+      expect(f.policy.guard({ agent: group.agent })).toContain('chat-only')
+      expect(await f.policy.request({ agent: group.agent, turn: 1, step: 1 }, { maxTokens: 8000 })).toMatchObject({ maxTokens: 512 })
+      expect(f.policy.outbound(ctx.replyTarget, 'hello')).toBe('hello')
+    })
+    await f.policy.middleware(ctx, next)
+    expect(next).toHaveBeenCalledOnce()
+    expect(f.policy.captureInbound).toHaveBeenCalledWith(ctx.message)
+    expect(ctx.stop).not.toHaveBeenCalled()
+    expect(() => f.policy.outbound({ ...ctx.replyTarget, targetId: 'another-group' }, 'wrong route')).toThrow('expired')
+    expect(() => f.policy.outbound({ scope: 'group', targetId: 'new-group' }, 'unsolicited')).toThrow('authorized')
+    expect(f.policy.interaction({ scene: 'group', group_openid: 'new-group', group_member_openid: 'owner' })).toBe(false)
+  })
+
+  it('still rejects invalid identities, mismatched routes, strangers and group commands', async () => {
+    const { policy } = await fixture()
+    const next = vi.fn()
+    for (const ctx of [
+      inbound(policy, { groupOpenid: '../private' }),
+      inbound(policy, { groupOpenid: 'x'.repeat(129) }),
+      inbound(policy, { groupOpenid: '' }),
+      inbound(policy, { kind: 'guild' }),
+      inbound(policy, { kind: 'c2c', senderId: 'stranger', groupOpenid: undefined }, { scope: 'c2c', targetId: 'stranger' }),
+      inbound(policy, { groupOpenid: 'new-group' }, { scope: 'group', targetId: 'other-group', msgId: 'message-1' }),
+      inbound(policy, { groupOpenid: 'new-group', content: '<@123> /approve all' }),
+    ]) {
+      await policy.middleware(ctx, next)
+      expect(ctx.stop).toHaveBeenCalled()
+    }
+    expect(next).not.toHaveBeenCalled()
+  })
+
+  it('preserves per-sender quotas and deduplication in newly discovered groups', async () => {
+    const f = await fixture()
+    const next = vi.fn()
+    for (let index = 0; index < 5; index++)
+      await f.policy.middleware(inbound(f.policy, { groupOpenid: 'new-group', messageId: `new-${index}` }), next)
+    expect(next).toHaveBeenCalledTimes(4)
+    const restarted = new QQSecurity(f.settings, new SecurityStore(f.store.path, f.now), '/work/groups', f.now)
+    await restarted.middleware(inbound(restarted, { groupOpenid: 'new-group', senderId: 'other', messageId: 'new-0' }), next)
+    expect(next).toHaveBeenCalledTimes(4)
+    await restarted.middleware(inbound(restarted, { groupOpenid: 'other-group', messageId: 'new-0' }), next)
+    expect(next).toHaveBeenCalledTimes(5)
+  })
+})
+
 describe('qQ agent permissions', () => {
   it('starts clean group sessions, denies direct and nested tools regardless of prompt injection, and preserves owner tools', async () => {
     const { policy } = await fixture()
@@ -253,9 +305,9 @@ describe('qQ agent permissions', () => {
     }
     expect(policy.guard({ agent: owner.agent })).toBeUndefined()
     expect(qq.masks.has(owner.agent)).toBe(false)
-    expect(qq.value.config.access).toEqual({ c2cMode: 'allowlist', c2cAllow: ['owner'], groupMode: 'allowlist', groupAllow: ['group-a', 'group-b'] })
+    expect(qq.value.config.access).toEqual({ c2cMode: 'allowlist', c2cAllow: ['owner'], groupMode: 'open' })
     await expect(qq.get('c2c', 'intruder')).rejects.toThrow('denied')
-    await expect(qq.get('group', 'uninvited')).rejects.toThrow('denied')
+    expect((await qq.get('group', 'new-group')).scope).toBe('group')
   })
 
   it('removes private filesystem instructions and tool schemas from group prompts, bounds generation, and rotates long sessions', async () => {
@@ -373,4 +425,32 @@ describe('qQ SDK integration hooks', () => {
     }
     finally { restore() }
   })
+})
+
+it('keeps traffic that arrived during handoff paused even if capture completes after expiry', async () => {
+  const { policy } = await fixture()
+  let paused = true
+  const observe = vi.fn(() => true)
+  policy.manual = { paused: () => paused, automaticAllowed: () => true, observe, pausedSession: () => false }
+  policy.captureInbound = async () => {
+    paused = false
+  }
+  const ctx = inbound(policy)
+  const next = vi.fn(async () => {})
+  await policy.middleware(ctx, next)
+  expect(next).not.toHaveBeenCalled()
+  expect(ctx.stop).toHaveBeenCalledWith('qq-security:manual')
+  expect(observe).toHaveBeenCalledWith(policy.targetId('group', 'group-a'), 'message-1', '<@123> hello', true, true)
+})
+
+it('does not admit a captured message across a concurrent conversation cleanup', async () => {
+  const { policy } = await fixture()
+  policy.captureInbound = async () => {
+    await policy.manage('group', 'group-a', async () => {})
+  }
+  const ctx = inbound(policy)
+  const next = vi.fn(async () => {})
+  await policy.middleware(ctx, next)
+  expect(next).not.toHaveBeenCalled()
+  expect(ctx.stop).toHaveBeenCalledWith('qq-security:maintenance')
 })
