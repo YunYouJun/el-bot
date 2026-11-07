@@ -179,7 +179,14 @@ public struct YunleAccountView: View {
                 }
             }
             if let summary = store.consumption {
-                YunleConsumptionSections(summary: summary, strings: strings)
+                YunleConsumptionSections(
+                    summary: summary,
+                    stale: store.stale,
+                    syncedAt: store.updatedAt,
+                    busy: store.busy,
+                    strings: strings,
+                    reload: { Task { await store.refresh() } }
+                )
             }
             if let error = store.errorKey {
                 Section {
@@ -215,7 +222,9 @@ public struct YunleAccountView: View {
                 } header: { Text(strings["yunle.history"]) }
                 footer: { Text(strings["yunle.history_hint"]) }
             }
-            if let updated = store.updatedAt {
+            // Snapshot status lives next to the summary. Keep a fallback here for
+            // the rare case where no summary loaded but a previous refresh succeeded.
+            if store.consumption == nil, let updated = store.updatedAt {
                 Section {
                     LabeledContent(strings[store.stale ? "yunle.stale" : "yunle.updated"]) { Text(updated, style: .relative) }
                 }
