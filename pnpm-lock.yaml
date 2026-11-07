@@ -870,6 +870,9 @@ importers:
 
   packages/mobile:
     dependencies:
+      '@el-bot/persona':
+        specifier: workspace:*
+        version: link:../persona
       '@yunlefun/sso':
         specifier: 'catalog:'
         version: 0.7.0
@@ -1014,6 +1017,24 @@ importers:
       publint:
         specifier: 'catalog:'
         version: 0.3.25
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.23.5(@volar/typescript@2.4.30(typescript@5.9.3))(@vue/language-core@3.3.14)(publint@0.3.25)(tsx@4.23.15)(typescript@5.9.3)(vue-tsc@3.3.14(typescript@5.9.3))
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
+  packages/yunlefun:
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.6.6
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.3.0
+      react:
+        specifier: 'catalog:'
+        version: 19.3.1
       tsdown:
         specifier: 'catalog:'
         version: 0.23.5(@volar/typescript@2.4.30(typescript@5.9.3))(@vue/language-core@3.3.14)(publint@0.3.25)(tsx@4.23.15)(typescript@5.9.3)(vue-tsc@3.3.14(typescript@5.9.3))

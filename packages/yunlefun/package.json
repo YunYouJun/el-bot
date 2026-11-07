@@ -1,0 +1,21 @@
+{
+  "name": "@el-bot/yunlefun",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "YunLeFun account and AI point provider for DSH",
+  "license": "AGPL-3.0",
+  "exports": { ".": "./dist/index.mjs", "./client": "./dist/client.js" },
+  "files": ["cordis.patch.yml", "deploy", "dist"],
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": { "platform": "web" },
+    "compatibility": { "dshReleases": { "0.2.2-rc.1": "compatible" } }
+  },
+  "scripts": {
+    "build": "tsdown && tsdown --config tsdown.client.config.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": { "react": ">=18 <20" },
+  "devDependencies": { "@types/node": "catalog:", "@types/react": "catalog:", "react": "catalog:", "tsdown": "catalog:", "typescript": "catalog:" }
+}

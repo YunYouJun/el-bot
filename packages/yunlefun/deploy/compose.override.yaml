@@ -1,0 +1,4 @@
+services:
+  dsh:
+    volumes:
+      - ./yunlefun:/opt/dsh-runtime/node_modules/@el-bot/yunlefun:ro

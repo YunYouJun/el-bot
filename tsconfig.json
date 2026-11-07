@@ -42,6 +42,7 @@
     "packages/dsh/src/client.ts",
     "packages/mobile/src/client.ts",
     "packages/mobile/src/client.test.ts",
+    "packages/yunlefun/src/client.ts",
     "packages/dsh/web/**",
     "**/dist/**",
     "**/node_modules/**",
