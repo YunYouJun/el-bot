@@ -138,3 +138,9 @@ private func login(_ client: YunleAccountClient) async throws {
     let wrongScope = try signedToken(signer, claims: claims)
     await #expect(throws: YunleAccountError.invalidResponse) { _ = try await client.identity(wrongScope, key: key) }
 }
+
+@Test func yunleParsesDesktopAuthAndRuntimeErrorContracts() {
+    #expect(yunleServiceErrorCode(Data(#"{"error":"client_unknown","code":"client_unknown"}"#.utf8)) == "client_unknown")
+    #expect(yunleServiceErrorCode(Data(#"{"error":{"code":"DEVICE_AUTH_REQUIRED"}}"#.utf8)) == "DEVICE_AUTH_REQUIRED")
+    #expect(yunleServiceErrorCode(Data(#"{"error":"upstream HTML or raw detail"}"#.utf8)) == "REQUEST_FAILED")
+}

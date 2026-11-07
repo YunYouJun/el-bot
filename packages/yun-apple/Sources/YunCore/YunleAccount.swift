@@ -73,10 +73,7 @@ public struct SystemYunleAccountTransport: YunleAccountTransport {
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse, data.count <= 1_048_576 else { throw YunleAccountError.invalidResponse }
         guard (200..<300).contains(http.statusCode) else {
-            let body = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
-            let error = body?["error"] as? [String: Any]
-            let code = error?["code"] as? String
-            throw YunleAccountError.service(code?.range(of: "^[A-Za-z0-9_-]{1,80}$", options: .regularExpression) != nil ? code! : "REQUEST_FAILED")
+            throw YunleAccountError.service(yunleServiceErrorCode(data))
         }
         return data
     }
@@ -278,7 +275,7 @@ public actor YunleAccountClient: YunleAccountServing {
         guard let result = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw YunleAccountError.invalidResponse }
         if result["ok"] as? Bool == false || result["error"] != nil {
             let error = result["error"] as? [String: Any]
-            throw YunleAccountError.service(error?["code"] as? String ?? "REQUEST_FAILED")
+            throw YunleAccountError.service(error?["code"] as? String ?? result["code"] as? String ?? "REQUEST_FAILED")
         }
         return result["ok"] as? Bool == true ? (result["data"] as? [String: Any] ?? [:]) : result
     }
@@ -300,4 +297,12 @@ extension Data {
         self.init(base64Encoded: encoded)
     }
     var yunleBase64URL: String { base64EncodedString().replacingOccurrences(of: "+", with: "-").replacingOccurrences(of: "/", with: "_").replacingOccurrences(of: "=", with: "") }
+}
+
+func yunleServiceErrorCode(_ data: Data) -> String {
+    let body = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+    let nested = body?["error"] as? [String: Any]
+    let code = nested?["code"] as? String ?? body?["code"] as? String
+    guard let code, code.range(of: "^[A-Za-z0-9_-]{1,80}$", options: .regularExpression) != nil else { return "REQUEST_FAILED" }
+    return code
 }
