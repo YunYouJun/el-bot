@@ -186,6 +186,20 @@ public struct GroupedSessionRows<Destination: Hashable>: View {
     }
 }
 
+private struct MinimizeSearchToolbar: ViewModifier {
+    func body(content: Content) -> some View {
+        #if os(iOS)
+        if #available(iOS 26.0, *) {
+            content.searchToolbarBehavior(.minimize)
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
+    }
+}
+
 public struct ChatBrowser: View {
     let store: ChatStore
     @Environment(\.yunStrings) private var text
@@ -232,7 +246,7 @@ public struct ChatBrowser: View {
             sessionRows
         }
         .overlay { if visible.isEmpty { ContentUnavailableView(text["sessions.empty"], systemImage: "bubble.left.and.bubble.right") } }
-        .searchable(text: $search, prompt: text["sessions.search"])
+        .searchable(text: $search, placement: .sidebar, prompt: text["sessions.search"])
         .safeAreaInset(edge: .top, spacing: 0) { categoryPicker }
         .navigationTitle(text["tab.sessions"])
         .refreshable { await store.refresh() }
@@ -294,6 +308,7 @@ public struct ChatBrowser: View {
             List { sessionRows }
                 .overlay { if visible.isEmpty { ContentUnavailableView(text["sessions.empty"], systemImage: "bubble.left.and.bubble.right") } }
                 .searchable(text: $search, prompt: text["sessions.search"])
+                .modifier(MinimizeSearchToolbar())
                 .safeAreaInset(edge: .top, spacing: 0) { categoryPicker }
                 .navigationTitle(text["tab.sessions"])
                 .refreshable { await store.refresh() }
