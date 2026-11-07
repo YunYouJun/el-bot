@@ -51,6 +51,7 @@ const composerIcon = {
 const macIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><clipPath id="mac-mask"><rect x="4" y="4" width="56" height="56" rx="12.5"/></clipPath></defs><g clip-path="url(#mac-mask)"><g transform="translate(4 4) scale(.875)"><rect width="64" height="64" fill="${color}"/>${foreground}</g></g></svg>`
 const trayIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">${body.replaceAll(color, '#000000')}</svg>`
 const cloudMark = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">\n  ${body}\n</svg>\n`
+const cloudMarkDark = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">\n  ${body.replaceAll(color, '#86B6DC')}\n</svg>\n`
 function render(svg, width) {
   return new Resvg(svg, { fitTo: { mode: 'width', value: width } }).render()
 }
@@ -98,6 +99,7 @@ try {
   outputs.set('docs/public/favicon.svg', cloudMark)
   outputs.set('docs/public/brand/el-bot-mark.svg', source)
   outputs.set('docs/public/brand/el-bot-cloud.svg', cloudMark)
+  outputs.set('docs/public/brand/el-bot-cloud-dark.svg', cloudMarkDark)
   outputs.set('docs/public/logo.png', render(cloudMark, 512).asPng())
   const manifest = JSON.parse(await readFile(join(root, 'docs/public/manifest.json'), 'utf8'))
   outputs.set('docs/public/manifest.json', `${JSON.stringify({ ...manifest, theme_color: color }, null, 2)}\n`)

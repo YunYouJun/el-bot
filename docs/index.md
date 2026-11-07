@@ -1,35 +1,83 @@
 ---
 layout: home
 hero:
-  name: El Bot
-  text: 用 QQ 遥控本机 AI 程序
-  tagline: 连接 Codex、CodeBuddy 或 dsh，在 QQ 中安排任务、继续会话、处理审批、查看结果。
+  name: 小云
+  text: QQ、Mac 与 iPhone 里的 AI 助理
+  tagline: 由 el-bot 框架驱动。连接 Codex、CodeBuddy 或 dsh；QQ 侧不需要公网 IP 或内网穿透，模型可选 DeepSeek 国内直连。
   actions:
     - theme: brand
-      text: 选择程序并接入
+      text: 开始使用小云
+      link: /yun/
+    - theme: alt
+      text: 自己部署 el-bot
       link: /codex/agents
-    - theme: alt
-      text: 让 AI 帮我接入
-      link: /codex/ai-setup
-    - theme: alt
-      text: 机器人框架
-      link: /guide/
 features:
   - title: QQ 官方协议
+    icon:
+      src: /icons/chat.svg
+      width: 24
+      height: 24
+      wrap: true
     details: 用官方机器人私聊收发任务，WebSocket 模式无需公网回调地址。
   - title: 本人绑定
+    icon:
+      src: /icons/shield.svg
+      width: 24
+      height: 24
+      wrap: true
     details: 通过一次性绑定码识别主人，只在配置允许的项目中启动任务。
   - title: 会话与审批
+    icon:
+      src: /icons/approval.svg
+      width: 24
+      height: 24
+      wrap: true
     details: 每个项目独立续聊；需要升级权限时，在 QQ 查看并逐次确认。
+  - title: 小云原生客户端
+    icon:
+      src: /icons/devices.svg
+      width: 24
+      height: 24
+      wrap: true
+    details: macOS / iOS 与 QQ 共用同一 DSH 会话，内置完整 Web 工作区、人物卡和手机能力。
+  - title: 认证 DSH Web
+    icon:
+      src: /icons/web.svg
+      width: 24
+      height: 24
+      wrap: true
+    details: 已配对设备用一次性票据换取网页会话，上游 Cookie 不出服务端，可随时撤销。
   - title: 统一 CLI
+    icon:
+      src: /icons/cli.svg
+      width: 24
+      height: 24
+      wrap: true
     details: el-bot agent init、check、start 完成初始化、检查和运行；兼容 codex 入口。
 ---
 
 <div class="home-codex">
 
+<div class="home-paths">
+<a class="path-card" href="/yun/">
+<span class="path-kicker">直接使用</span>
+<strong>小云 AI 助理</strong>
+<span class="path-detail">在 QQ、Mac、iPhone / iPad 和 DSH Web 之间继续同一套会话，不需要公网 IP 或内网穿透。</span>
+</a>
+<a class="path-card" href="/codex/agents">
+<span class="path-kicker">自己搭建</span>
+<strong>el-bot 框架</strong>
+<span class="path-detail">开源 QQ 机器人与 CLI，接入 Codex、CodeBuddy 或 dsh，按需扩展插件。</span>
+</a>
+</div>
+
+## 它怎么工作
+
+<FlowDiagram />
+
 <CodexShowcase />
 
-## 三步接入自己的项目
+## 用 el-bot 接入自己的项目
 
 以下使用默认 Codex。在本机安装相应 CLI 与 `el-bot` 后运行：
 
@@ -57,8 +105,10 @@ CodeBuddy / dsh 使用 `init --agent codebuddy` / `init --agent dsh` 和独立 p
 | 需求 | 入口 |
 | --- | --- |
 | 从 QQ 安排本机 AI 任务 | [功能展示](/codex/) · [选择程序](/codex/agents) · [完整接入](/development/codex-remote) |
+| 在 Mac / iPhone / iPad 上继续同一会话 | [桌面与移动客户端](/development/client-tool) · [小云 iOS 会话与网页](/development/ios-companion) |
+| 在 App 内使用完整 DSH Web 与手机能力 | [小云 iOS 会话与网页](/development/ios-companion) |
+| 管理人物卡与群聊记录 | [人物卡](/development/personas) |
 | 管理 Codex Desktop 的项目、聊天与工具 | [Desktop 接入](/codex/desktop) |
-| 在本机控制机器人并打开桌面程序 | [桌面客户端](/development/client-tool) |
 | 让 AI 协助安装与排错 | [AI 快速接入](/codex/ai-setup) |
 | 编写自定义 QQ 机器人与插件 | [框架指南](/guide/) · [插件](/plugins/) |
 | 参与工程开发或发布 | [Monorepo 与 npm OIDC](/development/monorepo) |

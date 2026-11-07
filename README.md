@@ -8,13 +8,22 @@
 [![GitHub](https://img.shields.io/github/license/YunYouJun/el-bot)](https://github.com/YunYouJun/el-bot/blob/main/LICENSE)
 ![node-current](https://img.shields.io/node/v/el-bot)
 
-一个基于 Node.js、使用 TypeScript 编写的可配置 QQ 机器人框架，采用 pnpm monorepo 管理。
+一个基于 Node.js、使用 TypeScript 编写的可配置 QQ 机器人框架，采用 pnpm monorepo 管理，并提供 macOS / iOS 原生客户端「小云」。
 
 > el-bot 是一个非盈利的开源项目，仅供交流学习使用。请勿用于商业或非法用途。
 > 本项目为个人学习项目，与腾讯公司并无关联。
 
 - 使用文档：<https://docs.bot.elpsy.cn>
 - API 文档：<https://www.yunyoujun.cn/el-bot/>
+
+## 小云原生客户端
+
+小云让同一套 DSH 会话在 QQ、Mac 和 iPhone / iPad 之间继续：保留原生会话列表、模型切换、人物卡、QQ 群聊记录和本机手机能力，并在 App 内提供完整的 DSH Web 工作区。网页登录使用一次性票据，上游 Cookie 只保留在服务端，设备可以随时撤销。QQ 侧不需要公网 IP 或内网穿透；模型可选 DeepSeek 国内直连。
+
+- [桌面与移动客户端](docs/development/client-tool.md)
+- [iOS 会话、网页与手机能力](docs/development/ios-companion.md)
+- [人物卡](docs/development/personas.md)
+- [连接方案与安全边界](docs/development/native-connectivity-research.md)
 
 ## QQ 遥控 Codex、CodeBuddy 与 dsh
 
