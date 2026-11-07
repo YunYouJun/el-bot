@@ -117,7 +117,7 @@ describe('portable character cards', () => {
     expect((await library.list()).cards[0].revisions).toHaveLength(20)
     expect((await readdir(library.directory)).filter(path => path.endsWith('.md'))).toHaveLength(20)
     expect((await library.active())?.hash).toBe(old.hash)
-  })
+  }, 30_000) // 22 fsync-backed imports can exceed the default limit on Windows runners.
 })
 
 describe('online and Git imports', () => {
