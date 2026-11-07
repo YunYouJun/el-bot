@@ -590,5 +590,22 @@
   "yunle.error.unavailable": "Xiaoyun iOS sign-in is not enabled in Yunlefun yet. Please retry later.",
   "yunle.error.denied": "Authorization was cancelled.",
   "yunle.error.expired": "The sign-in request expired. Please sign in again.",
-  "yunle.error.network": "Could not load your Yunlefun account. Check your connection and retry."
+  "yunle.error.network": "Could not load your Yunlefun account. Check your connection and retry.",
+  "yunle.summary.title": "Yun consumption",
+  "yunle.summary.range": "Reporting period",
+  "yunle.summary.today": "Today",
+  "yunle.summary.month": "This month",
+  "yunle.summary.lifetime": "All time",
+  "yunle.summary.net": "Net consumption",
+  "yunle.summary.unit": "AI points",
+  "yunle.summary.gross": "Charged",
+  "yunle.summary.refunded": "Refunded",
+  "yunle.summary.tasks": "Settled tasks",
+  "yunle.summary.hint": "Only Yun calls billed with YunLeFun points. Days and months follow Beijing time. Refunds count when issued; net consumption is charges minus refunds and may be negative for cross-period refunds.",
+  "yunle.summary.models": "By model",
+  "yunle.summary.empty": "No Yun charges or refunds in this period",
+  "yunle.summary.unattributed": "Unattributed model",
+  "yunle.summary.missing": "Historical model details are missing or cannot be reconciled. The amount is still included in Yun totals.",
+  "yunle.summary.model_hint": "Model amounts sum to Yun net consumption for the selected period. Multi-model refunds are allocated by remaining charges. Token counts come from settled tasks and are not reduced by refunds.",
+  "yunle.account_points": "Account points (all apps)"
 }

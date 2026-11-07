@@ -20,6 +20,8 @@ private actor AccountTestTransport: YunleAccountTransport {
     var holdPoll = false
     var pollSuspended = false
     var resumePoll: CheckedContinuation<Void, Never>?
+    var summaryData: Data?
+    func setSummary(_ data: Data) { summaryData = data }
     func pausePoll() { holdPoll = true }
     func releasePoll() { resumePoll?.resume(); resumePoll = nil }
     init(signer: Curve25519.Signing.PrivateKey) { self.signer = signer }
@@ -47,6 +49,7 @@ private actor AccountTestTransport: YunleAccountTransport {
             if input["action"] == "account" {
                 return try json(["userId": "user_1", "account": ["availableMicroPoints": 300000, "reservedMicroPoints": 0, "chargedMicroPoints": 125]])
             }
+            if input["action"] == "summary" { return try summaryData ?? summaryFixture() }
             return try json(["items": [["id": "tx-1", "taskId": "task-1", "type": "settle", "chargedMicroPoints": 125, "createdAt": 1700000000000, "model": "flash", "inputTokens": 10, "outputTokens": 5]], "nextCursor": "offset:50"])
         }
         let action = body["action"] as! String
@@ -91,16 +94,51 @@ private func login(_ client: YunleAccountClient) async throws {
     _ = try await client.beginLogin()
     #expect(try await client.pollLogin() == "user_1")
 }
+private func summaryFixture() throws -> Data {
+    let asOf = Int64(ISO8601DateFormatter().date(from: "2026-11-08T00:30:00+08:00")!.timeIntervalSince1970 * 1000)
+    let today = asOf - 1_800_000
+    let month = today - 7 * 86_400_000
+    func period(from: Int64, charged: Int64, refunded: Int64, count: Int64, input: Int64, output: Int64) -> [String: Any] {
+        let totals: [String: Any] = ["chargedMicroPoints": charged, "refundedMicroPoints": refunded, "netMicroPoints": charged - refunded, "settlementCount": count, "inputTokens": input, "outputTokens": output, "unattributedCount": 0]
+        return totals.merging(["from": from, "models": [totals.merging(["model": "flash"]) { _, new in new }]]) { _, new in new }
+    }
+    return try JSONSerialization.data(withJSONObject: ["applicationId": "el-bot", "timeZone": "Asia/Shanghai", "asOf": asOf,
+        "today": period(from: today, charged: 0, refunded: 25, count: 0, input: 0, output: 0),
+        "month": period(from: month, charged: 125, refunded: 25, count: 1, input: 10, output: 5),
+        "lifetime": period(from: 0, charged: 125, refunded: 25, count: 1, input: 10, output: 5)])
+}
 @Test func yunleReadOnlyLoginPersistsAndBindsRequests() async throws {
     let (client, transport, vault) = fixture()
     #expect(try await client.restore() == nil)
     try await login(client)
     #expect(try await client.overview().account.availableMicroPoints == 300000)
+    #expect(try await client.consumptionSummary().today.netMicroPoints == -25)
     #expect(try await client.usage().items.first?.chargedMicroPoints == 125)
     #expect(await vault.data != nil)
-    #expect(await transport.calls == ["startDeviceAuth", "pollDeviceToken", "account", "transactions"])
+    #expect(await transport.calls == ["startDeviceAuth", "pollDeviceToken", "account", "summary", "transactions"])
     try await client.logout()
     #expect(await vault.data == nil)
+}
+
+@Test func yunleSummaryRejectsWrongScopePeriodsAndUnreconciledModelAmounts() async throws {
+    let (client, transport, _) = fixture()
+    try await login(client)
+    let original = try JSONSerialization.jsonObject(with: summaryFixture()) as! [String: Any]
+    var wrongApplication = original; wrongApplication["applicationId"] = "cms"
+    var wrongZone = original; wrongZone["timeZone"] = "UTC"
+    var wrongPeriod = original
+    var today = original["today"] as! [String: Any]; today["from"] = 1
+    wrongPeriod["today"] = today
+    var wrongModels = original
+    today = original["today"] as! [String: Any]; today["models"] = []
+    wrongModels["today"] = today
+    var unsafe = original
+    today = original["today"] as! [String: Any]; today["chargedMicroPoints"] = Int64.max
+    unsafe["today"] = today
+    for response in [wrongApplication, wrongZone, wrongPeriod, wrongModels, unsafe] {
+        await transport.setSummary(try JSONSerialization.data(withJSONObject: response))
+        await #expect(throws: YunleAccountError.invalidResponse) { _ = try await client.consumptionSummary() }
+    }
 }
 @Test func yunleLostRefreshNeverReplaysRotatingToken() async throws {
     let (client, transport, vault) = fixture()

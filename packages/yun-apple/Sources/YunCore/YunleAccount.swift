@@ -26,6 +26,72 @@ public struct YunleUsagePage: Codable, Sendable {
     public let items: [YunleUsageReceipt]
     public let nextCursor: String?
 }
+public struct YunleModelConsumption: Codable, Sendable, Identifiable, Equatable {
+    public let model: String?
+    public let chargedMicroPoints: Int64
+    public let refundedMicroPoints: Int64
+    public let netMicroPoints: Int64
+    public let settlementCount: Int64
+    public let inputTokens: Int64
+    public let outputTokens: Int64
+    public let unattributedCount: Int64
+    public var id: String { model.map { "model:\($0)" } ?? "unattributed" }
+}
+public struct YunleConsumptionPeriod: Codable, Sendable, Equatable {
+    public let from: Int64
+    public let chargedMicroPoints: Int64
+    public let refundedMicroPoints: Int64
+    public let netMicroPoints: Int64
+    public let settlementCount: Int64
+    public let inputTokens: Int64
+    public let outputTokens: Int64
+    public let unattributedCount: Int64
+    public let models: [YunleModelConsumption]
+}
+public struct YunleConsumptionSummary: Codable, Sendable, Equatable {
+    public let applicationId: String
+    public let timeZone: String
+    public let asOf: Int64
+    public let today: YunleConsumptionPeriod
+    public let month: YunleConsumptionPeriod
+    public let lifetime: YunleConsumptionPeriod
+
+    func validate() throws {
+        let maximum: Int64 = 9_007_199_254_740_991
+        func amounts(_ charged: Int64, _ refunded: Int64, _ net: Int64, _ count: Int64, _ input: Int64, _ output: Int64, _ missing: Int64) -> Bool {
+            [charged, refunded, count, input, output, missing].allSatisfy { (0...maximum).contains($0) }
+                && charged - refunded == net && missing <= count
+        }
+        guard applicationId == "el-bot", timeZone == "Asia/Shanghai", asOf > 0, asOf <= Int64(Date().timeIntervalSince1970 * 1000) + 300_000,
+              lifetime.from == 0, month.from > 0, month.from <= today.from, today.from <= asOf else { throw YunleAccountError.invalidResponse }
+        let expectedDay = ((asOf + 28_800_000) / 86_400_000) * 86_400_000 - 28_800_000
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 28_800)!
+        let monthDate = calendar.date(from: calendar.dateComponents([.year, .month], from: Date(timeIntervalSince1970: Double(asOf) / 1000)))!
+        guard today.from == expectedDay, month.from == Int64(monthDate.timeIntervalSince1970 * 1000) else { throw YunleAccountError.invalidResponse }
+        for period in [today, month, lifetime] {
+            guard amounts(period.chargedMicroPoints, period.refundedMicroPoints, period.netMicroPoints, period.settlementCount, period.inputTokens, period.outputTokens, period.unattributedCount),
+                  period.models.count <= 256, Set(period.models.map(\.id)).count == period.models.count else { throw YunleAccountError.invalidResponse }
+            for model in period.models {
+                guard model.model == nil || (!model.model!.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && model.model!.count <= 256),
+                      amounts(model.chargedMicroPoints, model.refundedMicroPoints, model.netMicroPoints, model.settlementCount, model.inputTokens, model.outputTokens, model.unattributedCount) else { throw YunleAccountError.invalidResponse }
+            }
+            let checks: [(KeyPath<YunleModelConsumption, Int64>, Int64)] = [
+                (\.chargedMicroPoints, period.chargedMicroPoints), (\.refundedMicroPoints, period.refundedMicroPoints),
+                (\.inputTokens, period.inputTokens), (\.outputTokens, period.outputTokens), (\.unattributedCount, period.unattributedCount),
+            ]
+            for (path, expected) in checks {
+                var sum: Int64 = 0
+                for model in period.models {
+                    let (next, overflow) = sum.addingReportingOverflow(model[keyPath: path])
+                    guard !overflow, next <= maximum else { throw YunleAccountError.invalidResponse }
+                    sum = next
+                }
+                guard sum == expected else { throw YunleAccountError.invalidResponse }
+            }
+        }
+    }
+}
 public struct YunleDeviceLogin: Sendable {
     public let verificationURL: URL
     public let userCode: String
@@ -53,6 +119,7 @@ public protocol YunleAccountServing: Sendable {
     func pollLogin() async throws -> String?
     func cancelLogin() async
     func overview() async throws -> YunleAccountOverview
+    func consumptionSummary() async throws -> YunleConsumptionSummary
     func usage(cursor: String?) async throws -> YunleUsagePage
     func logout() async throws
 }
@@ -212,6 +279,12 @@ public actor YunleAccountClient: YunleAccountServing {
               page.items.allSatisfy({ !$0.id.isEmpty && !$0.taskId.isEmpty && ["settle", "refund"].contains($0.type) && $0.createdAt > 0 && (-9_007_199_254_740_991...9_007_199_254_740_991).contains($0.chargedMicroPoints) && ($0.inputTokens ?? 0) >= 0 && ($0.outputTokens ?? 0) >= 0 }),
               page.nextCursor == nil || page.nextCursor!.range(of: "^offset:[0-9]{1,7}$", options: .regularExpression) != nil else { throw YunleAccountError.invalidResponse }
         return page
+    }
+    public func consumptionSummary() async throws -> YunleConsumptionSummary {
+        let result = try await accountCall(["action": "summary"])
+        let summary = try JSONDecoder().decode(YunleConsumptionSummary.self, from: JSONSerialization.data(withJSONObject: result))
+        try summary.validate()
+        return summary
     }
     public func logout() async throws {
         guard !operation, let saved = credentials else { throw YunleAccountError.signInRequired }

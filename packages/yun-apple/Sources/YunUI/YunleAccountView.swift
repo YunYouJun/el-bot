@@ -30,6 +30,7 @@ private final class YunleLoginBrowser: NSObject, ASWebAuthenticationPresentation
 public final class YunleAccountStore {
     public private(set) var userID: String?
     public private(set) var overview: YunleAccountOverview?
+    public private(set) var consumption: YunleConsumptionSummary?
     public private(set) var receipts: [YunleUsageReceipt] = []
     public private(set) var nextCursor: String?
     public private(set) var busy = false
@@ -83,8 +84,9 @@ public final class YunleAccountStore {
         defer { busy = false }
         do {
             let account = try await client.overview()
+            let summary = try await client.consumptionSummary()
             let page = try await client.usage(cursor: nil)
-            overview = account; receipts = page.items; nextCursor = page.nextCursor
+            overview = account; consumption = summary; receipts = page.items; nextCursor = page.nextCursor
             updatedAt = Date(); stale = false
         }
         catch { stale = overview != nil; errorKey = Self.message(error) }
@@ -108,7 +110,7 @@ public final class YunleAccountStore {
         defer { busy = false }
         do {
             try await client.logout()
-            userID = nil; overview = nil; receipts = []; nextCursor = nil; updatedAt = nil; stale = false
+            userID = nil; overview = nil; consumption = nil; receipts = []; nextCursor = nil; updatedAt = nil; stale = false
         }
         catch { errorKey = Self.message(error) }
     }
@@ -162,12 +164,15 @@ public struct YunleAccountView: View {
     public init(store: YunleAccountStore, strings: YunStrings) { self.store = store; self.strings = strings }
     public var body: some View {
         List {
+            if let summary = store.consumption {
+                YunleConsumptionSections(summary: summary, strings: strings)
+            }
             if let account = store.overview?.account {
                 Section {
                     LabeledContent(strings["yunle.available"], value: yunlePoints(account.availableMicroPoints))
                     LabeledContent(strings["yunle.reserved"], value: yunlePoints(account.reservedMicroPoints))
                     LabeledContent(strings["yunle.charged"], value: yunlePoints(account.chargedMicroPoints))
-                } header: { Text(strings["yunle.points"]) }
+                } header: { Text(strings["yunle.account_points"]) }
                 footer: { Text(strings["yunle.account_total"]) }
             }
             if let error = store.errorKey {
@@ -217,7 +222,7 @@ public struct YunleAccountView: View {
         .onChange(of: store.userID) { _, value in if value == nil { dismiss() } }
     }
 }
-private func yunlePoints(_ amount: Int64) -> String {
+func yunlePoints(_ amount: Int64) -> String {
     (Decimal(amount) / 1_000_000).formatted(.number.precision(.fractionLength(0...6)))
 }
 #endif
