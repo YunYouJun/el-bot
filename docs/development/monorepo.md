@@ -44,7 +44,7 @@ pnpm docs:preview
 
 `pnpm dev` 保留为 demo 开发入口；`pnpm dev:simple` 启动简单示例。
 运行机器人需要配置 QQ/NapCat 连接，这些命令不属于无凭证工程验证。
-CI 使用 `pnpm install --frozen-lockfile`，禁止在 CI 隐式改写锁文件。CI 与发布前安装包验证均在 Linux、Windows、macOS 上使用 `.node-version` 指定的当前 LTS，升级 LTS 时统一修改该文件。
+CI 使用 `pnpm install --frozen-lockfile`，禁止在 CI 隐式改写锁文件。CI 与发布前安装包验证均在 Linux、Windows、macOS 上使用 `.node-version` 指定的当前 LTS，升级 LTS 时统一修改该文件。普通 CI 将包级 `typecheck:packages`、浏览器单元测试和浏览器 CLI 冒烟集中在 Linux；三个系统仍执行构建、Node 单元测试和 tarball 安装，Linux/Windows 执行原生客户端测试，macOS 原生测试复用 desktop workflow。
 
 ## 新增包
 
@@ -61,7 +61,7 @@ Chalk 升级为 6；`@types/node` 使用与 Node 26 对应的最新版本；c12 
 `el-bot` 是 `el-bot` / `el` 可执行命令的唯一发布者，`apps/qq-codex` 保持私有。
 CLI 将内部 Codex 客户端与 QQ 官方协议实现打包，第三方运行时依赖独立声明。
 框架使用的工作区 `qq-sdk` 同样构建进发布包，由包内 `#qq-sdk` 映射引用，安装时不依赖 registry 中的同名版本。
-`pnpm test:cli` 检查真实 tarball 安装、命令入口、非交互初始化、参数校验与凭据脱敏，CI 覆盖三个操作系统。
+`pnpm test:cli` 检查真实 tarball 安装、命令入口、非交互初始化、参数校验与凭据脱敏，普通 CI 覆盖三个操作系统。浏览器安装、卡片渲染与截图校验只在 Linux 执行，其他系统通过 `EL_BOT_SKIP_BROWSER_SMOKE=1` 跳过这部分，避免重复下载 Chromium。
 传入 `pnpm test:cli dist/el-bot-<版本>.tgz` 可验证已有安装包；发布工作流会测试并上传同一个文件。
 
 库与插件统一使用 tsdown；旧 CLI 下载改用原生 fetch，移除 download 和闲置的 npm-run-all 依赖树。

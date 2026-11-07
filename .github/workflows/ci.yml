@@ -36,7 +36,7 @@ jobs:
   test:
     name: Build and test packages
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -50,22 +50,42 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - uses: actions/setup-go@v6
+        if: runner.os != 'macOS'
         with:
           go-version-file: apps/el-bot-client/go.mod
           cache-dependency-path: apps/el-bot-client/go.mod
       - uses: dtolnay/rust-toolchain@stable
+        if: runner.os != 'macOS'
       - uses: Swatinem/rust-cache@v2
+        if: runner.os != 'macOS'
         with:
           workspaces: apps/el-bot-client/native
       - name: Install Linux native UI dependencies
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libgtk-4-dev libssl-dev libxdo-dev
       - run: pnpm build
-      - run: pnpm typecheck:packages
+      - name: Typecheck independently built packages
+        if: runner.os == 'Linux'
+        run: pnpm typecheck:packages
       - run: pnpm --filter @el-bot/qq-codex exec playwright install --with-deps chromium
-      - run: pnpm test
-      - run: pnpm test:client
-      - run: pnpm test:cli
+        if: runner.os == 'Linux'
+      - name: Run unit tests including the browser card renderer
+        if: runner.os == 'Linux'
+        run: pnpm test
+      - name: Run unit tests on a browserless runner
+        if: runner.os != 'Linux'
+        run: pnpm exec vitest run --exclude apps/qq-codex/src/card-renderer/index.test.ts
+      - name: Test native client
+        if: runner.os != 'macOS'
+        run: pnpm test:client
+      - name: Test packed CLI with browser rendering
+        if: runner.os == 'Linux'
+        run: pnpm test:cli
+      - name: Test packed CLI
+        if: runner.os != 'Linux'
+        env:
+          EL_BOT_SKIP_BROWSER_SMOKE: '1'
+        run: pnpm test:cli
 
   docs:
     name: Build docs
