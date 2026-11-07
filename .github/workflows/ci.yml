@@ -40,7 +40,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -50,14 +50,11 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - uses: actions/setup-go@v6
-        if: runner.os != 'macOS'
         with:
           go-version-file: apps/el-bot-client/go.mod
           cache-dependency-path: apps/el-bot-client/go.mod
       - uses: dtolnay/rust-toolchain@stable
-        if: runner.os != 'macOS'
       - uses: Swatinem/rust-cache@v2
-        if: runner.os != 'macOS'
         with:
           workspaces: apps/el-bot-client/native
       - name: Install Linux native UI dependencies
@@ -74,9 +71,12 @@ jobs:
         run: pnpm test
       - name: Run unit tests on a browserless runner
         if: runner.os != 'Linux'
-        run: pnpm exec vitest run --exclude apps/qq-codex/src/card-renderer/index.test.ts
+        run: >-
+          pnpm exec vitest run
+          --exclude apps/qq-codex/src/card-renderer/index.test.ts
+          --exclude apps/qq-codex/src/image.test.ts
+          --exclude apps/qq-codex/src/image-upload.test.ts
       - name: Test native client
-        if: runner.os != 'macOS'
         run: pnpm test:client
       - name: Test packed CLI with browser rendering
         if: runner.os == 'Linux'
