@@ -76,7 +76,7 @@ homepage: https://example.com/persona
 
 ## AI 辅助编写
 
-人物卡页提供可下载的[基础模板](../../packages/persona/examples/template.md)。把模板交给 AI，要求它输出一份完整的 UTF-8 Markdown，填写角色身份、性格、说话方式、能力边界和群聊边界，然后上传文件预览。模板只是写作起点，不是权限配置：AI 生成的文字仍不能改变工具白名单、审批或主人绑定。
+人物卡页提供可下载的[基础模板](https://github.com/YunYouJun/el-bot/blob/main/packages/persona/examples/template.md)。把模板交给 AI，要求它输出一份完整的 UTF-8 Markdown，填写角色身份、性格、说话方式、能力边界和群聊边界，然后上传文件预览。模板只是写作起点，不是权限配置：AI 生成的文字仍不能改变工具白名单、审批或主人绑定。
 
 生成时不要把真实姓名、聊天记录、凭据、私有项目地址或其他敏感信息粘贴给模型。导入前检查角色设定是否夸大实际能力、是否包含未经授权的图片或文本，并补充作者、来源和许可证。没有可靠来源的角色不应标记为可自由分发。
 
