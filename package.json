@@ -56,7 +56,7 @@
     "release": "bumpp packages/el-bot/package.json --git-check --commit \"chore(release): v{version}\"",
     "start:demo": "pnpm -C demo start",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit && pnpm --filter @el-bot/dsh typecheck && pnpm --filter @el-bot/mobile typecheck && pnpm --filter @el-bot/yunlefun typecheck && pnpm typecheck:docs && pnpm --filter @el-bot/client typecheck:ui",
+    "typecheck": "pnpm --filter @el-bot/persona build && tsc --noEmit && pnpm --filter @el-bot/dsh typecheck && pnpm --filter @el-bot/mobile typecheck && pnpm --filter @el-bot/yunlefun typecheck && pnpm typecheck:docs && pnpm --filter @el-bot/client typecheck:ui",
     "dev:lib": "pnpm --filter qq-sdk --filter @el-bot/create-app --parallel run dev",
     "docs:preview": "pnpm -C docs run preview",
     "test:watch": "vitest",
