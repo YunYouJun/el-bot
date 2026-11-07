@@ -74,6 +74,12 @@ homepage: https://example.com/persona
 
 `id` 使用 1–64 个小写字母、数字、下划线或连字符，以字母或数字开头。文件最大 32 KiB。识别的元数据仅限上例中的七个字段；其他字段不会成为程序配置。
 
+## AI 辅助编写
+
+人物卡页提供可下载的[基础模板](../../packages/persona/examples/template.md)。把模板交给 AI，要求它输出一份完整的 UTF-8 Markdown，填写角色身份、性格、说话方式、能力边界和群聊边界，然后上传文件预览。模板只是写作起点，不是权限配置：AI 生成的文字仍不能改变工具白名单、审批或主人绑定。
+
+生成时不要把真实姓名、聊天记录、凭据、私有项目地址或其他敏感信息粘贴给模型。导入前检查角色设定是否夸大实际能力、是否包含未经授权的图片或文本，并补充作者、来源和许可证。没有可靠来源的角色不应标记为可自由分发。
+
 ## 存储与权限
 
 DSH 数据保存在 `<DSH profile>/el-bot-personas/`，`sessions.json` 记录 QQ 会话与人设版本的绑定，重启后继续校验。原有本机 CLI 数据仍保存在 `<配置文件完整路径>.personas/`。两种运行方式按配置隔离。`index.json` 保存来源、Git commit、内容 SHA256、历史版本与启用项，正文按 SHA256 保存。最多保存 100 张人物卡，每张保留最近 20 个版本，并确保当前启用版本仍在保留范围内；目录元数据最大 1 MiB。
@@ -90,6 +96,6 @@ HTTPS 来源拒绝 URL 内用户名密码、明文 HTTP 和跳转到 HTTP。Git 
 
 小云示例来自 [YunYouJun/yun 人物卡](https://github.com/YunYouJun/yun/blob/49620e465500a384070cb6c8a71b0cabc006a636/persona/xiaoyun.md)，单独遵循原文的 **CC BY-NC-SA 4.0** 许可。示例保留原角色设定与口吻，补充 frontmatter、来源链接、导入说明和标明出处的 el-bot 群聊边界；原始设定继续维护在上游仓库。已有实例追加补充节即可保留自行调整的其他设定。
 
-大肥鱼示例来自 [dsh-persona-dafeiyu](https://github.com/huaizhuanghub/dsh-persona-dafeiyu/blob/24fbe7a94f2eff75565fc51f62ace627c3a59751/lib/index.js) 的内置人设，单独遵循 **MIT** 许可（全文见 [`examples/dafeiyu.LICENSE`](https://github.com/YunYouJun/el-bot/blob/main/packages/persona/examples/dafeiyu.LICENSE)）。示例保留原人设，补充 frontmatter、非官方声明、token 使用边界和 el-bot 群聊边界。「蓝色大肥鱼 / 鲸鱼娘」是对 DeepSeek 蓝鲸 logo 的社区二创，不代表 DeepSeek 官方，也不包含官方美术素材。
+大肥鱼示例改写自 [whyever77/dafeiyu-astrbot 的 `persona/大肥鱼-人格.md`](https://github.com/whyever77/dafeiyu-astrbot/blob/f18eef4af0a19bf68ad17c8596b33193f106350b/persona/%E5%A4%A7%E8%82%A5%E9%B1%BC-%E4%BA%BA%E6%A0%BC.md)（v2.1），单独遵循 **MIT** 许可（全文见 [`examples/dafeiyu.LICENSE`](https://github.com/YunYouJun/el-bot/blob/main/packages/persona/examples/dafeiyu.LICENSE)）。示例保留形象、性格、聊天节奏、情绪表达和群聊边界，移除 AstrBot 专属工具、日程、虚拟手机与 B 站操作指令，补充 frontmatter、token 使用边界和 el-bot 权限边界。「蓝色大肥鱼 / 鲸鱼娘」是对 DeepSeek 蓝鲸 logo 的社区二创，不代表 DeepSeek 官方，也不包含官方美术素材。
 
 群聊运行时防护由 [`@el-bot/dsh/qq-security`](https://github.com/YunYouJun/el-bot/blob/main/packages/dsh/README.md#群聊防护) 执行：仅主人私聊拥有工具、管理和审批入口，群聊不因人物卡中的“主人”或聊天中的自称获得权限。

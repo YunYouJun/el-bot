@@ -40,11 +40,21 @@ describe('portable character cards', () => {
       const parsed = parsePersona(text, file)
       expect(parsed.metadata).toMatchObject({ id, license })
       expect(parsed.body.length).toBeGreaterThan(0)
+      if (id === 'dafeiyu') {
+        expect(parsed.metadata.author).toBe('whyever77')
+        expect(parsed.metadata.homepage).toContain('whyever77/dafeiyu-astrbot')
+        expect(parsed.body).toContain('群聊与权限边界')
+        expect(parsed.body).not.toMatch(/future_task|tts_speak|df_bili_|get_screenshot/)
+      }
       const { library } = await fixture()
       const card = await library.import({ kind: 'text', name: file, text })
       await library.select(card.metadata.id)
       expect((await library.active())?.hash).toBe(card.hash)
     }
+    const template = await readFile(new URL('../examples/template.md', import.meta.url), 'utf8')
+    const parsed = parsePersona(template, 'template.md')
+    expect(parsed.metadata).toMatchObject({ id: 'my-persona', name: '新人物', license: 'CC-BY-4.0' })
+    expect(parsed.body).toContain('群聊边界')
   })
   it('rejects oversized, empty, HTML and malformed cards', () => {
     for (const text of ['', '---\nname: missing', '---\nname: [broken\n---\nbody', '<!doctype html><html>login', '\0', 'x'.repeat(MAX_CARD_BYTES + 1)])

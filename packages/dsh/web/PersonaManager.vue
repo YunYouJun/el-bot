@@ -2,12 +2,13 @@
 import type { PersonaImport, PersonaLibraryState, PersonaPreview, PersonaResult } from '../../persona/src/types'
 import { computed, onMounted, ref, shallowRef } from 'vue'
 import dafeiyu from '../../persona/examples/dafeiyu.md?raw'
+import personaTemplate from '../../persona/examples/template.md?raw'
 import xiaoyun from '../../persona/examples/xiaoyun.md?raw'
 import { renderPersonaPreview } from './persona-preview'
 
 const examples = [
   { id: 'xiaoyun', name: '小云', icon: '☁', description: '元气、爱代码、擅长休眠', author: 'YunYouJun', license: 'CC-BY-NC-SA-4.0', source: 'YunYouJun/yun · persona/xiaoyun.md', file: 'xiaoyun.md', text: xiaoyun },
-  { id: 'dafeiyu', name: '大肥鱼', icon: '🐟', description: '蓝色大肥鱼：DeepSeek 社区二创鲸鱼娘，傲娇、爱吃白饭', author: 'huaizhuanghub', license: 'MIT', source: 'huaizhuanghub/dsh-persona-dafeiyu · lib/index.js', file: 'dafeiyu.md', text: dafeiyu },
+  { id: 'dafeiyu', name: '大肥鱼', icon: '🐟', description: '蓝色大肥鱼：DeepSeek 社区二创鲸鱼娘，嘴硬心软、爱吃白饭', author: 'whyever77', license: 'MIT', source: 'whyever77/dafeiyu-astrbot · persona/大肥鱼-人格.md', file: 'dafeiyu.md', text: dafeiyu },
 ] as const
 type ExampleID = (typeof examples)[number]['id']
 
@@ -119,6 +120,16 @@ async function importFile(event: Event) {
 function changeRevision(event: Event) {
   void perform('preview', preview.value?.metadata.id, (event.target as HTMLSelectElement).value)
 }
+function downloadTemplate() {
+  const url = URL.createObjectURL(new Blob([personaTemplate], { type: 'text/markdown;charset=utf-8' }))
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'persona-template.md'
+  document.body.append(link)
+  link.click()
+  link.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 0)
+}
 </script>
 
 <template>
@@ -196,6 +207,12 @@ function changeRevision(event: Event) {
     <section class="dsh-section">
       <form class="settings-form persona-import" @submit.prevent="importLocation">
         <h2>导入人物卡</h2><p>支持 Markdown 和可选的 YAML 元数据。导入保存到此机器人，预览后再启用。</p>
+        <div class="persona-template">
+          <span>还没有人物卡？下载基础模板，让 AI 填写或手动改写后再上传。</span>
+          <button type="button" class="dsh-button" data-variant="outline" data-size="sm" @click="downloadTemplate">
+            下载基础模板
+          </button>
+        </div>
         <div class="persona-import-fields">
           <label>导入方式<select v-model="kind" class="form-input" :disabled="blocked" @change="location = ''"><option value="file">上传文件</option><option value="url">在线链接</option><option value="git">Git 仓库</option></select></label><label v-if="kind !== 'file'">{{ kind === 'url' ? 'Markdown 原文链接' : 'Git 仓库地址' }}<input v-model="location" class="form-input" :disabled="blocked" required :placeholder="kind === 'url' ? 'https://example.com/persona.md' : 'https://github.com/YunYouJun/yun.git'"></label><template v-if="kind === 'git'">
             <label>仓库内文件<input v-model="repositoryPath" class="form-input" :disabled="blocked" required placeholder="persona/xiaoyun.md"></label><label>分支、标签或提交<input v-model="gitRef" class="form-input" :disabled="blocked" placeholder="HEAD"></label>
@@ -327,6 +344,16 @@ function changeRevision(event: Event) {
 }
 .persona-import {
   max-width: none;
+}
+.persona-template {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--bot-space-3);
+  margin-top: var(--bot-space-3);
+  font-size: var(--bot-text-xs);
+  color: var(--bot-muted);
 }
 .persona-import-fields {
   display: grid;
