@@ -1,4 +1,8 @@
+import type { ContextPolicyReader } from './context'
+import type { QQChatService } from './qq-chat'
+import type { SessionLifecycle } from './session-lifecycle'
 import type {
+  BotGroup,
   BotStatus,
   ChatMessage,
   Conversation,
@@ -10,15 +14,18 @@ import type {
   SessionSummary,
 } from './types'
 import { readFile } from 'node:fs/promises'
-import { homedir } from 'node:os'
+import { availableParallelism, homedir, hostname, release } from 'node:os'
 import { join } from 'node:path'
 import process from 'node:process'
+import { contextUsage } from './context'
+import { readHostMetrics } from './host-metrics'
 import { MobileError } from './http'
 
 interface HostSummary {
   sessionId: string
   updatedAt: number
   running: boolean
+  blank?: boolean
   origin?: string
   projections?: { values: Record<string, unknown> }
 }
@@ -47,7 +54,14 @@ export interface QQConversationMetadata {
   summaries: (sessionIds: string[]) => Promise<Record<string, NonNullable<SessionSummary['source']>>>
   details: (sessionId: string) => Promise<SessionSummary['source']>
 }
+export interface QQGroupDirectory {
+  list: () => Promise<BotGroup[]>
+  open: (id: string) => Promise<string>
+  withSession: <T>(id: string, operation: (detach: (clear: boolean) => Promise<void>) => Promise<T>) => Promise<T>
+}
 interface Registry {
+  archivedSessionIds?: readonly string[]
+
   list: () => Workspace[]
   create: (path: string, title: string) => Promise<Workspace>
 }
@@ -113,7 +127,33 @@ function displayTitle(values: Record<string, unknown>, id: string) {
     if (typeof value === 'string' && value.trim())
       return value.slice(0, 160)
   }
+  const titleInput = record(values.titleInput)
+  const first = record(titleInput.first)
+  const prompt = text(first.text, 160)
+  if (prompt)
+    return prompt.replace(/\s+/g, ' ').slice(0, 60)
   return id.slice(0, 8)
+}
+
+function hasTitle(values: Record<string, unknown>) {
+  if (text(values.title))
+    return true
+  const detail = record(values.title)
+  return [detail.title, detail.value, detail.manual, detail.generated].some(value => text(value))
+}
+
+function sessionBlank(item: HostSummary, values: Record<string, unknown>) {
+  const metadata = record(values.sessionListMetadata)
+  if (typeof metadata.blank === 'boolean')
+    return metadata.blank
+  if (item.blank === true)
+    return true
+  if (item.running)
+    return false
+  // DSH only flips blank on the first `turn/start`. Its cold-cache fallback
+  // reports `blank: false` even when that projection is unavailable, so treat
+  // a Session that never produced a title or first prompt as blank too.
+  return !hasTitle(values) && !text(record(record(values.titleInput).first).text)
 }
 
 function sessionSource(workspace?: Workspace, grouping?: QQWorkspaceGrouping): SessionSummary['source'] {
@@ -136,7 +176,7 @@ export class DshMobileHost implements MobileHost {
   private readonly workspaces: Registry
   private readonly creations = new Map<string, Promise<string>>()
 
-  constructor(controller: unknown, workspaces: unknown, private readonly settings: MobileSettings, private readonly streamText: (stream: unknown[]) => string, private readonly qqGrouping?: () => QQWorkspaceGrouping | undefined, private readonly qqMetadata?: () => QQConversationMetadata | undefined) {
+  constructor(controller: unknown, workspaces: unknown, private readonly settings: MobileSettings, private readonly streamText: (stream: unknown[]) => string, private readonly qqGrouping?: () => QQWorkspaceGrouping | undefined, private readonly qqMetadata?: () => QQConversationMetadata | undefined, private readonly lifecycle?: SessionLifecycle, private readonly qqGroups?: () => QQGroupDirectory | undefined, private readonly qqHistory?: () => Pick<QQChatService, 'sources'> | undefined, private readonly contextPolicy?: ContextPolicyReader) {
     for (const method of ['list', 'create', 'modelCatalog', 'selectModel', 'prompt', 'follow', 'page']) {
       if (typeof record(controller)[method] !== 'function')
         throw new Error(`DSH Session Controller capability is unavailable: ${method}`)
@@ -152,23 +192,36 @@ export class DshMobileHost implements MobileHost {
     const groups = new Map(this.workspaces.list().flatMap(workspace => workspace.sessionIds.map(id => [id, workspace] as const)))
     const grouping = this.qqGrouping?.()
     const metadata: Record<string, NonNullable<SessionSummary['source']>> = await this.qqMetadata?.()?.summaries(items.map(item => item.sessionId)).catch(() => ({})) ?? {}
-    return items.filter(item => item.origin !== 'subagent').map((item) => {
+    const histories = this.qqHistory?.()?.sources() ?? {}
+    const rows: SessionSummary[] = items.filter(item => item.origin !== 'subagent' && !this.lifecycle?.deleted(item.sessionId)).map((item) => {
       const values = item.projections?.values ?? {}
+      const context = contextUsage(values)
       const selection = projectedModelRoute(values)
+      const blank = sessionBlank(item, values)
       const workspace = groups.get(item.sessionId)
       const source = sessionSource(workspace, grouping)
-      const detail = source && metadata[item.sessionId]?.kind === source.kind ? metadata[item.sessionId] : undefined
+      const stored = metadata[item.sessionId] ?? this.lifecycle?.source(item.sessionId) ?? (histories[item.sessionId] ? { platform: 'qq' as const, kind: 'group' as const, appId: this.settings.appId, peerId: histories[item.sessionId] } : undefined)
+      const detail = source && stored?.kind === source.kind ? stored : undefined
       return {
         id: item.sessionId,
         title: displayTitle(values, item.sessionId),
         updatedAt: new Date(Math.max(item.updatedAt, Date.parse(detail?.lastMessage?.createdAt ?? '') || 0)).toISOString(),
         running: item.running,
+        ...blank ? { blank: true } : {},
+        ...this.workspaces.archivedSessionIds?.includes(item.sessionId) ? { archived: true } : {},
         workspace: workspace?.title,
         ...source ? { source: detail ?? source } : {},
+        ...source?.kind === 'group' && !metadata[item.sessionId] ? { readOnly: true } : {},
         provider: selection?.provider,
         model: selection?.model,
+        ...context ? { context } : {},
       }
     })
+    for (const id of this.lifecycle?.pending ?? []) {
+      if (!rows.some(row => row.id === id))
+        rows.push({ id, title: '待完成的删除', updatedAt: new Date(0).toISOString(), running: false, archived: true })
+    }
+    return rows
   }
 
   async information(id: string, signal: AbortSignal): Promise<SessionSummary> {
@@ -177,6 +230,11 @@ export class DshMobileHost implements MobileHost {
       throw new MobileError(404, 'session_not_found')
     if (signal.aborted)
       throw signal.reason
+    const policy = await this.contextPolicy?.(id, modelRoute(session), signal).catch(() => undefined)
+    if (signal.aborted)
+      throw signal.reason
+    if (policy)
+      session.context = { ...session.context, policy }
     if (!session.source)
       return session
     const source = await this.qqMetadata?.()?.details(id).catch(() => undefined)
@@ -189,6 +247,7 @@ export class DshMobileHost implements MobileHost {
     const session = (await this.list(signal)).find(row => row.id === id)
     if (!session)
       throw new MobileError(404, 'session_not_found')
+    this.lifecycle?.assertAvailable(id)
     const lifetime = new AbortController()
     const stream = this.controller.follow({ address: { kind: 'session', sessionId: id }, maxMessages: 80 }, AbortSignal.any([signal, lifetime.signal]))
     const iterator = stream[Symbol.asyncIterator]()
@@ -236,9 +295,88 @@ export class DshMobileHost implements MobileHost {
   }
 
   async prompt(id: string, text: string, requestId: string, signal: AbortSignal) {
-    if (!(await this.list(signal)).some(row => row.id === id))
+    const session = (await this.list(signal)).find(row => row.id === id)
+    if (!session)
       throw new MobileError(404, 'session_not_found')
-    await this.controller.prompt({ sessionId: id, requestId, mode: 'queue', content: [{ type: 'text', text }] }, signal)
+    if (session.readOnly)
+      throw new MobileError(409, 'session_historical')
+    this.lifecycle?.assertAvailable(id)
+    if (this.workspaces.archivedSessionIds?.includes(id))
+      throw new MobileError(409, 'session_archived')
+    const admit = async () => {
+      await this.controller.prompt({ sessionId: id, requestId, mode: 'queue', content: [{ type: 'text', text }] }, signal)
+    }
+    if (this.lifecycle)
+      await this.lifecycle.admit(id, admit)
+    else await admit()
+  }
+
+  async archive(id: string, archived: boolean, signal: AbortSignal) {
+    const row = (await this.list(signal)).find(row => row.id === id)
+    if (!row)
+      throw new MobileError(404, 'session_not_found')
+    if (!this.lifecycle)
+      throw new MobileError(503, 'session_management_unavailable')
+    if (row.running)
+      throw new MobileError(409, 'session_active')
+    const lifecycle = this.lifecycle
+    const operation = async () => {
+      await lifecycle.remember(id, row.source)
+      await lifecycle.archive(id, archived)
+    }
+    try {
+      const groups = this.qqGroups?.()
+      if (groups)
+        await groups.withSession(id, operation)
+      else if (row.source?.platform === 'qq' && archived)
+        throw new MobileError(503, 'groups_unavailable')
+      else await operation()
+    }
+    catch (error) { throw sessionMutationError(error) }
+  }
+
+  async delete(id: string, signal: AbortSignal) {
+    if (!this.lifecycle)
+      throw new MobileError(503, 'session_management_unavailable')
+    if (this.lifecycle.deleted(id))
+      return
+    const row = (await this.list(signal)).find(row => row.id === id)
+    if (!row && !this.lifecycle.pending.includes(id))
+      throw new MobileError(404, 'session_not_found')
+    if (row?.running)
+      throw new MobileError(409, 'session_active')
+    const lifecycle = this.lifecycle
+    const operation = (detach: (clear: boolean) => Promise<void>) => lifecycle.erase(id, () => detach(true))
+    try {
+      const groups = this.qqGroups?.()
+      if (groups)
+        await groups.withSession(id, operation)
+      else if (row?.source?.platform === 'qq')
+        throw new MobileError(503, 'groups_unavailable')
+      else await operation(async () => {})
+    }
+    catch (error) { throw sessionMutationError(error) }
+  }
+
+  async groups(signal: AbortSignal): Promise<BotGroup[]> {
+    signal.throwIfAborted()
+    const groups = this.qqGroups?.()
+    if (!groups)
+      throw new MobileError(503, 'groups_unavailable')
+    const rows = await groups.list()
+    signal.throwIfAborted()
+    return rows
+  }
+
+  async openGroup(id: string, signal: AbortSignal) {
+    signal.throwIfAborted()
+    const groups = this.qqGroups?.()
+    if (!groups)
+      throw new MobileError(503, 'groups_unavailable')
+    try {
+      return await groups.open(id)
+    }
+    catch (error) { throw sessionMutationError(error) }
   }
 
   async models(id: string, signal: AbortSignal): Promise<SessionModelCatalog> {
@@ -303,7 +441,25 @@ export class DshMobileHost implements MobileHost {
   }
 
   async status(): Promise<BotStatus> {
-    const result: BotStatus = { name: this.settings.botName ?? '小云 Bot', appId: this.settings.appId ?? '102275406', state: 'unknown', checkedAt: new Date().toISOString() }
+    const result: BotStatus = {
+      name: this.settings.botName ?? '小云 Bot',
+      appId: this.settings.appId ?? '102275406',
+      state: 'unknown',
+      checkedAt: new Date().toISOString(),
+      runtime: {
+        hostname: hostname(),
+        platform: process.platform,
+        release: release(),
+        arch: process.arch,
+        nodeVersion: process.version,
+        cpuCount: availableParallelism(),
+        uptimeSeconds: Math.floor(process.uptime()),
+        memoryRSSBytes: process.memoryUsage.rss(),
+      },
+    }
+    const host = await readHostMetrics(this.settings.hostMetricsFile ?? process.env.YUN_HOST_METRICS_FILE ?? '/run/el-bot-host-metrics/host.json')
+    if (host)
+      result.host = host
     try {
       const directory = join(homedir(), '.dsh-qqbot')
       const [boot, runtime, grouping] = await Promise.all(['cloud-boot.json', 'cloud-runtime-status.json', 'workspace-grouping-status.json'].map(async name => record(JSON.parse(await readFile(join(directory, name), 'utf8')))))
@@ -314,4 +470,15 @@ export class DshMobileHost implements MobileHost {
     catch { /* Missing health capability remains unknown. */ }
     return result
   }
+}
+
+function sessionMutationError(error: unknown) {
+  if (error instanceof MobileError)
+    return error
+  const value = record(error)
+  if (value.code === 'group_forbidden')
+    return new MobileError(403, 'group_forbidden')
+  if (value.code === 'session_active' || value.code === 'workspace/session-active' || value.name === 'WorkspaceActiveSessionError')
+    return new MobileError(409, 'session_active')
+  return error
 }

@@ -37,10 +37,39 @@ export interface SessionSummary {
   title: string
   updatedAt: string
   running: boolean
+  blank?: boolean
+  archived?: boolean
+  readOnly?: boolean
   workspace?: string
   source?: SessionSource
   provider?: string
   model?: string
+  context?: SessionContext
+}
+
+export interface SessionContext {
+  usedTokens?: number
+  contextWindow?: number
+  usageSource?: 'projected' | 'last-request'
+  policy?: SessionContextPolicy
+}
+
+export interface SessionContextPolicy {
+  automatic: boolean
+  thresholdRatio: number
+  headroomTokens: number
+  retainRatio?: number
+  retainTokens?: number
+  source: 'active' | 'preset'
+  preset?: string
+}
+
+export interface BotGroup {
+  id: string
+  source: SessionSource
+  membership: 'joined' | 'left' | 'unknown'
+  allowed: boolean
+  sessionId?: string
 }
 
 export interface ModelRoute {
@@ -86,10 +115,38 @@ export interface BotStatus {
   appId: string
   state: 'online' | 'offline' | 'connecting' | 'unknown'
   checkedAt: string
+  runtime?: RemoteRuntimeStatus
+  host?: RemoteHostStatus
+}
+
+/** Metrics sampled on the Linux host, outside the bot container. */
+export interface RemoteHostStatus {
+  sampledAt: string
+  stale: boolean
+  hostname: string
+  cpu: { count: number, usagePercent: number, sampleSeconds: number }
+  memory: { totalBytes: number, usedBytes: number, availableBytes: number, usagePercent: number }
+  disks: { mountPoint: string, totalBytes: number, usedBytes: number, availableBytes: number, usagePercent: number }[]
+}
+
+/** The API process environment; in Docker this describes the container. */
+export interface RemoteRuntimeStatus {
+  hostname: string
+  platform: string
+  release: string
+  arch: string
+  nodeVersion: string
+  cpuCount: number
+  uptimeSeconds: number
+  memoryRSSBytes: number
 }
 
 /** Conversation and status capabilities of the paired companion API. */
 export interface MobileHost {
+  archive?: (id: string, archived: boolean, signal: AbortSignal) => Promise<void>
+  delete?: (id: string, signal: AbortSignal) => Promise<void>
+  groups?: (signal: AbortSignal) => Promise<BotGroup[]>
+  openGroup?: (id: string, signal: AbortSignal) => Promise<string>
   list: (signal: AbortSignal) => Promise<SessionSummary[]>
   information?: (id: string, signal: AbortSignal) => Promise<SessionSummary>
   conversation: (id: string, signal: AbortSignal, before?: number) => Promise<Conversation>
@@ -121,6 +178,7 @@ export interface MobileSettings {
   appId?: string
   botName?: string
   workspaceDirectory?: string
+  hostMetricsFile?: string
   account?: {
     cloudbaseEnvId?: string
     appId?: string

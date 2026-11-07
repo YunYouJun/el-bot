@@ -1,8 +1,57 @@
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import process from 'node:process'
 import { expect, it, vi } from 'vitest'
 import { DshMobileHost } from './host'
+
+it('includes native context statistics and policy in authorized session information without opening history', async () => {
+  const controller = {
+    create: vi.fn(),
+    modelCatalog: vi.fn(),
+    selectModel: vi.fn(),
+    prompt: vi.fn(),
+    follow: vi.fn(),
+    page: vi.fn(),
+    list: vi.fn(async () => ({ items: [{ sessionId: 'existing', updatedAt: 0, running: false, projections: { values: {
+      modelSelection: { next: { provider: 'p', model: 'm' } },
+      contextPressure: { projectedTokens: 14500, contextWindow: 1048576, privateField: 'private-context' },
+      tokenUsage: { outputTokens: 900000 },
+    } } }] })),
+  }
+  const policy = { automatic: true, thresholdRatio: 0.8, headroomTokens: 65536, retainRatio: 0.16, source: 'active' as const }
+  const reader = vi.fn(async () => policy)
+  const host = new DshMobileHost(controller, { list: () => [], create: vi.fn() }, { publicBaseUrl: 'https://bot.test' }, () => '', undefined, undefined, undefined, undefined, undefined, reader)
+  const signal = new AbortController().signal
+  const information = await host.information('existing', signal)
+  expect(information.context).toEqual({ usedTokens: 14500, contextWindow: 1048576, usageSource: 'projected', policy })
+  expect(reader).toHaveBeenCalledExactlyOnceWith('existing', { provider: 'p', model: 'm' }, signal)
+  expect(JSON.stringify(information)).not.toMatch(/private-context|900000/)
+  await expect(host.information('missing', signal)).rejects.toThrow('session_not_found')
+  expect(reader).toHaveBeenCalledOnce()
+  expect(controller.follow).not.toHaveBeenCalled()
+  expect(controller.prompt).not.toHaveBeenCalled()
+})
+
+it('reports API process resources without depending on QQ health or exposing configuration', async () => {
+  const controller = Object.fromEntries(['list', 'create', 'modelCatalog', 'selectModel', 'prompt', 'follow', 'page'].map(name => [name, vi.fn()]))
+  const host = new DshMobileHost(controller, { list: () => [], create: vi.fn() }, {
+    publicBaseUrl: 'https://bot.test',
+    appId: 'runtime-test-without-health',
+    workspaceDirectory: '/private/workspace',
+    discovery: { enrollmentSecret: 'private-enrollment-secret' },
+  }, () => '')
+  const status = await host.status()
+  expect(status.state).toBe('unknown')
+  expect(status.runtime).toMatchObject({ platform: process.platform, arch: process.arch, nodeVersion: process.version })
+  expect(status.runtime?.hostname).toBeTruthy()
+  expect(status.runtime?.release).toBeTruthy()
+  expect(status.runtime?.uptimeSeconds).toBeGreaterThanOrEqual(0)
+  expect(status.runtime?.cpuCount).toBeGreaterThan(0)
+  expect(status.runtime?.memoryRSSBytes).toBeGreaterThan(0)
+  expect(JSON.stringify(status)).not.toMatch(/private-workspace|private\/workspace|private-enrollment-secret/)
+  for (const method of Object.values(controller)) expect(method).not.toHaveBeenCalled()
+})
 
 it('projects only visible messages and preserves session, model and workspace identity', async () => {
   const summary = { sessionId: 'existing', updatedAt: Date.now(), running: false, projections: { values: { title: 'Existing title', modelSelection: { next: { provider: 'tokenlink', model: 'hy4' } } } } }
@@ -79,6 +128,29 @@ it('projects only visible messages and preserves session, model and workspace id
   await host.prompt('existing', 'Continue', 'retry-stable-id', signal)
   expect(prompt).toHaveBeenCalledWith({ sessionId: 'existing', requestId: 'retry-stable-id', mode: 'queue', content: [{ type: 'text', text: 'Continue' }] }, signal)
   await expect(host.prompt('missing', 'No', 'request', signal)).rejects.toThrow('session_not_found')
+})
+
+it('marks empty sessions and falls back to the first prompt before a title exists', async () => {
+  const controller = Object.fromEntries(['create', 'modelCatalog', 'selectModel', 'prompt', 'follow', 'page'].map(name => [name, vi.fn()]))
+  controller.list = vi.fn(async () => ({ items: [
+    { sessionId: 'empty', updatedAt: 1, running: false, projections: { values: { title: null, sessionListMetadata: { blank: true } } } },
+    { sessionId: 'session-bare', updatedAt: 2, running: false, blank: false },
+    { sessionId: 'cache-miss-titled', updatedAt: 3, running: false, blank: false, projections: { values: { title: 'Cached elsewhere' } } },
+    { sessionId: 'prompted', updatedAt: 2, running: false, projections: { values: { title: null, titleInput: { first: { text: '  Explain\n  the parser  ' } } } } },
+    { sessionId: 'titled', updatedAt: 3, running: false, projections: { values: { title: 'Generated title', sessionListMetadata: { blank: false } } } },
+  ] }))
+  const host = new DshMobileHost(controller, { list: () => [], create: vi.fn() }, { publicBaseUrl: 'https://bot.test' }, () => '')
+  const rows = await host.list(new AbortController().signal)
+  expect(rows).toMatchObject([
+    { id: 'empty', title: 'empty', blank: true },
+    { id: 'session-bare', title: 'session-', blank: true },
+    { id: 'cache-miss-titled', title: 'Cached elsewhere' },
+    { id: 'prompted', title: 'Explain the parser' },
+    { id: 'titled', title: 'Generated title' },
+  ])
+  expect(rows[2]).not.toHaveProperty('blank')
+  expect(rows[3]).not.toHaveProperty('blank')
+  expect(rows[4]).not.toHaveProperty('blank')
 })
 
 it('allocates a new native session without interpreting a request ID as a resume ID', async () => {

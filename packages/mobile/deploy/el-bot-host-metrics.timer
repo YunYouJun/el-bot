@@ -1,0 +1,11 @@
+[Unit]
+Description=Refresh el-bot host metrics every 15 seconds
+
+[Timer]
+OnBootSec=15
+OnUnitActiveSec=15
+AccuracySec=1
+Unit=el-bot-host-metrics.service
+
+[Install]
+WantedBy=timers.target

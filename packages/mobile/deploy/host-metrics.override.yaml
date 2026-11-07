@@ -1,0 +1,6 @@
+services:
+  dsh:
+    environment:
+      YUN_HOST_METRICS_FILE: /run/el-bot-host-metrics/host.json
+    volumes:
+      - /var/lib/el-bot-host-metrics:/run/el-bot-host-metrics:ro

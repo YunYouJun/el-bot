@@ -11,10 +11,11 @@
   "dsh": {
     "client": { "platform": "web" },
     "bundle": { "patch": "./cordis.patch.yml" },
-    "compatibility": { "dshReleases": { "0.2.1-rc.5": "compatible" } }
+    "compatibility": { "dshReleases": { "0.2.1-rc.5": "compatible", "0.2.2-rc.1": "compatible" } }
   },
   "scripts": { "build": "tsdown && tsdown --config tsdown.client.config.ts", "typecheck": "tsc --noEmit" },
   "dependencies": {
+    "@el-bot/persona": "workspace:*",
     "@yunlefun/sso": "catalog:"
   },
   "devDependencies": {

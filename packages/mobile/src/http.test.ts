@@ -322,3 +322,195 @@ it('requires a current signed enrollment ticket before issuing a revocable devic
     await rm(directory, { recursive: true, force: true })
   }
 })
+
+it('requires a fresh device-bound deletion confirmation and keeps group routes independently authenticated', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'mobile-management-http-'))
+  const devices = new DeviceStore(join(directory, 'devices.json'))
+  await devices.load()
+  const session = { id: 'session-one', title: 'History', running: false, updatedAt: '2026-11-07T00:00:00.000Z' }
+  const bridge: MobileHost = {
+    ...host(),
+    list: async () => [session],
+    archive: vi.fn(async () => {}),
+    delete: vi.fn(async () => {}),
+    groups: vi.fn<NonNullable<MobileHost['groups']>>(async () => [{ id: 'group-one', source: { platform: 'qq', kind: 'group', name: 'Test group' }, membership: 'joined', allowed: true }]),
+    openGroup: vi.fn(async () => 'fresh-session'),
+  }
+  const server = await listen(mobileRoutes(bridge, devices, 'https://bot.example.test'))
+  try {
+    for (const [path, method] of [['groups', 'GET'], ['sessions/session-one/archive', 'PUT'], ['sessions/session-one/deletion', 'POST'], ['sessions/session-one', 'DELETE'], ['groups/group-one/conversation', 'POST']])
+      expect((await fetch(`${server.url}/${path}`, { method })).status).toBe(401)
+    const pair = async (name: string) => {
+      const { code } = await devices.createPairing()
+      const response = await fetch(`${server.url}/pair`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ code, deviceName: name }) })
+      const { token } = await response.json() as { token: string }
+      return { 'authorization': `Bearer ${token}`, 'content-type': 'application/json' }
+    }
+    const headers = await pair('first')
+    const second = await pair('second')
+    const prepare = async () => {
+      const response = await fetch(`${server.url}/sessions/session-one/deletion`, { method: 'POST', headers })
+      expect(response.status).toBe(200)
+      return await response.json() as { confirmation: string }
+    }
+    const erase = (confirmation: string, credentials = headers, id = 'session-one') => fetch(`${server.url}/sessions/${id}`, {
+      method: 'DELETE',
+      headers: credentials,
+      body: JSON.stringify({ confirmation }),
+    })
+    expect((await erase('unissued')).status).toBe(409)
+    const first = await prepare()
+    expect((await erase(first.confirmation, second)).status).toBe(409)
+    expect((await erase(first.confirmation, headers, 'other-session')).status).toBe(409)
+    expect((await erase(first.confirmation)).status).toBe(200)
+    expect((await erase(first.confirmation)).status).toBe(409)
+    expect(bridge.delete).toHaveBeenCalledTimes(1)
+    const changed = await prepare()
+    session.updatedAt = '2026-11-07T00:01:00.000Z'
+    expect((await erase(changed.confirmation)).status).toBe(409)
+    session.running = true
+    expect((await fetch(`${server.url}/sessions/session-one/deletion`, { method: 'POST', headers })).status).toBe(409)
+    expect((await erase(changed.confirmation)).status).toBe(409)
+    session.running = false
+    const expiring = await prepare()
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 61_000)
+    try {
+      expect((await erase(expiring.confirmation)).status).toBe(409)
+    }
+    finally { clock.mockRestore() }
+    expect((await fetch(`${server.url}/sessions/session-one/archive`, { method: 'PUT', headers, body: JSON.stringify({ archived: 'yes' }) })).status).toBe(400)
+    expect((await fetch(`${server.url}/sessions/session-one/archive`, { method: 'PUT', headers, body: JSON.stringify({ archived: true }) })).status).toBe(200)
+    expect(bridge.archive).toHaveBeenCalledWith('session-one', true, expect.any(AbortSignal))
+    expect((await fetch(`${server.url}/groups`, { headers })).status).toBe(200)
+    expect(await (await fetch(`${server.url}/groups/group-one/conversation`, { method: 'POST', headers })).json()).toEqual({ sessionId: 'fresh-session' })
+    expect(bridge.openGroup).toHaveBeenCalledExactlyOnceWith('group-one', expect.any(AbortSignal))
+    expect((await fetch(`${server.url}/groups`, { headers: { ...headers, origin: 'https://foreign.test' } })).status).toBe(403)
+  }
+  finally {
+    await server.close()
+    await rm(directory, { recursive: true, force: true })
+  }
+})
+
+it('authenticates cloud restart and preserves the explicit force choice', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'mobile-restart-http-'))
+  const devices = new DeviceStore(join(directory, 'devices.json'))
+  await devices.load()
+  const restart = vi.fn(async () => {})
+  const server = await listen(mobileRoutes(host(), devices, 'https://bot.example.test', undefined, undefined, undefined, undefined, undefined, undefined, { restart }))
+  try {
+    expect((await fetch(`${server.url}/system/restart`, { method: 'POST' })).status).toBe(401)
+    const { code } = await devices.createPairing()
+    const paired = await fetch(`${server.url}/pair`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ code, deviceName: 'iPhone' }) })
+    const { token } = await paired.json() as { token: string }
+    const headers = { 'authorization': `Bearer ${token}`, 'content-type': 'application/json' }
+
+    const normal = await fetch(`${server.url}/system/restart`, { method: 'POST', headers, body: JSON.stringify({ force: false }) })
+    expect(normal.status).toBe(202)
+    expect(await normal.json()).toEqual({ ok: true, restarting: true })
+    expect(restart).toHaveBeenCalledWith(false, expect.any(AbortSignal))
+
+    expect((await fetch(`${server.url}/system/restart`, { method: 'POST', headers, body: JSON.stringify({ force: 'yes' }) })).status).toBe(400)
+    const forced = await fetch(`${server.url}/system/restart`, { method: 'POST', headers, body: JSON.stringify({ force: true }) })
+    expect(forced.status).toBe(202)
+    expect(restart).toHaveBeenLastCalledWith(true, expect.any(AbortSignal))
+  }
+  finally {
+    await server.close()
+    await rm(directory, { recursive: true, force: true })
+  }
+})
+
+it('authenticates native QQ takeover routes and rejects model sessions, archives and cross-device sends', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'native-qq-http-'))
+  const devices = new DeviceStore(join(directory, 'devices.json'))
+  await devices.load()
+  const { QQChatAdapter } = await import('./qq-chat')
+  const service = {
+    view: vi.fn(async () => ({ messages: [], control: { id: 'allowed-group' } })),
+    request: vi.fn(async (_id: string, input: Record<string, unknown>) => input.operation === 'preview'
+      ? { id: 'native-preview', expiresAt: Date.now() + 120_000, text: input.text }
+      : { id: input.preview, status: 'sent' }),
+    member: vi.fn(async (_id: string, senderId: string) => ({ senderId, impression: { text: '喜欢猫', updatedAt: '2026-11-07T08:00:00.000Z' } })),
+    sources: () => ({}),
+  }
+  const adapter = new QQChatAdapter(join(directory, 'grants.json'), () => service)
+  await adapter.load()
+  const group = { id: 'group-session', title: 'Allowed group', running: false, updatedAt: new Date().toISOString(), archived: false, source: { platform: 'qq' as const, kind: 'group' as const }, context: { usedTokens: 14500, contextWindow: 1048576, usageSource: 'projected' as const } }
+  const bridge = { ...host(), list: async () => [group, { id: 'model-session', title: 'Model', running: false, updatedAt: group.updatedAt }] }
+  const server = await listen(mobileRoutes(bridge, devices, 'https://bot.example.test', undefined, undefined, undefined, undefined, undefined, adapter))
+  try {
+    const url = `${server.url}/sessions/group-session/qq`
+    expect((await fetch(url)).status).toBe(401)
+    const pair = async () => {
+      const { code } = await devices.createPairing()
+      const response = await fetch(`${server.url}/pair`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ code, deviceName: 'test' }) })
+      const { token } = await response.json() as { token: string }
+      return { 'authorization': `Bearer ${token}`, 'content-type': 'application/json' }
+    }
+    const headers = await pair()
+    const otherDevice = await pair()
+    const snapshot = await fetch(url, { headers })
+    expect(snapshot.status).toBe(200)
+    expect(await snapshot.json()).toMatchObject({ context: group.context })
+    const member = await fetch(`${url}/members/member-1`, { headers })
+    expect(member.status).toBe(200)
+    expect(await member.json()).toEqual({ senderId: 'member-1', impression: { text: '喜欢猫', updatedAt: '2026-11-07T08:00:00.000Z' } })
+    expect(service.member).toHaveBeenCalledExactlyOnceWith('group-session', 'member-1')
+    expect((await fetch(`${url}/members/member-1`, { method: 'POST', headers })).status).toBe(405)
+    expect((await fetch(`${server.url}/sessions/model-session/qq`, { headers })).status).toBe(404)
+    expect((await fetch(`${server.url}/sessions/model-session/qq/members/member-1`, { headers })).status).toBe(404)
+    expect((await fetch(`${url}?before=-1`, { headers })).status).toBe(400)
+    const post = (value: object, credentials = headers) => fetch(url, { method: 'POST', headers: credentials, body: JSON.stringify(value) })
+    expect((await post({ operation: 'preview', text: 'exact', mode: 'reply', lease: 'lease' })).status).toBe(200)
+    expect((await post({ operation: 'send', preview: 'native-preview' }, otherDevice)).status).toBe(409)
+    expect((await post({ operation: 'send', preview: 'native-preview' })).status).toBe(200)
+    group.archived = true
+    expect((await post({ operation: 'begin' })).status).toBe(409)
+    expect((await fetch(url, { headers: { ...headers, origin: 'https://foreign.invalid' } })).status).toBe(403)
+    expect(bridge.prompt).not.toHaveBeenCalled()
+  }
+  finally {
+    await server.close()
+    await rm(directory, { recursive: true, force: true })
+  }
+})
+
+it('only exposes host resource metrics to an active paired device', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'yun-host-status-http-'))
+  const devices = new DeviceStore(join(directory, 'devices.json'))
+  await devices.load()
+  const pairing = await devices.createPairing()
+  const target = host()
+  const metrics = {
+    sampledAt: new Date().toISOString(),
+    stale: false,
+    hostname: 'physical-host',
+    cpu: { count: 2, usagePercent: 12.5, sampleSeconds: 1 },
+    memory: { totalBytes: 4096, usedBytes: 1024, availableBytes: 3072, usagePercent: 25 },
+    disks: [{ mountPoint: '/', totalBytes: 10000, usedBytes: 3000, availableBytes: 6000, usagePercent: 33.3 }],
+  }
+  target.status = vi.fn(async () => ({ name: 'Bot', appId: 'test', state: 'online' as const, checkedAt: metrics.sampledAt, host: metrics }))
+  const server = await listen(mobileRoutes(target, devices, 'https://bot.example.test'))
+  try {
+    expect((await fetch(`${server.url}/status`)).status).toBe(401)
+    expect(target.status).not.toHaveBeenCalled()
+    const paired = await (await fetch(`${server.url}/pair`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ code: pairing.code, deviceName: 'Metrics test' }),
+    })).json() as { token: string }
+    const headers = { authorization: `Bearer ${paired.token}` }
+    const response = await fetch(`${server.url}/status`, { headers })
+    expect(response.status).toBe(200)
+    expect((await response.json() as { host: unknown }).host).toEqual(metrics)
+    expect(target.status).toHaveBeenCalledOnce()
+    expect((await fetch(`${server.url}/device`, { method: 'DELETE', headers })).status).toBe(200)
+    expect((await fetch(`${server.url}/status`, { headers })).status).toBe(401)
+    expect(target.status).toHaveBeenCalledOnce()
+  }
+  finally {
+    await server.close()
+    await rm(directory, { recursive: true, force: true })
+  }
+})

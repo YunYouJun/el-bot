@@ -1,4 +1,4 @@
-# Compatibility for existing rc.5 images; fresh images preload this adapter in entrypoint.sh.
+# Compatibility for existing images; fresh images preload this adapter in entrypoint.sh.
 # Copy apps/dsh-cloud/tool-runtime.mjs alongside this compose file before applying.
 services:
   dsh:

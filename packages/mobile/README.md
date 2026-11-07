@@ -2,9 +2,13 @@
 
 小云 macOS / iOS 原生客户端的 DSH bundle。部署、配对和设备撤销见 [iOS 开发说明](../../docs/development/ios-companion.md)。
 
-固定适配 DSH `0.2.1-rc.5`，不依赖未发布的其他工作区模块。`publicBaseUrl` 必须是 HTTPS origin，由 profile 的 `cordis.patch.yml` 覆盖。
+固定适配 DSH `0.2.1-rc.5` / `0.2.2-rc.1`，不依赖未发布的其他工作区模块。`publicBaseUrl` 必须是 HTTPS origin，由 profile 的 `cordis.patch.yml` 覆盖。
 
 0.1.3 增加默认关闭的 `phone.enabled`。开启后，iOS 原生入口为本机 iCTRL 创建十分钟专用控制会话，并通过 DSH 的 `phone_open_app` 工具打开白名单中的 App。手机主动轮询，Bearer 与独立通道凭据共同验证；网页 Cookie 不能领取，iCTRL 密钥不上云。任务按真实 Agent 会话隔离，领取即消费，不自动重放。部署与真机验收见开发说明。
+
+原生端新建会话采用惰性创建：草稿页首次发送时才调用 `POST /sessions`，未发送不会产生云端空会话。`GET /sessions` 返回可选的 `blank` 标记，客户端据此隐藏没有内容的会话；标题未生成前回退到首条提示词，随后使用 DSH 原生标题投影。
+
+已配对设备可调用 `POST /system/restart` 请求云端进程优雅退出，由 Docker `restart: unless-stopped` 拉起；请求体 `{"force":true}` 明确允许中断运行中的任务。主人私聊也可使用 `/restart` 与 `/restart force`。
 
 | 接口（相对 `/el-bot/mobile/v1`）  | 权限与用途                            |
 | --------------------------------- | ------------------------------------- |
@@ -15,7 +19,8 @@
 | `POST /sessions/:id/messages`     | 新消息及稳定 requestId，原生队列提交  |
 | `GET /sessions/:id/models`        | 当前会话模型及可用模型目录            |
 | `PUT /sessions/:id/model`         | 切换会话下一次请求的 provider/model   |
-| `GET /status`                     | 当前进程的 QQ 连接状态                |
+| `GET /status`                     | QQ 状态、容器环境与可选宿主机资源     |
+| `POST /system/restart`            | 重启云服务；`force` 可中断运行中任务  |
 | `POST /web/ticket`                | 已配对设备申请一次性完整 Web 登录票据 |
 | `POST /web/launch`                | 用一次性票据建立独立网页会话          |
 | `POST /phone/channel`             | 为本机授权创建专用手机控制会话        |

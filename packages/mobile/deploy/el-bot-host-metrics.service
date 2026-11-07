@@ -1,0 +1,22 @@
+[Unit]
+Description=Sample el-bot host resource metrics
+
+[Service]
+Type=oneshot
+User=el-bot-metrics
+Group=el-bot-metrics
+ExecStart=/usr/bin/python3 /usr/local/lib/el-bot/host-metrics.py
+StateDirectory=el-bot-host-metrics
+StateDirectoryMode=0755
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX
+MemoryMax=32M
+CPUQuota=5%
+Nice=10
+TimeoutStartSec=10

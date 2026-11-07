@@ -4,7 +4,7 @@ services:
     volumes:
       - ./mobile:/opt/dsh-runtime/node_modules/@el-bot/mobile:ro
   mobile-proxy:
-    image: el-bot/dsh-cloud:0.2.1-rc.5-qq0.5.5-personas0.1.0-models1
+    image: el-bot/dsh-cloud:0.2.2-rc.1-qq0.5.5-personas0.1.0-models1-security1
     container_name: el-bot-mobile-proxy
     pull_policy: never
     entrypoint: [node, /opt/mobile-proxy/proxy.mjs]

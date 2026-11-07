@@ -2,12 +2,15 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { AccountSyncConfig, VerifyIdentityProof } from './account'
 import type { DeviceStore } from './auth'
 import type { AccountDiscoveryConfig, AccountEnrollmentResult, AccountInstance } from './discovery'
+import type { MobilePersonaService } from './personas'
 import type { PhoneRelay } from './phone'
+import type { QQChatAdapter } from './qq-chat'
 import type { MobileHost } from './types'
 import { Buffer } from 'node:buffer'
 import { randomUUID } from 'node:crypto'
 import { accountPublicState, linkAccount, normalizePreferences } from './account'
 import { discoverInstances, verifyEnrollmentTicket } from './discovery'
+import { personaRequest } from './personas'
 
 export const API_PATH = '/el-bot/mobile/v1'
 
@@ -25,7 +28,7 @@ export function json(res: ServerResponse, status: number, value: unknown) {
   res.end(JSON.stringify(value))
 }
 
-export async function body(req: IncomingMessage): Promise<Record<string, unknown>> {
+export async function body(req: IncomingMessage, limit = 20 * 1024): Promise<Record<string, unknown>> {
   if (!req.headers['content-type']?.startsWith('application/json'))
     throw new MobileError(415, 'json_required')
   const chunks: Buffer[] = []
@@ -33,7 +36,7 @@ export async function body(req: IncomingMessage): Promise<Record<string, unknown
   for await (const chunk of req) {
     const bytes = Buffer.from(chunk)
     length += bytes.length
-    if (length > 20 * 1024)
+    if (length > limit)
       throw new MobileError(413, 'request_too_large')
     chunks.push(bytes)
   }
@@ -128,7 +131,11 @@ export function mobileRoutes(
     now?: () => number
   },
   phone?: PhoneRelay,
+  personas?: () => MobilePersonaService | undefined,
+  qqChat?: QQChatAdapter,
+  system?: { restart: (force: boolean, signal: AbortSignal) => Promise<void> },
 ) {
+  const deletions = new Map<string, { deviceId: string, sessionId: string, updatedAt: string, expiresAt: number }>()
   return async (req: IncomingMessage, res: ServerResponse) => {
     req.setTimeout(10_000, () => req.destroy())
     res.setHeader('x-request-id', randomUUID())
@@ -216,6 +223,23 @@ export function mobileRoutes(
       const device = devices.authorize(req.headers.authorization)
       if (!device)
         throw new MobileError(401, 'unauthorized')
+      if (path.length === 1 && path[0] === 'personas') {
+        if (req.method !== 'GET' && req.method !== 'POST')
+          throw new MobileError(405, 'method_not_allowed')
+        const service = personas?.()
+        if (!service)
+          throw new MobileError(503, 'personas_not_configured')
+        // JSON escapes can expand a 32 KiB card sixfold; other routes keep their smaller limit.
+        const request = req.method === 'GET' ? { operation: 'list' as const } : personaRequest(await body(req, 256 * 1024))
+        try {
+          json(res, 200, await service.request(request, true))
+        }
+        catch (error) {
+          reportError(error)
+          throw new MobileError(400, 'persona_operation_failed')
+        }
+        return
+      }
       if (path[0] === 'phone') {
         if (!phone)
           throw new MobileError(503, 'phone_not_configured')
@@ -252,6 +276,16 @@ export function mobileRoutes(
       }
       if (path.length === 1 && path[0] === 'status' && req.method === 'GET') {
         json(res, 200, await host.status())
+        return
+      }
+      if (path.length === 2 && path[0] === 'system' && path[1] === 'restart' && req.method === 'POST') {
+        if (!system)
+          throw new MobileError(503, 'restart_unavailable')
+        const request = await body(req)
+        if (request.force !== undefined && typeof request.force !== 'boolean')
+          throw new MobileError(400, 'invalid_restart')
+        await system.restart(request.force === true, signal)
+        json(res, 202, { ok: true, restarting: true })
         return
       }
       if (path[0] === 'account') {
@@ -313,6 +347,20 @@ export function mobileRoutes(
         }
         throw new MobileError(405, 'method_not_allowed')
       }
+      if (path[0] === 'groups') {
+        if (path.length === 1 && req.method === 'GET') {
+          if (!host.groups)
+            throw new MobileError(503, 'groups_unavailable')
+          json(res, 200, { items: await host.groups(signal) })
+          return
+        }
+        if (path.length === 3 && path[2] === 'conversation' && req.method === 'POST') {
+          if (!host.openGroup)
+            throw new MobileError(503, 'groups_unavailable')
+          json(res, 200, { sessionId: await host.openGroup(identifier(path[1]), signal) })
+          return
+        }
+      }
       if (path[0] === 'sessions') {
         if (path.length === 1) {
           if (req.method === 'GET') {
@@ -326,6 +374,97 @@ export function mobileRoutes(
           return
         }
         const id = identifier(path[1])
+        if (path.length === 5 && path[2] === 'qq' && path[3] === 'members') {
+          if (req.method !== 'GET')
+            throw new MobileError(405, 'method_not_allowed')
+          if (!qqChat)
+            throw new MobileError(503, 'qq_chat_unavailable')
+          const session = (await host.list(signal)).find(row => row.id === id)
+          if (!session || session.source?.platform !== 'qq' || session.source.kind !== 'group')
+            throw new MobileError(404, 'session_not_found')
+          const senderId = identifier(path[4])
+          const value = await qqChat.member(id, senderId)
+          if (!value || typeof value !== 'object' || Array.isArray(value))
+            throw new MobileError(503, 'invalid_qq_response')
+          json(res, 200, value)
+          return
+        }
+        if (path.length === 3 && path[2] === 'qq') {
+          if (!qqChat)
+            throw new MobileError(503, 'qq_chat_unavailable')
+          const session = (await host.list(signal)).find(row => row.id === id)
+          if (!session || session.source?.platform !== 'qq' || session.source.kind !== 'group')
+            throw new MobileError(404, 'session_not_found')
+          if (req.method === 'GET') {
+            const before = url.searchParams.get('before')
+            const cursor = before === null ? undefined : Number(before)
+            if (cursor !== undefined && (!Number.isSafeInteger(cursor) || cursor < 0))
+              throw new MobileError(400, 'invalid_cursor')
+            const state = await qqChat.view(id, cursor)
+            if (!state || typeof state !== 'object' || Array.isArray(state))
+              throw new MobileError(503, 'invalid_qq_response')
+            json(res, 200, { ...state, ...session.context ? { context: session.context } : {} })
+          }
+          else if (req.method === 'POST') {
+            if (session.archived || session.readOnly)
+              throw new MobileError(409, 'stale_session')
+            json(res, 200, await qqChat.request(device.id, id, await body(req, 8 * 1024)))
+          }
+          else {
+            throw new MobileError(405, 'method_not_allowed')
+          }
+          return
+        }
+        if (path.length === 3 && path[2] === 'archive' && req.method === 'PUT') {
+          if (!host.archive)
+            throw new MobileError(503, 'session_management_unavailable')
+          const request = await body(req)
+          if (typeof request.archived !== 'boolean')
+            throw new MobileError(400, 'invalid_archive_state')
+          await host.archive(id, request.archived, signal)
+          json(res, 200, { ok: true })
+          return
+        }
+        if (path.length === 3 && path[2] === 'deletion' && req.method === 'POST') {
+          if (!host.delete)
+            throw new MobileError(503, 'session_management_unavailable')
+          const session = (await host.list(signal)).find(row => row.id === id)
+          if (!session)
+            throw new MobileError(404, 'session_not_found')
+          if (session.running)
+            throw new MobileError(409, 'session_active')
+          for (const [token, preview] of deletions) {
+            if (preview.expiresAt <= Date.now())
+              deletions.delete(token)
+          }
+          if (deletions.size >= 200)
+            throw new MobileError(429, 'confirmation_limit')
+          const confirmation = randomUUID()
+          const expiresAt = Date.now() + 60_000
+          deletions.set(confirmation, { deviceId: device.id, sessionId: id, updatedAt: session.updatedAt, expiresAt })
+          json(res, 200, { confirmation, expiresAt: new Date(expiresAt).toISOString() })
+          return
+        }
+        if (path.length === 2 && req.method === 'DELETE') {
+          if (!host.delete)
+            throw new MobileError(503, 'session_management_unavailable')
+          const request = await body(req)
+          const confirmation = identifier(request.confirmation)
+          const preview = deletions.get(confirmation)
+          if (!preview || preview.deviceId !== device.id || preview.sessionId !== id || preview.expiresAt <= Date.now())
+            throw new MobileError(409, 'confirmation_expired')
+          const session = (await host.list(signal)).find(row => row.id === id)
+          if (!session)
+            throw new MobileError(404, 'session_not_found')
+          if (session.running)
+            throw new MobileError(409, 'session_active')
+          if (session.updatedAt !== preview.updatedAt)
+            throw new MobileError(409, 'session_changed')
+          deletions.delete(confirmation)
+          await host.delete(id, signal)
+          json(res, 200, { ok: true })
+          return
+        }
         if (path.length === 3 && path[2] === 'info' && req.method === 'GET') {
           if (!host.information)
             throw new MobileError(503, 'information_unavailable')
