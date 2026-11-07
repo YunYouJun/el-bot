@@ -42,7 +42,7 @@ struct KeychainVault {
     }
 
     private func failure(_ status: OSStatus) -> Failure {
-        Logger(subsystem: "cn.elpsy.elbot.client", category: "keychain").error("Keychain operation rejected: status \(status)")
+        Logger(subsystem: YunAppIdentity.bundleIdentifier, category: "keychain").error("Keychain operation rejected: status \(status)")
         return Failure(status: status)
     }
 

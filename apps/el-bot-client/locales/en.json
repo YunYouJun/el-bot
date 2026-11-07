@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appName": "Yun",
+  "appName": "Yun Bot",
   "caption": "Your AI assistant in YunLeFun",
   "quickActions": "Quick actions",
   "personas": "Personas",
@@ -119,7 +119,7 @@
   "connectionRequired": "Configure your cloud connection in Settings.",
   "errorConnectionAddress": "Enter an HTTPS address without credentials, query parameters or a fragment.",
   "runtime": "nsh 0.4.0",
-  "app.name": "Yun",
+  "app.name": "Yun Bot",
   "connect.title": "Connect to your cloud",
   "connect.subtitle": "Your conversations, wherever you are.",
   "connect.server": "Cloud server",

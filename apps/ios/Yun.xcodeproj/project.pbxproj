@@ -334,11 +334,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = ElBot;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = Config/Device.entitlements;
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = Config/Simulator.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Config/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Yun;
+				INFOPLIST_KEY_CFBundleDisplayName = "小云 Bot";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -347,7 +348,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = cn.elpsy.elbot.client;
+				PRODUCT_BUNDLE_IDENTIFIER = fun.yunle.bot;
 				PRODUCT_NAME = Yun;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
@@ -360,11 +361,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = ElBot;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = Config/Device.entitlements;
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = Config/Simulator.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Config/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Yun;
+				INFOPLIST_KEY_CFBundleDisplayName = "小云 Bot";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -373,7 +375,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = cn.elpsy.elbot.client;
+				PRODUCT_BUNDLE_IDENTIFIER = fun.yunle.bot;
 				PRODUCT_NAME = Yun;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;

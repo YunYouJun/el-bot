@@ -51,8 +51,8 @@ fn run_on_thread(
     let view = AppView::new(
         None,
         AppOptions {
-            app_id: "cn.elpsy.elbot.client".into(),
-            title: "Yun".into(),
+            app_id: APP_ID.into(),
+            title: "Yun Bot".into(),
             size: (1000, 740),
             asset_base: Some(AssetBase::Directory(resources.join("assets"))),
             host,

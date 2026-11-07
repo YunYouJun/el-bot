@@ -13,6 +13,15 @@ for (const language of ['en', 'zh-Hans']) {
 const project = await readFile(`${root}/apps/ios/project.yml`, 'utf8')
 const { version } = JSON.parse(await readFile(`${root}/apps/el-bot-client/package.json`, 'utf8'))
 assert.equal(project.match(/^\s*MARKETING_VERSION:\s*['"]?([\w.+-]+)['"]?\s*$/m)?.[1], version, 'Keep Apple and client versions in sync')
+const { id: bundleId } = JSON.parse(await readFile(`${root}/apps/el-bot-client/nsh.json`, 'utf8'))
+assert.equal(project.match(/^\s*PRODUCT_BUNDLE_IDENTIFIER:\s*(\S+)\s*$/m)?.[1], bundleId, 'Keep Apple and nsh identities in sync')
+for (const [path, pattern] of [
+  ['packages/yun-apple/Sources/YunCore/YunAppIdentity.swift', /bundleIdentifier = "([^"]+)"/],
+  ['apps/el-bot-client/native/src/main.rs', /const APP_ID: &str = "([^"]+)"/],
+]) {
+  const source = await readFile(`${root}/${path}`, 'utf8')
+  assert.equal(source.match(pattern)?.[1], bundleId, `Keep ${path} and nsh identities in sync`)
+}
 if (process.platform === 'darwin' && !process.argv.includes('--catalog-only')) {
   const commands = process.argv.includes('--test')
     ? [['test', '--package-path', 'packages/yun-apple'], ['test', '--package-path', 'apps/macos']]

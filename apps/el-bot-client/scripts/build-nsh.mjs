@@ -50,9 +50,9 @@ else {
     run('xcrun', ['actool', 'icons/ElBot.icon', '--compile', compiled, '--output-format', 'human-readable-text', '--platform', 'macosx', '--target-device', 'mac', '--minimum-deployment-target', '14.0', '--app-icon', 'ElBot', '--output-partial-info-plist', join(compiled, 'partial.plist')])
     await copyFile(join(compiled, 'Assets.car'), join(bundleResources, 'Assets.car'))
     const plist = join(application, 'Contents/Info.plist')
-    for (const [key, value] of Object.entries({ CFBundleIconName: 'ElBot', CFBundleIconFile: 'icon.icns', LSMinimumSystemVersion: '14.0' }))
+    for (const [key, value] of Object.entries({ CFBundleName: 'Yun Bot', CFBundleDisplayName: 'Yun Bot', CFBundleIconName: 'ElBot', CFBundleIconFile: 'icon.icns', LSMinimumSystemVersion: '14.0' }))
       run('plutil', ['-replace', key, '-string', value, plist])
-    for (const [tag, name] of [['en', 'Yun'], ['zh-Hans', '小云']]) {
+    for (const [tag, name] of [['en', 'Yun Bot'], ['zh-Hans', '小云 Bot']]) {
       const directory = join(bundleResources, `${tag}.lproj`)
       await mkdir(directory, { recursive: true })
       await writeFile(join(directory, 'InfoPlist.strings'), `"CFBundleDisplayName" = "${name}";\n"CFBundleName" = "${name}";\n`)

@@ -1,3 +1,4 @@
+use crate::APP_ID;
 use crate::controller::Controller;
 use nsh_engine::HostChannel;
 use serde_json::Value;

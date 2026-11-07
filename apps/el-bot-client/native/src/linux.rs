@@ -13,8 +13,8 @@ pub fn run(
     nsh_platform_linux::run_app(
         AppSource::Bundle(bundle),
         AppOptions {
-            app_id: "cn.elpsy.elbot.client".into(),
-            title: "Yun".into(),
+            app_id: APP_ID.into(),
+            title: "Yun Bot".into(),
             size: (1000, 740),
             asset_base: Some(AssetBase::Directory(resources.join("assets"))),
             host,

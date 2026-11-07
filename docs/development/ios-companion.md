@@ -276,7 +276,7 @@ xcodebuild -project apps/ios/Yun.xcodeproj -scheme Yun -configuration Debug \
 codesign --verify --deep --strict apps/ios/build/device/Build/Products/Debug-iphoneos/Yun.app
 xcrun devicectl device install app --device "$YUN_IOS_DEVICE" \
   apps/ios/build/device/Build/Products/Debug-iphoneos/Yun.app
-xcrun devicectl device process launch --device "$YUN_IOS_DEVICE" cn.elpsy.elbot.client
+xcrun devicectl device process launch --device "$YUN_IOS_DEVICE" fun.yunle.bot
 ```
 
 真机单独配对，不复制模拟器或 Mac 的 Keychain。签名成功及 `devicectl` 报告启动后，还需在解锁的手机上核对界面、配对和会话；锁屏时的启动成功不能作为完整验收。

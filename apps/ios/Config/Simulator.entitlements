@@ -3,8 +3,11 @@
 <plist version="1.0">
 <dict>
     <key>application-identifier</key>
-    <string>YUNBOTTEST.cn.elpsy.elbot.client</string>
+    <string>YUNBOTTEST.fun.yunle.bot</string>
     <key>keychain-access-groups</key>
-    <array><string>YUNBOTTEST.cn.elpsy.elbot.client</string></array>
+    <array>
+        <string>YUNBOTTEST.fun.yunle.bot</string>
+        <string>YUNBOTTEST.cn.elpsy.elbot.client</string>
+    </array>
 </dict>
 </plist>

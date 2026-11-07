@@ -13,7 +13,7 @@ public final class ChatStore {
     public private(set) var sessionOperation: SessionOperation?
     public private(set) var sessionErrorKey: String?
     public private(set) var sessionListRevision = 0
-    public var server = UserDefaults.standard.string(forKey: "yun.chat.server") ?? "https://bot.yunle.fun"
+    public var server: String
     @ObservationIgnored public private(set) var client: MobileAPI?
     @ObservationIgnored private let vault = KeychainVault()
     @ObservationIgnored private let outbox: PendingMessages
@@ -24,6 +24,8 @@ public final class ChatStore {
     @ObservationIgnored private var sessionReadVersion = 0
 
     public init(client: MobileAPI? = nil, outbox: PendingMessages = PendingMessages()) {
+        YunAppIdentity.migrateDesktopPreferences()
+        server = UserDefaults.standard.string(forKey: "yun.chat.server") ?? "https://bot.yunle.fun"
         self.client = client
         self.outbox = outbox
     }

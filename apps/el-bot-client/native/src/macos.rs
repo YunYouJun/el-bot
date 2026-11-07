@@ -202,8 +202,8 @@ fn show_window() -> Result<(), Box<dyn std::error::Error>> {
     let view = AppView::new(
         mtm,
         AppOptions {
-            app_id: "cn.elpsy.elbot.client".into(),
-            title: "Yun".into(),
+            app_id: APP_ID.into(),
+            title: "Yun Bot".into(),
             size: (1000, 740),
             asset_base: Some(AssetBase::Directory(resources.join("assets"))),
             host,

@@ -1,6 +1,6 @@
 # 小云 · Yun
 
-当前优先开发 **macOS / iOS 原生 App**，中文名称为「小云」，英文名称为 **Yun**。SwiftUI 负责界面，macOS 通过少量 AppKit 接入应用图标、文件选择与进程生命周期。Android、Windows 和 Web 暂缓；已实现的 nsh 0.4.0 预览源码与构建入口保留，作为迁移对照。
+当前优先开发 **macOS / iOS 原生 App**，中文名称为「小云 Bot」，英文名称为 **Yun Bot**，属于云乐坊 / YunLeFun 品牌。SwiftUI 负责界面，macOS 通过少量 AppKit 接入应用图标、文件选择与进程生命周期。Android、Windows 和 Web 暂缓；已实现的 nsh 0.4.0 预览源码与构建入口保留，作为迁移对照。
 
 ## 共享代码与平台边界
 
@@ -19,7 +19,19 @@ macOS 已接回现有快捷操作、人物卡、设置、本机启停、日志�
 
 iOS 会话列表在紧凑宽度下使用 `NavigationStack` 返回列表，iPad 宽屏与 macOS 继续保留 `NavigationSplitView`；聊天输入使用系统发送键、随滚动收起键盘，配对码字段自动规整粘贴内容并限制长度。设置中的「云乐坊账号」在云端配置 SSO 校验后才显示同步状态；配置账号发现后可用系统浏览器登录，查看名下在线云端并一键连接，配对码仍保留为备用。默认 proof adopter 未启用时不发起系统浏览器认证，也不把账号同步或在线列表伪装成已完成。
 
-沿用应用标识 `cn.elpsy.elbot.client` 和既有 Mac 设置。SSH 主机别名、本机路径与未知设置字段继续保留。关窗后 App 和菜单栏继续运行，从菜单栏或 Dock 恢复；退出客户端只结束界面控制器，独立运行的机器人继续运行。
+应用标识统一为 `fun.yunle.bot`，iOS、macOS 与 nsh / Rust 客户端保持一致。既有 Mac 设置路径 `~/.el-bot/client.json`、SSH 主机别名、本机路径与未知设置字段继续保留。关窗后 App 和菜单栏继续运行，从菜单栏或 Dock 恢复；退出客户端只结束界面控制器，独立运行的机器人继续运行。
+
+### 从旧应用标识迁移
+
+旧标识为 `cn.elpsy.elbot.client`。新 iOS Bundle ID 对应独立的 App Store Connect 记录和 TestFlight，不是旧 App 的覆盖升级。原手机沙盒中的语言、私有缓存和未发送消息不会自动复制；云端会话仍由原服务器保存。尚未迁移的设备可以在新 App 中重新登录或配对，不复制其他设备的凭据。
+
+设备配对、iCTRL 与云乐坊登录继续使用已有 Keychain 服务名 `cn.elpsy.yun.chat.connection` / `cn.elpsy.yun.yunle-account`，避免仅因品牌调整更换凭据索引。新 iOS 签名包含新、旧两个 Keychain 访问组，且必须同属签名团队；模拟器使用对应的独立测试前缀。签名授权不等于真实设备恢复验收，自定义服务器地址仍可能需要重新填写。
+
+Mac 保留旧设置文件和单实例锁；新应用只从旧 UserDefaults 域补齐缺失的服务器地址与语言，不覆盖新设置、不删除旧域。旧版与新版同时存在时，单实例检查可唤起两种标识的应用。Mac Keychain 可能要求用户确认新签名的访问。
+
+`el-bot` 框架、CLI / npm 包名、既有服务端 API 路径及 `el-bot-ios` 账号 client ID 继续兼容。平台安装身份与服务端授权协议分别管理，修改 Bundle ID 不变更 QQ AppID、主人绑定或白名单。
+
+2026-11-08 迁移验收：新 App Store Connect 记录为 `6832057985`（「小云 Bot」），内测版本为 `0.1.0 (3)`。Swift / Go / Rust 测试、Mac Release 构建、iOS 模拟器构建、分发 IPA 签名及 Apple 上传校验通过。独立模拟器使用合成数据验证两个旧 Keychain 服务：只授权新访问组时无法读取，加入旧访问组后可读取并清理；未复制真实账户或设备凭据。Mac 偏好迁移测试验证不覆盖新设置、不复制其他字段，并保留旧域。新的真实手机安装、登录恢复，以及 Windows / Linux / Android 实机迁移仍需分别验收。
 
 ```sh
 pnpm client:dev

@@ -52,10 +52,11 @@ import YunCore
         let lockPath = URL(fileURLWithPath: settings).deletingPathExtension().appendingPathExtension("window.lock").path
         lockDescriptor = open(lockPath, O_CREAT | O_RDWR, 0o600)
         if lockDescriptor < 0 || flock(lockDescriptor, LOCK_EX | LOCK_NB) != 0 {
-            let identifier = Bundle.main.bundleIdentifier ?? "cn.elpsy.elbot.client"
-            NSRunningApplication.runningApplications(withBundleIdentifier: identifier)
-                .first { $0.processIdentifier != ProcessInfo.processInfo.processIdentifier }?
-                .activate(options: [.activateAllWindows])
+            for identifier in [YunAppIdentity.bundleIdentifier, YunAppIdentity.legacyBundleIdentifier] {
+                NSRunningApplication.runningApplications(withBundleIdentifier: identifier)
+                    .first { $0.processIdentifier != ProcessInfo.processInfo.processIdentifier }?
+                    .activate(options: [.activateAllWindows])
+            }
             NSApp.terminate(nil)
         }
     }

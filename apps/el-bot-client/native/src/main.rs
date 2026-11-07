@@ -10,6 +10,8 @@ use nsh_engine::HostChannel;
 use serde_json::json;
 use std::{path::PathBuf, sync::Arc};
 
+const APP_ID: &str = "fun.yunle.bot";
+
 fn main() -> std::process::ExitCode {
     match start() {
         Ok(()) => std::process::ExitCode::SUCCESS,

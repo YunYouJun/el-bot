@@ -123,7 +123,7 @@ public actor ICtrlClient {
             if command.returnToYun {
                 try await Task.sleep(for: .milliseconds(1500))
                 try Task.checkCancellation()
-                let home = "cn.elpsy.elbot.client"
+                let home = YunAppIdentity.bundleIdentifier
                 let reply = try await authorized("launch_app", params: ["bundle_id": .string(home)])
                 guard Self.didOpenApp(reply, bundleID: home) else { throw ICtrlError.execution }
                 returned = true
@@ -176,7 +176,7 @@ public actor ICtrlClient {
     }
 
     public func returnToYun() async throws {
-        _ = try await authorized("activate_app", params: ["bundle_id": .string("cn.elpsy.elbot.client")])
+        _ = try await authorized("activate_app", params: ["bundle_id": .string(YunAppIdentity.bundleIdentifier)])
     }
 
     private func authorized(_ method: String, params: [String: DeviceToolJSON] = [:]) async throws -> DeviceToolJSON {

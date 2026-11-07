@@ -11,6 +11,7 @@ const args = process.argv.slice(2)
 assert.equal(process.platform, 'darwin', 'Build Apple apps on macOS with Xcode')
 const client = join(root, 'apps/el-bot-client')
 const { version } = JSON.parse(await readFile(join(client, 'package.json'), 'utf8'))
+const { id: bundleId } = JSON.parse(await readFile(join(client, 'nsh.json'), 'utf8'))
 function run(command, values, options = {}) {
   const result = spawnSync(command, values, { cwd: root, stdio: 'inherit', ...options })
   if (result.error)
@@ -48,9 +49,9 @@ else {
   await copyFile(join(client, 'icons/tray-icon.png'), join(resources, 'tray-icon.png'))
   const plist = {
     CFBundleExecutable: 'Yun',
-    CFBundleIdentifier: 'cn.elpsy.elbot.client',
-    CFBundleName: 'Yun',
-    CFBundleDisplayName: 'Yun',
+    CFBundleIdentifier: bundleId,
+    CFBundleName: 'Yun Bot',
+    CFBundleDisplayName: 'Yun Bot',
     CFBundlePackageType: 'APPL',
     CFBundleShortVersionString: version,
     CFBundleVersion: version,
@@ -65,7 +66,7 @@ else {
   const info = join(contents, 'Info.plist')
   await writeFile(info, JSON.stringify(plist))
   run('plutil', ['-convert', 'xml1', info])
-  for (const [tag, name] of [['en', 'Yun'], ['zh-Hans', '小云']]) {
+  for (const [tag, name] of [['en', 'Yun Bot'], ['zh-Hans', '小云 Bot']]) {
     const directory = join(resources, `${tag}.lproj`)
     await mkdir(directory, { recursive: true })
     await writeFile(join(directory, 'InfoPlist.strings'), `"CFBundleDisplayName" = "${name}";\n"CFBundleName" = "${name}";\n`)

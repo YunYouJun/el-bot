@@ -10,7 +10,7 @@ final class ControllerTransport: @unchecked Sendable {
     private let process = Process()
     private let input = Pipe()
     private let output = Pipe()
-    private let writes = DispatchQueue(label: "cn.elpsy.yun.controller.write")
+    private let writes = DispatchQueue(label: "fun.yunle.bot.controller.write")
     private let lock = NSLock()
     private var stopped = false
     private var queued = 0
@@ -28,7 +28,7 @@ final class ControllerTransport: @unchecked Sendable {
         process.standardOutput = output
         process.standardError = FileHandle.nullDevice
         try process.run()
-        DispatchQueue(label: "cn.elpsy.yun.controller.read").async { [self] in readSnapshots() }
+        DispatchQueue(label: "fun.yunle.bot.controller.read").async { [self] in readSnapshots() }
     }
 
     func send(_ event: ClientEvent) throws {
