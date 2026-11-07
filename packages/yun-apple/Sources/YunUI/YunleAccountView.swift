@@ -182,7 +182,7 @@ public struct YunleAccountView: View {
                 }
             }
             Section {
-                if store.receipts.isEmpty && !store.busy { Text(strings["yunle.empty"]).foregroundStyle(.secondary) }
+                if store.receipts.isEmpty && !store.busy && store.updatedAt != nil { Text(strings["yunle.empty"]).foregroundStyle(.secondary) }
                 ForEach(store.receipts) { receipt in
                     VStack(alignment: .leading, spacing: 6) {
                         HStack(alignment: .firstTextBaseline) {
