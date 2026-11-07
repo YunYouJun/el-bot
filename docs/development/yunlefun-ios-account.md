@@ -1,0 +1,24 @@
+# iOS 云乐坊账号与 AI 用量
+
+在小云 iOS 的「设置 → 云乐坊账号」登录，完成系统登录窗口内的显式授权后，可进入「AI 点数与用量」。这项能力不要求先配对云端 DSH。
+
+- 可用点数、预留点数、累计消耗是云乐坊账户总额。
+- 「小云用量记录」仅展示 `el-bot` 已结算扣点和退款，包含可用的模型名称、输入/输出 token、金额和时间；支持下拉刷新和分页。
+- 预留、释放不作为消费记录。模型用量明细超过 Runtime 保留期时仍保留账本回执，模型信息显示暂不可用。
+- 刷新失败时保留上次快照并明确标记，不显示成零余额。
+
+## 授权边界
+
+iOS 独立客户端为 `el-bot-ios`，归属 `el-bot`；只读 scope 为 `ai:usage`，同时显式请求 `membership:read`。不复用 `el-bot-cloud`、云端 `ai:agent` entitlement、DSH 网页 Cookie 或个人模型 Key。登录不授予 App 模型执行和扣点能力，退出也不撤销云端实例已有的扣点授权。
+
+采用现有 `https://api.yunle.fun/desktop-auth` 设备授权：安装生成 P-256 密钥，每次请求使用新 ES256 DPoP；批准后校验 issuer、Ed25519 签名、公钥、audience、app、scope、时间和安装绑定。私钥、entitlement、轮换 refresh token 一并保存在 `WhenUnlockedThisDeviceOnly` Keychain。设备码只保留在当前登录内存中。
+
+AI Runtime `POST /ai/v1/mobile/el-bot-account` 接受带 entitlement、DPoP 和签名请求正文的原生 RPC。仅支持 `account`、`transactions`，由服务器从有效 grant 派生用户及固定应用。接口不具备模型执行或任务写入依赖，不返回提示词、对话、工具输出或底层服务凭据。
+
+刷新前先持久化待确认标记，网络丢失结果后不重放旧 refresh token；退出通过安装绑定的 `revokeEntitlement` 撤销当前 family，成功后清除 Keychain，失败可重试。
+
+## 实施与验证
+
+原生代码位于 `YunCore/YunleAccount.swift`、`YunUI/YunleAccountView.swift`，iOS 设置页接入独立 store。`YunleAccountServing`、传输和安全存储均可注入离线替身；测试覆盖只读登录、DPoP 签名/正文绑定、退出、刷新不确定结果与错误 audience/安装/scope。
+
+配套网站与 Runtime 必须先发布对应代码，再通过云乐坊签名 Registry 登记 `el-bot-ios`。未登记时登录显示未启用，不回退为云端执行客户端。UI 离线预览不代表生产登录已经通过；最终还需在系统认证窗口用真实账号完成一次只读授权，并核对服务端余额与记录。

@@ -6,6 +6,7 @@ struct MobileRoot: View {
     let preferences: AppPreferences
     let chat: ChatStore
     let account: AccountSyncStore
+    let yunleAccount: YunleAccountStore
     @State private var web = DSHWebController()
     @State private var guide: Guide?
     private enum Guide: String, Identifiable {
@@ -34,7 +35,7 @@ struct MobileRoot: View {
             NavigationStack { MobileDSHWebView(chat: chat, controller: web) }
                 .tabItem { Label(preferences.strings["web.title"], systemImage: "globe") }.tag(Tab.web)
             NavigationStack {
-                MobileSettings(preferences: preferences, chat: chat, account: account)
+                MobileSettings(preferences: preferences, chat: chat, account: account, yunleAccount: yunleAccount)
                     .navigationTitle(preferences.strings["settings"])
             }.tabItem { Label(preferences.strings["settings"], systemImage: "gearshape") }.tag(Tab.settings)
         }
