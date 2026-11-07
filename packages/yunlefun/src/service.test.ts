@@ -2,6 +2,7 @@ import type { Fetch } from './protocol'
 import { mkdtemp, readFile, rm, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import process from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createAdapter, PROVIDER } from './adapter'
 import { DEFAULT_RUNTIME_ORIGIN, YunlefunError } from './protocol'
@@ -58,7 +59,8 @@ describe('yunLeFun point provider', () => {
     expect(await second.recover(status.tasks[0]!.requestId)).toMatchObject({ billingStatus: 'settled' })
     expect(requests.filter(item => item.action === 'submit')).toHaveLength(1)
     expect((await second.status()).tasks).toHaveLength(0)
-    expect((await stat(f.path)).mode & 0o777).toBe(0o600)
+    if (process.platform !== 'win32')
+      expect((await stat(f.path)).mode & 0o777).toBe(0o600)
     expect(await readFile(f.path, 'utf8')).not.toContain('Read the README')
   })
   it('never creates work while cancelling an admission with an unknown result', async () => {

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import process from 'node:process'
 import { it } from 'vitest'
 import { FileHistoryStore, persistHistory } from './history.mjs'
 
@@ -18,7 +19,8 @@ it('retains bounded, deduplicated unmentioned context across restarts and clears
     const resumed = new FileHistoryStore(directory, () => now)
     assert.deepEqual(resumed.list('123:room', 2).map(item => item.messageId), ['two', 'three'])
     assert.equal(resumed.list('123:room', 2)[0].content.length, 4000)
-    assert.equal(statSync(store.path('123:room')).mode & 0o777, 0o600)
+    if (process.platform !== 'win32')
+      assert.equal(statSync(store.path('123:room')).mode & 0o777, 0o600)
     assert.deepEqual(new FileHistoryStore(directory, () => now + 86_400_001).list('123:room', 2), [])
     resumed.clear('123:room')
     assert.deepEqual(new FileHistoryStore(directory).list('123:room', 2), [])

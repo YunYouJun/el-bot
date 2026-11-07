@@ -1,6 +1,7 @@
 import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import process from 'node:process'
 import { expect, it, vi } from 'vitest'
 import { impressionText, QQMemberImpressions } from './impressions'
 
@@ -17,8 +18,10 @@ it('shares one member impression across groups and clears it globally', async ()
       senderName: '薯条',
     })
     expect(saved).toEqual({ text: '喜欢猫，也 常聊前端。 | <b>', updatedAt: '2026-11-07T08:00:00.000Z', senderName: '薯条' })
-    expect((await stat(path)).mode & 0o777).toBe(0o600)
-    expect((await stat(mirror)).mode & 0o777).toBe(0o600)
+    if (process.platform !== 'win32') {
+      expect((await stat(path)).mode & 0o777).toBe(0o600)
+      expect((await stat(mirror)).mode & 0o777).toBe(0o600)
+    }
     const markdown = await readFile(mirror, 'utf8')
     expect(markdown).toContain('# 小云对群成员的印象')
     expect(markdown).toContain('## 小云测试群')
