@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -84,7 +85,11 @@ func TestLocalePreferencePersistsWithClientSettings(t *testing.T) {
 	if loaded.Locale != "" {
 		t.Fatalf("follow system did not clear the locale preference: %+v", loaded)
 	}
-	if info, err := os.Stat(path); err != nil || info.Mode().Perm() != 0600 {
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if runtime.GOOS != "windows" && info.Mode().Perm() != 0600 {
 		t.Fatal("client settings are not private")
 	}
 }
