@@ -162,6 +162,7 @@ public actor YunleAccountClient: YunleAccountServing {
               url.scheme == "https", url.host == "www.yunle.fun", url.port == nil, url.path == "/link", url.user == nil, url.password == nil, url.fragment == nil,
               URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems == [URLQueryItem(name: "code", value: userCode)],
               let expires = result["expiresIn"] as? Int, (1...1800).contains(expires), let interval = result["interval"] as? Int, (1...60).contains(interval) else { throw YunleAccountError.invalidResponse }
+        try Task.checkCancellation()
         let expiresAt = Date().addingTimeInterval(Double(expires))
         pending = Pending(key: key, deviceCode: code, expiresAt: expiresAt)
         return YunleDeviceLogin(verificationURL: url, userCode: userCode, expiresAt: expiresAt, interval: UInt64(interval))
@@ -173,11 +174,15 @@ public actor YunleAccountClient: YunleAccountServing {
         defer { operation = false }
         let attempt = epoch
         let result = try await call(Self.authURL, ["action": "pollDeviceToken", "deviceCode": pending.deviceCode], key: pending.key)
-        guard attempt == epoch else { throw CancellationError() }
+        guard attempt == epoch, !Task.isCancelled else { throw CancellationError() }
         switch result["status"] as? String {
         case "approved":
             let received = try received(result, key: pending.key)
             try await storage.save(JSONEncoder().encode(received))
+            guard attempt == epoch, !Task.isCancelled else {
+                try await storage.remove()
+                throw CancellationError()
+            }
             credentials = received
             self.pending = nil
             return received.userID

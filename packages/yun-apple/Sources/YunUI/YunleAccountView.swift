@@ -72,6 +72,7 @@ public final class YunleAccountStore {
                 throw YunleAccountError.service("AUTH_EXPIRED")
             }
             catch is CancellationError { await client.cancelLogin() }
+            catch let error as URLError where error.code == .cancelled { await client.cancelLogin() }
             catch { errorKey = Self.message(error); await client.cancelLogin() }
         }
     }

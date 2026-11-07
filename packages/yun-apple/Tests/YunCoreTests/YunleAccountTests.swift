@@ -17,11 +17,16 @@ private actor AccountTestTransport: YunleAccountTransport {
     var loseRefresh = false
     var revokeFails = false
     var refreshCount = 0
+    var holdPoll = false
+    var pollSuspended = false
+    var resumePoll: CheckedContinuation<Void, Never>?
+    func pausePoll() { holdPoll = true }
+    func releasePoll() { resumePoll?.resume(); resumePoll = nil }
     init(signer: Curve25519.Signing.PrivateKey) { self.signer = signer }
     func configure(expireSoon: Bool = false, loseRefresh: Bool = false, revokeFails: Bool = false) {
         self.expireSoon = expireSoon; self.loseRefresh = loseRefresh; self.revokeFails = revokeFails
     }
-    func send(_ request: URLRequest) throws -> Data {
+    func send(_ request: URLRequest) async throws -> Data {
         let body = try JSONSerialization.jsonObject(with: request.httpBody!) as! [String: Any]
         let proof = request.value(forHTTPHeaderField: "DPoP")!.split(separator: ".").map(String.init)
         let header = try JSONSerialization.jsonObject(with: Data(yunleBase64URL: proof[0])!) as! [String: Any]
@@ -53,6 +58,10 @@ private actor AccountTestTransport: YunleAccountTransport {
             publicJWK = body["devicePublicJwk"] as? [String: String]
             return try json(["ok": true, "data": ["deviceCode": "secret-code", "userCode": "ABCD-1234", "verificationUriComplete": "https://www.yunle.fun/link?code=ABCD-1234", "expiresIn": 600, "interval": 5]])
         case "pollDeviceToken", "refreshEntitlement":
+            if action == "pollDeviceToken", holdPoll {
+                pollSuspended = true
+                await withCheckedContinuation { resumePoll = $0 }
+            }
             if action == "refreshEntitlement" { refreshCount += 1; if loseRefresh { throw URLError(.timedOut) } }
             let key = publicJWK ?? jwk
             let canonical = try JSONSerialization.data(withJSONObject: key, options: [.sortedKeys, .withoutEscapingSlashes])
@@ -143,4 +152,16 @@ private func login(_ client: YunleAccountClient) async throws {
     #expect(yunleServiceErrorCode(Data(#"{"error":"client_unknown","code":"client_unknown"}"#.utf8)) == "client_unknown")
     #expect(yunleServiceErrorCode(Data(#"{"error":{"code":"DEVICE_AUTH_REQUIRED"}}"#.utf8)) == "DEVICE_AUTH_REQUIRED")
     #expect(yunleServiceErrorCode(Data(#"{"error":"upstream HTML or raw detail"}"#.utf8)) == "REQUEST_FAILED")
+}
+
+@Test func yunleCancellingAnInflightPollNeverInstallsTheGrant() async throws {
+    let (client, transport, vault) = fixture()
+    _ = try await client.beginLogin()
+    await transport.pausePoll()
+    let poll = Task { try await client.pollLogin() }
+    while !(await transport.pollSuspended) { await Task.yield() }
+    poll.cancel()
+    await transport.releasePoll()
+    await #expect(throws: CancellationError.self) { _ = try await poll.value }
+    #expect(await vault.data == nil)
 }
