@@ -603,9 +603,13 @@
   "yunle.summary.tasks": "已结算任务",
   "yunle.summary.hint": "仅小云的云乐坊积分消费，按北京时间统计。净消耗 = 扣点 − 退款；跨期退款可能为负。",
   "yunle.summary.models": "按模型统计",
-  "yunle.summary.empty": "此周期暂无小云扣点或退款",
+  "yunle.summary.empty": "此周期暂无小云消耗",
   "yunle.summary.unattributed": "未归属模型",
   "yunle.summary.missing": "历史模型信息缺失或无法核对，金额仍计入小云总额。",
   "yunle.summary.model_hint": "模型金额合计等于所选周期的净消耗。多模型退款按剩余扣点分摊，Token 不因退款减少。",
-  "yunle.account_points": "账户点数（全部应用）"
+  "yunle.account_points": "账户点数（全部应用）",
+  "yunle.brand": "云乐坊",
+  "yunle.balance.available": "可用",
+  "yunle.balance.details": "账户点数",
+  "yunle.balance.details_hint": "查看所有应用的账户点数"
 }

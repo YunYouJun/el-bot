@@ -164,9 +164,78 @@ public struct YunleAccountView: View {
     public init(store: YunleAccountStore, strings: YunStrings) { self.store = store; self.strings = strings }
     public var body: some View {
         List {
+            if let account = store.overview?.account {
+                Section {
+                    NavigationLink {
+                        YunlePointAccountView(store: store, strings: strings)
+                    } label: {
+                        LabeledContent(strings["yunle.brand"]) {
+                            Text("\(strings["yunle.balance.available"]) \(yunlePoints(account.availableMicroPoints)) \(strings["yunle.summary.unit"])")
+                                .font(.subheadline.monospacedDigit())
+                        }
+                    }
+                    .accessibilityIdentifier("yunlePointAccountDetails")
+                    .accessibilityHint(strings["yunle.balance.details_hint"])
+                }
+            }
             if let summary = store.consumption {
                 YunleConsumptionSections(summary: summary, strings: strings)
             }
+            if let error = store.errorKey {
+                Section {
+                    Label(strings[error], systemImage: "exclamationmark.circle").foregroundStyle(.red)
+                    Button(strings["yunle.retry"]) { Task { await store.refresh() } }.disabled(store.busy)
+                }
+            }
+            if !store.receipts.isEmpty || store.nextCursor != nil || (store.busy && store.updatedAt == nil) {
+                Section {
+                    if store.receipts.isEmpty && !store.busy && store.updatedAt != nil { Text(strings["yunle.empty"]).foregroundStyle(.secondary) }
+                    ForEach(store.receipts) { receipt in
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack(alignment: .firstTextBaseline) {
+                                Text(receipt.model ?? strings["yunle.model_unknown"]).font(.subheadline.weight(.medium))
+                                Spacer(minLength: 12)
+                                Text((receipt.type == "refund" ? "+" : "−") + yunlePoints(abs(receipt.chargedMicroPoints)))
+                                    .font(.subheadline.monospacedDigit()).fixedSize(horizontal: true, vertical: false)
+                            }
+                            HStack {
+                                Text(receipt.type == "refund" ? strings["yunle.refund"] : strings["yunle.settled"])
+                                Text(receipt.date, format: .dateTime.month().day().hour().minute())
+                            }.font(.caption).foregroundStyle(.secondary)
+                            if let input = receipt.inputTokens, let output = receipt.outputTokens {
+                                Text("\(strings["yunle.input"]) \(input.formatted()) · \(strings["yunle.output"]) \(output.formatted()) tokens")
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                        }.padding(.vertical, 4)
+                    }
+                    if store.nextCursor != nil {
+                        Button(strings["yunle.more"]) { Task { await store.loadMore() } }.disabled(store.busy)
+                    }
+                    if store.busy { ProgressView() }
+                } header: { Text(strings["yunle.history"]) }
+                footer: { Text(strings["yunle.history_hint"]) }
+            }
+            if let updated = store.updatedAt {
+                Section {
+                    LabeledContent(strings[store.stale ? "yunle.stale" : "yunle.updated"]) { Text(updated, style: .relative) }
+                }
+            }
+            Section {
+                Button(strings["yunle.signout"], role: .destructive) { Task { await store.signOut() } }.disabled(store.busy)
+            } footer: { Text(strings["yunle.signout_hint"]) }
+        }
+        .navigationTitle(strings["yunle.usage.title"])
+        .refreshable { await store.refresh() }
+        .task { await store.refresh() }
+        .onChange(of: store.userID) { _, value in if value == nil { dismiss() } }
+    }
+}
+private struct YunlePointAccountView: View {
+    @Bindable var store: YunleAccountStore
+    let strings: YunStrings
+
+    var body: some View {
+        List {
             if let account = store.overview?.account {
                 Section {
                     LabeledContent(strings["yunle.available"], value: yunlePoints(account.availableMicroPoints))
@@ -181,45 +250,10 @@ public struct YunleAccountView: View {
                     Button(strings["yunle.retry"]) { Task { await store.refresh() } }.disabled(store.busy)
                 }
             }
-            Section {
-                if store.receipts.isEmpty && !store.busy && store.updatedAt != nil { Text(strings["yunle.empty"]).foregroundStyle(.secondary) }
-                ForEach(store.receipts) { receipt in
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack(alignment: .firstTextBaseline) {
-                            Text(receipt.model ?? strings["yunle.model_unknown"]).font(.subheadline.weight(.medium))
-                            Spacer(minLength: 12)
-                            Text((receipt.type == "refund" ? "+" : "−") + yunlePoints(abs(receipt.chargedMicroPoints)))
-                                .font(.subheadline.monospacedDigit()).fixedSize(horizontal: true, vertical: false)
-                        }
-                        HStack {
-                            Text(receipt.type == "refund" ? strings["yunle.refund"] : strings["yunle.settled"])
-                            Text(receipt.date, format: .dateTime.month().day().hour().minute())
-                        }.font(.caption).foregroundStyle(.secondary)
-                        if let input = receipt.inputTokens, let output = receipt.outputTokens {
-                            Text("\(strings["yunle.input"]) \(input.formatted()) · \(strings["yunle.output"]) \(output.formatted()) tokens")
-                                .font(.caption).foregroundStyle(.secondary)
-                        }
-                    }.padding(.vertical, 4)
-                }
-                if store.nextCursor != nil {
-                    Button(strings["yunle.more"]) { Task { await store.loadMore() } }.disabled(store.busy)
-                }
-                if store.busy { ProgressView() }
-            } header: { Text(strings["yunle.history"]) }
-            footer: { Text(strings["yunle.history_hint"]) }
-            if let updated = store.updatedAt {
-                Section {
-                    LabeledContent(strings[store.stale ? "yunle.stale" : "yunle.updated"]) { Text(updated, style: .relative) }
-                }
-            }
-            Section {
-                Button(strings["yunle.signout"], role: .destructive) { Task { await store.signOut() } }.disabled(store.busy)
-            } footer: { Text(strings["yunle.signout_hint"]) }
         }
-        .navigationTitle(strings["yunle.usage.title"])
+        .navigationTitle(strings["yunle.balance.details"])
+        .navigationBarTitleDisplayMode(.inline)
         .refreshable { await store.refresh() }
-        .task { await store.refresh() }
-        .onChange(of: store.userID) { _, value in if value == nil { dismiss() } }
     }
 }
 func yunlePoints(_ amount: Int64) -> String {
