@@ -178,6 +178,13 @@ public struct SystemYunleCredentialStorage: YunleCredentialStorage {
 /// Independent read-only account grant. Cloud-instance billing credentials never enter the app.
 public actor YunleAccountClient: YunleAccountServing {
     static let clientID = "el-bot-ios"
+    static var deviceName: String {
+        #if os(macOS)
+        "小云 macOS"
+        #else
+        "小云 iOS"
+        #endif
+    }
     static let authURL = URL(string: "https://api.yunle.fun/desktop-auth")!
     static let accountURL = URL(string: "https://ai-runtime-193029-4-1325586649.sh.run.tcloudbase.com/ai/v1/mobile/el-bot-account")!
     struct Credentials: Codable, Sendable {
@@ -222,7 +229,7 @@ public actor YunleAccountClient: YunleAccountServing {
         operation = true
         defer { operation = false }
         let key = P256.Signing.PrivateKey()
-        let result = try await call(Self.authURL, ["action": "startDeviceAuth", "clientId": Self.clientID, "scope": ["membership:read", "ai:usage"], "deviceName": "小云 iOS", "devicePublicJwk": jwk(key)], key: key)
+        let result = try await call(Self.authURL, ["action": "startDeviceAuth", "clientId": Self.clientID, "scope": ["membership:read", "ai:usage"], "deviceName": Self.deviceName, "devicePublicJwk": jwk(key)], key: key)
         guard let code = result["deviceCode"] as? String, !code.isEmpty, code.count <= 256,
               let userCode = result["userCode"] as? String, userCode.range(of: "^[A-Z0-9]{4}-[A-Z0-9]{4}$", options: .regularExpression) != nil,
               let rawURL = result["verificationUriComplete"] as? String, let url = URL(string: rawURL),

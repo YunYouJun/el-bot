@@ -20,6 +20,7 @@ public enum QQImageURL {
 public enum QQMessageContent {
     public static func markdown(_ source: String, senderID: String? = nil, senderName: String? = nil,
                                 text: YunStrings = YunStrings()) -> String {
+        guard source.contains("<") else { return source }
         // Keep code examples literal, including unfinished fenced blocks.
         var fence: Character?
         return source.components(separatedBy: "\n").map { line in
@@ -31,6 +32,7 @@ public enum QQMessageContent {
                 return line
             }
             guard fence == nil else { return line }
+            guard line.contains("<") else { return line }
             return replace(line, pattern: #"(`+[^`]*`+)|<qqbot-(at-user|at-everyone|cmd-input|cmd-enter)\b([^<>]*)/\s*>|<@!?([^<>]+)>|<(qqimg|qqvoice|qqvideo|qqfile)>([^<>]*)</\5>"#) { match, input in
                 if match.range(at: 1).location != NSNotFound { return input.substring(with: match.range) }
                 func group(_ index: Int) -> String {

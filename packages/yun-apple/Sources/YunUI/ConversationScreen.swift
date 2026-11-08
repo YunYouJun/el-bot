@@ -1,3 +1,5 @@
+import Foundation
+import MarkdownUI
 import SwiftUI
 import YunCore
 
@@ -10,6 +12,10 @@ import AppKit
 private struct ContentOffsetKey: PreferenceKey {
     static let defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
+@MainActor private final class ChatOffsetTracker {
+    var lastOffset: CGFloat?
 }
 
 private struct ConversationInfoPresentation: Identifiable { let id: String }
@@ -49,59 +55,78 @@ private struct ModelConversationScreen: View {
     @Environment(\.yunStrings) private var text
     @Environment(\.scenePhase) private var scenePhase
     @State private var followLatest = true
-    @State private var lastOffset: CGFloat?
+    @State private var offsetTracker = ChatOffsetTracker()
     @State private var information: ConversationInfoPresentation?
     init(session: SessionSummary, client: MobileAPI) {
         _model = State(initialValue: ConversationStore(session: session, client: client))
     }
     var body: some View {
         ScrollViewReader { reader in
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 18) {
-                    if model.hasMore {
-                        Button(text["chat.older"]) { followLatest = false; Task { await model.refresh(older: true) } }
-                            .buttonStyle(.borderless).font(.footnote).foregroundStyle(.tint)
+            ZStack {
+                ChatBackdrop()
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 18) {
+                        if model.hasMore {
+                            Button(text["chat.older"]) { followLatest = false; Task { await model.refresh(older: true) } }
+                                .buttonStyle(.borderless).font(.footnote).foregroundStyle(.tint)
+                        }
+                        #if os(iOS)
+                        if model.messages.isEmpty && !model.summary.running {
+                            ContentUnavailableView(text["chat.empty"], systemImage: "bubble.left", description: Text(text["chat.empty.detail"]))
+                        }
+                        #endif
+                        ForEach(model.messages) { message in
+                            MessageBubble(message: message, assistantName: text["app.name"]).equatable().id(message.id)
+                        }
+                        if model.summary.running {
+                            HStack(spacing: 8) {
+                                ProgressView().controlSize(.small)
+                                Text(text["chat.thinking"]).font(.subheadline).foregroundStyle(.secondary)
+                            }
+                            .padding(.horizontal, 12).padding(.vertical, 9)
+                            .chatContentSurface(shape: Capsule(style: .continuous))
+                        }
+                        if let pending = model.pending {
+                            HStack {
+                                Spacer(minLength: 56)
+                                VStack(alignment: .trailing, spacing: 7) {
+                                    Text(pending.text).lineLimit(3)
+                                    HStack(spacing: 10) {
+                                        Text(text["chat.delivery_unknown"]).font(.caption2).foregroundStyle(.secondary)
+                                        Button(text["chat.retry"]) { Task { await model.send(retry: true) } }
+                                            .buttonStyle(.borderless).font(.caption).disabled(model.sending)
+                                    }
+                                }
+                                .frame(maxWidth: 560, alignment: .trailing)
+                                .padding(.horizontal, 16).padding(.vertical, 11)
+                                .chatContentSurface(
+                                    tint: Color.accentColor.opacity(0.12),
+                                    shape: RoundedRectangle(cornerRadius: 22, style: .continuous)
+                                )
+                            }
+                        }
+                        if let error = model.errorKey { Label(text[error], systemImage: "exclamationmark.circle").font(.footnote).foregroundStyle(.secondary) }
+                        Color.clear.frame(height: 1).id("bottom")
                     }
+                    .padding(.horizontal, Self.horizontalPadding).padding(.vertical, 16).frame(maxWidth: 760).frame(maxWidth: .infinity)
+                    .background(GeometryReader { proxy in
+                        Color.clear.preference(key: ContentOffsetKey.self, value: proxy.frame(in: .named("chat")).minY)
+                    })
+                }
+                #if os(macOS)
+                .overlay {
                     if model.messages.isEmpty && !model.summary.running {
                         ContentUnavailableView(text["chat.empty"], systemImage: "bubble.left", description: Text(text["chat.empty.detail"]))
                     }
-                    ForEach(model.messages) { message in
-                        MessageBubble(message: message, assistantName: text["app.name"]).equatable().id(message.id)
-                    }
-                    if model.summary.running {
-                        HStack(spacing: 8) {
-                            ProgressView().controlSize(.small)
-                            Text(text["chat.thinking"]).font(.subheadline).foregroundStyle(.secondary)
-                        }
-                        .padding(.horizontal, 12).padding(.vertical, 9)
-                        .background(Color.secondary.opacity(0.1), in: Capsule())
-                    }
-                    if let pending = model.pending {
-                        HStack {
-                            Spacer(minLength: 56)
-                            VStack(alignment: .trailing, spacing: 7) {
-                                Text(pending.text).lineLimit(3)
-                                HStack(spacing: 10) {
-                                    Text(text["chat.delivery_unknown"]).font(.caption2).foregroundStyle(.secondary)
-                                    Button(text["chat.retry"]) { Task { await model.send(retry: true) } }
-                                        .buttonStyle(.borderless).font(.caption).disabled(model.sending)
-                                }
-                            }
-                            .frame(maxWidth: 560, alignment: .trailing)
-                            .padding(.horizontal, 16).padding(.vertical, 11)
-                            .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-                        }
-                    }
-                    if let error = model.errorKey { Label(text[error], systemImage: "exclamationmark.circle").font(.footnote).foregroundStyle(.secondary) }
-                    Color.clear.frame(height: 1).id("bottom")
                 }
-                .padding(.horizontal, Self.horizontalPadding).padding(.vertical, 16).frame(maxWidth: 760).frame(maxWidth: .infinity)
-                .background(GeometryReader { proxy in Color.clear.preference(key: ContentOffsetKey.self, value: proxy.frame(in: .named("chat")).minY) })
+                #endif
             }
             .coordinateSpace(name: "chat")
             .onPreferenceChange(ContentOffsetKey.self) { offset in
-                if let previous = lastOffset, offset > previous + 2 { followLatest = false }
-                lastOffset = offset
+                if let previous = offsetTracker.lastOffset, offset > previous + 2, followLatest {
+                    followLatest = false
+                }
+                offsetTracker.lastOffset = offset
             }
             #if os(iOS)
             .scrollDismissesKeyboard(.interactively)
@@ -147,7 +172,14 @@ private struct ModelConversationScreen: View {
             }
         }
     }
-    private var composer: some View {
+    @ViewBuilder private var composer: some View {
+        if #available(iOS 26, macOS 26, *) {
+            GlassEffectContainer(spacing: 8) { composerContent }
+        } else {
+            composerContent
+        }
+    }
+    private var composerContent: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 modelPicker
@@ -174,11 +206,7 @@ private struct ModelConversationScreen: View {
                     }.font(.caption).buttonStyle(.borderless)
                 }.padding(.horizontal, 8)
             }
-            if #available(iOS 26, macOS 26, *) {
-                GlassEffectContainer(spacing: 8) { composerControls }
-            } else {
-                composerControls
-            }
+            composerControls
             if let error = model.modelErrorKey {
                 Text(text[error])
                     .font(.caption)
@@ -236,6 +264,11 @@ private struct ModelConversationScreen: View {
             .padding(.vertical, 7)
             .modifier(ModelPickerSurface())
         }
+        #if os(macOS)
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize(horizontal: true, vertical: false)
+        #endif
         .disabled(model.switchingModel || groups.isEmpty)
         .accessibilityLabel(text["chat.model.select"])
         .accessibilityValue(model.currentModelName)
@@ -347,6 +380,9 @@ private struct MessageBubble: View, Equatable {
     let message: ChatMessage
     let assistantName: String
     private var user: Bool { message.role == "user" }
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: 22, style: .continuous)
+    }
     var body: some View {
         HStack(alignment: .bottom, spacing: 8) {
             if user { Spacer(minLength: 44) }
@@ -355,19 +391,86 @@ private struct MessageBubble: View, Equatable {
                     Text(assistantName).font(.caption2).foregroundStyle(.tertiary)
                         .padding(.leading, 5)
                 }
-                Text((try? AttributedString(markdown: message.text, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace))) ?? AttributedString(message.text))
-                    .textSelection(.enabled)
-                    .font(.body)
-                    .lineSpacing(3)
-                    .foregroundStyle(user ? .white : .primary)
-                    .tint(user ? .white : .accentColor)
-                    .padding(.horizontal, 16).padding(.vertical, 12)
-                    .background(user ? Color.userBubble : Color.assistantBubble, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    .frame(maxWidth: 560, alignment: user ? .trailing : .leading)
+                bubble
                 Text(message.createdAt, style: .time).font(.caption2).foregroundStyle(.tertiary)
                     .padding(.horizontal, 5)
             }
             if !user { Spacer(minLength: 44) }
         }
+    }
+
+    @ViewBuilder private var bubble: some View {
+        if #available(iOS 26, macOS 26, *) {
+            bubbleContent(foreground: .primary, linkForeground: user ? .primary : .accentColor)
+                .chatContentSurface(tint: user ? Color.accentColor.opacity(0.3) : nil, shape: shape)
+                .frame(maxWidth: 560, alignment: user ? .trailing : .leading)
+        } else {
+            bubbleContent(foreground: user ? .white : .primary, linkForeground: user ? .white : .accentColor)
+                .background(user ? Color.userBubble : Color.assistantBubble, in: shape)
+                .frame(maxWidth: 560, alignment: user ? .trailing : .leading)
+        }
+    }
+
+    private func bubbleContent(foreground: Color, linkForeground: Color) -> some View {
+        MessageContent(text: message.text, foreground: foreground, linkForeground: linkForeground)
+            .padding(.horizontal, 16).padding(.vertical, 12)
+    }
+}
+
+private struct MessageContent: View {
+    let text: String
+    let foreground: Color
+    let linkForeground: Color
+    @ScaledMetric(relativeTo: .body) private var bodySize: CGFloat = 16
+
+    var body: some View {
+        Group {
+            if ChatMarkdownSupport.needsBlockRendering(text) {
+                Markdown(MarkdownContent(text))
+                    .markdownTheme(.basic)
+                    .markdownTextStyle {
+                        FontSize(bodySize)
+                        ForegroundColor(foreground)
+                    }
+                    .markdownTextStyle(\.link) {
+                        ForegroundColor(linkForeground)
+                        UnderlineStyle(.single)
+                    }
+                    .markdownBlockStyle(\.codeBlock) { configuration in
+                        ScrollView(.horizontal) {
+                            configuration.label.fixedSize(horizontal: true, vertical: false)
+                                .markdownTextStyle { FontFamilyVariant(.monospaced); FontSize(.em(0.9)) }
+                                .padding(10)
+                        }
+                        .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
+                        .markdownMargin(top: .zero, bottom: .em(0.5))
+                    }
+                    .markdownBlockStyle(\.table) { configuration in
+                        ScrollView(.horizontal) { configuration.label.fixedSize(horizontal: true, vertical: false) }
+                    }
+                    .markdownImageProvider(HiddenMarkdownImages())
+                    .markdownInlineImageProvider(HiddenMarkdownImages())
+                    .environment(\.openURL, OpenURLAction { url in
+                        ["https", "http", "mailto"].contains(url.scheme?.lowercased() ?? "") ? .systemAction : .discarded
+                    })
+            } else {
+                Text((try? AttributedString(markdown: text, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace))) ?? AttributedString(text))
+                    .foregroundStyle(foreground)
+                    .tint(linkForeground)
+                    .font(.system(size: bodySize))
+                    .lineSpacing(3)
+                    .environment(\.openURL, OpenURLAction { url in
+                        ["https", "http", "mailto"].contains(url.scheme?.lowercased() ?? "") ? .systemAction : .discarded
+                    })
+            }
+        }
+        .textSelection(.enabled)
+    }
+}
+
+private struct HiddenMarkdownImages: ImageProvider, InlineImageProvider {
+    func makeImage(url: URL?) -> some View { EmptyView() }
+    func image(with url: URL, label: String) async throws -> Image {
+        throw URLError(.unsupportedURL)
     }
 }

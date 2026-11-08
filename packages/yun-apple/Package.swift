@@ -18,5 +18,6 @@ let package = Package(
             .product(name: "MarkdownUI", package: "swift-markdown-ui"),
         ], resources: [.process("Resources")]),
         .testTarget(name: "YunCoreTests", dependencies: ["YunCore"]),
+        .testTarget(name: "YunUITests", dependencies: ["YunUI"]),
     ]
 )

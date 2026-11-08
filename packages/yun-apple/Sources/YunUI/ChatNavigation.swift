@@ -104,10 +104,16 @@ public struct SessionRows<Destination: Hashable>: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
                             Text(session.displayTitle).lineLimit(1).fontWeight(.medium)
+                            #if os(iOS)
                             Spacer(minLength: 0)
                             Text(session.updatedAt, format: .dateTime.month(.twoDigits).day(.twoDigits).hour().minute())
                                 .font(.caption2).foregroundStyle(.tertiary)
+                            #endif
                         }
+                        #if os(macOS)
+                        Text(sidebarSubtitle(session, kind: kind))
+                            .font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                        #else
                         if kind != nil || session.workspace != nil {
                             HStack(spacing: 6) {
                                 if let kind {
@@ -135,6 +141,7 @@ public struct SessionRows<Destination: Hashable>: View {
                             Text(messagePreview(message))
                                 .font(.caption).foregroundStyle(.secondary).lineLimit(1)
                         }
+                        #endif
                     }
                     Spacer(minLength: 0)
                     if let operation = store?.sessionOperation, operation.sessionId == session.id {
@@ -145,11 +152,21 @@ public struct SessionRows<Destination: Hashable>: View {
                 }.padding(.vertical, 4)
             }
             .accessibilityIdentifier("sessionRow.\(session.id)")
+            #if os(macOS)
+            .help([session.workspace, session.model, session.source?.lastMessage.map(messagePreview), session.updatedAt.formatted(date: .abbreviated, time: .shortened)]
+                .compactMap { $0 }.joined(separator: "\n"))
+            #endif
             .disabled(store?.sessionOperation?.sessionId == session.id)
             .transition(.opacity)
             .modifier(SessionManagement(session: session, store: store))
         }
     }
+    #if os(macOS)
+    private func sidebarSubtitle(_ session: SessionSummary, kind: SessionConversationKind?) -> String {
+        let preview = session.source?.lastMessage.map(messagePreview) ?? session.workspace
+        return [kind.map { text[$0.localizationKey] }, preview].compactMap { $0 }.joined(separator: " · ")
+    }
+    #endif
     private func messagePreview(_ message: SessionInboundMessage) -> String {
         let content = message.text.isEmpty ? text["chat.message.\(message.type)"] : message.text
         if let sender = message.senderName { return "\(sender): \(content)" }
@@ -223,6 +240,68 @@ public struct GroupedSessionRows<Destination: Hashable>: View {
                     .locale(Locale(identifier: text.locale))
             )
         }
+    }
+}
+
+public struct SessionCategoryPicker: View {
+    @Binding var category: SessionCategory
+    @Environment(\.yunStrings) private var text
+
+    public init(category: Binding<SessionCategory>) {
+        self._category = category
+    }
+
+    public var body: some View {
+        #if os(macOS)
+        Picker(text["sessions.category"], selection: $category) {
+            ForEach(SessionCategory.allCases, id: \.self) { item in
+                Text(text[item.localizationKey]).tag(item)
+            }
+        }
+        .pickerStyle(.segmented)
+        .controlSize(.small)
+        .labelsHidden()
+        .padding(.vertical, 2)
+        .accessibilityIdentifier("sessionCategory")
+        #else
+        HStack(spacing: 4) {
+            ForEach(SessionCategory.allCases, id: \.self) { item in
+                Button {
+                    category = item
+                } label: {
+                    HStack(spacing: 5) {
+                        if item == .qq {
+                            QQPlatformIcon()
+                                .frame(width: 16, height: 16)
+                                .accessibilityHidden(true)
+                        }
+                        Text(text[item.localizationKey])
+                    }
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(category == item ? .primary : .secondary)
+                    .frame(maxWidth: .infinity, minHeight: 36)
+                    .background {
+                        if category == item {
+                            RoundedRectangle(cornerRadius: 7)
+                                .fill(.background)
+                                .shadow(color: .black.opacity(0.08), radius: 2, y: 1)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(text[item.localizationKey])
+                .accessibilityAddTraits(category == item ? .isSelected : [])
+                .accessibilityIdentifier("sessionCategory.\(item.rawValue)")
+            }
+        }
+        .padding(4)
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
+        .padding(.vertical, 8)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(text["sessions.category"])
+        .accessibilityIdentifier("sessionCategory")
+        #endif
     }
 }
 
@@ -328,7 +407,7 @@ public struct ChatBrowser: View {
                 ModelSetupHint()
             }
             Section {
-                categoryPicker
+                SessionCategoryPicker(category: $category)
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
@@ -363,45 +442,6 @@ public struct ChatBrowser: View {
             Button { beginCompose() } label: { Label(text["sessions.new"], systemImage: "square.and.pencil") }
                 .disabled(store.busy).accessibilityIdentifier("newSession")
         }
-    }
-    private var categoryPicker: some View {
-        HStack(spacing: 4) {
-            ForEach(SessionCategory.allCases, id: \.self) { item in
-                Button {
-                    category = item
-                } label: {
-                    HStack(spacing: 5) {
-                        if item == .qq {
-                            QQPlatformIcon()
-                                .frame(width: 16, height: 16)
-                                .accessibilityHidden(true)
-                        }
-                        Text(text[item.localizationKey])
-                    }
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(category == item ? .primary : .secondary)
-                    .frame(maxWidth: .infinity, minHeight: 36)
-                    .background {
-                        if category == item {
-                            RoundedRectangle(cornerRadius: 7)
-                                .fill(.background)
-                                .shadow(color: .black.opacity(0.08), radius: 2, y: 1)
-                        }
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(text[item.localizationKey])
-                .accessibilityAddTraits(category == item ? .isSelected : [])
-                .accessibilityIdentifier("sessionCategory.\(item.rawValue)")
-            }
-        }
-        .padding(4)
-        .background(.quaternary, in: RoundedRectangle(cornerRadius: 10))
-        .padding(.vertical, 8)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(text["sessions.category"])
-        .accessibilityIdentifier("sessionCategory")
     }
     private var splitBrowser: some View {
         NavigationSplitView {

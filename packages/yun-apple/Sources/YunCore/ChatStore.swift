@@ -67,6 +67,7 @@ public final class ChatStore {
             }
             self.server = endpoint.absoluteString
             UserDefaults.standard.set(self.server, forKey: "yun.chat.server")
+            GroupChatStore.clearSnapshots()
             generation += 1
             creationId = nil
             draftSessionId = nil
@@ -83,6 +84,7 @@ public final class ChatStore {
         try vault.save(encoder.encode(result), origin: endpoint.absoluteString)
         server = endpoint.absoluteString
         UserDefaults.standard.set(server, forKey: "yun.chat.server")
+        GroupChatStore.clearSnapshots()
         generation += 1
         creationId = nil
         draftSessionId = nil
@@ -257,6 +259,7 @@ public final class ChatStore {
             }
         }
         if let endpoint = try? Endpoint(server) { vault.remove(origin: endpoint.absoluteString) }
+        GroupChatStore.clearSnapshots()
         generation += 1
         client = nil
         device = nil
@@ -280,6 +283,7 @@ public final class ChatStore {
             return
         }
         if error as? CompanionError == .unauthorized {
+            GroupChatStore.clearSnapshots()
             generation += 1
             if let endpoint = try? Endpoint(server) { vault.remove(origin: endpoint.absoluteString) }
             client = nil

@@ -35,26 +35,26 @@ public struct GroupMemberProfile: Decodable, Sendable {
     public let senderId: String
     public let impression: GroupMemberImpression?
 }
-public struct GroupHandoffLease: Decodable, Sendable {
+public struct GroupHandoffLease: Decodable, Sendable, Equatable {
     public let id: String
     public let expiresAt: Double
     public let phase: String
     public var expiry: Date { Date(timeIntervalSince1970: expiresAt / 1000) }
 }
-public struct GroupHandoff: Decodable, Sendable {
+public struct GroupHandoff: Decodable, Sendable, Equatable {
     public let id: String
     public let sessionId: String
     public let lease: GroupHandoffLease?
     public let replyAvailable: Bool
     public let proactivePermission: String
 }
-public struct GroupDelivery: Decodable, Sendable {
+public struct GroupDelivery: Decodable, Sendable, Equatable {
     public let id: String
     public let status: String
     public let messageId: String?
     public let code: String?
 }
-public struct GroupChatState: Decodable, Sendable {
+public struct GroupChatState: Decodable, Sendable, Equatable {
     public let context: SessionContext?
     public let messages: [GroupTransportMessage]
     public let cursor: Int
@@ -64,6 +64,12 @@ public struct GroupChatState: Decodable, Sendable {
     public let now: Double
     public let control: GroupHandoff?
     public let deliveries: [GroupDelivery]
+
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.context == rhs.context && lhs.messages == rhs.messages && lhs.cursor == rhs.cursor
+            && lhs.hasMore == rhs.hasMore && lhs.captureStartedAt == rhs.captureStartedAt
+            && lhs.online == rhs.online && lhs.control == rhs.control && lhs.deliveries == rhs.deliveries
+    }
 }
 public struct GroupSendPreview: Decodable, Sendable, Identifiable {
     public let id: String
@@ -90,12 +96,58 @@ public struct GroupChatResponse: Decodable, Sendable {
     public let delivery: GroupDelivery?
 }
 
+@MainActor
+private enum GroupChatSnapshots {
+    struct Value {
+        let messages: [GroupTransportMessage]
+        let cursor: Int?
+        let hasMore: Bool
+    }
+    private static let limit = 8
+    private static let messageLimit = 200
+    private static var values: [String: Value] = [:]
+    private static var order: [String] = []
+
+    static func value(for key: String) -> Value? {
+        guard let value = values[key] else { return nil }
+        order.removeAll { $0 == key }
+        order.append(key)
+        return value
+    }
+
+    static func store(messages: [GroupTransportMessage], cursor: Int?, hasMore: Bool, for key: String) {
+        var kept = messages
+        var keptHasMore = hasMore
+        if kept.count > messageLimit {
+            kept = Array(kept.suffix(messageLimit))
+            keptHasMore = true
+        }
+        values[key] = Value(messages: kept, cursor: kept.first?.seq ?? cursor, hasMore: keptHasMore)
+        order.removeAll { $0 == key }
+        order.append(key)
+        while order.count > limit {
+            values.removeValue(forKey: order.removeFirst())
+        }
+    }
+
+    static func remove(_ key: String) {
+        values.removeValue(forKey: key)
+        order.removeAll { $0 == key }
+    }
+
+    static func removeAll() {
+        values.removeAll()
+        order.removeAll()
+    }
+}
+
 @MainActor @Observable public final class GroupChatStore {
     public let summary: SessionSummary
     public private(set) var state: GroupChatState?
     public private(set) var messages: [GroupTransportMessage] = []
     public private(set) var busy = false
-    public private(set) var loading = false
+    @ObservationIgnored public private(set) var loading = false
+    public private(set) var initialLoading = true
     public private(set) var errorKey: String?
     public private(set) var hasMore = false
     public private(set) var pending: PendingMessage?
@@ -103,6 +155,7 @@ public struct GroupChatResponse: Decodable, Sendable {
     public var mode = "reply"
     public let client: MobileAPI
     private let outbox: PendingMessages
+    @ObservationIgnored private let snapshotKey: String
     private var restored = false
     private var cursor: Int?
     private var revision = 0
@@ -116,6 +169,15 @@ public struct GroupChatResponse: Decodable, Sendable {
 
     public init(session: SessionSummary, client: MobileAPI, outbox: PendingMessages = PendingMessages()) {
         summary = session; self.client = client; self.outbox = outbox
+        snapshotKey = "\(client.endpoint.absoluteString)\u{0}\(session.id)"
+        if let snapshot = GroupChatSnapshots.value(for: snapshotKey) {
+            messages = snapshot.messages
+            cursor = snapshot.cursor
+            hasMore = snapshot.hasMore
+        }
+    }
+    static func clearSnapshots() {
+        GroupChatSnapshots.removeAll()
     }
     public func refresh(older: Bool = false) async {
         guard !loading else { return }
@@ -129,22 +191,28 @@ public struct GroupChatResponse: Decodable, Sendable {
             }
             let value = try await client.groupChat(summary.id, before: older ? cursor : nil)
             guard !Task.isCancelled, revision == self.revision else { return }
-            state = value
+            initialLoading = false
+            if state != value { state = value }
             if older {
                 let ids = Set(messages.map(\.id))
-                messages = value.messages.filter { !ids.contains($0.id) } + messages
+                let merged = value.messages.filter { !ids.contains($0.id) } + messages
+                if merged != messages { messages = merged }
             } else {
                 let ids = Set(value.messages.map(\.id))
-                messages = messages.filter { !ids.contains($0.id) && $0.seq < (value.messages.first?.seq ?? 0) } + value.messages
+                let merged = messages.filter { !ids.contains($0.id) && $0.seq < (value.messages.first?.seq ?? 0) } + value.messages
+                if merged != messages { messages = merged }
             }
             if older || cursor == nil { cursor = value.cursor; hasMore = value.hasMore }
-            errorKey = nil
+            GroupChatSnapshots.store(messages: messages, cursor: cursor, hasMore: hasMore, for: snapshotKey)
+            if errorKey != nil { errorKey = nil }
             if let pending, let receipt = value.deliveries.first(where: { $0.id == pending.requestId }) {
                 try await reconcile(receipt)
             }
         } catch {
+            if !Task.isCancelled { initialLoading = false }
             if error as? CompanionError == .rejected("session_not_found") {
                 messages = []; state = nil; draft = ""
+                GroupChatSnapshots.remove(snapshotKey)
                 try? await outbox.remove(origin: client.endpoint.absoluteString, sessionId: outboxId)
                 pending = nil
             }

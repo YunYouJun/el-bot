@@ -1,4 +1,3 @@
-#if os(iOS)
 import SwiftUI
 import YunCore
 
@@ -250,4 +249,3 @@ private struct YunleConsumptionMetrics: View {
         .accessibilityElement(children: .combine)
     }
 }
-#endif

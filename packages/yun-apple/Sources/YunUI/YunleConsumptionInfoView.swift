@@ -1,4 +1,3 @@
-#if os(iOS)
 import SwiftUI
 import YunCore
 
@@ -52,7 +51,9 @@ struct YunleConsumptionInfoView: View {
                 }
             }
             .navigationTitle(strings["yunle.summary.info_title"])
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(strings["done"]) { dismiss() }
@@ -62,4 +63,3 @@ struct YunleConsumptionInfoView: View {
         }
     }
 }
-#endif

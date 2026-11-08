@@ -82,22 +82,68 @@ private extension View {
 public struct CloudBotStatusView: View {
     let store: ChatStore
     @Environment(\.yunStrings) private var text
+    #if os(macOS)
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var pointer: CGPoint?
+    @State private var showingConnection = false
+    #endif
     public init(store: ChatStore) { self.store = store }
     public var body: some View {
-        Form {
-            Section {
-                Label(store.status?.name ?? text["app.name"], systemImage: "cloud.fill").font(.headline)
-                Label(text["status." + (store.online ? (store.status?.state ?? "unknown") : "unknown")], systemImage: store.online && store.status?.state == "online" ? "checkmark.circle" : "circle.dashed")
-                LabeledContent(text["connect.server"], value: store.client?.endpoint.origin.host() ?? "—")
-                if let status = store.status {
-                    LabeledContent(text["status.app_id"], value: status.appId)
-                    LabeledContent(text["status.checked"]) { Text(status.checkedAt, style: .relative) }
+        Group {
+            #if os(macOS)
+            Form {
+                Section {
+                    BotStatusCompanion(pointer: pointer)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets())
                 }
-                LabeledContent(text["status.sessions"], value: String(store.sessions.count))
+                if store.client == nil {
+                    Section {
+                        Button { showingConnection = true } label: {
+                            Label(text["connect.title"], systemImage: "network")
+                        }
+                    }
+                } else {
+                    BotStatusSections(store: store)
+                }
             }
-            if let error = store.errorKey { Label(text[error], systemImage: "wifi.exclamationmark") }
-            Section { Text(text["status.description"]).font(.footnote).foregroundStyle(.secondary) }
-        }.formStyle(.grouped).navigationTitle(text["tab.status"])
-            .refreshable { await store.refresh() }.task { await store.refresh() }
+            .formStyle(.grouped)
+            .coordinateSpace(name: BotStatusCompanion.coordinateSpace)
+            .onContinuousHover(coordinateSpace: .named(BotStatusCompanion.coordinateSpace)) { phase in
+                guard !reduceMotion else { return }
+                switch phase {
+                case .active(let location): pointer = location
+                case .ended: pointer = nil
+                }
+            }
+            .onChange(of: reduceMotion) { _, _ in pointer = nil }
+            .navigationTitle(text["tab.status"])
+            .sheet(isPresented: $showingConnection) {
+                NavigationStack {
+                    ChatConnectionView(store: store)
+                        .navigationTitle(text["connect.title"])
+                        .toolbar {
+                            ToolbarItem(placement: .confirmationAction) {
+                                Button(text["done"]) { showingConnection = false }
+                            }
+                        }
+                }
+                .frame(minWidth: 440, minHeight: 420)
+            }
+            #else
+            if store.client == nil {
+                ChatConnectionView(store: store)
+                    .navigationTitle(text["tab.status"])
+            } else {
+                Form {
+                    BotStatusSections(store: store)
+                }
+                .formStyle(.grouped)
+                .navigationTitle(text["tab.status"])
+            }
+            #endif
+        }
+        .refreshable { await store.refresh() }
+        .task { await store.refresh() }
     }
 }

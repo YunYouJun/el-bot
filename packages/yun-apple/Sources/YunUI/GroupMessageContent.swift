@@ -4,44 +4,54 @@ import SwiftUI
 import YunCore
 
 struct GroupMessageContent: View {
+    private enum Content {
+        case literal(String)
+        case inline(AttributedString)
+        case rich(MarkdownContent)
+    }
+
     let message: GroupTransportMessage
-    @Environment(\.yunStrings) private var text
+    let usesPrimaryForeground: Bool
+    let text: YunStrings
+    private let content: Content
+    @ScaledMetric(relativeTo: .body) private var inlineSize: CGFloat = 16
+
+    init(message: GroupTransportMessage, usesPrimaryForeground: Bool, text: YunStrings) {
+        self.message = message
+        self.usesPrimaryForeground = usesPrimaryForeground
+        self.text = text
+        if message.manual == true {
+            content = .literal(message.text)
+        } else {
+            let markdown = QQMessageContent.markdown(
+                message.text,
+                senderID: message.senderId,
+                senderName: message.senderName,
+                text: text
+            )
+            if ChatMarkdownSupport.needsBlockRendering(markdown) {
+                content = .rich(MarkdownContent(markdown))
+            } else {
+                let inline = (try? AttributedString(
+                    markdown: markdown,
+                    options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)
+                )) ?? AttributedString(markdown)
+                content = .inline(inline)
+            }
+        }
+    }
+
+    private var foreground: Color {
+        message.outgoing && !usesPrimaryForeground ? .white : .primary
+    }
+    private var linkForeground: Color {
+        message.outgoing && !usesPrimaryForeground ? .white : .accentColor
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if !message.text.isEmpty {
-                if message.manual == true {
-                    Text(verbatim: message.text).textSelection(.enabled)
-                } else {
-                    Markdown(QQMessageContent.markdown(message.text, senderID: message.senderId, senderName: message.senderName, text: text))
-                        .markdownTheme(.basic)
-                        .markdownTextStyle {
-                            FontSize(16)
-                            ForegroundColor(message.outgoing ? .white : .primary)
-                        }
-                        .markdownTextStyle(\.link) {
-                            ForegroundColor(message.outgoing ? .white : .accentColor)
-                            UnderlineStyle(.single)
-                        }
-                        .markdownBlockStyle(\.codeBlock) { configuration in
-                            ScrollView(.horizontal) {
-                                configuration.label.fixedSize(horizontal: true, vertical: false)
-                                    .markdownTextStyle { FontFamilyVariant(.monospaced); FontSize(.em(0.9)) }
-                                    .padding(10)
-                            }
-                            .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
-                            .markdownMargin(top: .zero, bottom: .em(0.5))
-                        }
-                        .markdownBlockStyle(\.table) { configuration in
-                            ScrollView(.horizontal) { configuration.label.fixedSize(horizontal: true, vertical: false) }
-                        }
-                        .markdownImageProvider(QQMarkdownImages())
-                        .markdownInlineImageProvider(QQMarkdownImages())
-                        .environment(\.openURL, OpenURLAction { url in
-                            ["https", "http", "mailto"].contains(url.scheme?.lowercased() ?? "") ? .systemAction : .discarded
-                        })
-                        .textSelection(.enabled)
-                }
+                textContent
             }
             ForEach(Array((message.attachments ?? []).enumerated()), id: \.offset) { _, attachment in
                 if let url = attachment.imageURL {
@@ -64,8 +74,52 @@ struct GroupMessageContent: View {
             }
         }
         .font(.body)
-        .foregroundStyle(message.outgoing ? Color.white : Color.primary)
+        .foregroundStyle(foreground)
     }
+
+    @ViewBuilder private var textContent: some View {
+        switch content {
+        case .literal(let value):
+            Text(verbatim: value).textSelection(.enabled)
+        case .inline(let value):
+            Text(value)
+                .font(.system(size: inlineSize))
+                .textSelection(.enabled)
+                .environment(\.openURL, OpenURLAction { url in
+                    ["https", "http", "mailto"].contains(url.scheme?.lowercased() ?? "") ? .systemAction : .discarded
+                })
+        case .rich(let value):
+            Markdown(value)
+                .markdownTheme(.basic)
+                .markdownTextStyle {
+                    FontSize(16)
+                    ForegroundColor(foreground)
+                }
+                .markdownTextStyle(\.link) {
+                    ForegroundColor(linkForeground)
+                    UnderlineStyle(.single)
+                }
+                .markdownBlockStyle(\.codeBlock) { configuration in
+                    ScrollView(.horizontal) {
+                        configuration.label.fixedSize(horizontal: true, vertical: false)
+                            .markdownTextStyle { FontFamilyVariant(.monospaced); FontSize(.em(0.9)) }
+                            .padding(10)
+                    }
+                    .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
+                    .markdownMargin(top: .zero, bottom: .em(0.5))
+                }
+                .markdownBlockStyle(\.table) { configuration in
+                    ScrollView(.horizontal) { configuration.label.fixedSize(horizontal: true, vertical: false) }
+                }
+                .markdownImageProvider(QQMarkdownImages())
+                .markdownInlineImageProvider(QQMarkdownImages())
+                .environment(\.openURL, OpenURLAction { url in
+                    ["https", "http", "mailto"].contains(url.scheme?.lowercased() ?? "") ? .systemAction : .discarded
+                })
+                .textSelection(.enabled)
+        }
+    }
+
 }
 
 private struct QQMarkdownImages: ImageProvider, InlineImageProvider {

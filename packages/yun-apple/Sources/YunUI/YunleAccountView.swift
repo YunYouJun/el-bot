@@ -1,9 +1,13 @@
-#if os(iOS)
 import AuthenticationServices
 import Observation
 import SwiftUI
-import UIKit
 import YunCore
+
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 @MainActor
 private final class YunleLoginBrowser: NSObject, ASWebAuthenticationPresentationContextProviding {
@@ -20,8 +24,14 @@ private final class YunleLoginBrowser: NSObject, ASWebAuthenticationPresentation
     }
     func finish() { onCancel = nil; session?.cancel(); session = nil }
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        #if os(iOS)
         UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
             .filter { $0.activationState == .foregroundActive }.flatMap(\.windows).first(where: \.isKeyWindow) ?? ASPresentationAnchor()
+        #elseif os(macOS)
+        NSApp.keyWindow ?? NSApp.mainWindow ?? ASPresentationAnchor()
+        #else
+        ASPresentationAnchor()
+        #endif
     }
 }
 
@@ -52,7 +62,7 @@ public final class YunleAccountStore {
     public func signIn() {
         guard !busy, !signingIn else { return }
         signingIn = true; errorKey = nil
-        loginTask = Task {
+        loginTask = Task { [self] in
             defer { browser.finish(); signingIn = false; loginTask = nil }
             do {
                 let pending = try await client.beginLogin()
@@ -131,13 +141,20 @@ public final class YunleAccountStore {
 public struct YunleAccountSection: View {
     @Bindable var store: YunleAccountStore
     let strings: YunStrings
-    public init(store: YunleAccountStore, strings: YunStrings) { self.store = store; self.strings = strings }
+    let openAccount: (() -> Void)?
+    public init(
+        store: YunleAccountStore,
+        strings: YunStrings,
+        openAccount: (() -> Void)? = nil
+    ) {
+        self.store = store
+        self.strings = strings
+        self.openAccount = openAccount
+    }
     public var body: some View {
         Section {
             if store.userID != nil {
-                NavigationLink { YunleAccountView(store: store, strings: strings) } label: {
-                    Label(strings["yunle.usage.title"], systemImage: "chart.bar.xaxis")
-                }
+                accountLink
                 if let account = store.overview?.account {
                     LabeledContent(strings["yunle.available"], value: yunlePoints(account.availableMicroPoints))
                 }
@@ -154,6 +171,18 @@ public struct YunleAccountSection: View {
             if let error = store.errorKey { Text(strings[error]).font(.footnote).foregroundStyle(.red) }
         } header: { Text(strings["yunle.account"]) }
         footer: { Text(strings["yunle.readonly"]) }
+    }
+
+    @ViewBuilder private var accountLink: some View {
+        if let openAccount {
+            Button(action: openAccount) {
+                Label(strings["yunle.usage.title"], systemImage: "chart.bar.xaxis")
+            }
+        } else {
+            NavigationLink { YunleAccountView(store: store, strings: strings) } label: {
+                Label(strings["yunle.usage.title"], systemImage: "chart.bar.xaxis")
+            }
+        }
     }
 }
 
@@ -261,11 +290,12 @@ private struct YunlePointAccountView: View {
             }
         }
         .navigationTitle(strings["yunle.balance.details"])
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
         .refreshable { await store.refresh() }
     }
 }
 func yunlePoints(_ amount: Int64) -> String {
     YunlePointFormatter.string(fromMicroPoints: amount)
 }
-#endif

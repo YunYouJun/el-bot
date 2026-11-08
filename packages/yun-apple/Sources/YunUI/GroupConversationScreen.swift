@@ -26,34 +26,27 @@ public struct GroupConversationScreen: View {
     }
     public var body: some View {
         ScrollViewReader { reader in
-            ScrollView {
-                LazyVStack(spacing: 16) {
-                    Text(text["qq.capture.notice"]).font(.caption).foregroundStyle(.secondary).padding(.vertical, 8)
-                    if model.hasMore {
-                        Button(text["chat.older"]) { followLatest = false; Task { await model.refresh(older: true) } }
-                    }
-                    if model.messages.isEmpty && !model.loading {
-                        ContentUnavailableView(text["qq.empty"], systemImage: "person.3.sequence", description: Text(text["qq.empty.detail"]))
-                    }
-                    ForEach(model.messages) { message in
-                        GroupMessageBubble(message: message, senderRole: senderRole(for: message), appId: model.summary.source?.appId) {
-                            panel = .sender(message)
+            ZStack {
+                ChatBackdrop()
+                ScrollView {
+                    messageStack
+                        .padding().frame(maxWidth: 760).frame(maxWidth: .infinity)
+                }
+                .simultaneousGesture(DragGesture(minimumDistance: 8).onChanged { _ in
+                    if followLatest { followLatest = false }
+                })
+                .overlay(alignment: .bottomTrailing) {
+                    if !followLatest {
+                        Button { followLatest = true; reader.scrollTo("group-bottom", anchor: .bottom) } label: {
+                            Label(text["qq.latest"], systemImage: "arrow.down")
                         }
+                        .chatGlassButton()
+                        .padding()
                     }
-                    Color.clear.frame(height: 1).id("group-bottom")
                 }
-                .padding().frame(maxWidth: 760).frame(maxWidth: .infinity)
-            }
-            .simultaneousGesture(DragGesture(minimumDistance: 8).onChanged { _ in followLatest = false })
-            .overlay(alignment: .bottomTrailing) {
-                if !followLatest {
-                    Button { followLatest = true; reader.scrollTo("group-bottom", anchor: .bottom) } label: {
-                        Label(text["qq.latest"], systemImage: "arrow.down")
-                    }.buttonStyle(.bordered).padding()
+                .onChange(of: model.messages.last?.id) { _, _ in
+                    if followLatest { reader.scrollTo("group-bottom", anchor: .bottom) }
                 }
-            }
-            .onChange(of: model.messages.last?.id) { _, _ in
-                if followLatest { reader.scrollTo("group-bottom", anchor: .bottom) }
             }
         }
         .navigationTitle(model.summary.displayTitle)
@@ -78,7 +71,7 @@ public struct GroupConversationScreen: View {
             .accessibilityIdentifier("groupModelPicker")
             ContextUsageButton(context: model.state?.context ?? model.summary.context) { panel = .information }
         }
-        .safeAreaInset(edge: .bottom) { composer }
+        .modifier(ConversationInputBar { composer })
         .sheet(item: $panel) { panel in
             switch panel {
             case .information:
@@ -93,9 +86,11 @@ public struct GroupConversationScreen: View {
                 )
             }
         }
+        .task {
+            await information.loadModels()
+        }
         .task(id: scenePhase) {
             guard scenePhase == .active else { return }
-            await information.loadModels(force: true)
             while !Task.isCancelled {
                 await model.refresh()
                 #if DEBUG
@@ -111,13 +106,51 @@ public struct GroupConversationScreen: View {
         }
     }
 
+    @ViewBuilder private var messageStack: some View {
+        #if os(macOS)
+        messageList
+        #else
+        if #available(iOS 26, *) {
+            GlassEffectContainer(spacing: 0) { messageList }
+        } else {
+            messageList
+        }
+        #endif
+    }
+
+    private var messageList: some View {
+        LazyVStack(spacing: 16) {
+            Text(text["qq.capture.notice"]).font(.caption).foregroundStyle(.secondary).padding(.vertical, 8)
+            if model.hasMore {
+                Button(text["chat.older"]) { followLatest = false; Task { await model.refresh(older: true) } }
+            }
+            if model.messages.isEmpty && !model.initialLoading {
+                ContentUnavailableView(text["qq.empty"], systemImage: "person.3.sequence", description: Text(text["qq.empty.detail"]))
+            }
+            ForEach(model.messages) { message in
+                GroupMessageBubble(message: message, senderRole: senderRole(for: message), appId: model.summary.source?.appId) {
+                    panel = .sender(message)
+                }
+                .equatable()
+            }
+            Color.clear.frame(height: 1).id("group-bottom")
+        }
+    }
+
     private func senderRole(for message: GroupTransportMessage) -> String? {
         if let role = message.senderRole { return role }
         guard let latest = model.summary.source?.lastMessage, latest.id == message.messageId else { return nil }
         return latest.senderRole
     }
 
-    private var composer: some View {
+    @ViewBuilder private var composer: some View {
+        if #available(iOS 26, macOS 26, *) {
+            GlassEffectContainer(spacing: 8) { composerContent }
+        } else {
+            composerContent
+        }
+    }
+    private var composerContent: some View {
         VStack(alignment: .leading, spacing: 10) {
             if let error = model.errorKey {
                 Label(text[error], systemImage: "exclamationmark.circle").font(.footnote).foregroundStyle(.secondary)
@@ -131,7 +164,7 @@ public struct GroupConversationScreen: View {
                 }.font(.caption).disabled(model.busy)
             }
             if model.state == nil {
-                if model.loading { ProgressView() }
+                if model.initialLoading { ProgressView() }
             } else if model.state?.control == nil {
                 Label(text[model.summary.archived == true ? "sessions.error.archived" : "qq.history"], systemImage: "clock.arrow.circlepath")
                     .font(.footnote).foregroundStyle(.secondary)
@@ -173,7 +206,7 @@ public struct GroupConversationScreen: View {
                         .lineLimit(1...4)
                         .textFieldStyle(.plain)
                         .padding(.horizontal, 12).padding(.vertical, 10)
-                        .background(.background, in: RoundedRectangle(cornerRadius: 14))
+                        .modifier(ConversationFieldSurface())
                         .accessibilityLabel(text["qq.compose"])
                         .accessibilityIdentifier("groupManualDraft")
                         .disabled(model.busy || model.pending != nil)
@@ -181,7 +214,7 @@ public struct GroupConversationScreen: View {
                         Text("\(model.draft.utf16.count)/1200").font(.caption).foregroundStyle(.secondary)
                         Spacer()
                         Button(text["chat.send"]) { Task { await model.send() } }
-                            .buttonStyle(.borderedProminent).disabled(!model.canSend)
+                            .chatGlassButton(prominent: true).disabled(!model.canSend)
                             .accessibilityIdentifier("sendGroupMessage")
                     }
                 } else {
@@ -190,16 +223,20 @@ public struct GroupConversationScreen: View {
             }
         }
         .padding().frame(maxWidth: 760).frame(maxWidth: .infinity)
-        .background(.bar)
     }
 }
-
-private struct GroupMessageBubble: View {
+private struct GroupMessageBubble: View, Equatable {
     let message: GroupTransportMessage
     let senderRole: String?
     let appId: String?
     let openSender: () -> Void
     @Environment(\.yunStrings) private var text
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: 20, style: .continuous)
+    }
+    nonisolated static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.message == rhs.message && lhs.senderRole == rhs.senderRole && lhs.appId == rhs.appId
+    }
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             if message.outgoing { Spacer(minLength: 44) }
@@ -221,10 +258,7 @@ private struct GroupMessageBubble: View {
                         .lineLimit(1)
                 }
                 .font(.caption2).foregroundStyle(.secondary)
-                GroupMessageContent(message: message)
-                    .padding(.horizontal, 16).padding(.vertical, 12)
-                    .foregroundStyle(message.outgoing ? Color.white : Color.primary)
-                    .background(message.outgoing ? Color.accentColor : Color.secondary.opacity(0.12), in: RoundedRectangle(cornerRadius: 20))
+                bubble
                     .frame(maxWidth: 560, alignment: message.outgoing ? .trailing : .leading)
                 HStack(spacing: 6) {
                     Text(message.createdAt, style: .time)
@@ -234,6 +268,29 @@ private struct GroupMessageBubble: View {
             if !message.outgoing { Spacer(minLength: 44) }
         }
         .accessibilityIdentifier("groupMessage.\(message.direction).\(message.id)")
+    }
+
+    @ViewBuilder private var bubble: some View {
+        if #available(iOS 26, macOS 26, *) {
+            bubbleContent(usesPrimaryForeground: true)
+                .foregroundStyle(.primary)
+                .chatContentSurface(
+                    tint: message.outgoing ? Color.accentColor.opacity(0.3) : nil,
+                    shape: shape
+                )
+        } else {
+            bubbleContent(usesPrimaryForeground: false)
+                .foregroundStyle(message.outgoing ? Color.white : Color.primary)
+                .background(
+                    message.outgoing ? Color.accentColor : Color.secondary.opacity(0.12),
+                    in: shape
+                )
+        }
+    }
+
+    private func bubbleContent(usesPrimaryForeground: Bool) -> some View {
+        GroupMessageContent(message: message, usesPrimaryForeground: usesPrimaryForeground, text: text)
+            .padding(.horizontal, 16).padding(.vertical, 12)
     }
 }
 

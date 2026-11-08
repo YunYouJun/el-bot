@@ -1,7 +1,11 @@
-#if os(iOS)
 import SwiftUI
-import UIKit
 import YunCore
+
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 /// Complete model summary for the selected server period. This is deliberately
 /// not a transaction filter: the server exposes per-period model totals only.
@@ -39,7 +43,12 @@ struct YunleModelDetailView: View {
                             .accessibilityIdentifier("yunleModelIdentifier")
                     }
                     Button {
+                        #if os(iOS)
                         UIPasteboard.general.string = identifier
+                        #elseif os(macOS)
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(identifier, forType: .string)
+                        #endif
                         copied = true
                     } label: {
                         Label(copied ? strings["yunle.model.copied"] : strings["yunle.model.copy"],
@@ -107,7 +116,9 @@ struct YunleModelDetailView: View {
             }
         }
         .navigationTitle(strings["yunle.model.detail_title"])
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
     }
 
     private func amountRow(_ label: String, _ value: String) -> some View {
@@ -118,4 +129,3 @@ struct YunleModelDetailView: View {
         }
     }
 }
-#endif

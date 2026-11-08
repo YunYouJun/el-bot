@@ -1,7 +1,7 @@
 import SwiftUI
 import YunCore
 
-struct ComposeConversationScreen: View {
+public struct ComposeConversationScreen: View {
     let store: ChatStore
     let onCreated: (String) -> Void
     @Environment(\.yunStrings) private var text
@@ -10,7 +10,12 @@ struct ComposeConversationScreen: View {
     @State private var errorKey: String?
     @FocusState private var focused: Bool
 
-    var body: some View {
+    public init(store: ChatStore, onCreated: @escaping (String) -> Void) {
+        self.store = store
+        self.onCreated = onCreated
+    }
+
+    public var body: some View {
         ScrollView {
             ContentUnavailableView(
                 text["chat.empty"],

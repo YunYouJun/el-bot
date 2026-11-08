@@ -60,6 +60,7 @@ public struct ModelSetupGuide: View {
                     Text(text["model.setup.device.detail"]).foregroundStyle(.secondary)
                 }
             }
+            .formStyle(.grouped)
             .navigationTitle(text["model.setup.title"])
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
@@ -71,6 +72,9 @@ public struct ModelSetupGuide: View {
                 }
             }
         }
+        #if os(macOS)
+        .frame(minWidth: 520, idealWidth: 560, minHeight: 560, idealHeight: 680)
+        #endif
     }
 
     private func step(_ number: Int, title: String, detail: String) -> some View {

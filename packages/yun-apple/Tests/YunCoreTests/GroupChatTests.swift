@@ -135,3 +135,35 @@ private final class GroupProtocol: URLProtocol, @unchecked Sendable {
     let empty = try MobileJSON.decoder().decode(GroupMemberProfile.self, from: Data(#"{"senderId":"member-2"}"#.utf8))
     #expect(empty.impression == nil)
 }
+
+@Test @MainActor func groupChatShowsCachedMessagesBeforeRefreshing() async throws {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let host = UUID().uuidString.lowercased() + ".group-fixture.invalid"
+    GroupProtocol.set(GroupFixture(loseReceipt: false), host: host)
+    let configuration = URLSessionConfiguration.ephemeral
+    configuration.protocolClasses = [GroupProtocol.self]
+    let client = MobileAPI(endpoint: try Endpoint("https://" + host), token: "offline-test", session: URLSession(configuration: configuration))
+    let summary = SessionSummary(id: "cached-group-session", title: "Group", updatedAt: .now, running: false, workspace: nil, provider: nil, model: nil)
+    let first = GroupChatStore(session: summary, client: client, outbox: PendingMessages(directory: directory))
+    await first.refresh()
+    #expect(first.messages.map(\.id) == ["incoming", "bot"])
+
+    let second = GroupChatStore(session: summary, client: client, outbox: PendingMessages(directory: directory))
+    #expect(second.messages.map(\.id) == ["incoming", "bot"])
+    #expect(second.state == nil)
+}
+
+@Test func groupChatStateIgnoresThePollingClockForEquality() {
+    let base = GroupChatState(
+        context: nil, messages: [], cursor: 1, hasMore: false,
+        captureStartedAt: Date(timeIntervalSince1970: 0),
+        online: true, now: 1, control: nil, deliveries: []
+    )
+    let next = GroupChatState(
+        context: nil, messages: [], cursor: 1, hasMore: false,
+        captureStartedAt: Date(timeIntervalSince1970: 0),
+        online: true, now: 2, control: nil, deliveries: []
+    )
+    #expect(base == next)
+}
