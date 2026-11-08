@@ -11,7 +11,7 @@ const MAX_BYTES = 2 * 1024 * 1024
 const MAX_ENTRIES = 8192
 
 /** One receiver owns the journal. Serialize admission and commit before doing any work. */
-export class SecurityStore {
+export class QQStateStore {
   private queue: Promise<unknown> = Promise.resolve()
 
   constructor(readonly path: string, private readonly now = Date.now) {}

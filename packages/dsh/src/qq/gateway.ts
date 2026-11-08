@@ -1,8 +1,8 @@
 import type { Gateway, InteractionHandler, Middleware } from './contracts'
-import type { QQSecurity } from './policy'
+import type { QQPolicy } from './policy'
 
 /** Install before the official plugin registers middleware or starts a transport. */
-export function protectGateway(prototype: Gateway, policy: QQSecurity, onBound?: (bot: Gateway) => void, manual?: {
+export function protectGateway(prototype: Gateway, policy: QQPolicy, onBound?: (bot: Gateway) => void, manual?: {
   bind: (bot: Gateway, exact: (target: import('./contracts').Target, text: string) => unknown) => void
   stream: (target: import('./contracts').Target, stream: { cancel: () => void }) => void
   offline: () => void

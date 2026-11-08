@@ -1,4 +1,4 @@
-import type { InboundContext } from '../packages/dsh/src/qq-security/contracts'
+import type { InboundContext } from '../packages/dsh/src/qq/contracts'
 import type { Bot } from '../packages/el-bot/core/bot'
 import { describe, expect, it, vi } from 'vitest'
 import { QQCommandRegistry } from '../packages/dsh/src/qq-commands/registry'

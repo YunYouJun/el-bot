@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ScheduleKind, ScheduleRequest, ScheduleStateView, ScheduleTaskView } from '../src/qq-security/schedule-types'
+import type { ScheduleKind, ScheduleRequest, ScheduleStateView, ScheduleTaskView } from '../src/qq/schedule-types'
 import { computed, onActivated, onDeactivated, onMounted, onUnmounted, reactive, ref, shallowRef } from 'vue'
 
 const state = shallowRef<ScheduleStateView>()

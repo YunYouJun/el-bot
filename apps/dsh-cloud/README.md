@@ -26,7 +26,7 @@ node apps/dsh-cloud/migrate.mjs .el-bot/dsh-cloud-staging
 
 快照包含会话日志、标题缓存、工作区、QQ 会话偏好和工作目录。它不复制其他提供方的密钥、账号登录凭据或会话锁。容器内沿用原本的 HOME 路径，所以日志、会话 ID、cwd 和祖先关系无需改写；标题缓存也可以按原会话标识恢复。宿主上的数据实际位于部署目录的 `home/` 下。本机其他项目只保留历史和目录标识，项目源码需要另行迁移。
 
-把 `Dockerfile`、`.dockerignore`、`entrypoint.sh`、`cutover.mjs`、`health.mjs`、`healthcheck.mjs`、`history.mjs`、`security-smoke.mjs`、`tool-runtime.mjs`、`tool-runtime-smoke.mjs`、`compose.yaml` 放入部署目录，将打包产物解压到该目录的 `dsh/`（其中应直接包含 `package.json`、`cordis.patch.yml`、`dist/`）。profile 的 bundles 增加 `@el-bot/dsh`，原分组插件路径替换为 `@el-bot/dsh/qq-workspaces`，具体配置见 `packages/dsh/README.md`。镜像包含 Git，以支持公开仓库导入。`home/` 必须由容器 UID 1000 读写，目录权限 `700`、凭据文件 `600`。快照、`.env` 与真实 profile 只保留在私有目录，不进入 Git，也不进入镜像。
+把 `Dockerfile`、`.dockerignore`、`entrypoint.sh`、`cutover.mjs`、`health.mjs`、`healthcheck.mjs`、`history.mjs`、`qq-smoke.mjs`、`tool-runtime.mjs`、`tool-runtime-smoke.mjs`、`compose.yaml` 放入部署目录，将打包产物解压到该目录的 `dsh/`（其中应直接包含 `package.json`、`cordis.patch.yml`、`dist/`）。profile 的 bundles 增加 `@el-bot/dsh`，原分组插件路径替换为 `@el-bot/dsh/qq-workspaces`，具体配置见 `packages/dsh/README.md`。镜像包含 Git，以支持公开仓库导入。`home/` 必须由容器 UID 1000 读写，目录权限 `700`、凭据文件 `600`。快照、`.env` 与真实 profile 只保留在私有目录，不进入 Git，也不进入镜像。
 
 ```sh
 docker compose build
@@ -62,33 +62,33 @@ Web 恢复与 QQ 恢复同一会话时，持久化写锁可能先于 live agent 
 
 ## 入群防护与升级验收
 
-新迁移要求已有唯一私聊主人，并加载 `@el-bot/dsh/qq-security`；QQ 条目依赖 `qqRuntimeSecurity`。群聊天不设白名单，机器人加入的群均可聊天，安全模块将 QQ 插件的群接入固定为 `open`。已有实例升级时，在私有 profile 添加安全条目、指定主人 C2C OpenID，并为 QQ 条目补上依赖，见 [`@el-bot/dsh` 群聊防护](../../packages/dsh/README.md#群聊防护)。群内自称主人、群管理命令或审批按钮均不能授权；主人通过绑定私聊使用工具。
+新迁移要求已有唯一私聊主人，并加载 `@el-bot/dsh/qq`；QQ 条目依赖 `qqRuntime`。群聊天不设白名单，机器人加入的群均可聊天，QQ 集成将官方 QQ 插件的群接入固定为 `open`。已有实例升级时，在私有 profile 添加 `el-bot-qq` 条目、指定主人 C2C OpenID，并为 QQ 条目补上依赖，见 [`@el-bot/dsh` 群聊防护](../../packages/dsh/README.md#群聊防护)。从旧模块升级时，先按 [QQ 集成迁移说明](../../packages/dsh/README.md#qq-集成)停机重命名状态目录，再更新产物与 profile 并启动。群内自称主人、群管理命令或审批按钮均不能授权；主人通过绑定私聊使用工具。
 
 升级前备份现用镜像、profile、人物卡、QQ 偏好和工作区索引，保留已有 Compose override。先构建新镜像，再运行下列离线验收；通过后停止旧接收端，原子替换配置与人物卡选择，再启动新镜像。不要把真实凭据打进镜像，也不要让新旧实例同时连接 QQ。新安全策略接管时群会话从空上下文开始，旧历史仍保留；人物卡变更沿用原有准入换新语义。
 
 ```sh
 docker compose build dsh
-docker compose run --rm --no-deps --entrypoint node dsh /opt/dsh-runtime/security-smoke.mjs
+docker compose run --rm --no-deps --entrypoint node dsh /opt/dsh-runtime/qq-smoke.mjs
 docker compose up -d --no-deps dsh
 ```
 
-`security-smoke.mjs` 使用镜像内真实 Cordis、工具管线与 QQ SDK，在临时目录模拟身份、命令、引用与按钮事件，验证局部工具、嵌套调用及“允许”策略无法绕过群聊 guard，同时确认主人工具可用。同时验证主人手动接管的原文发送、预览去重、暂停／恢复隔离与流式取消。它不启动 QQ 连接，不读取真实凭据，不调用模型，不向真实用户或群发送消息。可进一步使用 `docker run --network none --entrypoint node <镜像> /opt/dsh-runtime/security-smoke.mjs` 在无数据挂载和无网络环境验收。
+`qq-smoke.mjs` 使用镜像内真实 Cordis、工具管线与 QQ SDK，在临时目录模拟身份、命令、引用与按钮事件，验证局部工具、嵌套调用及“允许”策略无法绕过群聊 guard，同时确认主人工具可用。同时验证主人手动接管的原文发送、预览去重、暂停／恢复隔离与流式取消。它不启动 QQ 连接，不读取真实凭据，不调用模型，不向真实用户或群发送消息。可进一步使用 `docker run --network none --entrypoint node <镜像> /opt/dsh-runtime/qq-smoke.mjs` 在无数据挂载和无网络环境验收。
 
 上线后检查本轮健康状态、人物卡新版本和安全 journal 权限，再在机器人已加入的测试群验证真实 @ 收发。离线模拟通过和机器人在线不代表已经完成真实群消息的端到端验收。旧 DSH 会话日志保留原有历史；不能把背景缓冲有效期当成历史日志删除策略。
 
-群聊天白名单功能及开关已移除。升级时删除安全条目的旧群列表与模式配置，移除 QQ 插件的旧群列表，并将其 `access.groupMode` 设为 `open`。使用镜像内 `security-smoke.mjs` 完成无网络验收，再重启唯一接收实例。核对本轮 `runtime.json` 的 `groupMode: open`、主人及工具 guard 标记和连接健康。迁移程序同样生成无需逐群授权的配置，并保留群聊工具禁用、数据隔离和限流。
+群聊天白名单功能及开关已移除。升级时删除 `el-bot-qq` 条目的旧群列表与模式配置，移除官方 QQ 插件的旧群列表，并将其 `access.groupMode` 设为 `open`。使用镜像内 `qq-smoke.mjs` 完成无网络验收，再重启唯一接收实例。核对本轮 `runtime.json` 的 `groupMode: open`、主人及工具 guard 标记和连接健康。迁移程序同样生成无需逐群授权的配置，并保留群聊工具禁用、数据隔离和限流。
 
 未 @ 的待处理群消息存于 `home/.dsh-qqbot/group-history/<AppID>/`，文件名为群键摘要，目录 `700`、文件 `600`，原子替换。每组遵循现有 `historyLimit`，并设硬上限 100 条、单条 4000 字符、有效期 24 小时；模型回复后沿用官方插件的清空行为。只接管指定 AppID，不影响其他机器人。初始化需要固定 QQ 插件 `0.5.5`；持久化文件损坏会明确报错，不覆盖原数据。
 
 ## 手动接管部署验收
 
-手动接管随 `@el-bot/dsh/qq-security` 加载，保留既有主人和人物卡选择。更新整个 `@el-bot/dsh` 构建产物（含共享 chunk、`dist/client.js` 与 `dist/web/`），保留 Mobile Compose override。使用镜像内真实 SDK 的 `security-smoke.mjs` 完成无网络验收，再切换唯一接收实例。新版本 `runtime.json` 应有 `manualEnabled: true`，并与本轮连接健康同时检查。
+手动接管随 `@el-bot/dsh/qq` 加载，保留既有主人和人物卡选择。更新整个 `@el-bot/dsh` 构建产物（含共享 chunk、`dist/client.js` 与 `dist/web/`），保留 Mobile Compose override。使用镜像内真实 SDK 的 `qq-smoke.mjs` 完成无网络验收，再切换唯一接收实例。新版本 `runtime.json` 应有 `manualEnabled: true`，并与本轮连接健康同时检查。
 
 通过已有 DSH 登录入口，在侧栏「机器人」→「手动接管」打开。检查未登录访问 `/el-bot/manual/api` 被拒绝，主人可查看已绑定会话；具体操作、限流、超时和平台权限核验见 [主人手动接管](../../packages/dsh/README.md#主人手动接管)。部署与界面离线验收不会代替目标 QQ 的主动发送权限确认。
 
 ## 定时群发部署验收
 
-定时群发随 `@el-bot/dsh/qq-security` 加载，不需要单独的凭据或额外端口。完整 profile patch 示例见 [`packages/dsh/examples/profile-cordis.patch.yml`](../../packages/dsh/examples/profile-cordis.patch.yml)；云端实例还需保留 `qqRuntimeHealth` 依赖。更新完整 `@el-bot/dsh` 构建产物后，`runtime.json` 应同时包含 `manualEnabled: true` 和 `scheduledEnabled: true`，并与本轮连接健康一起核对。未登录访问 `/el-bot/schedule/api` 必须被拒绝；主人登录后可在「机器人」→「定时群发」创建固定文本、AI 群聊总结或规则统计任务。
+定时群发随 `@el-bot/dsh/qq` 加载，不需要单独的凭据或额外端口。完整 profile patch 示例见 [`packages/dsh/examples/profile-cordis.patch.yml`](../../packages/dsh/examples/profile-cordis.patch.yml)；云端实例还需保留 `qqRuntimeHealth` 依赖。更新完整 `@el-bot/dsh` 构建产物后，`runtime.json` 应同时包含 `manualEnabled: true` 和 `scheduledEnabled: true`，并与本轮连接健康一起核对。未登录访问 `/el-bot/schedule/api` 必须被拒绝；主人登录后可在「机器人」→「定时群发」创建固定文本、AI 群聊总结或规则统计任务。
 
 AI 总结通过 DSH 的 `llm` 服务调用，默认使用目标群当前选择的模型；也可在安全插件配置中用 `summary.provider`、`summary.model` 指定兜底，取值必须是本实例 `llm-pi-ai` 中真实存在的 provider 和模型 ID（当前云端为 `deepseek-api` / `deepseek-flash`）。生成摘要不进入群会话历史，也不向模型开放工具。部署验收可创建一条停用任务、编辑并删除，确认页面和接口只由主人访问；离线验收不向真实 QQ 发送定时消息。真实发送前仍需在目标群确认 QQ 的「允许主动发送」开关，没有权限时会记录 `40034105`，不会自动重试或改发其他群。具体行为与配额见 [定时群发](../../packages/dsh/README.md#定时群发)。
 

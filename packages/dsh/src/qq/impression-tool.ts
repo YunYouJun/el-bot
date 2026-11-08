@@ -1,7 +1,7 @@
 import type { ToolRuntime } from './contracts'
 import type { GroupCandidate, QQGroupDirectory } from './groups'
 import type { QQMemberImpressions } from './impressions'
-import type { QQSecurity } from './policy'
+import type { QQPolicy } from './policy'
 import type { QQTranscript } from './transcript'
 import { impressionText } from './impressions'
 
@@ -27,7 +27,7 @@ export class QQMemberImpressionTool {
     private readonly impressions: QQMemberImpressions,
     private readonly transcript: QQTranscript,
     private readonly groups: QQGroupDirectory,
-    private readonly policy: QQSecurity,
+    private readonly policy: QQPolicy,
   ) {}
 
   register(tools: ToolRuntime) {

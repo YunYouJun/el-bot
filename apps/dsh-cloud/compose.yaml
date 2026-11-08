@@ -1,6 +1,6 @@
 services:
   dsh:
-    image: el-bot/dsh-cloud:0.2.2-rc.1-qq0.5.5-personas0.1.0-models1-security1
+    image: el-bot/dsh-cloud:0.2.2-rc.1-qq0.5.5-personas0.1.0-models1-qq1
     container_name: el-bot-dsh
     pull_policy: never
     build: .

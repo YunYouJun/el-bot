@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { Delivery, ManualPreview, ManualRequest, ManualStateView, SendMode } from '../src/qq-security/manual-types'
+import type { Delivery, ManualPreview, ManualRequest, ManualStateView, SendMode } from '../src/qq/manual-types'
 import { computed, onActivated, onDeactivated, onMounted, onUnmounted, ref, shallowRef } from 'vue'
-import { manualErrors } from '../src/qq-security/manual-types'
+import { manualErrors } from '../src/qq/manual-types'
 
 const state = shallowRef<ManualStateView>()
 const selected = ref('')

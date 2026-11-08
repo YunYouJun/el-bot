@@ -7,8 +7,8 @@ import { expect, it, vi } from 'vitest'
 import { QQMemberImpressions } from './impressions'
 import { ManualControl } from './manual'
 import { NativeQQChat } from './native-chat'
-import { digest, QQSecurity } from './policy'
-import { SecurityStore } from './store'
+import { digest, QQPolicy } from './policy'
+import { QQStateStore } from './store'
 import { QQTranscript } from './transcript'
 
 it('scopes native takeover to the current allowed group and sends exact confirmed text once', async () => {
@@ -17,7 +17,7 @@ it('scopes native takeover to the current allowed group and sends exact confirme
     const target = { id: digest('allowed'), peerId: 'allowed', scope: 'group' as const, sessionId: 'current-session', title: 'Test group' }
     const send = vi.fn(async () => ({ id: 'qq-confirmed-message' }))
     const drain = vi.fn(async () => {})
-    const policy = new QQSecurity({ appId: '123', ownerOpenId: 'owner' }, new SecurityStore(join(directory, 'security.json')), '/groups')
+    const policy = new QQPolicy({ appId: '123', ownerOpenId: 'owner' }, new QQStateStore(join(directory, 'security.json')), '/groups')
     const transcript = new QQTranscript(join(directory, 'transcript'), peer => policy.allowed('group', peer))
     await transcript.load()
     const manual = new ManualControl(join(directory, 'manual.json'), { targets: async () => [target], send, drain, quota: async () => true, reserveReply: () => {} })

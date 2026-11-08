@@ -1,4 +1,4 @@
-import type { Inbound, Target } from '../qq-security/contracts'
+import type { Inbound, Target } from '../qq/contracts'
 import { CommandCatalog } from '@el-bot/commands'
 
 export type QQCommandScope = 'c2c' | 'group' | 'all'

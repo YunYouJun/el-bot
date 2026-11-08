@@ -1,7 +1,7 @@
 import type { ManagedQQ, PromptAssembly } from '../contracts'
 import type { PeerRecord } from '../qq-workspaces/contracts'
 
-export interface SecuritySettings {
+export interface QQSettings {
   appId: string
   ownerOpenId: string
   profileDirectory?: string
@@ -89,7 +89,7 @@ export interface ToolDefinition {
 export type ProtectedAgent = PeerRecord['agent'] & {
   ctx: { tools: ToolRuntime }
 }
-export interface SecurityManager extends ManagedQQ {
+export interface QQManager extends ManagedQQ {
   getSessionRecord?: (scope: 'c2c' | 'group', peer: string) => PeerRecord | undefined
   getEffectiveModel?: (scope: 'c2c' | 'group', peerId: string) => { provider: string, model: string, reasoningEffort?: string } | undefined
   config: {
@@ -102,14 +102,14 @@ export interface SecurityManager extends ManagedQQ {
   }
 }
 export interface AgentPayload { agent: object, turn: number, step: number }
-export interface SecurityEvents {
+export interface QQEvents {
   'system-prompt/assemble': (assembly: PromptAssembly, context: { agent?: object }, next: () => Promise<PromptAssembly>) => Promise<PromptAssembly>
   'agent/pre-step': (payload: AgentPayload, next: () => Promise<{ kind: string, [key: string]: unknown }>) => Promise<{ kind: string, [key: string]: unknown }>
   'agent/request': (payload: AgentPayload, next: () => Promise<{ maxTokens?: number, [key: string]: unknown }>) => Promise<{ maxTokens?: number, [key: string]: unknown }>
 }
-export interface SecurityContext {
+export interface QQContext {
   tools: ToolRuntime
-  qqWorkspaceGrouping: { watchManager: (listener: (manager: SecurityManager) => void) => () => void }
+  qqWorkspaceGrouping: { watchManager: (listener: (manager: QQManager) => void) => () => void }
   llm?: import('./schedule-types').ScheduleLlm
   logger?: {
     info?: (message: string) => void
@@ -118,7 +118,7 @@ export interface SecurityContext {
   }
   get: (name: string) => unknown
   provide: (name: string, service: unknown) => unknown
-  on: <K extends keyof SecurityEvents>(name: K, listener: SecurityEvents[K], options?: { global?: boolean, prepend?: boolean }) => () => void
+  on: <K extends keyof QQEvents>(name: K, listener: QQEvents[K], options?: { global?: boolean, prepend?: boolean }) => () => void
   effect: (install: () => (() => void | Promise<void>), label?: string) => unknown
   loader?: { internal?: { import: (specifier: string, baseUrl: string, options: object) => Promise<unknown> } }
   baseUrl?: string

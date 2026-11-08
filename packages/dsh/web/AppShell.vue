@@ -74,7 +74,7 @@ async function probe(path: string) {
 
 onMounted(() => {
   window.addEventListener('popstate', sync)
-  // Manual takeover and scheduling come from the optional qq-security module.
+  // Manual takeover and scheduling come from the optional qq module.
   for (const tab of tabs) {
     if (tab.id === 'personas')
       continue

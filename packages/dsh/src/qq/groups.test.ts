@@ -4,8 +4,8 @@ import { join } from 'node:path'
 import { afterEach, expect, it, vi } from 'vitest'
 import { QQGroupDirectory } from './groups'
 import { QQConversationMetadataStore } from './metadata'
-import { QQSecurity } from './policy'
-import { SecurityStore } from './store'
+import { QQPolicy } from './policy'
+import { QQStateStore } from './store'
 
 const directories: string[] = []
 afterEach(async () => {
@@ -16,7 +16,7 @@ async function fixture() {
   directories.push(path)
   const preferences = join(path, 'preferences.json')
   await writeFile(preferences, JSON.stringify({ sessionIds: { 'qqbot:123:group:allowed': 'old-session', 'qqbot:123:group:legacy': 'legacy-session', 'qqbot:999:group:foreign': 'foreign-session' } }))
-  const policy = new QQSecurity({ appId: '123', ownerOpenId: 'owner' }, new SecurityStore(join(path, 'security.json')), '/groups')
+  const policy = new QQPolicy({ appId: '123', ownerOpenId: 'owner' }, new QQStateStore(join(path, 'security.json')), '/groups')
   const metadata = new QQConversationMetadataStore('123', join(path, 'metadata.json'), preferences, (scope, peer) => policy.allowed(scope, peer))
   metadata.bind(async route => route.endsWith('/info') ? { group_name: 'Test group', group_member_num: 12 } : { member_role: 'member' })
   const groups = new QQGroupDirectory('123', join(path, 'groups.json'), preferences, policy, metadata)

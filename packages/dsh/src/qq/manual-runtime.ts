@@ -1,6 +1,6 @@
-import type { Gateway, SecurityContext, Target } from './contracts'
+import type { Gateway, QQContext, Target } from './contracts'
 import type { ManualTarget } from './manual-types'
-import type { QQSecurity } from './policy'
+import type { QQPolicy } from './policy'
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { readFile } from 'node:fs/promises'
 import { homedir } from 'node:os'
@@ -10,14 +10,14 @@ import { ManualControl } from './manual'
 import { ManualError } from './manual-types'
 
 /** A private capability connects owner-confirmed sends to the existing live SDK. */
-export function manualRuntime(ctx: SecurityContext, policy: QQSecurity, profile: string, preferencesFile = join(homedir(), '.dsh-qqbot/model-prefs.json'), captureSend?: <T>(target: Target, text: string, manual: boolean, send: () => Promise<T>) => Promise<T>) {
+export function manualRuntime(ctx: QQContext, policy: QQPolicy, profile: string, preferencesFile = join(homedir(), '.dsh-qqbot/model-prefs.json'), captureSend?: <T>(target: Target, text: string, manual: boolean, send: () => Promise<T>) => Promise<T>) {
   const capability = new AsyncLocalStorage<string>()
   const scheduled = new AsyncLocalStorage<string>()
   const pending = new Map<string, Set<Promise<unknown>>>()
   const streams = new Map<string, Set<{ cancel: () => void }>>()
   let transport: ((target: Target, text: string) => Promise<unknown>) | undefined
   const id = (target: Target) => policy.targetId(target.scope, target.targetId)
-  const controller: ManualControl = new ManualControl(join(profile, 'el-bot-security/manual.json'), {
+  const controller: ManualControl = new ManualControl(join(profile, 'el-bot-qq/manual.json'), {
     targets: async () => {
       let preferences: { sessionIds?: Record<string, unknown> }
       try {

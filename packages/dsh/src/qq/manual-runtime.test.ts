@@ -1,11 +1,11 @@
-import type { Gateway, SecurityContext, Target } from './contracts'
+import type { Gateway, QQContext, Target } from './contracts'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, expect, it, vi } from 'vitest'
 import { manualRuntime } from './manual-runtime'
-import { QQSecurity } from './policy'
-import { SecurityStore } from './store'
+import { QQPolicy } from './policy'
+import { QQStateStore } from './store'
 
 const directories: string[] = []
 afterEach(async () => {
@@ -15,7 +15,7 @@ afterEach(async () => {
 async function fixture() {
   const directory = await mkdtemp(join(tmpdir(), 'qq-manual-runtime-'))
   directories.push(directory)
-  const policy = new QQSecurity({ appId: '123', ownerOpenId: 'owner' }, new SecurityStore(join(directory, 'state.json')), join(directory, 'groups'))
+  const policy = new QQPolicy({ appId: '123', ownerOpenId: 'owner' }, new QQStateStore(join(directory, 'state.json')), join(directory, 'groups'))
   const preferences = join(directory, 'prefs.json')
   await writeFile(preferences, JSON.stringify({ sessionIds: { 'qqbot:123:group:group-a': 'session-a' } }))
   const captured = vi.fn()
@@ -25,7 +25,7 @@ async function fixture() {
   }
   const runtime = manualRuntime({
     sessionController: { list: async () => ({ items: [{ sessionId: 'session-a', projections: { values: { title: '测试群' } } }] }) },
-  } as unknown as SecurityContext, policy, directory, preferences, captureSend)
+  } as unknown as QQContext, policy, directory, preferences, captureSend)
   await runtime.controller.initialize()
   runtime.controller.online = true
   const sendMessage = vi.fn(async (_scope: string, _targetId: string, _text: string) => ({ id: 'qq-1' }))

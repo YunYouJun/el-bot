@@ -1,4 +1,4 @@
-import type { InboundContext } from '../qq-security/contracts'
+import type { InboundContext } from '../qq/contracts'
 import type { QQCommandContext, QQCommandRegistry, QQCommandReply, RegisteredQQCommand } from './registry'
 
 export interface ParsedQQCommand {
@@ -65,7 +65,7 @@ export class QQCommandRouter {
     if (ctx.message.kind !== 'c2c')
       return false
 
-    const stop = (reason: string) => ctx.stop(`qq-security:command:${reason}`)
+    const stop = (reason: string) => ctx.stop(`qq:command:${reason}`)
     if (this.options.isPaused?.()) {
       stop('paused')
       return true

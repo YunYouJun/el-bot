@@ -75,7 +75,7 @@ const cloudPatch = [
   { id: 'llm-pi-ai', config: { providers: { tokenlink, 'deepseek-api': deepseek } } },
   { id: 'agent-default-model', config: { provider: 'deepseek-api', model: 'deepseek-flash' } },
   ...patch.filter(row => ['ui-settings-general', 'ui-chat', 'ui-settings', 'ui-settings-account'].includes(row.id)),
-  { ...official, disabled: false, inject: ['qqWorkspaceGrouping', 'qqRuntimeHealth', 'qqRuntimeSecurity'], config: {
+  { ...official, disabled: false, inject: ['qqWorkspaceGrouping', 'qqRuntimeHealth', 'qqRuntime'], config: {
     ...official.config,
     requireMention: true,
     access: cloudAccess,
@@ -94,8 +94,8 @@ const cloudPatch = [
     name: 'file:///opt/dsh-runtime/health.mjs',
     config: { appId: official.config.appId },
   }, {
-    id: 'el-bot-qq-security',
-    name: '@el-bot/dsh/qq-security',
+    id: 'el-bot-qq',
+    name: '@el-bot/dsh/qq',
     config: {
       appId: official.config.appId,
       ownerOpenId: access.c2cAllow[0],

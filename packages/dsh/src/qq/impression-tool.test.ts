@@ -1,5 +1,5 @@
 import type { QQGroupDirectory } from './groups'
-import type { QQSecurity } from './policy'
+import type { QQPolicy } from './policy'
 import type { QQTranscript } from './transcript'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -24,7 +24,7 @@ it('shares member impressions across groups while keeping member identity isolat
         { id: 'group-b', name: '另一个测试群', membership: 'joined' },
       ],
     } as unknown as QQGroupDirectory
-    const policy = { isOwnerDirect: (agent: object | undefined) => agent !== undefined } as unknown as QQSecurity
+    const policy = { isOwnerDirect: (agent: object | undefined) => agent !== undefined } as unknown as QQPolicy
     const tool = new QQMemberImpressionTool(impressions, transcript, groups, policy)
 
     let definition: { name?: string, parameters?: Record<string, unknown> } | undefined

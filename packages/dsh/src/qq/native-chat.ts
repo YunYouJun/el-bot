@@ -2,7 +2,7 @@ import type { QQGroupDirectory } from './groups'
 import type { QQMemberImpressions } from './impressions'
 import type { ManualControl } from './manual'
 import type { ManualRequest } from './manual-types'
-import type { QQSecurity } from './policy'
+import type { QQPolicy } from './policy'
 import type { QQTranscript } from './transcript'
 import { ManualError } from './manual-types'
 
@@ -12,7 +12,7 @@ export class NativeQQChat {
     private readonly transcript: QQTranscript,
     private readonly manual: ManualControl,
     private readonly groups: QQGroupDirectory,
-    private readonly policy: QQSecurity,
+    private readonly policy: QQPolicy,
     private readonly impressions?: QQMemberImpressions,
   ) {}
 

@@ -15,9 +15,9 @@
       "types": "./dist/qq-workspaces.d.mts",
       "import": "./dist/qq-workspaces.mjs"
     },
-    "./qq-security": {
-      "types": "./dist/qq-security.d.mts",
-      "import": "./dist/qq-security.mjs"
+    "./qq": {
+      "types": "./dist/qq.d.mts",
+      "import": "./dist/qq.mjs"
     },
     "./package.json": "./package.json"
   },

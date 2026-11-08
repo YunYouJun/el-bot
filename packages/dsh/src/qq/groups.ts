@@ -1,7 +1,7 @@
 import type { Scope } from '../qq-workspaces/contracts'
-import type { Inbound, SecurityManager } from './contracts'
+import type { Inbound, QQManager } from './contracts'
 import type { QQConversationMetadata, QQConversationMetadataStore } from './metadata'
-import type { QQSecurity } from './policy'
+import type { QQPolicy } from './policy'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
 import { parsePeer } from '../qq-workspaces/grouping'
@@ -25,7 +25,7 @@ export class QQGroupDirectory {
   private closed = false
   private groups = new Map<string, GroupRecord>()
   private saving: Promise<unknown> = Promise.resolve()
-  manager?: SecurityManager
+  manager?: QQManager
   isArchived?: (id: string) => boolean
   clearHistory?: (peerId: string) => void
 
@@ -33,7 +33,7 @@ export class QQGroupDirectory {
     private readonly appId: string,
     private readonly path: string,
     private readonly preferences: string,
-    private readonly policy: QQSecurity,
+    private readonly policy: QQPolicy,
     private readonly metadata: QQConversationMetadataStore,
   ) {}
 

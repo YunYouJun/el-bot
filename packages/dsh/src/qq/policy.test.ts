@@ -1,12 +1,12 @@
 import type { PeerRecord, Scope } from '../qq-workspaces/contracts'
-import type { Gateway, InboundContext, InteractionHandler, Middleware, SecurityManager, Target } from './contracts'
+import type { Gateway, InboundContext, InteractionHandler, Middleware, QQManager, Target } from './contracts'
 import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { protectGateway } from './gateway'
-import { digest, QQSecurity } from './policy'
-import { SecurityStore } from './store'
+import { digest, QQPolicy } from './policy'
+import { QQStateStore } from './store'
 
 const temporary: string[] = []
 afterEach(async () => {
@@ -14,19 +14,19 @@ afterEach(async () => {
 })
 
 async function fixture() {
-  const directory = await mkdtemp(join(tmpdir(), 'qq-security-'))
+  const directory = await mkdtemp(join(tmpdir(), 'qq-'))
   temporary.push(directory)
   let time = 1_800_000_000_000
   const now = () => time
-  const store = new SecurityStore(join(directory, 'state.json'), now)
+  const store = new QQStateStore(join(directory, 'state.json'), now)
   const settings = { appId: '123', ownerOpenId: 'owner' }
-  const policy = new QQSecurity(settings, store, '/work/groups', now)
+  const policy = new QQPolicy(settings, store, '/work/groups', now)
   return { directory, store, settings, policy, now, advance: (ms: number) => {
     time += ms
   } }
 }
 
-function inbound(policy: QQSecurity, overrides: Partial<InboundContext['message']> = {}, target?: Target) {
+function inbound(policy: QQPolicy, overrides: Partial<InboundContext['message']> = {}, target?: Target) {
   const msg = { kind: 'group', senderId: 'member', groupOpenid: 'group-a', messageId: 'message-1', content: '<@123> hello', rawEventType: 'GROUP_AT_MESSAGE_CREATE', ...overrides }
   const ctx: InboundContext = {
     bot: { appId: '123', sendText: vi.fn((to: Target, text: string) => policy.outbound(to, text)) } as unknown as Gateway,
@@ -64,7 +64,7 @@ function manager() {
     historical.push(record)
     return record
   }
-  const value: SecurityManager = {
+  const value: QQManager = {
     config: { appId: '123', access: { c2cMode: 'allowlist', c2cAllow: ['owner'], groupMode: 'open' } },
     sessionKey: (scope, peer) => `qqbot:123:${scope}:${peer}`,
     async getOrCreate(scope, peer) {
@@ -153,7 +153,7 @@ describe('qQ transport authorization', () => {
     for (let i = 0; i < 5; i++)
       await f.policy.middleware(inbound(f.policy, { messageId: `msg-${i}` }), next)
     expect(next).toHaveBeenCalledTimes(4)
-    const restarted = new QQSecurity(f.settings, new SecurityStore(f.store.path, f.now), '/work/groups', f.now)
+    const restarted = new QQPolicy(f.settings, new QQStateStore(f.store.path, f.now), '/work/groups', f.now)
     await restarted.middleware(inbound(restarted, { senderId: 'other', messageId: 'msg-0' }), next)
     expect(next).toHaveBeenCalledTimes(4)
     for (let i = 0; i < 9; i++)
@@ -190,7 +190,7 @@ describe('qQ transport authorization', () => {
     }
     expect(next).toHaveBeenCalledTimes(200)
     f.advance(60_001)
-    const restarted = new QQSecurity(f.settings, new SecurityStore(f.store.path, f.now), '/work/groups', f.now)
+    const restarted = new QQPolicy(f.settings, new QQStateStore(f.store.path, f.now), '/work/groups', f.now)
     await restarted.middleware(inbound(restarted, { messageId: 'over-budget' }), next)
     expect(next).toHaveBeenCalledTimes(200)
     await restarted.middleware(inbound(restarted, { groupOpenid: 'group-b', messageId: 'independent-budget' }), next)
@@ -200,7 +200,7 @@ describe('qQ transport authorization', () => {
   it('caps global trigger volume across independent groups', async () => {
     const f = await fixture()
     const groups = ['room-0', 'room-1', 'room-2', 'room-3']
-    const policy = new QQSecurity(f.settings, f.store, '/work/groups', f.now)
+    const policy = new QQPolicy(f.settings, f.store, '/work/groups', f.now)
     const next = vi.fn()
     for (let index = 0; index < 41; index++) {
       await policy.middleware(inbound(policy, {
@@ -275,7 +275,7 @@ describe('open group chat admission', () => {
     for (let index = 0; index < 5; index++)
       await f.policy.middleware(inbound(f.policy, { groupOpenid: 'new-group', messageId: `new-${index}` }), next)
     expect(next).toHaveBeenCalledTimes(4)
-    const restarted = new QQSecurity(f.settings, new SecurityStore(f.store.path, f.now), '/work/groups', f.now)
+    const restarted = new QQPolicy(f.settings, new QQStateStore(f.store.path, f.now), '/work/groups', f.now)
     await restarted.middleware(inbound(restarted, { groupOpenid: 'new-group', senderId: 'other', messageId: 'new-0' }), next)
     expect(next).toHaveBeenCalledTimes(4)
     await restarted.middleware(inbound(restarted, { groupOpenid: 'other-group', messageId: 'new-0' }), next)
@@ -345,7 +345,7 @@ describe('qQ agent permissions', () => {
     const detach = f.policy.attach(qq.value)
     const group = await qq.get('group', 'group-a')
     detach()
-    const restarted = new QQSecurity(f.settings, new SecurityStore(f.store.path, f.now), '/work/groups')
+    const restarted = new QQPolicy(f.settings, new QQStateStore(f.store.path, f.now), '/work/groups')
     // Real hot reload obtains a new upstream config object.
     qq.value.config = { appId: '123', access: { c2cMode: 'allowlist', c2cAllow: ['owner'] } }
     restarted.attach(qq.value)
@@ -357,7 +357,7 @@ describe('qQ agent permissions', () => {
     await expect(qq.get('group', 'group-a')).rejects.toThrow('admission is closed')
     const other = manager()
     other.value.config.access.c2cAllow = ['attacker']
-    expect(() => new QQSecurity(f.settings, f.store, '/work/groups').attach(other.value)).toThrow('owner')
+    expect(() => new QQPolicy(f.settings, f.store, '/work/groups').attach(other.value)).toThrow('owner')
   })
 })
 
@@ -367,7 +367,7 @@ describe('durable QQ quotas', () => {
     const group = { key: digest('group'), limit: 2, duration: 86_400_000 }
     const global = { key: digest('global'), limit: 1, duration: 60_000 }
     expect(await Promise.all([f.store.take([group, global]), f.store.take([group, global])])).toEqual([true, false])
-    const restarted = new SecurityStore(f.store.path, f.now)
+    const restarted = new QQStateStore(f.store.path, f.now)
     expect(await restarted.take([global])).toBe(false)
     f.advance(60_001)
     expect(await restarted.take([group, global])).toBe(true)
@@ -439,7 +439,7 @@ it('keeps traffic that arrived during handoff paused even if capture completes a
   const next = vi.fn(async () => {})
   await policy.middleware(ctx, next)
   expect(next).not.toHaveBeenCalled()
-  expect(ctx.stop).toHaveBeenCalledWith('qq-security:manual')
+  expect(ctx.stop).toHaveBeenCalledWith('qq:manual')
   expect(observe).toHaveBeenCalledWith(policy.targetId('group', 'group-a'), 'message-1', '<@123> hello', true, true)
 })
 
@@ -452,5 +452,5 @@ it('does not admit a captured message across a concurrent conversation cleanup',
   const next = vi.fn(async () => {})
   await policy.middleware(ctx, next)
   expect(next).not.toHaveBeenCalled()
-  expect(ctx.stop).toHaveBeenCalledWith('qq-security:maintenance')
+  expect(ctx.stop).toHaveBeenCalledWith('qq:maintenance')
 })

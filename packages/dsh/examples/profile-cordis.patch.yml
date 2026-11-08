@@ -7,7 +7,7 @@
 # persona entry below only overrides that instance's config.
 
 - id: im-qqbot
-  inject: [qqWorkspaceGrouping, qqRuntimeSecurity]
+  inject: [qqWorkspaceGrouping, qqRuntime]
   config:
     appId: YOUR_APP_ID
     appSecret: YOUR_APP_SECRET
@@ -26,8 +26,8 @@
         privateTitle: 小云 Bot · 私聊
         groupTitle: 小云 Bot · 群聊
 
-    - id: el-bot-qq-security
-      name: '@el-bot/dsh/qq-security'
+    - id: el-bot-qq
+      name: '@el-bot/dsh/qq'
       config:
         appId: YOUR_APP_ID
         ownerOpenId: OWNER_C2C_OPENID

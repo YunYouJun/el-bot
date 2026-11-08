@@ -1,4 +1,4 @@
-import type { InboundContext, SecurityManager } from './contracts'
+import type { InboundContext, QQManager } from './contracts'
 import type { ManualBridge } from './manual'
 import type { Delivery, ManualPreview, ManualStateView, ManualTarget } from './manual-types'
 import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
@@ -8,8 +8,8 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ManualControl } from './manual'
 import { manualRoutes } from './manual-http'
-import { digest, QQSecurity } from './policy'
-import { SecurityStore } from './store'
+import { digest, QQPolicy } from './policy'
+import { QQStateStore } from './store'
 
 const directories: string[] = []
 afterEach(async () => {
@@ -205,13 +205,13 @@ describe('manual owner HTTP boundary', () => {
 describe('automatic QQ policy during takeover', () => {
   it('blocks owner commands, model requests and buffered output only in the selected conversation', async () => {
     const f = await fixture()
-    const policy = new QQSecurity({ appId: '123', ownerOpenId: 'owner' }, new SecurityStore(join(f.directory, 'security.json')), '/groups', f.now)
+    const policy = new QQPolicy({ appId: '123', ownerOpenId: 'owner' }, new QQStateStore(join(f.directory, 'security.json')), '/groups', f.now)
     const privateTarget = { id: policy.targetId('c2c', 'owner'), scope: 'c2c' as const, peerId: 'owner', sessionId: 'owner-session', title: '主人' }
     f.targets.push(privateTarget)
     policy.manual = f.control
     const agent = { status: 'running', session: { header: { id: 'owner-session' } }, whenIdle: async () => {} }
     const record = { sessionKey: 'qqbot:123:c2c:owner', sessionId: 'owner-session', scope: 'c2c' as const, peerId: 'owner', agent }
-    const manager: SecurityManager = {
+    const manager: QQManager = {
       config: { appId: '123', access: { c2cMode: 'allowlist', c2cAllow: ['owner'] } },
       sessionKey: () => record.sessionKey,
       getOrCreate: async () => record,

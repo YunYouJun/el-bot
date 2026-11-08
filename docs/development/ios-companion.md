@@ -127,7 +127,7 @@ iOS 会话列表支持左滑或长按操作，macOS 支持会话右键菜单。�
 
 「机器人群列表」在 iOS 会话列表右上角、macOS 侧栏单独提供，与会话历史独立保存。群名、成员数按可用权限显示；入群状态分为已加入、已退出和待确认。新目录从 QQ 会话绑定补录旧群，之后通过 `GROUP_ADD_ROBOT`、`GROUP_DEL_ROBOT` 和群消息事件更新，不能声称已完整同步平台的所有群。机器人加入的群均可打开聊天，已退出的群不能打开；没有逐群白名单或授权开关。
 
-群目录保存于 `<profile>/el-bot-security/groups.json`，会话删除状态和历史来源摘要保存于 `<profile>/el-bot-mobile/session-lifecycle.json`。删除历史后，群入口及群资料保留；再次打开只创建或恢复经过现有 QQ 安全准入的会话，不调用模型、不向 QQ 发送消息。
+群目录保存于 `<profile>/el-bot-qq/groups.json`，会话删除状态和历史来源摘要保存于 `<profile>/el-bot-mobile/session-lifecycle.json`。删除历史后，群入口及群资料保留；再次打开只创建或恢复经过现有 QQ 安全准入的会话，不调用模型、不向 QQ 发送消息。
 
 新增原生接口继续使用配对设备 Bearer 与 Origin 校验：
 
@@ -157,7 +157,7 @@ QQ 群聊现在使用独立 SwiftUI 群消息页面：群成员消息在左，�
 
 移动接口为 `GET /sessions/:id/qq`（支持 `before` 游标）、`POST /sessions/:id/qq`（`begin/end/preview/send`）及 `GET /sessions/:id/qq/members/:senderId`（读取该成员的长期印象，没有时只返回成员标识）。配对设备 Bearer、Origin、当前 QQ 群会话、机器人入群状态及归档状态逐层检查，目标群由服务端当前绑定确定，不接受客户端传入任意目标。原生接管没有注册成模型工具。归档和被替代的旧会话只提供历史查看。普通原生模型会话保留原有输入与模型交互，群聊页保留模型切换及信息菜单。
 
-服务端需要同时更新 `@el-bot/dsh` 和 `@el-bot/mobile`。传输记录位于 `<profile>/el-bot-security/qq-transcript/`，移动预览授权位于 `<profile>/el-bot-mobile/qq-previews.json`，后者只含设备、会话、预览标识与有效期。可用 `node apps/dsh-cloud/group-chat-smoke.mjs <含 QQ SDK 的隔离 npm 目录> <构建后的 qq-security.mjs>` 验证真实 SDK 的离线入站、手动原文、回执和去重；脚本不启动连接，所有发送终止在本地桩。
+服务端需要同时更新 `@el-bot/dsh` 和 `@el-bot/mobile`。传输记录位于 `<profile>/el-bot-qq/qq-transcript/`，移动预览授权位于 `<profile>/el-bot-mobile/qq-previews.json`，后者只含设备、会话、预览标识与有效期。可用 `node apps/dsh-cloud/group-chat-smoke.mjs <含 QQ SDK 的隔离 npm 目录> <构建后的 qq.mjs>` 验证真实 SDK 的离线入站、手动原文、回执和去重；脚本不启动连接，所有发送终止在本地桩。
 
 2026-11-07 验证：全仓库 482 项 TypeScript 测试、37 项 Swift 测试、lint、完整 typecheck、iOS 模拟器编译与 macOS 编译通过。真实 QQ SDK `1.0.5` 的离线发送边界检查覆盖入站接收、手动原文、真实形状的回执、重复确认去重和恢复后的旧回复拦截。隔离的 iOS SwiftUI 验收走通左右消息视角、主人 QQ 消息归左、接管、输入、预览取消、确认发送、原文与接管标识展示、恢复自动回复；发送超时后的重启恢复由 Swift 测试验证只读取既有回执，不重发。以上使用本地桩，不连接真实 QQ、不调用模型；尚未部署云端或安装真机。
 
@@ -244,7 +244,7 @@ Debug 真机验收可使用 `--show-dsh-web --phone-web-smoke`。该参数在专
 
 点击群成员头像会打开成员详情页，展示头像、昵称、群内身份、发送者 OpenID、机器人 AppID，以及这条消息的类型、发送时间和消息 ID，支持选择与复制。会话信息菜单不再重复展示最近收到的消息正文、发送者字段和这组消息标识。OpenID 不是数字 QQ 号或群号。会话列表和群消息气泡使用机器人 AppID 与发送者 OpenID 拼接 QQ 头像地址；只能展示发过言的成员，加载失败时回退到昵称首字或 QQ logo。群头像地址需要数字群号，官方群资料接口不提供该字段，因此群头像继续使用 QQ logo。
 
-成员详情页在存在长期印象时显示「小云的印象」与更新时间；没有印象时整段隐藏，读取失败只显示一条可重试提示。成员身份以群事件的 `member_openid`（入站字段 `senderId`）为唯一键：同一 AppID 下按当前实测该值可跨群识别同一用户，因此任意已授权群的成员详情都会读取同一份印象；群历史、成员列表、会话绑定和权限仍按 `group_openid` 隔离，该身份也不跨机器人使用。印象保存于 `<profile>/el-bot-security/member-impressions.json`，文件权限为 `0600`，不随群历史清理、会话轮换或归档删除；JSON 保留全局成员表与群关联表，升级时会从旧版按群存储的数据合并，同一成员取最新印象并保留所有群关联。JSON 是权威索引；同目录自动生成可读的 `member-impressions.md` 镜像，按群输出成员、发送者 OpenID、印象与更新时间，也是 `0600`。Markdown 由 JSON 生成，直接编辑不会回写。群聊仍然不开放任何工具，因此群成员无法直接写入；主人在已认证的 QQ 私聊中可通过 `qq_group_member_impression` 工具列出、读取、记录或清除印象，其他会话与群聊调用会被拒绝。单条印象最多 280 字符，每个群最多关联 500 名成员、实例最多保存 5000 名成员，超出时按最早更新时间淘汰。
+成员详情页在存在长期印象时显示「小云的印象」与更新时间；没有印象时整段隐藏，读取失败只显示一条可重试提示。成员身份以群事件的 `member_openid`（入站字段 `senderId`）为唯一键：同一 AppID 下按当前实测该值可跨群识别同一用户，因此任意已授权群的成员详情都会读取同一份印象；群历史、成员列表、会话绑定和权限仍按 `group_openid` 隔离，该身份也不跨机器人使用。印象保存于 `<profile>/el-bot-qq/member-impressions.json`，文件权限为 `0600`，不随群历史清理、会话轮换或归档删除；JSON 保留全局成员表与群关联表，升级时会从旧版按群存储的数据合并，同一成员取最新印象并保留所有群关联。JSON 是权威索引；同目录自动生成可读的 `member-impressions.md` 镜像，按群输出成员、发送者 OpenID、印象与更新时间，也是 `0600`。Markdown 由 JSON 生成，直接编辑不会回写。群聊仍然不开放任何工具，因此群成员无法直接写入；主人在已认证的 QQ 私聊中可通过 `qq_group_member_impression` 工具列出、读取、记录或清除印象，其他会话与群聊调用会被拒绝。单条印象最多 280 字符，每个群最多关联 500 名成员、实例最多保存 5000 名成员，超出时按最早更新时间淘汰。
 
 2026-11-07 真机验收：云端更新后健康检查与 QQ ready 通过，iPhone 15 Pro 上群主标签和成员详情页正常显示；`--open-last-sender` 仅用于 Debug 截图验证。42 项 QQ 安全测试、61 项 Swift 测试、`@el-bot/dsh` 类型检查与 iOS 真机编译均通过。
 

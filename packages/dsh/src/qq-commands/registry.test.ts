@@ -1,10 +1,10 @@
-import type { InboundContext } from '../qq-security/contracts'
+import type { InboundContext } from '../qq/contracts'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { QQSecurity } from '../qq-security/policy'
-import { SecurityStore } from '../qq-security/store'
+import { QQPolicy } from '../qq/policy'
+import { QQStateStore } from '../qq/store'
 import { DOWNSTREAM_COMMANDS, registerBuiltinQQCommands } from './builtins'
 import { QQCommandRegistry } from './registry'
 import { parseQQCommand, QQCommandRouter } from './router'
@@ -39,7 +39,7 @@ function inbound(content: string, options: { senderId?: string, messageId?: stri
 async function privatePolicy() {
   const directory = await mkdtemp(join(tmpdir(), 'qq-commands-'))
   directories.push(directory)
-  const policy = new QQSecurity({ appId: '123', ownerOpenId: 'owner' }, new SecurityStore(join(directory, 'state.json')), '/groups')
+  const policy = new QQPolicy({ appId: '123', ownerOpenId: 'owner' }, new QQStateStore(join(directory, 'state.json')), '/groups')
   return { policy, directory }
 }
 
@@ -182,7 +182,7 @@ describe('qQ command registry', () => {
     expect(help.bot.sendMarkdown).toHaveBeenCalledWith(help.replyTarget, expect.stringContaining('### 小云可用指令'))
     expect(help.bot.sendMarkdown).toHaveBeenCalledWith(help.replyTarget, expect.stringContaining('**/help**'))
     expect(help.bot.sendText).not.toHaveBeenCalled()
-    expect(help.stop).toHaveBeenCalledWith('qq-security:command:matched')
+    expect(help.stop).toHaveBeenCalledWith('qq:command:matched')
 
     const ping = inbound('/ping')
     expect(await router.handle(ping)).toBe(true)
@@ -267,7 +267,7 @@ describe('qQ command registry', () => {
     const unknown = inbound('/run build')
     expect(await router.handle(unknown)).toBe(true)
     expect(unknown.bot.sendText).toHaveBeenCalledWith(unknown.replyTarget, expect.stringContaining('未找到指令 /run'))
-    expect(unknown.stop).toHaveBeenCalledWith('qq-security:command:unknown')
+    expect(unknown.stop).toHaveBeenCalledWith('qq:command:unknown')
 
     const stranger = inbound('/ping', { senderId: 'stranger' })
     expect(await router.handle(stranger)).toBe(true)
@@ -295,7 +295,7 @@ describe('qQ command registry', () => {
     const router = new QQCommandRouter(commands, { owner: 'owner', isPaused: () => true })
     expect(await router.handle(paused)).toBe(true)
     expect(paused.bot.sendText).not.toHaveBeenCalled()
-    expect(paused.stop).toHaveBeenCalledWith('qq-security:command:paused')
+    expect(paused.stop).toHaveBeenCalledWith('qq:command:paused')
 
     const active = inbound('/markup')
     await new QQCommandRouter(commands, { owner: 'owner' }).handle(active)
@@ -319,13 +319,13 @@ describe('qQ command policy boundary', () => {
     await policy.middleware(ctx, next)
     expect(executions).toBe(1)
     expect(next).not.toHaveBeenCalled()
-    expect(ctx.stop).toHaveBeenCalledWith('qq-security:command')
+    expect(ctx.stop).toHaveBeenCalledWith('qq:command')
     expect(ctx.bot.sendText).toHaveBeenCalledWith(ctx.replyTarget, 'custom-pong')
 
     const duplicate = inbound('/custom', { messageId: 'custom-1' })
     await policy.middleware(duplicate, next)
     expect(executions).toBe(1)
-    expect(duplicate.stop).toHaveBeenCalledWith('qq-security:duplicate-command')
+    expect(duplicate.stop).toHaveBeenCalledWith('qq:duplicate-command')
 
     const builtin = inbound('/new', { messageId: 'new-1' })
     await policy.middleware(builtin, next)
@@ -346,7 +346,7 @@ describe('qQ command policy boundary', () => {
     const next = vi.fn()
     await policy.middleware(paused, next)
     expect(command).not.toHaveBeenCalled()
-    expect(paused.stop).toHaveBeenCalledWith('qq-security:manual')
+    expect(paused.stop).toHaveBeenCalledWith('qq:manual')
 
     policy.manual = undefined
     const group = inbound('<@123> /help')
@@ -354,6 +354,6 @@ describe('qQ command policy boundary', () => {
     group.replyTarget = { scope: 'group', targetId: 'group-a', msgId: 'message-1' }
     await policy.middleware(group, next)
     expect(command).not.toHaveBeenCalled()
-    expect(group.stop).toHaveBeenCalledWith('qq-security:command')
+    expect(group.stop).toHaveBeenCalledWith('qq:command')
   })
 })

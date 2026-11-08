@@ -1,4 +1,4 @@
-import type { Gateway, SecurityContext, SecuritySettings } from './contracts'
+import type { Gateway, QQContext, QQSettings } from './contracts'
 import { existsSync, mkdirSync, realpathSync, renameSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { homedir } from 'node:os'
@@ -17,35 +17,37 @@ import { manualRoutes } from './manual-http'
 import { manualRuntime } from './manual-runtime'
 import { QQConversationMetadataStore } from './metadata'
 import { NativeQQChat } from './native-chat'
-import { QQSecurity } from './policy'
+import { QQPolicy } from './policy'
 import { ScheduleControl } from './schedule'
 import { scheduleRoutes } from './schedule-http'
 import { ScheduleError } from './schedule-types'
-import { SecurityStore } from './store'
+import { QQStateStore } from './store'
 import { QQTranscript } from './transcript'
 
 export * from '../qq-commands'
+export type { QQContext, QQEvents, QQManager, QQSettings } from './contracts'
 export { protectGateway } from './gateway'
 export { QQMemberImpressions } from './impressions'
 export { ManualControl } from './manual'
 export { manualRoutes } from './manual-http'
 export { manualRuntime } from './manual-runtime'
-export { GROUP_CHAT_PROMPT, MAX_OUTPUT_TOKENS, QQSecurity } from './policy'
+export { GROUP_CHAT_PROMPT, MAX_OUTPUT_TOKENS, QQPolicy } from './policy'
 export { ScheduleControl } from './schedule'
 export { scheduleRoutes } from './schedule-http'
-export { SecurityStore } from './store'
+export { QQStateStore } from './store'
 export { QQTranscript } from './transcript'
-export const name = 'el-bot-qq-security'
+export const name = 'el-bot-qq'
 export const inject = ['qqWorkspaceGrouping', 'tools', 'loader', 'webServer', 'connection', 'sessionController', 'llm']
 
-export async function apply(ctx: SecurityContext, settings: SecuritySettings) {
+export async function apply(ctx: QQContext, settings: QQSettings) {
   const profile = profileDirectory(settings.profileDirectory)
+  const directory = join(profile, 'el-bot-qq')
   const require = createRequire(join(profile, 'package.json'))
   if (!['0.2.1-rc.5', '0.2.2-rc.1'].includes(require(require.resolve('@deepseek-ai/dsh/package.json')).version))
-    throw new Error('QQ security requires DSH 0.2.1-rc.5 or 0.2.2-rc.1')
+    throw new Error('QQ integration requires DSH 0.2.1-rc.5 or 0.2.2-rc.1')
   const manifest = require.resolve('@tencent-connect/dsh-qqbot/package.json')
   if (require(manifest).version !== '0.5.5')
-    throw new Error('QQ security requires dsh-qqbot 0.5.5')
+    throw new Error('QQ integration requires dsh-qqbot 0.5.5')
   const pluginRequire = createRequire(manifest)
   // The SDK exports only its ESM entry, not package.json or a require condition.
   const sdkCandidate = (pluginRequire.resolve.paths('@tencent-connect/qqbot-nodejs') ?? [])
@@ -55,11 +57,11 @@ export async function apply(ctx: SecurityContext, settings: SecuritySettings) {
     throw new Error('The official QQ SDK is not installed')
   const sdkManifest = realpathSync(sdkCandidate)
   if (require(sdkManifest).version !== '1.0.5')
-    throw new Error('QQ security requires qqbot-nodejs 1.0.5')
+    throw new Error('QQ integration requires qqbot-nodejs 1.0.5')
   if (typeof ctx.tools.guard !== 'function')
     throw new Error('The DSH host cannot enforce monotonic tool guards')
   const groupDirectory = join(homedir(), '.dsh-qqbot/workspaces', settings.appId, 'groups')
-  const policy = new QQSecurity(settings, new SecurityStore(join(profile, 'el-bot-security/state.json')), groupDirectory)
+  const policy = new QQPolicy(settings, new QQStateStore(join(directory, 'state.json')), groupDirectory)
   const commands = new QQCommandRegistry({ catalog: DOWNSTREAM_COMMANDS })
   let restarting = false
   const builtinCommandDisposers = registerBuiltinQQCommands(commands, {
@@ -106,9 +108,9 @@ export async function apply(ctx: SecurityContext, settings: SecuritySettings) {
     markdown: settings.commandMarkdown !== false,
   })
   policy.command = ctx => commandRouter.handle(ctx)
-  const metadata = new QQConversationMetadataStore(settings.appId, join(profile, 'el-bot-security/conversations.json'), join(homedir(), '.dsh-qqbot/model-prefs.json'), (scope, peer) => policy.allowed(scope, peer))
+  const metadata = new QQConversationMetadataStore(settings.appId, join(directory, 'conversations.json'), join(homedir(), '.dsh-qqbot/model-prefs.json'), (scope, peer) => policy.allowed(scope, peer))
   await metadata.load()
-  const groups = new QQGroupDirectory(settings.appId, join(profile, 'el-bot-security/groups.json'), join(homedir(), '.dsh-qqbot/model-prefs.json'), policy, metadata)
+  const groups = new QQGroupDirectory(settings.appId, join(directory, 'groups.json'), join(homedir(), '.dsh-qqbot/model-prefs.json'), policy, metadata)
   await groups.load()
   policy.observeGroup = message => groups.observe(message)
   groups.isArchived = id => (ctx.get('workspaceRegistry') as { archivedSessionIds: readonly string[] } | undefined)?.archivedSessionIds.includes(id) ?? false
@@ -126,10 +128,10 @@ export async function apply(ctx: SecurityContext, settings: SecuritySettings) {
   policy.observeMetadata = message => metadata.observe(message)
   ctx.provide('qqConversationMetadata', metadata)
   ctx.effect(() => () => metadata.close(), 'el-bot.qq-conversation-metadata')
-  const transcript = new QQTranscript(join(profile, 'el-bot-security/qq-transcript'), peer => policy.allowed('group', peer))
+  const transcript = new QQTranscript(join(directory, 'qq-transcript'), peer => policy.allowed('group', peer))
   await transcript.load()
   transcript.isArchived = id => groups.isArchived?.(id) ?? false
-  const impressions = new QQMemberImpressions(join(profile, 'el-bot-security/member-impressions.json'))
+  const impressions = new QQMemberImpressions(join(directory, 'member-impressions.json'))
   await impressions.load()
   ctx.effect(() => () => impressions.close(), 'el-bot.qq-member-impressions')
   policy.captureInbound = message => transcript.inbound(message)
@@ -156,7 +158,7 @@ export async function apply(ctx: SecurityContext, settings: SecuritySettings) {
   catch {
     throw new Error('QQ scheduled messages require a valid IANA timezone')
   }
-  const schedule = new ScheduleControl(join(profile, 'el-bot-security/scheduled.json'), {
+  const schedule = new ScheduleControl(join(directory, 'scheduled.json'), {
     online: () => manual.controller.online,
     targets: () => manual.controller.targets(),
     model: (target) => {
@@ -215,7 +217,6 @@ export async function apply(ctx: SecurityContext, settings: SecuritySettings) {
         ? bot.apiClient.request(await api.getToken(), 'GET', path, undefined, { timeoutMs: 4000 })
         : api.get(path))
     }
-    const directory = join(profile, 'el-bot-security')
     mkdirSync(directory, { recursive: true, mode: 0o700 })
     const path = join(directory, 'runtime.json')
     writeFileSync(`${path}.tmp`, `${JSON.stringify({
@@ -237,9 +238,9 @@ export async function apply(ctx: SecurityContext, settings: SecuritySettings) {
   ctx.effect(() => () => {
     for (const remove of rawListeners) remove()
     restore()
-  }, 'el-bot.qq-security-gateway')
+  }, 'el-bot.qq-gateway')
   const unguard = ctx.tools.guard(policy.guard)
-  ctx.effect(() => unguard, 'el-bot.qq-security-tools')
+  ctx.effect(() => unguard, 'el-bot.qq-tools')
   let detach: (() => void) | undefined
   const stop = ctx.qqWorkspaceGrouping.watchManager((manager) => {
     groups.manager = manager
@@ -248,9 +249,9 @@ export async function apply(ctx: SecurityContext, settings: SecuritySettings) {
   ctx.effect(() => () => {
     stop()
     detach?.()
-  }, 'el-bot.qq-security-admission')
+  }, 'el-bot.qq-admission')
   ctx.on('system-prompt/assemble', async (_assembly, context, next) => policy.prompt(context.agent, await next()), { prepend: true })
   ctx.on('agent/pre-step', async (payload, next) => policy.preStep(payload) ?? await next(), { global: true, prepend: true })
   ctx.on('agent/request', async (payload, next) => policy.request(payload, await next()), { global: true, prepend: true })
-  ctx.provide('qqRuntimeSecurity', { mode: 'chat-only', groupMode: 'open' })
+  ctx.provide('qqRuntime', { mode: 'chat-only', groupMode: 'open' })
 }

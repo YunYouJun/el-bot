@@ -24,21 +24,29 @@ pnpm --filter @el-bot/dsh pack --pack-destination /tmp/el-bot-dsh-artifacts
 - `<profile>/cordis.patch.yml`：实际实例配置。完整可复制示例见 [`examples/profile-cordis.patch.yml`](examples/profile-cordis.patch.yml)。
 - `<profile>/cordis.yml`：宿主合并后的运行配置，不要手改。
 
-profile patch 里的 `- id: el-bot-personas` 用于覆盖 bundle patch 已插入条目的配置；`el-bot-qq-workspaces` 和 `el-bot-qq-security` 需要显式放进 `insert`。
+profile patch 里的 `- id: el-bot-personas` 用于覆盖 bundle patch 已插入条目的配置；`el-bot-qq-workspaces` 和 `el-bot-qq` 需要显式放进 `insert`。
 
 不要把两台实例指向同一个 profile。库保存在 profile 的 `el-bot-personas/`。通过 DSH 登录后，在侧栏「机器人」→「人物卡」上传 Markdown 文件，从内置精选目录单卡导入 DSH 人设广场，或导入 HTTPS 原文／公开 Git 仓库；预览后显式启用。`#el-bot-personas` 可直接定位面板，认证仍使用 DSH 根路径登录入口。管理页和接口 `/el-bot/personas/` 均校验宿主连接身份，不能绕过登录。
 
 人物卡、手动接管和定时群发页面遵循 DSH 的控件与间距规范。同源 iframe 会同步宿主实际生效的深浅色、语义颜色、字体和圆角，切换宿主主题或自定义配色时无需刷新；独立打开或无法读取宿主时跟随系统主题。主题适配仅用于 DSH Web 插件，小云客户端继续使用各平台原生 UI。
 
-QQ 分组适配的插件路径是 `@el-bot/dsh/qq-workspaces`。沿用现有 `el-bot-qq-workspaces` 条目及 appId、私聊／群聊标题、profileDirectory；启用下文群聊防护时，QQ 插件必须额外依赖 `qqRuntimeSecurity`。分组通过宿主工作区和会话 fork 接口接管既有会话，保留历史、原模型和私聊白名单；异步迁移等待会话空闲，跳过访问策略已禁止的旧会话。此适配针对已验证的 QQ 插件版本，找不到对应加载器或会话接口时失败，不覆盖原会话。
+QQ 分组适配的插件路径是 `@el-bot/dsh/qq-workspaces`。沿用现有 `el-bot-qq-workspaces` 条目及 appId、私聊／群聊标题、profileDirectory；启用下文群聊防护时，QQ 插件必须额外依赖 `qqRuntime`。分组通过宿主工作区和会话 fork 接口接管既有会话，保留历史、原模型和私聊白名单；异步迁移等待会话空闲，跳过访问策略已禁止的旧会话。此适配针对已验证的 QQ 插件版本，找不到对应加载器或会话接口时失败，不覆盖原会话。
+
+## QQ 集成
+
+`@el-bot/dsh/qq` 统一提供官方 QQ 的命令、准入策略、群目录、传输记录、成员印象、手动接管与定时群发。策略类为 `QQPolicy`，配额与会话状态存储为 `QQStateStore`；插件配置和宿主上下文分别使用 `QQSettings`、`QQContext`。所有模块状态保存在 `<profile>/el-bot-qq/`。
+
+`qqRuntime` 是 Cordis 的就绪依赖：QQ 集成完成中间件和工具 guard 安装后才提供它，官方 QQ 插件依赖它来确定连接时机。它不创建另一套对话上下文，会话仍由 DSH 管理；自定义命令通过 `qqCommands` 直接回复。
+
+已有部署升级前，停止唯一接收进程，在 profile 目录执行 `test ! -e el-bot-qq && mv el-bot-security el-bot-qq`，将配额、去重、会话绑定、群资料、接管租约、传输记录、成员印象和定时任务整体迁移。随后使用 `el-bot-qq` 条目和新导出路径更新私有 profile，再重建并启动。新版本仅读取新目录，不提供旧入口或自动回退。
 
 ## 群聊防护
 
-`@el-bot/dsh/qq-security` 为固定版本的官方 QQ 入口提供程序级限制。需要 DSH `0.2.1-rc.5` / `0.2.2-rc.1`、QQ 插件 `0.5.5`、SDK `1.0.5`；缺少单调工具拦截接口或版本不符时停止加载，QQ 入口因缺少依赖而不能连接。此模块不用于 `apps/qq-codex` 的旧 C2C 遥控入口。
+`@el-bot/dsh/qq` 为固定版本的官方 QQ 入口提供程序级限制。需要 DSH `0.2.1-rc.5` / `0.2.2-rc.1`、QQ 插件 `0.5.5`、SDK `1.0.5`；缺少单调工具拦截接口或版本不符时停止加载，QQ 入口因缺少依赖而不能连接。此模块不用于 `apps/qq-codex` 的旧 C2C 遥控入口。
 
 ```yaml
 - id: im-qqbot
-  inject: [qqWorkspaceGrouping, qqRuntimeSecurity]
+  inject: [qqWorkspaceGrouping, qqRuntime]
   config:
     requireMention: true
     access:
@@ -46,8 +54,8 @@ QQ 分组适配的插件路径是 `@el-bot/dsh/qq-workspaces`。沿用现有 `el
       c2cAllow: [OWNER_C2C_OPENID]
       groupMode: open
 - insert:
-    - id: el-bot-qq-security
-      name: '@el-bot/dsh/qq-security'
+    - id: el-bot-qq
+      name: '@el-bot/dsh/qq'
       config:
         appId: YOUR_APP_ID
         ownerOpenId: OWNER_C2C_OPENID
@@ -58,34 +66,34 @@ QQ 分组适配的插件路径是 `@el-bot/dsh/qq-workspaces`。沿用现有 `el
 
 使用真实 OpenID 的配置只保存在私有 profile。`ownerOpenId` 必须与现有私聊唯一白名单相同；群成员 OpenID 不用于认领主人。群聊天不设白名单，机器人加入的群均可聊天；接收范围仍由 QQ 群设置决定。云端另需保留 `qqRuntimeHealth` 依赖。
 
-安全模块没有群白名单或群接入模式开关，并将官方 QQ 插件的 `access.groupMode` 固定为 `open`。升级时删除安全条目的旧群接入配置及 QQ 插件的旧群列表配置。主人私聊认证、群聊工具禁用、按群隔离、限流与被动回复限制继续生效；`runtime.json` 的 `groupMode` 固定记录为 `open`。
+QQ 集成没有群白名单或群接入模式开关，并将官方 QQ 插件的 `access.groupMode` 固定为 `open`。升级时删除 `el-bot-qq` 条目的旧群接入配置及 QQ 插件的旧群列表配置。主人私聊认证、群聊工具禁用、按群隔离、限流与被动回复限制继续生效；`runtime.json` 的 `groupMode` 固定记录为 `open`。
 
 群里所有成员（包括主人）只能聊天。程序在历史缓存、附件下载、斜杠命令之前检查身份与目标，所有群管理命令和交互按钮都被拦截；主人仅在已绑定的 C2C 私聊中使用工具、管理与审批。群聊隐藏工具定义，同时通过宿主单调 guard 拒绝真实执行，不能用提示注入、PTC、未知工具、后续审批或新增插件放行。群消息只保留文本，附件与引用附件不下载。
 
-主人私聊另注册 `qq_group_member_impression` 工具，用于按群名或群 OpenID、成员昵称或发送者 OpenID 列出、读取、记录和清除小云对群成员的短印象。工具执行时再次确认当前 agent 属于已认证主人私聊，群聊、其他 QQ 对象和普通会话一律拒绝；印象只进入客户端成员详情，参与不了群聊授权，也不会被注入群提示。成员身份以群事件的 `member_openid`（入站字段 `senderId`）为唯一键：同一 AppID 下按当前实测该值可跨群识别同一用户，因此群 A 记录的印象可被群 B 的成员详情读取；群历史、成员列表、会话绑定和权限仍按 `group_openid` 隔离，且该身份不跨机器人使用。记录保存于 `<profile>/el-bot-security/member-impressions.json`，目录 `0700`、文件 `0600`，单条最多 280 字符；不随群历史清理或会话轮换删除。每次变更后同步生成 `member-impressions.md` 可读镜像，按群列出成员、发送者 OpenID、印象与更新时间；同一成员可出现在多个群，但 JSON 只保存一份全局印象。Markdown 只是 JSON 的投影，直接编辑不会回写。
+主人私聊另注册 `qq_group_member_impression` 工具，用于按群名或群 OpenID、成员昵称或发送者 OpenID 列出、读取、记录和清除小云对群成员的短印象。工具执行时再次确认当前 agent 属于已认证主人私聊，群聊、其他 QQ 对象和普通会话一律拒绝；印象只进入客户端成员详情，参与不了群聊授权，也不会被注入群提示。成员身份以群事件的 `member_openid`（入站字段 `senderId`）为唯一键：同一 AppID 下按当前实测该值可跨群识别同一用户，因此群 A 记录的印象可被群 B 的成员详情读取；群历史、成员列表、会话绑定和权限仍按 `group_openid` 隔离，且该身份不跨机器人使用。记录保存于 `<profile>/el-bot-qq/member-impressions.json`，目录 `0700`、文件 `0600`，单条最多 280 字符；不随群历史清理或会话轮换删除。每次变更后同步生成 `member-impressions.md` 可读镜像，按群列出成员、发送者 OpenID、印象与更新时间；同一成员可出现在多个群，但 JSON 只保存一份全局印象。Markdown 只是 JSON 的投影，直接编辑不会回写。
 
 群聊不读取宿主 AGENTS、技能和工作区提示，只保留群聊约束及已启用的人物卡；私聊沿用原有提示和工具。引用索引包含 AppID、会话类型和 peer 摘要，防止不同群或私聊相同编号串读。普通历史缓存按群保存，最多 6 条，每条截至 512 字符；当前 @ 消息最多 2000 字符。首次接管旧群会话会新建空会话，历史留档；每 12 次模型请求再次换新，限制长期上下文增长。认证 Web 直接恢复的群会话同样禁止工具，未准入 QQ 管理器前不允许模型请求。
 
 默认限额：每人每群每分钟 4 次、每群每分钟 12 次、实例每分钟 40 次触发；每群 24 小时 200 次、实例 24 小时 1000 次触发。实际模型请求另计同样的 24 小时上限，每轮只允许一次，输出最多 512 tokens。窗口从首次计数起算。忙碌群不排队，限流静默丢弃；未 @ 的背景消息另限每群每分钟 30 条、实例 60 条。回复仅允许原群原消息的被动纯文本，4 分钟内最多 2 条，每条最多 1200 字符，不带按钮、群提及或文件。
 
-配额、消息去重和安全会话绑定保存在 `<profile>/el-bot-security/state.json`，目录 `0700`、文件 `0600`，原子提交后才执行。它只含摘要、计数和会话 ID，不保存正文与凭据；进程重启保留配额，损坏或写失败拒绝准入。同目录 `runtime.json` 在受保护的 SDK 开始连接时记录安装状态、PID 和时间，应与本轮 `cloud-boot.json` 及连接健康一起核对。每实例只运行一个接收进程，不能让多个进程共享该 journal。旧会话日志依旧属于 DSH 历史，背景缓冲的 24 小时有效期不代表历史日志自动删除。
+配额、消息去重和安全会话绑定保存在 `<profile>/el-bot-qq/state.json`，目录 `0700`、文件 `0600`，原子提交后才执行。它只含摘要、计数和会话 ID，不保存正文与凭据；进程重启保留配额，损坏或写失败拒绝准入。同目录 `runtime.json` 在受保护的 SDK 开始连接时记录安装状态、PID 和时间，应与本轮 `cloud-boot.json` 及连接健康一起核对。每实例只运行一个接收进程，不能让多个进程共享该 journal。旧会话日志依旧属于 DSH 历史，背景缓冲的 24 小时有效期不代表历史日志自动删除。
 
 小云、大肥鱼的群聊表达边界分别见 `packages/persona/examples/xiaoyun.md` 与 `dafeiyu.md` 的补充节；它们不替代程序权限。变更主人需通过已认证的管理端修改私有配置并重载，不能在群里自助授权。
 
 ## QQ 指令
 
-`@el-bot/dsh/qq-security` 在官方 QQ 插件和模型之前安装确定性指令路由。私聊里的 `/help`、`/ping`、`/restart` 以及 Cordis 插件注册的命令会直接回复，不经过模型；`/new`、`/compact`、`/model`、`/preset`、`/stop`、`/bot-help`、`/bot-ping`、`/bot-version`、`/bot-me`、`/bot-status` 继续交给 `dsh-qqbot` 处理。未知的 `/xxx` 会收到「未找到指令」，不会落入普通聊天或触发模型。
+`@el-bot/dsh/qq` 在官方 QQ 插件和模型之前安装确定性指令路由。私聊里的 `/help`、`/ping`、`/restart` 以及 Cordis 插件注册的命令会直接回复，不经过模型；`/new`、`/compact`、`/model`、`/preset`、`/stop`、`/bot-help`、`/bot-ping`、`/bot-version`、`/bot-me`、`/bot-status` 继续交给 `dsh-qqbot` 处理。未知的 `/xxx` 会收到「未找到指令」，不会落入普通聊天或触发模型。
 
 `/restart` 仅在容器或显式 `DSH_RESTART_SUPERVISED=1` 的受管进程中可用。它先确认没有运行中的会话；有任务时发送 `/restart force` 才会中断并重启。回复完成后通过 DSH `appExit` 优雅退出，由 `restart: unless-stopped` 拉起。
 
-`/help` 默认使用 QQ 单聊自定义 Markdown（标题、粗体、列表、引用和分隔线）展示，不依赖模型；机器人没有 Markdown 权限、平台拒绝或旧客户端无法渲染时自动回退纯文本。可将安全插件配置中的 `commandMarkdown` 设为 `false` 始终使用纯文本。自定义指令返回普通字符串时仍按纯文本发送，只有显式返回 `{ markdown, text }` 或调用 `replyMarkdown()` 才启用富文本，避免把外部内容意外变成链接或图片。
+`/help` 默认使用 QQ 单聊自定义 Markdown（标题、粗体、列表、引用和分隔线）展示，不依赖模型；机器人没有 Markdown 权限、平台拒绝或旧客户端无法渲染时自动回退纯文本。可将 `el-bot-qq` 条目配置中的 `commandMarkdown` 设为 `false` 始终使用纯文本。自定义指令返回普通字符串时仍按纯文本发送，只有显式返回 `{ markdown, text }` 或调用 `replyMarkdown()` 才启用富文本，避免把外部内容意外变成链接或图片。
 
 QQ 后台的指令面板只负责客户端展示和点击输入，`only_admin` 是界面标记，不是安全边界。真正的身份判断来自 QQ 传输层的 `user_openid`：当前只有已认证主人的 C2C 私聊能进入指令路由。群聊中的斜杠指令仍然全部拦截，`only_admin`、群名片、引用文本和消息里的自称都不能提升权限。发送 `/bot-me` 可以核对 OpenID。
 
 其他 DSH 插件通过 `qqCommands` 服务注册命令，API 与 el-bot 的链式写法一致：
 
 ```ts
-import type { QQCommandRegistry } from '@el-bot/dsh/qq-security'
+import type { QQCommandRegistry } from '@el-bot/dsh/qq'
 
 export const name = 'example-command'
 export const inject = ['qqCommands']
@@ -113,11 +121,11 @@ export function apply(ctx: CommandContext) {
 }
 ```
 
-`ctx.effect()` 将注销函数绑定到本次插件实例；卸载时命令及别名同时从路由和帮助移除，重新挂载后可再次注册。也可直接调用 `command.dispose()`。
-
-`commands.directory()` 提供隔离的结构化目录，每个命令只出现一次，包含 `source: 'local' | 'delegated'` 和帮助元数据。目录读取不执行 action；该目录可作为后续 QQ 面板的离线输入。
+`ctx.effect()` 的清理函数绑定本次注册；插件卸载或重载时，`echo` 与别名 `repeat` 会同时从路由和帮助中消失，重新挂载后再恢复。不要只保存 builder 而不返回 `dispose()`，否则热重载会留下旧 action。也可以直接调用 `command.dispose()` 显式注销。
 
 这不是旧 `plugins/` 里绑定 NapCat `Bot` 实例的 `ctx.command()`；DSH 运行时通过 `qqCommands` 提供同风格的链式注册，旧插件需要迁移到 Cordis 入口后再注册。命令定义不接受 YAML 中的任意代码，避免把配置读取变成远程执行入口。
+
+`commands.directory()` 返回一次性的结构化快照，每条命令只出现一次，包含 `source: 'local' | 'delegated'`、`scope`、`permission`、`hidden` 与公共帮助元数据；别名不会单独成项。`help()` 和 `helpMarkdown()` 使用同一份注册与查找结果，读取目录不会执行 action。当前只作为离线面板目录输入，不访问 QQ 后台接口。
 
 命令默认 `scope('c2c')`、`permission('owner')`。`scope` 可选 `c2c`、`group`、`all`；当前群聊入口会在调用自定义命令前拦截，所以 `group` 和 `all` 尚不能在群里执行。`permission` 可选 `owner`、`group-admin`、`everyone`；在 C2C 私聊中 `group-admin` 会被拒绝，`everyone` 仍受主人 C2C 白名单限制。返回值可以是字符串、`{ markdown, text }`、它们的数组或 `Promise`，也可以调用 `context.reply()` / `context.replyMarkdown()` 分条回复；回复会移除 `<qqbot-*>` 控件标记和群提及，并限制为 1600 字符。异常只回复通用错误，不把上游原始错误或凭据发给 QQ。
 
@@ -125,7 +133,7 @@ export function apply(ctx: CommandContext) {
 
 ## 主人手动接管
 
-通过原有 DSH 登录入口进入，在侧栏「机器人」→「手动接管」（`#el-bot-manual` 可直接定位）打开。页面和 `/el-bot/manual/api` 沿用宿主的主人 Cookie、Host 与 Origin 校验，不开放 QQ 指令或模型工具入口。未加载 `@el-bot/dsh/qq-security` 时不会显示此视图。原生 App 通过已配对设备的受限接口复用同一接管服务，见[原生群聊与接管](../../docs/development/ios-companion.md#qq-群聊视角与原生接管)。
+通过原有 DSH 登录入口进入，在侧栏「机器人」→「手动接管」（`#el-bot-manual` 可直接定位）打开。页面和 `/el-bot/manual/api` 沿用宿主的主人 Cookie、Host 与 Origin 校验，不开放 QQ 指令或模型工具入口。未加载 `@el-bot/dsh/qq` 时不会显示此视图。原生 App 通过已配对设备的受限接口复用同一接管服务，见[原生群聊与接管](../../docs/development/ios-companion.md#qq-群聊视角与原生接管)。
 
 1. 选择允许聊天的已绑定会话，点击「暂停自动回复并接管」。默认 10 分钟，可选 5、10、30 分钟；API 接受 30 秒至 30 分钟。
 2. 等待当前任务取消、流式回复停止及在途请求结束。暂停仅作用于选中的群或主人私聊；该会话的新消息不进入模型、命令或审批处理，只在控制页内存中保留最近 10 条文本，每条最多 2000 字符。
@@ -136,7 +144,7 @@ export function apply(ctx: CommandContext) {
 
 点击发送后，客户端自动取得绑定目标、会话、原文、发送方式和租约的发送凭据，2 分钟内有效，无须展示预览。同一凭据只提交一次；网络超时或缺少消息 ID 的回执标为「结果未知」，刷新及进程重启都不会自动重发。可重试同一次请求以读取回执；请先在 QQ 内确认结果，再点击「已核对 QQ，保留原文」解除待确认状态，决定是否新建发送。
 
-租约与发送回执持久化到 `<profile>/el-bot-security/manual.json`（目录 `0700`、文件 `0600`）。回执仅保留最近 24 小时的正文摘要、目标摘要、状态、时间和平台消息 ID，不保存正文；预览与最近消息只在内存中。重启继续执行尚未到期的接管，未完成发送改为结果未知；损坏或写失败会停止接管能力并拒绝相关自动输出。该功能仍要求每实例单一接收进程。
+租约与发送回执持久化到 `<profile>/el-bot-qq/manual.json`（目录 `0700`、文件 `0600`）。回执仅保留最近 24 小时的正文摘要、目标摘要、状态、时间和平台消息 ID，不保存正文；预览与最近消息只在内存中。重启继续执行尚未到期的接管，未完成发送改为结果未知；损坏或写失败会停止接管能力并拒绝相关自动输出。该功能仍要求每实例单一接收进程。
 
 ## 定时群发
 
@@ -153,7 +161,7 @@ export function apply(ctx: CommandContext) {
 AI 总结会把窗口内的群文本发送给该群当前选择的模型提供方。它不进入群会话历史，不向模型开放工具，也不会把摘要原文写入运行回执；如果群内容不适合发送给该提供方，请改用「规则统计」或固定文本。
 
 ```yaml
-- id: el-bot-qq-security
+- id: el-bot-qq
   config:
     appId: YOUR_APP_ID
     ownerOpenId: OWNER_C2C_OPENID
@@ -168,13 +176,13 @@ AI 总结会把窗口内的群文本发送给该群当前选择的模型提供�
 
 `summary.provider` / `summary.model` 必须与宿主 `llm-pi-ai` 中已配置的 provider 和模型 ID 一致；不同实例可以使用 TokenLink、OpenAI 或其他提供方。完整 profile 示例见 [`examples/profile-cordis.patch.yml`](examples/profile-cordis.patch.yml)，其中 `summary` 以注释形式给出。
 
-调度按 `timezone` 的墙上时间计算，默认 `Asia/Shanghai`。任务按本地时间中的星期和 HH:mm 触发，同一分钟只执行一次，重启后不会重复补发；机器人离线时记录「离线跳过」，恢复连接后不会在非计划时间补发。任务和 24 小时内的运行回执保存在 `<profile>/el-bot-security/scheduled.json`（目录 `0700`、文件 `0600`），固定文本会随任务配置保存，回执只保存任务 ID、状态、时间、错误码和平台消息 ID，不保存正文。
+调度按 `timezone` 的墙上时间计算，默认 `Asia/Shanghai`。任务按本地时间中的星期和 HH:mm 触发，同一分钟只执行一次，重启后不会重复补发；机器人离线时记录「离线跳过」，恢复连接后不会在非计划时间补发。任务和 24 小时内的运行回执保存在 `<profile>/el-bot-qq/scheduled.json`（目录 `0700`、文件 `0600`），固定文本会随任务配置保存，回执只保存任务 ID、状态、时间、错误码和平台消息 ID，不保存正文。
 
 定时发送复用主人手动接管的主动发送通道与配额：每会话每分钟最多 4 次，并共用每群每分钟 12 次、每群 24 小时 200 次、实例每分钟 40 次／24 小时 1000 次的限制。发送失败不会自动重试，也不会改发到其他群；QQ 群关闭「允许主动发送」时记录平台错误 `40034105`。主人正在手动接管某个群时，该群的自动输出仍处于暂停状态，定时发送会被拦截并记录失败；结束接管后按后续计划继续。
 
 上线前检查：
 
-1. `im-qqbot.inject` 包含 `qqRuntimeSecurity`，且 `el-bot-qq-security` 已插入。
+1. `im-qqbot.inject` 包含 `qqRuntime`，且 `el-bot-qq` 已插入。
 2. 目标群已选择模型，或 `summary.provider` / `summary.model` 已配置且可用。
 3. `runtime.json` 包含 `scheduledEnabled: true`。
 4. 目标群允许主动发送；否则回执记录 `40034105`。
