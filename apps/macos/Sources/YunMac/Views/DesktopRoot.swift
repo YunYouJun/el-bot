@@ -7,77 +7,94 @@ struct DesktopRoot: View {
     let chat: ChatStore
     let onReady: (OpenWindowAction) -> Void
     @Environment(\.openWindow) private var openWindow
-    enum Destination: Hashable { case quickActions, personas, cloud, status, groups, session(String) }
-    @State private var selected: Destination? = .cloud
+    enum Destination: Hashable { case quickActions, personas, cloud, web, status, groups, compose, session(String) }
+    @State private var selected: Destination? = .web
+    @State private var columnVisibility: NavigationSplitViewVisibility = .detailOnly
+    @State private var web = DesktopDSHWebController()
     @State private var search = ""
-    @State private var showArchived = false
+    @State private var category: SessionCategory = .all
+    @State private var showModelGuide = false
     @Environment(\.scenePhase) private var scenePhase
     private var visible: [SessionSummary] {
         chat.sessions.filter {
-            ($0.archived == true) == showArchived && (search.isEmpty || [$0.title, $0.workspace, $0.provider, $0.model]
+            $0.blank != true && category.includes($0) && (search.isEmpty || [$0.displayTitle, $0.title, $0.workspace, $0.provider, $0.model, $0.source?.platform]
                 .compactMap { $0 }
                 .joined(separator: " ")
                 .localizedCaseInsensitiveContains(search))
         }
     }
     var body: some View {
-        NavigationSplitView {
-            List(selection: $selected) {
-                Label(store.text("connect.title"), systemImage: "network").tag(Destination.cloud)
-                Label(store.text("tab.status"), systemImage: "antenna.radiowaves.left.and.right").tag(Destination.status)
-                Label(store.text("quickActions"), systemImage: "bolt").tag(Destination.quickActions)
-                Label(store.text("personas"), systemImage: "person.crop.rectangle").tag(Destination.personas)
-                if chat.device != nil {
-                    Label(store.text("groups.title"), systemImage: "person.3").tag(Destination.groups)
-                    Toggle(store.text("sessions.category.archived"), isOn: $showArchived)
-                    GroupedSessionRows(sessions: visible, store: chat, destination: Destination.session)
-                }
-            }
-            .navigationSplitViewColumnWidth(min: 210, ideal: 270, max: 360)
-            .searchable(text: $search, prompt: store.text("sessions.search"))
-            .safeAreaInset(edge: .bottom) {
-                SettingsLink { Label(store.text("settings"), systemImage: "gearshape") }
-                    .buttonStyle(.plain).padding().frame(maxWidth: .infinity, alignment: .leading)
+        NavigationSplitView(columnVisibility: $columnVisibility) {
+            DesktopSidebar(desktop: store, chat: chat, sessions: visible, selection: $selected, category: $category) {
+                showModelGuide = true
             }
         } detail: {
             Group {
                 switch selected {
+                case .web:
+                    DesktopDSHWebView(desktop: store, chat: chat, controller: web)
                 case .cloud, nil:
                     NativeChatConnection(desktop: store, chat: chat)
                         .navigationTitle(store.text("connect.title"))
                 case .status: CloudBotStatusView(store: chat)
                 case .groups:
-                    BotGroupsView(store: chat) { id in showArchived = false; selected = .session(id) }
+                    BotGroupsView(store: chat) { id in category = .all; selected = .session(id) }
+                case .compose:
+                    ComposeConversationScreen(store: chat) { id in selected = .session(id) }
                 case .session(let id):
                     if let summary = chat.sessions.first(where: { $0.id == id }), let client = chat.client {
                         ConversationScreen(session: summary, client: client).id(id)
                     } else { ContentUnavailableView(store.text("sessions.empty"), systemImage: "bubble.left.and.bubble.right") }
-                case .quickActions, .personas:
+                case .personas:
+                    PersonasView(chat: chat)
+                        .navigationTitle(store.text("personas"))
+                case .quickActions:
                     ScrollView {
                         VStack(alignment: .leading, spacing: 24) {
                             ClientMessages(error: store.error, note: store.state.note, pending: store.state.pending, pendingLabel: store.text("pending"))
-                            if selected == .personas { PersonasView(store: store) }
-                            else { QuickActionsView(store: store) }
+                            QuickActionsView(store: store)
                         }.padding(28).frame(maxWidth: 900, alignment: .leading).frame(maxWidth: .infinity, alignment: .topLeading)
-                    }.navigationTitle(store.text(selected == .personas ? "personas" : "quickActions"))
+                    }.navigationTitle(store.text("quickActions"))
                 }
             }
             .toolbar {
                 ToolbarItemGroup {
-                    if chat.device != nil {
-                        Button { Task { if let id = await chat.create() { selected = .session(id) } } } label: { Label(store.text("sessions.new"), systemImage: "square.and.pencil") }
-                            .disabled(chat.busy)
+                    if selected != .web, chat.device != nil {
+                        Button { selected = .compose } label: {
+                            Label(store.text("sessions.new"), systemImage: "square.and.pencil")
+                        }
+                        .disabled(chat.busy || chat.client == nil)
                     }
-                    Button { Task { await chat.refresh() } } label: { Label(store.text("refresh"), systemImage: "arrow.clockwise") }
-                        .disabled(chat.client == nil)
+                    if selected != .web {
+                        Button { Task { await chat.refresh() } } label: { Label(store.text("refresh"), systemImage: "arrow.clockwise") }
+                            .disabled(chat.client == nil)
+                    }
                 }
             }
         }
+        .searchable(text: $search, prompt: store.text("sessions.search"))
         .frame(minWidth: 700, minHeight: 540)
+        .environment(\.openModelSetupGuide, { showModelGuide = true })
+        .sheet(isPresented: $showModelGuide) {
+            ModelSetupGuide(connected: chat.device != nil) {
+                showModelGuide = false
+                selected = .web
+            }
+            .environment(\.locale, Locale(identifier: store.state.locale))
+            .environment(\.yunStrings, YunStrings(preference: store.state.locale))
+        }
         .onAppear { onReady(openWindow) }
+        .onChange(of: store.webNavigationRequest) { _, _ in selected = .web }
         .onChange(of: selected) { _, value in
+            if value == .web { columnVisibility = .detailOnly }
             if value == .personas { store.send("navigate", "personas") }
             else if value == .quickActions { store.send("navigate", "quickActions") }
+        }
+        .onChange(of: chat.device?.id) { _, value in web.resetIfDeviceChanged(value) }
+        .onDisappear { web.reset() }
+        .onChange(of: category) { _, _ in
+            guard case let .session(id) = selected, !visible.contains(where: { $0.id == id }) else { return }
+            selected = nil
         }
         .task(id: scenePhase) {
             guard scenePhase == .active else { return }

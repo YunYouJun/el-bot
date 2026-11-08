@@ -9,6 +9,7 @@ import YunCore
     var transportFailed = false
     var draftValues: [String: String] = [:]
     var phonePairing: (code: String, expiresAt: Date)?
+    var webNavigationRequest = 0
     @ObservationIgnored private var transport: ControllerTransport?
     @ObservationIgnored var onPairing: ((String, String) -> Void)?
 
@@ -59,6 +60,7 @@ import YunCore
         }, set: { self.send("editPreference", $0, field: field) })
     }
     func stopController() { transport?.stop() }
+    func openDSHWeb() { webNavigationRequest += 1 }
     static var settingsArgument: String? {
         let arguments = ProcessInfo.processInfo.arguments
         guard let index = arguments.firstIndex(of: "--settings"), arguments.indices.contains(index + 1) else { return nil }

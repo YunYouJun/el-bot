@@ -5,6 +5,11 @@ import YunCore
 struct DesktopSettings: View {
     let store: DesktopStore
     let chat: ChatStore
+    let yunleAccount: YunleAccountStore
+    @Environment(\.yunStrings) private var text
+    @Environment(\.openWindow) private var openWindow
+    @State private var showModelGuide = false
+    @State private var showYunleAccount = false
     var body: some View {
         TabView {
             NativeChatConnection(desktop: store, chat: chat)
@@ -12,18 +17,50 @@ struct DesktopSettings: View {
             connection.tabItem { Label(store.text("cloud"), systemImage: "network") }
             local.tabItem { Label(store.text("environment"), systemImage: "terminal") }
             replies.tabItem { Label(store.text("preferences"), systemImage: "text.bubble") }
-        }.padding(16).frame(width: 660, height: 590)
+        }
+        .padding(16)
+        .frame(width: 660, height: 590)
+        .sheet(isPresented: $showModelGuide) {
+            ModelSetupGuide(connected: chat.device != nil) {
+                showModelGuide = false
+                store.openDSHWeb()
+                openWindow(id: "main", value: "main")
+            }
+            .environment(\.locale, Locale(identifier: store.state.locale))
+            .environment(\.yunStrings, YunStrings(preference: store.state.locale))
+        }
+        .sheet(isPresented: $showYunleAccount) {
+            NavigationStack {
+                YunleAccountView(store: yunleAccount, strings: text)
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button(text["done"]) { showYunleAccount = false }
+                        }
+                    }
+            }
+            .frame(minWidth: 560, minHeight: 600)
+        }
     }
     private var connection: some View {
         Form {
             Section {
                 LanguagePicker(title: store.text("language"), systemLabel: store.text("followSystem"), selection: Binding(get: { store.state.localePreference }, set: { store.send("locale", $0) }))
             }
+            YunleAccountSection(store: yunleAccount, strings: text) {
+                showYunleAccount = true
+            }
             Section {
                 TextField(store.text("sshHost"), text: store.draft("sshHost")).autocorrectionDisabled().disabled(store.disabled)
                 Text(store.text("cloudHint")).font(.caption).foregroundStyle(.secondary)
                 Button(store.text("saveCloud")) { store.send("saveCloud") }.disabled(store.disabled)
             } header: { Text(store.text("cloud")) }
+            Section {
+                Button { showModelGuide = true } label: {
+                    Label(store.text("model.setup.title"), systemImage: "cpu")
+                }
+            } footer: {
+                Text(store.text("model.setup.settings.detail"))
+            }
             messages
         }.formStyle(.grouped)
     }

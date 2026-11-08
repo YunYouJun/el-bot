@@ -7,6 +7,7 @@ import YunUI
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @State private var store = DesktopStore()
     @State private var chat = ChatStore()
+    @State private var yunleAccount = YunleAccountStore()
 
     var body: some Scene {
         WindowGroup(store.text("appName"), id: "main", for: String.self) { _ in
@@ -21,8 +22,10 @@ import YunUI
             .environment(\.locale, Locale(identifier: store.state.locale))
             .environment(\.yunStrings, YunStrings(preference: store.state.locale))
             .task { await chat.restore() }
+            .task { await yunleAccount.restore() }
         } defaultValue: { "main" }
         .defaultSize(width: 920, height: 680)
+        .windowToolbarStyle(.unified)
         .commands {
             CommandGroup(after: .newItem) { ShowMainButton(store: store) }
             CommandGroup(after: .toolbar) {
@@ -32,7 +35,7 @@ import YunUI
             }
         }
         Settings {
-            DesktopSettings(store: store, chat: chat)
+            DesktopSettings(store: store, chat: chat, yunleAccount: yunleAccount)
                 .environment(\.locale, Locale(identifier: store.state.locale))
                 .environment(\.yunStrings, YunStrings(preference: store.state.locale))
         }
@@ -56,9 +59,14 @@ private struct ShowMainButton: View {
 
 private struct TrayMenu: View {
     let store: DesktopStore
+    @Environment(\.openWindow) private var openWindow
     var body: some View {
         ShowMainButton(store: store)
-        Button(store.text("openCloud")) { store.send("openCloud") }.disabled(store.disabled || store.state.host.isEmpty)
+        Button(store.text("openCloud")) {
+            store.openDSHWeb()
+            openWindow(id: "main", value: "main")
+            NSApp.activate(ignoringOtherApps: true)
+        }
         Divider()
         SettingsLink { Text(store.text("settings")) }
         Divider()

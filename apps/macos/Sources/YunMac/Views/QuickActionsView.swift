@@ -13,9 +13,9 @@ struct QuickActionsView: View {
                         Label(store.state.host, systemImage: "server.rack").font(.callout.monospaced())
                     }
                     HStack {
-                        Button { store.send("openCloud") } label: {
-                            Label(store.text("openCloud"), systemImage: "arrow.up.right.square")
-                        }.buttonStyle(.borderedProminent).disabled(store.disabled || store.state.host.isEmpty)
+                        Button { store.openDSHWeb() } label: {
+                            Label(store.text("openCloud"), systemImage: "globe")
+                        }.buttonStyle(.borderedProminent)
                         SettingsLink { Text(store.text("configureCloud")) }
                     }
                 }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
