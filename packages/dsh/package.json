@@ -55,7 +55,6 @@
   },
   "devDependencies": {
     "@el-bot/persona": "workspace:*",
-    "@types/markdown-it": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@vitejs/plugin-vue": "catalog:",

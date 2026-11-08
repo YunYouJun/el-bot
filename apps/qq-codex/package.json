@@ -39,7 +39,6 @@
     "ws": "catalog:"
   },
   "devDependencies": {
-    "@types/markdown-it": "catalog:",
     "@types/node": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"
