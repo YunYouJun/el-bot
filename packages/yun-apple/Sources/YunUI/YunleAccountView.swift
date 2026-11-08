@@ -266,6 +266,6 @@ private struct YunlePointAccountView: View {
     }
 }
 func yunlePoints(_ amount: Int64) -> String {
-    (Decimal(amount) / 1_000_000).formatted(.number.precision(.fractionLength(0...6)))
+    YunlePointFormatter.string(fromMicroPoints: amount)
 }
 #endif
