@@ -29,10 +29,31 @@ if (target === 'ios-simulator' || target === 'ios') {
 }
 else {
   const architecture = process.arch === 'x64' ? 'amd64' : process.arch
+  const minimumMacOSVersion = '14.0'
   assert.equal(target, `darwin/${architecture}`, 'Build macOS installers on the target architecture')
   const mode = configuration.toLowerCase()
-  run('swift', ['build', '--package-path', 'apps/macos', '-c', mode])
-  const bin = spawnSync('swift', ['build', '--package-path', 'apps/macos', '-c', mode, '--show-bin-path'], { cwd: root, encoding: 'utf8' })
+  const sdkPath = spawnSync('xcrun', ['--sdk', 'macosx', '--show-sdk-path'], { encoding: 'utf8' })
+  const sdkVersion = spawnSync('xcrun', ['--sdk', 'macosx', '--show-sdk-version'], { encoding: 'utf8' })
+  assert.equal(sdkPath.status, 0, 'Select a macOS SDK from Xcode')
+  assert.equal(sdkVersion.status, 0, 'Read the selected macOS SDK version')
+  const swiftArgs = [
+    '--package-path',
+    'apps/macos',
+    '--sdk',
+    sdkPath.stdout.trim(),
+    '-c',
+    mode,
+    '-Xlinker',
+    '-platform_version',
+    '-Xlinker',
+    'macos',
+    '-Xlinker',
+    minimumMacOSVersion,
+    '-Xlinker',
+    sdkVersion.stdout.trim(),
+  ]
+  run('swift', ['build', ...swiftArgs])
+  const bin = spawnSync('swift', ['build', ...swiftArgs, '--show-bin-path'], { cwd: root, encoding: 'utf8' })
   assert.equal(bin.status, 0)
   const output = join(root, 'apps/macos/build', `darwin-${architecture}`)
   const application = join(output, 'Yun.app')
@@ -42,7 +63,12 @@ else {
   await mkdir(join(contents, 'MacOS'), { recursive: true })
   await mkdir(resources, { recursive: true })
   await copyFile(join(bin.stdout.trim(), 'Yun'), join(contents, 'MacOS/Yun'))
-  await cp(join(bin.stdout.trim(), 'YunApple_YunCore.bundle'), join(resources, 'YunApple_YunCore.bundle'), { recursive: true })
+  const buildVersion = spawnSync('xcrun', ['vtool', '-show-build', join(contents, 'MacOS/Yun')], { encoding: 'utf8' })
+  assert.equal(buildVersion.status, 0, 'Inspect the linked macOS SDK')
+  assert.equal(buildVersion.stdout.match(/^\s*minos\s+(\S+)/m)?.[1], minimumMacOSVersion, 'Preserve the minimum supported macOS version')
+  assert.equal(buildVersion.stdout.match(/^\s*sdk\s+(\S+)/m)?.[1], sdkVersion.stdout.trim(), 'Link against the selected SDK so macOS enables its current system design')
+  for (const bundle of ['YunApple_YunCore.bundle', 'YunApple_YunUI.bundle'])
+    await cp(join(bin.stdout.trim(), bundle), join(resources, bundle), { recursive: true })
   run('go', ['build', '-trimpath', '-ldflags=-s -w', '-o', join(resources, 'yun-controller'), '.'], { cwd: client })
   run('xcrun', ['actool', join(client, 'icons/ElBot.icon'), '--compile', resources, '--output-format', 'human-readable-text', '--platform', 'macosx', '--target-device', 'mac', '--minimum-deployment-target', '14.0', '--app-icon', 'ElBot', '--output-partial-info-plist', join(output, 'icon.plist')])
   await copyFile(join(client, 'icons/icon.icns'), join(resources, 'icon.icns'))
@@ -57,7 +83,7 @@ else {
     CFBundleVersion: version,
     CFBundleIconName: 'ElBot',
     CFBundleIconFile: 'icon.icns',
-    LSMinimumSystemVersion: '14.0',
+    LSMinimumSystemVersion: minimumMacOSVersion,
     CFBundleDevelopmentRegion: 'en',
     CFBundleLocalizations: ['en', 'zh-Hans'],
     NSHighResolutionCapable: true,
