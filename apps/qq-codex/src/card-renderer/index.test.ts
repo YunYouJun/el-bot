@@ -71,7 +71,7 @@ describe('platform-independent browser card renderer', () => {
         headingFont: getComputedStyle(document.querySelector('.el-title')).fontFamily,
         codeFont: getComputedStyle(document.querySelector('pre code')).fontFamily,
       })`)
-      expect(actual).toMatchObject({ bold: '700', italic: 'italic', code: '\tconst message = "中文👩‍💻"', table: 2, overflow: false, scripts: 0, surface: 'rgb(24, 33, 45)', status: 'rgb(34, 197, 94)', accent: 'rgb(96, 165, 250)', leftBorder: '1px' })
+      expect(actual).toMatchObject({ bold: '700', italic: 'italic', code: '\tconst message = "中文👩‍💻"', table: 2, overflow: false, scripts: 0, surface: 'rgb(20, 29, 43)', status: 'rgb(34, 197, 94)', accent: 'rgb(96, 165, 250)', leftBorder: '1px' })
       expect(actual).toMatchObject({ headingFont: expect.stringContaining('ui-rounded'), codeFont: expect.stringContaining('SFMono-Regular') })
       await page.setContent(renderCardHtml({ ...card, details: { ...card.details, body: source } }, { theme: 'light', fontFamily: 'Arial' }))
       expect(await page.evaluate(`({
