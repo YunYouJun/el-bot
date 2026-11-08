@@ -149,7 +149,7 @@
   "ecosystem": {
     "el-bot-api": "https://github.com/ElpsyCN/el-bot-api",
     "el-bot-plugins": "https://github.com/ElpsyCN/el-bot-plugins",
-    "el-bot-docs": "https://github.com/ElpsyCN/el-bot-docs",
+    "el-bot-docs": "https://docs.bot.elpsy.cn/",
     "el-bot-template": "https://github.com/ElpsyCN/el-bot-template",
     "el-bot-web": "https://github.com/ElpsyCN/el-bot-web"
   },

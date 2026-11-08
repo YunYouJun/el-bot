@@ -1,10 +1,6 @@
 # 核心 API
 
-[![api](https://github.com/YunYouJun/el-bot/workflows/api/badge.svg)](https://www.yunyoujun.cn/el-bot/)
-
-el-bot 的 [API 文档](https://www.yunyoujun.cn/el-bot/) 已通过 [typedoc](https://typedoc.org/) 自动生成。
-
-为了更好地帮助你了解及进行示例展示，将会对一些较为有用地 API 方法进行介绍。
+el-bot 的 API 文档按模块整理常用接口、状态查询与辅助工具的用途及示例。完整的类型签名以 `el-bot` 包内的类型声明为准。
 
 ## 用户命令
 
@@ -17,7 +13,7 @@ el-bot 的 [API 文档](https://www.yunyoujun.cn/el-bot/) 已通过 [typedoc](ht
 | `context.reply(content, quote?)` | 回复本次收到的消息，可手动发送多条；程序调用时拒绝 |
 | `bot.executeCommand(text)` | 内部执行并返回命中状态和结果，不自动发送 QQ 消息 |
 | `bot.getCommandHelp(name?)` | 获取全部命令列表或单条命令帮助，不执行回调 |
-| `command.dispose()` | 从命令索引、帮助和消息路由中注销本次命令；重复调用无副作用 |
+| `command.dispose()` | 从共享 catalog、帮助和消息路由中注销本次命令；重复调用无副作用 |
 
 `CommandContext`、`CommandExecution`、`CommandReply`、`CommandResult` 和 `CommandAction` 可从 `el-bot` 导入，供插件声明类型。以上新增能力随 `1.0.0-rc.3` 发布，旧版 npm `1.0.0-rc.2` 不包含这些能力。
 

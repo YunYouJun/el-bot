@@ -1,6 +1,6 @@
 # el-bot
 
-[![api](https://github.com/YunYouJun/el-bot/workflows/api/badge.svg)](https://www.yunyoujun.cn/el-bot/)
+[![api](https://github.com/YunYouJun/el-bot/workflows/api/badge.svg)](https://docs.bot.elpsy.cn/api/)
 [![npm](https://img.shields.io/npm/v/el-bot?logo=npm)](https://www.npmjs.com/package/el-bot)
 [![GitHub package.json dependency version (subfolder of monorepo)](https://img.shields.io/github/package-json/dependency-version/YunYouJun/el-bot/mirai-ts?filename=packages%2Fel-bot%2Fpackage.json&logo=typescript)](https://github.com/YunYouJun/mirai-ts)
 [![QQ Group](https://img.shields.io/badge/QQ%20Group-707408530-12B7F5?logo=tencent-qq)](https://shang.qq.com/wpa/qunwpa?idkey=5b0eef3e3256ce23981f3b0aa2457175c66ca9194efd266fd0e9a7dbe43ed653)
@@ -14,7 +14,7 @@
 > 本项目为个人学习项目，与腾讯公司并无关联。
 
 - 使用文档：<https://docs.bot.elpsy.cn>
-- API 文档：<https://www.yunyoujun.cn/el-bot/>
+- API 文档：<https://docs.bot.elpsy.cn/api/>
 
 ## 小云原生客户端
 
@@ -135,14 +135,14 @@ pnpm add el-bot@latest
 
 ## 说明
 
-### [与 koishi 的区别](https://docs.bot.elpsy.cn/about.html#与-koishi-的区别)
+### [与 koishi 的区别](https://docs.bot.elpsy.cn/guide/about#与-koishi-的区别)
 
 ## 相关项目
 
 - [el-bot](https://github.com/YunYouJun/el-bot)：机器人主体
 - [el-bot-api](https://github.com/ElpsyCN/el-bot-api): 提供一些插件的默认 API
 - [el-bot-plugins](https://github.com/ElpsyCN/el-bot-plugins): el-bot 的官方插件集中地（你也可以提交 PR 或一些自己的插件链接到 README 里打广告）
-- [el-bot-docs](https://github.com/ElpsyCN/el-bot-docs): el-bot 使用文档
+- [el-bot 文档](https://docs.bot.elpsy.cn/)：使用文档与 API 参考
 - [el-bot-template](https://github.com/ElpsyCN/el-bot-template)：机器人模版（你可以直接使用它来生成你的机器人）
 - [el-bot-web](https://github.com/ElpsyCN/el-bot-web)：机器人前端（通过网页监控与控制你的机器人）（但是还在咕咕咕）
 
