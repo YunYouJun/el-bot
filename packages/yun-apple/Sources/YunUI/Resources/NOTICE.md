@@ -2,4 +2,13 @@ QQ 图标来自 [Simple Icons 14.15.0](https://github.com/simple-icons/simple-ic
 
 `xiaoyun-avatar.webp` 是仓库 [`assets/avatars/el-bot-qq-avatar.webp`](../../../../../assets/avatars/el-bot-qq-avatar.webp) 的原样副本，用于 `xiaoyun` 人物卡的离线头像。它基于用户提供的小云角色插画生成，来源及制作记录见[头像说明](../../../../../assets/avatars/README.md)。该图片不属于品牌 SVG 的 MIT 授权范围；小云角色出处为 [YunYouJun/yun](https://github.com/YunYouJun/yun)，角色素材遵循 CC BY-NC-SA 4.0。
 
+`dafeiyu-avatar.webp` 取自 [whyever77/dafeiyu-astrbot](https://github.com/whyever77/dafeiyu-astrbot) 的 `assets/avatars/v3-20261025/04_眨眼.png`（commit `f18eef4`），用于 `dafeiyu` 人物卡的离线头像，并兼容 `dsh-persona-dafeiyu` 等带命名空间前缀的 ID。原图由该仓库以 MIT 许可提供；客户端仅缩放为 512×512 WebP，未修改构图。大肥鱼角色参考源自 YunYueSama 的 [codex-deepseek-pet](https://github.com/YunYueSama/codex-deepseek-pet)，按「大肥鱼项目署名许可 1.0」保留以下署名：
+
+```text
+作者：YunYueSama
+仓库：https://github.com/YunYueSama/codex-deepseek-pet
+```
+
+完整许可文本见 [DafeiyuAvatarLicenses.txt](./DafeiyuAvatarLicenses.txt)。大肥鱼是社区二创鲸鱼娘，不代表 DeepSeek 官方。
+
 人物设定 Markdown 预览使用 MarkdownUI 2.4.1，以及传递依赖 NetworkImage 6.0.1 与 swift-cmark 0.9.0。完整授权声明随客户端打包，见 [MarkdownLicenses.txt](./MarkdownLicenses.txt)。预览通过自定义图片提供器禁用图片加载。

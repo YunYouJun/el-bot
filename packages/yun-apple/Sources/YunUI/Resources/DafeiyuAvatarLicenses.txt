@@ -1,0 +1,76 @@
+dafeiyu-avatar.webp
+===================
+
+Source: whyever77/dafeiyu-astrbot
+Path: assets/avatars/v3-20261025/04_眨眼.png
+Commit: f18eef4af0a19bf68ad17c8596b33193f106350b
+Modification: Resized to 512x512 and encoded as WebP for the native client.
+
+Character reference attribution:
+
+作者：YunYueSama
+仓库：https://github.com/YunYueSama/codex-deepseek-pet
+
+Dafeiyu is a community-created whale girl character and is not an official
+DeepSeek character.
+
+
+MIT License (whyever77/dafeiyu-astrbot)
+---------------------------------------
+
+Copyright (c) 2026 dafeiyu-astrbot contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+大肥鱼项目署名许可 1.0（自定义许可，非标准 MIT）
+------------------------------------------------
+
+Copyright (c) 2026 YunYueSama
+作者：YunYueSama
+仓库：https://github.com/YunYueSama/codex-deepseek-pet
+
+1. 适用范围
+
+本许可适用于本仓库中由项目作者拥有或有权授予许可的所有材料，包括源代码、文档、角色设定、图片、设计图、动画与其他资源（以下称“材料”）。第三方材料及另有许可声明的部分不在本授权范围内，详见 ASSET_LICENSE.md。
+
+2. 授予的权利
+
+在遵守以下条件的前提下，任何人均可免费使用、复制、修改、合并、展示、发布、分发、再许可及出售材料或其衍生作品，包括用于商业目的，无需另行向项目作者申请许可。修改后的作品无需公开源代码。
+
+3. 必须保留的署名
+
+使用、展示、发布或分发材料或其衍生作品时，必须清楚标明以下两项：
+
+作者：YunYueSama
+仓库：https://github.com/YunYueSama/codex-deepseek-pet
+
+署名可以放在作品的 README、关于页面、致谢、随附说明或图片/视频发布说明等使用者或接收者容易找到的位置；无需在角色画面上添加水印。私人使用时，保留随附的署名与许可文件即可。署名不得仅写“来源网络”或只列作者而省略仓库地址。
+
+分发材料或其实质性部分时，须同时保留本版权声明及完整许可文本。修改后的作品须说明经过修改，不得将修改内容冒称为原作者作品。再许可不得取消原材料的上述署名和许可保留义务；不得暗示原作者或 DeepSeek 官方认可或代言衍生作品。
+
+4. 第三方权利与旧版本
+
+本许可不授予第三方参考作品、字体、依赖、商标或其他第三方内容的额外权利。此类内容仍遵守各自的授权；对衍生素材的授权仅及于作者有权授权的贡献，不替代底层参考作品可能需要的许可。使用 AI 生成或处理素材不扩大授权范围。
+
+此前已按 MIT 或其他许可发布的版本，其已授予的权利不因本许可变更而撤销；请以取得的相应版本所附许可为准。
+
+5. 免责声明
+
+材料按“现状”提供，不作任何明示或默示保证，包括适销性、特定用途适用性或不侵权的保证。在适用法律允许的范围内，作者或版权持有人不对因使用材料或与材料有关的行为所产生的任何索赔、损害或其他责任负责。

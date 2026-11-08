@@ -18,7 +18,7 @@ public struct PersonaAvatar: View {
 
     public var body: some View {
         Group {
-            if personaID == "xiaoyun", let artwork = Self.xiaoyun {
+            if let artwork = Self.artwork(for: personaID) {
                 artwork.resizable().scaledToFill()
             } else {
                 Image(systemName: "person.fill")
@@ -33,8 +33,19 @@ public struct PersonaAvatar: View {
         .accessibilityHidden(true)
     }
 
-    private static let xiaoyun: Image? = {
-        guard let url = Bundle.module.url(forResource: "xiaoyun-avatar", withExtension: "webp") else { return nil }
+    private static func artwork(for personaID: String?) -> Image? {
+        guard let personaID else { return nil }
+        let tokens = personaID
+            .lowercased()
+            .split { !$0.isLetter && !$0.isNumber }
+            .map(String.init)
+        if tokens.contains("xiaoyun") { return xiaoyun }
+        if tokens.contains("dafeiyu") { return dafeiyu }
+        return nil
+    }
+
+    private static func loadArtwork(named name: String) -> Image? {
+        guard let url = Bundle.module.url(forResource: name, withExtension: "webp") else { return nil }
         #if os(iOS)
         guard let image = UIImage(contentsOfFile: url.path) else { return nil }
         return Image(uiImage: image)
@@ -44,12 +55,17 @@ public struct PersonaAvatar: View {
         #else
         return nil
         #endif
-    }()
+    }
+
+    private static let xiaoyun = loadArtwork(named: "xiaoyun-avatar")
+    private static let dafeiyu = loadArtwork(named: "dafeiyu-avatar")
 }
 
 #Preview("Persona artwork") {
     HStack(spacing: 16) {
         PersonaAvatar(personaID: "xiaoyun", size: 96)
+        PersonaAvatar(personaID: "dafeiyu", size: 96)
+        PersonaAvatar(personaID: "dsh-persona-dafeiyu", size: 96)
         PersonaAvatar(personaID: nil, size: 64)
         PersonaAvatar(personaID: "another-card")
     }.padding()

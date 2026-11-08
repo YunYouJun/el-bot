@@ -6,7 +6,7 @@
 
 iOS 提供独立的 SwiftUI 人物卡管理界面，入口为「状态」页右上角或「设置 → 人物卡」。支持查看当前人设、切换、恢复默认、历史版本预览与回滚、检查更新，以及文件、HTTPS 链接和公开 Git 仓库导入。人物设定默认显示 Markdown 预览，可切换到「源码」查看原文。原生页通过已配对设备 API 操作同一份 DSH 人物卡库，无需启用 Web 网关；需升级移动服务并加载人物卡插件。详见[原生人物卡](./ios-companion.md#原生人物卡)。
 
-原生客户端为 `xiaoyun` 人物卡内置小云头像，复用仓库的 QQ 机器人资料图片。在 iOS 的列表、当前人设摘要和详情，以及 macOS 人设摘要中显示；已有卡片无需更新或重新导入。头像随客户端离线打包，`dafeiyu` 等其他 ID 或默认助手使用通用占位图。本版尚未提供任意卡片的图片上传或远程头像字段，不解析正文中的图片链接。
+原生客户端为 `xiaoyun` 和 `dafeiyu` 人物卡内置离线头像：小云复用仓库的 QQ 机器人资料图片，大肥鱼取自 whyever77/dafeiyu-astrbot 并保留角色署名。头像在 iOS 的列表、当前人设摘要和详情，以及 macOS 人设摘要中显示；已有卡片无需更新或重新导入。ID 按连字符、下划线等分隔后的词元匹配，因而 `dsh-persona-dafeiyu` 等带命名空间前缀的卡片也能显示大肥鱼头像。其他 ID 或默认助手使用通用占位图。本版尚未提供任意卡片的图片上传或远程头像字段，不解析正文中的图片链接。
 
 DSH 相关的页面、鉴权和 QQ 会话接入统一位于 `packages/dsh`；通用的 Markdown 解析、来源导入、不可变快照与选择持久化由 `packages/persona` 复用。原有本机 Codex、CodeBuddy 和 dsh QQ 遥控继续使用下文 CLI，各配置的库独立保存。
 
@@ -108,4 +108,4 @@ HTTPS 来源拒绝 URL 内用户名密码、明文 HTTP 和跳转到 HTTP。Git 
 
 大肥鱼示例改写自 [whyever77/dafeiyu-astrbot 的 `persona/大肥鱼-人格.md`](https://github.com/whyever77/dafeiyu-astrbot/blob/f18eef4af0a19bf68ad17c8596b33193f106350b/persona/%E5%A4%A7%E8%82%A5%E9%B1%BC-%E4%BA%BA%E6%A0%BC.md)（v2.1），单独遵循 **MIT** 许可（全文见 [`examples/dafeiyu.LICENSE`](https://github.com/YunYouJun/el-bot/blob/main/packages/persona/examples/dafeiyu.LICENSE)）。示例保留形象、性格、聊天节奏、情绪表达和群聊边界，移除 AstrBot 专属工具、日程、虚拟手机与 B 站操作指令，补充 frontmatter、token 使用边界和 el-bot 权限边界。「蓝色大肥鱼 / 鲸鱼娘」是对 DeepSeek 蓝鲸 logo 的社区二创，不代表 DeepSeek 官方，也不包含官方美术素材。
 
-群聊运行时防护由 [`@el-bot/dsh/qq-security`](https://github.com/YunYouJun/el-bot/blob/main/packages/dsh/README.md#群聊防护) 执行：仅主人私聊拥有工具、管理和审批入口，群聊不因人物卡中的“主人”或聊天中的自称获得权限。
+群聊运行时防护由 [`@el-bot/dsh/qq`](https://github.com/YunYouJun/el-bot/blob/main/packages/dsh/README.md#群聊防护) 执行：仅主人私聊拥有工具、管理和审批入口，群聊不因人物卡中的“主人”或聊天中的自称获得权限。
