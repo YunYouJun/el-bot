@@ -1,5 +1,12 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "lib": ["ESNext", "DOM"], "types": ["node", "vite/client"] },
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM"],
+    "baseUrl": ".",
+    "paths": {
+      "@el-bot/commands": ["../commands/src/index.ts"]
+    },
+    "types": ["node", "vite/client"]
+  },
   "include": ["src/**/*.ts", "web/**/*.ts", "web/**/*.vue", "*.config.ts"]
 }

@@ -14,6 +14,7 @@ export default defineConfig({
   banner: { dts: '/// <reference path="../types/resty-client.d.ts" />' },
   alias: {
     '#plugin-qq': fileURLToPath(new URL('../plugin-qq/src/index.ts', import.meta.url)),
+    '@el-bot/commands': fileURLToPath(new URL('../commands/src/index.ts', import.meta.url)),
     'el-bot/adapter': fileURLToPath(new URL('core/adapter.ts', import.meta.url)),
     // mirai-ts 2.4.8 ships index.js but its import condition points to missing index.mjs.
     'mirai-ts': createRequire(import.meta.url).resolve('mirai-ts'),
@@ -26,7 +27,7 @@ export default defineConfig({
   },
   deps: {
     // NapCat's ESM output also imports JSON without the Node-required attribute.
-    alwaysBundle: ['@el-bot/qq-codex', 'qq-sdk', '@el-bot/codex', '@el-bot/persona', 'mirai-ts', /^node-napcat-ts(?:\/|$)/],
-    onlyImport: Object.keys(packageJson.dependencies).filter(name => !['mirai-ts', 'node-napcat-ts'].includes(name)),
+    alwaysBundle: ['@el-bot/qq-codex', 'qq-sdk', '@el-bot/codex', '@el-bot/persona', '@el-bot/commands', 'mirai-ts', /^node-napcat-ts(?:\/|$)/],
+    onlyImport: Object.keys(packageJson.dependencies).filter(name => !['mirai-ts', 'node-napcat-ts', '@el-bot/commands'].includes(name)),
   },
 })

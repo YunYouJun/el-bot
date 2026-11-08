@@ -24,7 +24,7 @@ export interface BuiltinQQCommandOptions {
 
 /** Register el-bot answers before dsh-qqbot sees the same message. */
 export function registerBuiltinQQCommands(registry: QQCommandRegistry, options: BuiltinQQCommandOptions = {}) {
-  registry.command('help')
+  const help = registry.command('help')
     .description('查看全部指令或单个指令的用法')
     .usage('help [指令]')
     .example('help')
@@ -36,7 +36,7 @@ export function registerBuiltinQQCommands(registry: QQCommandRegistry, options: 
       text: registry.help(args[0]),
     }))
 
-  registry.command('ping')
+  const ping = registry.command('ping')
     .description('测试小云是否在线')
     .usage('ping')
     .example('ping')
@@ -44,8 +44,10 @@ export function registerBuiltinQQCommands(registry: QQCommandRegistry, options: 
     .permission('owner')
     .action(() => 'pong')
 
+  const disposers = [help.dispose, ping.dispose]
+
   if (options.restart) {
-    registry.command('restart')
+    const restart = registry.command('restart')
       .description('重启小云云端服务，由容器自动拉起')
       .usage('restart [force]')
       .example('restart')
@@ -58,5 +60,8 @@ export function registerBuiltinQQCommands(registry: QQCommandRegistry, options: 
           return '用法：/restart [force]'
         await options.restart!(force, context.reply)
       })
+    disposers.push(restart.dispose)
   }
+
+  return disposers
 }

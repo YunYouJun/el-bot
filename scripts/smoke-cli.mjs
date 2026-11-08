@@ -46,6 +46,7 @@ function runPnpm(args, cwd) {
 
 try {
   const app = join(root, 'packages/el-bot')
+  const sourceManifest = await readFile(join(app, 'package.json'), 'utf8')
   let archive = process.argv[2] ? resolve(process.argv[2]) : undefined
   if (!archive) {
     runPnpm(['pack', '--pack-destination', temporary], app)
@@ -53,6 +54,7 @@ try {
     if (filename)
       archive = join(temporary, filename)
   }
+  assert.equal(await readFile(join(app, 'package.json'), 'utf8'), sourceManifest, 'Packing changed the source manifest')
   assert(archive, 'No package archive produced')
   const consumer = join(temporary, 'consumer')
   await mkdir(consumer)
@@ -61,6 +63,8 @@ try {
   const installed = join(consumer, 'node_modules/el-bot')
   const manifest = JSON.parse(await readFile(join(installed, 'package.json'), 'utf8'))
   assert(!JSON.stringify(manifest.dependencies).match(/workspace:|catalog:/))
+  assert(!manifest.dependencies['@el-bot/commands'])
+  assert(!manifest.publishConfig?.directory)
   assert(!manifest.dependencies['qq-sdk'])
   assert(!manifest.dependencies['@el-bot/codex'])
   assert(!manifest.dependencies['@el-bot/persona'])
@@ -74,6 +78,8 @@ try {
   assert.equal(manifest.exports['.'].import, './dist/index.mjs')
   assert.equal(manifest.exports['.'].types, './dist/index.d.mts')
   assert.equal(manifest.exports['./nest'].import, './dist/nest.mjs')
+  for (const file of (await readdir(join(installed, 'dist'))).filter(file => file.endsWith('.d.mts')))
+    assert(!(await readFile(join(installed, 'dist', file), 'utf8')).includes('@el-bot/commands'), `${file} references the private command package`)
   await writeFile(join(consumer, 'import.mjs'), `
     import assert from 'node:assert/strict'
     import { fileURLToPath } from 'node:url'
@@ -129,7 +135,7 @@ try {
   run(process.execPath, ['import.mjs'], consumer)
   const template = join(root, 'packages/create-app/template-ts')
   const templateManifest = JSON.parse(await readFile(join(template, 'package.json'), 'utf8'))
-  runPnpm(['--ignore-workspace', 'add', '--save-dev', `typescript@${manifest.devDependencies.typescript}`, `@types/node@${manifest.devDependencies['@types/node']}`, `tsx@${templateManifest.devDependencies.tsx}`, '--ignore-scripts'], consumer)
+  runPnpm(['--ignore-workspace', 'add', '--save-dev', `typescript@${templateManifest.devDependencies.typescript}`, `@types/node@${templateManifest.devDependencies['@types/node']}`, `tsx@${templateManifest.devDependencies.tsx}`, '--ignore-scripts'], consumer)
   await cp(template, join(consumer, 'template'), { recursive: true })
   run(process.execPath, [join(consumer, 'node_modules/typescript/bin/tsc'), '--project', 'template/tsconfig.json'], consumer)
   await writeFile(join(consumer, 'template-check.ts'), `
@@ -217,6 +223,12 @@ try {
     assert(run(process.execPath, [cli, 'codex', 'render', '--part', '2', '--output', invalidPreview], consumer, false).includes('--part 仅用于 help'))
   }
   assert(run(process.execPath, [cli, 'dev', '--help'], consumer).includes('--port'))
+  const legacyRoot = join(consumer, 'legacy-offline')
+  await mkdir(legacyRoot)
+  await writeFile(join(legacyRoot, 'el-bot.config.ts'), 'throw new Error("package-smoke-legacy-core-loaded")\nexport default {}\n')
+  const legacyLoad = run(process.execPath, [cli, 'dev', legacyRoot], consumer, false)
+  assert(legacyLoad.includes('package-smoke-legacy-core-loaded'), legacyLoad)
+  assert(!legacyLoad.includes('Cannot find package \'@el-bot/commands\''), legacyLoad)
   const legacyError = run(process.execPath, [cli, '--legacy-invalid-option'], consumer, false)
   assert(/Unknown arguments?: legacy-invalid-option/.test(legacyError), legacyError)
   assert(run(process.execPath, [cli, '--version'], consumer).includes(manifest.version))

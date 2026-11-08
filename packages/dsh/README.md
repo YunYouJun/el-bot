@@ -87,20 +87,35 @@ QQ 后台的指令面板只负责客户端展示和点击输入，`only_admin` �
 ```ts
 import type { QQCommandRegistry } from '@el-bot/dsh/qq-security'
 
-export function apply(ctx: { get: (name: string) => unknown }) {
-  const commands = ctx.get('qqCommands') as QQCommandRegistry
-  commands.command('echo')
-    .description('原样返回参数')
-    .usage('/echo <文本>')
-    .example('/echo hello')
-    .alias('repeat')
-    .scope('c2c')
-    .permission('owner')
-    .action((args, command) => args.length
-      ? args.join(' ')
-      : command.replyMarkdown('### 用法\n\n发送 **/echo 文本**', '用法：/echo 文本'))
+export const name = 'example-command'
+export const inject = ['qqCommands']
+
+interface CommandContext {
+  get: (name: 'qqCommands') => QQCommandRegistry
+  effect: (install: () => () => void, label?: string) => unknown
+}
+
+export function apply(ctx: CommandContext) {
+  ctx.effect(() => {
+    const commands = ctx.get('qqCommands')
+    const command = commands.command('echo')
+      .description('原样返回参数')
+      .usage('/echo <文本>')
+      .example('/echo hello')
+      .alias('repeat')
+      .scope('c2c')
+      .permission('owner')
+      .action((args, command) => args.length
+        ? args.join(' ')
+        : command.replyMarkdown('### 用法\n\n发送 **/echo 文本**', '用法：/echo 文本'))
+    return () => command.dispose()
+  }, 'example-command.echo')
 }
 ```
+
+`ctx.effect()` 将注销函数绑定到本次插件实例；卸载时命令及别名同时从路由和帮助移除，重新挂载后可再次注册。也可直接调用 `command.dispose()`。
+
+`commands.directory()` 提供隔离的结构化目录，每个命令只出现一次，包含 `source: 'local' | 'delegated'` 和帮助元数据。目录读取不执行 action；该目录可作为后续 QQ 面板的离线输入。
 
 这不是旧 `plugins/` 里绑定 NapCat `Bot` 实例的 `ctx.command()`；DSH 运行时通过 `qqCommands` 提供同风格的链式注册，旧插件需要迁移到 Cordis 入口后再注册。命令定义不接受 YAML 中的任意代码，避免把配置读取变成远程执行入口。
 

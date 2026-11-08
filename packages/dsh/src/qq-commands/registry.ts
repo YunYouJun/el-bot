@@ -1,4 +1,5 @@
 import type { Inbound, Target } from '../qq-security/contracts'
+import { CommandCatalog } from '@el-bot/commands'
 
 export type QQCommandScope = 'c2c' | 'group' | 'all'
 export type QQCommandPermission = 'owner' | 'group-admin' | 'everyone'
@@ -49,6 +50,10 @@ export interface RegisteredQQCommand extends QQCommandInfo {
   readonly action: QQCommandAction
 }
 
+export interface QQCommandDirectoryEntry extends QQCommandInfo {
+  readonly source: 'local' | 'delegated'
+}
+
 export interface QQCommandRegistryOptions {
   /** Commands handled by dsh-qqbot itself. They are documented but pass through untouched. */
   readonly catalog?: readonly QQCommandInfo[]
@@ -59,6 +64,15 @@ export interface QQCommandRegistryOptions {
 const NAME = /^[a-z0-9][\w:-]{0,31}$/i
 const MAX_HELP = 1600
 
+function normalizeQQName(name: string) {
+  return name.trim().replace(/^\//u, '').toLowerCase()
+}
+
+function validateQQName(name: string) {
+  if (!NAME.test(name))
+    throw new Error('A QQ command name must be 1-32 letters, numbers, colons, underscores or hyphens')
+}
+
 export function isQQCommandMarkdownReply(value: unknown): value is QQCommandMarkdownReply {
   return typeof value === 'object'
     && value !== null
@@ -66,9 +80,11 @@ export function isQQCommandMarkdownReply(value: unknown): value is QQCommandMark
 }
 
 function normalizedNames(names: string | readonly string[]) {
-  const values = (Array.isArray(names) ? names : [names]).map(name => name.trim().toLowerCase())
-  if (!values.length || values.some(name => !NAME.test(name)))
+  const values = (Array.isArray(names) ? names : [names]).map(normalizeQQName)
+  if (!values.length || values.some(name => !name))
     throw new Error('A QQ command name must be 1-32 letters, numbers, colons, underscores or hyphens')
+  for (const name of values)
+    validateQQName(name)
   if (new Set(values).size !== values.length)
     throw new Error('A QQ command cannot repeat one of its own aliases')
   return values
@@ -94,6 +110,7 @@ export class QQCommandBuilder {
   private commandPermission: QQCommandPermission = 'owner'
   private hiddenCommand = false
   private registered = false
+  private disposeRegistration?: () => void
 
   constructor(private readonly registry: QQCommandRegistry, readonly name: string) {
     normalizedNames(name)
@@ -122,8 +139,9 @@ export class QQCommandBuilder {
 
   alias(...names: string[]) {
     this.mutable()
-    this.aliasList.push(...names)
-    normalizedNames([this.name, ...this.aliasList])
+    const next = [...this.aliasList, ...names]
+    normalizedNames([this.name, ...next])
+    this.aliasList = next
     return this
   }
 
@@ -150,7 +168,7 @@ export class QQCommandBuilder {
     this.mutable()
     if (typeof callback !== 'function')
       throw new TypeError('A QQ command action must be a function')
-    this.registry.add({
+    const dispose = this.registry.add({
       name: this.name,
       aliases: [...this.aliasList],
       description: this.descriptionText,
@@ -161,32 +179,45 @@ export class QQCommandBuilder {
       hidden: this.hiddenCommand,
       action: callback,
     })
+    this.disposeRegistration = dispose
     this.registered = true
     return this
+  }
+
+  /** Remove this registration and all of its aliases. Safe to call more than once. */
+  readonly dispose = () => {
+    this.disposeRegistration?.()
+    this.disposeRegistration = undefined
   }
 }
 
 /** Explicit, transport-neutral command catalog exposed to Cordis plugins as `qqCommands`. */
 export class QQCommandRegistry {
   readonly catalog: readonly QQCommandInfo[]
-  private readonly commands = new Map<string, RegisteredQQCommand>()
-  private readonly ordered: RegisteredQQCommand[] = []
-  private readonly reserved: Set<string>
-  private readonly catalogNames = new Set<string>()
+  private readonly builtins: CommandCatalog<QQCommandInfo>
+  private readonly commands: CommandCatalog<RegisteredQQCommand>
 
   constructor(options: QQCommandRegistryOptions = {}) {
-    this.catalog = options.catalog ?? []
-    this.reserved = new Set((options.reserved ?? this.catalog.flatMap(command => [command.name, ...command.aliases]))
-      .map(name => name.toLowerCase()))
-    for (const command of this.catalog) {
-      for (const name of [command.name, ...command.aliases])
-        this.catalogNames.add(name.toLowerCase())
-    }
+    this.catalog = [...(options.catalog ?? [])]
+    this.builtins = new CommandCatalog<QQCommandInfo>({
+      normalize: normalizeQQName,
+      validate: validateQQName,
+    })
+    for (const command of this.catalog)
+      this.builtins.register({ name: command.name, aliases: command.aliases, payload: command })
+    this.commands = new CommandCatalog<RegisteredQQCommand>({
+      normalize: normalizeQQName,
+      validate: validateQQName,
+      reserved: [
+        ...(options.reserved ?? []),
+        ...this.catalog.flatMap(command => [command.name, ...command.aliases]),
+      ],
+    })
   }
 
   command(name: string) {
     const [normalized] = normalizedNames(name)
-    if (this.reserved.has(normalized))
+    if (this.commands.isReserved(normalized))
       throw new Error(`QQ command "${normalized}" is reserved by dsh-qqbot`)
     if (this.commands.has(normalized))
       throw new Error(`QQ command "${normalized}" already exists`)
@@ -216,45 +247,44 @@ export class QQCommandRegistry {
 
   /** Internal registration path. Builders validate before reaching this method. */
   add(command: RegisteredQQCommand) {
-    const names = normalizedNames([command.name, ...command.aliases])
-    for (const name of names) {
-      if (this.reserved.has(name))
-        throw new Error(`QQ command "${name}" is reserved by dsh-qqbot`)
-      if (this.commands.has(name))
-        throw new Error(`QQ command "${name}" already exists`)
-    }
-    for (const name of names)
-      this.commands.set(name, command)
-    this.ordered.push(command)
+    return this.commands.register({
+      name: command.name,
+      aliases: command.aliases,
+      payload: command,
+    })
   }
 
   resolve(name: string) {
-    return this.commands.get(name.trim().replace(/^\//u, '').toLowerCase())
+    return this.commands.resolve(name)
   }
 
   all(): readonly RegisteredQQCommand[] {
-    return this.ordered
+    return this.commands.list().map(entry => entry.payload)
   }
 
   isCatalogName(name: string) {
-    return this.catalogNames.has(name.trim().replace(/^\//u, '').toLowerCase())
+    return this.builtins.has(name)
+  }
+
+  /** Immutable directory used by help and future offline panel inputs. */
+  directory(): readonly QQCommandDirectoryEntry[] {
+    return [
+      ...this.entries('local').map(command => this.directoryEntry(command, 'local')),
+      ...this.entries('delegated').map(command => this.directoryEntry(command, 'delegated')),
+    ]
   }
 
   help(query?: string): string {
     if (query) {
-      const name = query.trim().replace(/^\//u, '').toLowerCase()
-      const custom = this.resolve(name)
-      if (custom)
-        return this.detail(custom)
-      const builtin = this.catalog.find(command => [command.name, ...command.aliases]
-        .some(value => value.toLowerCase() === name))
-      if (builtin)
-        return this.detail(builtin)
+      const command = this.find(query)
+      if (command)
+        return this.detail(command)
+      const name = normalizeQQName(query)
       const safe = name.replace(/[^\w:-]/giu, '').slice(0, 32)
       return safe ? `未找到指令 /${safe}。发送 /help 查看可用指令。` : '发送 /help 查看可用指令。'
     }
-    const custom = this.ordered.filter(command => !command.hidden)
-    const builtin = this.catalog.filter(command => !command.hidden)
+    const custom = this.visible('local')
+    const builtin = this.visible('delegated')
     const lines = ['小云可用指令（发送 /help <指令> 查看用法）', '']
     if (custom.length) {
       lines.push('自定义指令')
@@ -273,18 +303,13 @@ export class QQCommandRegistry {
   /** Rich help rendered with QQ's supported custom Markdown subset. */
   helpMarkdown(query?: string): string {
     if (query) {
-      const name = query.trim().replace(/^\//u, '').toLowerCase()
-      const custom = this.resolve(name)
-      if (custom)
-        return this.markdownDetail(custom)
-      const builtin = this.catalog.find(command => [command.name, ...command.aliases]
-        .some(value => value.toLowerCase() === name))
-      if (builtin)
-        return this.markdownDetail(builtin)
+      const command = this.find(query)
+      if (command)
+        return this.markdownDetail(command)
       return `### 未找到指令\n\n${this.help(query)}`
     }
-    const custom = this.ordered.filter(command => !command.hidden)
-    const builtin = this.catalog.filter(command => !command.hidden)
+    const custom = this.visible('local')
+    const builtin = this.visible('delegated')
     const lines = [
       '### 小云可用指令',
       '> 发送 **/help 指令名** 查看详细用法',
@@ -304,6 +329,34 @@ export class QQCommandRegistry {
     }
     lines.push('***', '> 指令仅在认证主人的私聊中生效')
     return lines.join('\n').trim().slice(0, MAX_HELP)
+  }
+
+  private entries(source: 'local' | 'delegated'): readonly QQCommandInfo[] {
+    return source === 'local'
+      ? this.commands.list().map(entry => entry.payload)
+      : this.builtins.list().map(entry => entry.payload)
+  }
+
+  private visible(source: 'local' | 'delegated') {
+    return this.entries(source).filter(command => !command.hidden)
+  }
+
+  private find(name: string) {
+    return this.commands.resolve(name) ?? this.builtins.resolve(name)
+  }
+
+  private directoryEntry(command: QQCommandInfo, source: 'local' | 'delegated'): QQCommandDirectoryEntry {
+    return {
+      name: command.name,
+      aliases: [...command.aliases],
+      description: command.description,
+      ...(command.usage ? { usage: command.usage } : {}),
+      examples: [...command.examples],
+      scope: command.scope,
+      permission: command.permission,
+      hidden: command.hidden,
+      source,
+    }
   }
 
   private line(command: QQCommandInfo) {

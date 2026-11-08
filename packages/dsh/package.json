@@ -50,6 +50,9 @@
   "peerDependencies": {
     "react": ">=18 <20"
   },
+  "dependencies": {
+    "@el-bot/commands": "workspace:*"
+  },
   "devDependencies": {
     "@el-bot/persona": "workspace:*",
     "@types/markdown-it": "catalog:",

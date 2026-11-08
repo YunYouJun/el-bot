@@ -80,6 +80,88 @@ describe('qQ command registry', () => {
     expect(() => commands.command('help')).toThrow('already exists')
     commands.command('one').alias('two').action(() => 'ok')
     expect(() => commands.command('three').alias('two').action(() => 'no')).toThrow('already exists')
+    expect(commands.resolve('three')).toBeUndefined()
+  })
+
+  it('keeps delegated names reserved even when extra reserved names are supplied', () => {
+    const commands = new QQCommandRegistry({
+      catalog: DOWNSTREAM_COMMANDS,
+      reserved: ['custom-reserved'],
+    })
+    expect(() => commands.command('new')).toThrow('reserved')
+    expect(() => commands.command('reset')).toThrow('reserved')
+    expect(() => commands.command('custom-reserved')).toThrow('reserved')
+  })
+
+  it('returns one structured directory entry per registration with its source', async () => {
+    const commands = registry()
+    const action = vi.fn(() => 'directory')
+    commands.command('echo')
+      .description('原样返回参数')
+      .usage('echo <文本>')
+      .example('echo hello')
+      .alias('repeat')
+      .action(action)
+    commands.command('secret').hidden().action(() => 'hidden')
+
+    const directory = commands.directory()
+    expect(directory.filter(command => command.name === 'echo')).toHaveLength(1)
+    expect(directory.find(command => command.name === 'repeat')).toBeUndefined()
+    expect(directory.find(command => command.name === 'echo')).toMatchObject({
+      name: 'echo',
+      aliases: ['repeat'],
+      description: '原样返回参数',
+      usage: 'echo <文本>',
+      examples: ['echo hello'],
+      scope: 'c2c',
+      permission: 'owner',
+      hidden: false,
+      source: 'local',
+    })
+    expect(directory.find(command => command.name === 'new')).toMatchObject({
+      source: 'delegated',
+      aliases: ['reset', 'clear'],
+    })
+    expect(directory.find(command => command.name === 'secret')?.hidden).toBe(true)
+    expect(commands.help()).not.toContain('/secret')
+    expect(action).not.toHaveBeenCalled()
+
+    ;(directory.find(command => command.name === 'echo')!.aliases as string[]).push('mutated')
+    expect(commands.directory().find(command => command.name === 'echo')!.aliases).toEqual(['repeat'])
+    expect(commands.resolve('mutated')).toBeUndefined()
+  })
+
+  it('removes commands and aliases on dispose and restores them on remount', async () => {
+    const commands = registry()
+    const effects: (() => void)[] = []
+    const mount = () => {
+      effects.push((() => {
+        const command = commands.command('temporary')
+          .description('临时命令')
+          .alias('temp')
+          .action(() => 'temporary')
+        return () => command.dispose()
+      })())
+    }
+    const unmount = () => {
+      while (effects.length)
+        effects.pop()!()
+    }
+
+    mount()
+    expect(commands.resolve('temporary')).toBeDefined()
+    expect(commands.resolve('temp')).toBeDefined()
+    expect(commands.help()).toContain('/temporary')
+    expect(await new QQCommandRouter(commands, { owner: 'owner' }).handle(inbound('/temp'))).toBe(true)
+    unmount()
+    expect(commands.resolve('temporary')).toBeUndefined()
+    expect(commands.resolve('temp')).toBeUndefined()
+    expect(commands.help()).not.toContain('/temporary')
+
+    mount()
+    expect(commands.resolve('temp')).toBeDefined()
+    unmount()
+    expect(commands.resolve('temp')).toBeUndefined()
   })
 
   it('parses mentions and delegates known dsh-qqbot commands without consuming them', async () => {

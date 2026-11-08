@@ -78,9 +78,10 @@
     "dev": "vite-node --watch bin/legacy.ts",
     "release": "pnpm -w release",
     "build": "tsdown",
-    "prepack": "pnpm build"
+    "prepack": "pnpm --filter @el-bot/commands build && pnpm build"
   },
   "dependencies": {
+    "@el-bot/commands": "workspace:*",
     "@hono/node-server": "catalog:",
     "@nestjs/common": "catalog:",
     "@octokit/webhooks": "catalog:",

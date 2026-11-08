@@ -1,0 +1,31 @@
+{
+  "name": "@el-bot/commands",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Runtime-neutral command catalog used by el-bot and DSH adapters",
+  "license": "AGPL-3.0",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "prepack": "pnpm build"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -93,6 +93,78 @@ describe('user command registration and execution', () => {
     expect(callback).not.toHaveBeenCalled()
   })
 
+  it('keeps the children view and live metadata compatible after registration', () => {
+    const { commands } = createBot()
+    const command = commands.command('回声')
+      .description('旧描述')
+      .usage('回声 <文本>')
+      .action(() => '结果')
+
+    expect(commands.children.get('回声')).toBe(command)
+    expect(commands.getHelp('回声')).toBe('回声：旧描述\n用法：回声 <文本>')
+    command.description('新描述').usage('回声 [文本]').example('回声 你好')
+    expect(commands.children.get('回声')).toBe(command)
+    expect(commands.getHelp('回声')).toBe('回声：新描述\n用法：回声 [文本]\n示例：\n  回声 你好')
+  })
+
+  it('removes a command and its help on dispose without removing a later registration', async () => {
+    const { commands } = createBot()
+    const first = commands.command('临时').action(() => '旧结果')
+    first.dispose()
+    first.dispose()
+    expect(await commands.execute('临时')).toEqual({ matched: false })
+    expect(commands.getHelp()).not.toContain('临时')
+    expect(commands.children.has('临时')).toBe(false)
+
+    const second = commands.command('临时').action(() => '新结果')
+    first.dispose()
+    expect(await commands.execute('临时')).toEqual({ matched: true, result: '新结果' })
+    second.dispose()
+    expect(await commands.execute('临时')).toEqual({ matched: false })
+  })
+
+  it('keeps a cached children Map live through registration and removal', async () => {
+    const { commands } = createBot()
+    const children = commands.children
+    const first = commands.command('first').action(() => 'first')
+    expect(commands.children).toBe(children)
+    expect(first.children).toBe(children)
+    expect(children.get('first')).toBe(first)
+    expect(children.delete('first')).toBe(true)
+    expect(children.delete('first')).toBe(false)
+    expect(await commands.execute('first')).toEqual({ matched: false })
+    expect(commands.getHelp()).not.toContain('first')
+
+    commands.command('second').action(() => 'second')
+    children.clear()
+    expect(children.size).toBe(0)
+    expect(await commands.execute('second')).toEqual({ matched: false })
+  })
+
+  it('supports Map replacement, live iteration and registration-aware disposal', async () => {
+    const { bot, commands } = createBot()
+    const children = commands.children
+    const first = commands.command('first').action(() => 'old')
+    commands.command('second').action(() => 'second')
+    const replacement = new Command(bot, 'first')
+    replacement.callback = () => 'replacement'
+    expect(children.set('first', replacement)).toBe(children)
+    first.dispose()
+    expect(await commands.execute('first')).toEqual({ matched: true, result: 'replacement' })
+    expect([...children.keys()]).toEqual(['first', 'second'])
+
+    const visited: string[] = []
+    children.forEach((command, name, collection) => {
+      expect(collection).toBe(children)
+      expect(collection.get(name)).toBe(command)
+      visited.push(name)
+      if (name === 'first')
+        commands.command('third').action(() => 'third')
+    })
+    expect(visited).toEqual(['first', 'second', 'third'])
+    expect([...children].map(([name]) => name)).toEqual(visited)
+  })
+
   it('provides built-in help with aliases even when the registry is empty', async () => {
     const { commands } = createBot()
     expect(await commands.execute('help')).toEqual(await commands.execute('帮助'))
@@ -140,6 +212,20 @@ describe('user command registration and execution', () => {
       commands.command('部分').action(() => '新结果')
     })
     expect(await commands.execute('部分')).toEqual({ matched: true, result: '新结果' })
+  })
+
+  it('cleans plugin commands registered through the legacy Map', async () => {
+    const { bot, commands } = createBot()
+    commands.command('manual').action(() => 'manual')
+    const plugin = new Command(bot, 'plugin')
+    plugin.callback = () => 'plugin'
+    await commands.reloadPlugins(async () => {
+      commands.children.set('plugin', plugin)
+    })
+    expect(await commands.execute('plugin')).toEqual({ matched: true, result: 'plugin' })
+    await commands.reloadPlugins(async () => {})
+    expect(await commands.execute('plugin')).toEqual({ matched: false })
+    expect(await commands.execute('manual')).toEqual({ matched: true, result: 'manual' })
   })
 })
 

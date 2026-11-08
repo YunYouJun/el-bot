@@ -10,6 +10,7 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "paths": {
+      "@el-bot/commands": ["../commands/src/index.ts"],
       "el-bot/adapter": ["core/adapter.ts"],
       "#plugin-qq": ["../plugin-qq/src/index.ts"],
       "qq-sdk": ["../qq-sdk/src/index.ts"],

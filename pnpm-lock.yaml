@@ -291,6 +291,8 @@ overrides:
   pm2>js-yaml: ^4.3.2
   socks>ip-address: ^10.7.6
 
+pnpmfileChecksum: sha256-i8sD2g01/UJJMfsKEIsuylJeDmFbG6B/s8GOjfRCQ1U=
+
 patchedDependencies:
   mirai-ts@2.4.8: b35dfb9c6b6910658850b66ee5746d591e35e10a5fb93705c223a45b5d5f5e64
   rss-feed-emitter@4.0.0: 8ad8b1485d15025859dc16988963bb8f20e9677fd1165c17039650192f72a30c
@@ -614,6 +616,18 @@ importers:
         specifier: 'catalog:'
         version: 5.9.3
 
+  packages/commands:
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.6.6
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.23.5(@volar/typescript@2.4.30(typescript@5.9.3))(@vue/language-core@3.3.14)(publint@0.3.25)(tsx@4.23.15)(typescript@5.9.3)(vue-tsc@3.3.14(typescript@5.9.3))
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
   packages/create-app:
     dependencies:
       enquirer:
@@ -643,6 +657,10 @@ importers:
         version: 5.9.3
 
   packages/dsh:
+    dependencies:
+      '@el-bot/commands':
+        specifier: workspace:*
+        version: link:../commands
     devDependencies:
       '@el-bot/persona':
         specifier: workspace:*
@@ -692,6 +710,9 @@ importers:
 
   packages/el-bot:
     dependencies:
+      '@el-bot/commands':
+        specifier: workspace:*
+        version: link:../commands
       '@hono/node-server':
         specifier: 'catalog:'
         version: 2.1.6(hono@4.13.16)

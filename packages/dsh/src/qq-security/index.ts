@@ -62,7 +62,7 @@ export async function apply(ctx: SecurityContext, settings: SecuritySettings) {
   const policy = new QQSecurity(settings, new SecurityStore(join(profile, 'el-bot-security/state.json')), groupDirectory)
   const commands = new QQCommandRegistry({ catalog: DOWNSTREAM_COMMANDS })
   let restarting = false
-  registerBuiltinQQCommands(commands, {
+  const builtinCommandDisposers = registerBuiltinQQCommands(commands, {
     restart: async (force, reply) => {
       const exit = ctx.get('appExit')
       const supervised = process.env.DSH_RESTART_SUPERVISED === '1' || existsSync('/.dockerenv')
@@ -94,6 +94,10 @@ export async function apply(ctx: SecurityContext, settings: SecuritySettings) {
       setTimeout(exit as (code: number) => void, 750, 0)
     },
   })
+  ctx.effect(() => () => {
+    for (const dispose of builtinCommandDisposers)
+      dispose()
+  }, 'el-bot.qq-commands')
   ctx.provide('qqCommands', commands)
   const commandRouter = new QQCommandRouter(commands, {
     owner: policy.owner,

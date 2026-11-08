@@ -2,9 +2,15 @@ import type { Bot } from '..'
 import type { MessageContext } from '../../adapter'
 import type { NapcatMessage } from '../../composition-api'
 import type { CommandAction, CommandContext, CommandExecution, CommandReply } from './types'
+import { CommandCatalog } from '@el-bot/commands'
 import { getCommandText, getHelpContent, helpNames } from './utils'
 
 export * from './types'
+
+function validateCommandName(name: string) {
+  if (!name || /\s/u.test(name))
+    throw new Error('A command name must be a single non-empty word')
+}
 
 /** A user command definition, backed by the bot's shared registry. */
 export class Command {
@@ -12,18 +18,33 @@ export class Command {
   usageText = ''
   examples: string[] = []
   callback?: CommandAction
-  readonly children: Map<string, Command>
-  private pluginCommands = new Set<Command>()
+  private readonly catalog: CommandCatalog<Command>
+  private registration?: () => void
+  private pluginDisposers = new Set<() => void>()
 
   constructor(public ctx: Bot, public readonly name = '', registry?: Command) {
-    this.children = registry?.children ?? new Map()
+    this.catalog = registry?.catalog ?? new CommandCatalog<Command>({
+      normalize: value => value.trim(),
+      validate: validateCommandName,
+      reserved: helpNames,
+      describe: command => ({
+        description: command.desc,
+        usage: command.usageText || undefined,
+        examples: command.examples,
+        hidden: false,
+      }),
+    })
+  }
+
+  /** Compatibility view of the shared catalog for existing plugin code. */
+  get children(): Map<string, Command> {
+    return this.catalog.asMap()
   }
 
   command(name: string) {
     name = name.trim()
-    if (!name || /\s/u.test(name))
-      throw new Error('A command name must be a single non-empty word')
-    if (helpNames.has(name) || this.children.has(name))
+    validateCommandName(name)
+    if (this.catalog.isReserved(name) || this.catalog.has(name))
       throw new Error(`Command "${name}" already exists`)
     return new Command(this.ctx, name, this)
   }
@@ -47,29 +68,39 @@ export class Command {
   action(callback: CommandAction) {
     if (!this.name)
       throw new Error('Register a command before setting its action')
-    if (helpNames.has(this.name) || this.children.has(this.name))
+    if (this.catalog.isReserved(this.name) || this.catalog.has(this.name))
       throw new Error(`Command "${this.name}" already exists`)
+    this.registration = this.catalog.register({ name: this.name, payload: this })
     this.callback = callback
-    this.children.set(this.name, this)
     return this
   }
 
   getHelp(name?: string) {
-    return getHelpContent(this.children, name)
+    return getHelpContent(this.catalog, name)
+  }
+
+  /** Remove this command and its action from the shared catalog. */
+  dispose() {
+    this.registration?.()
+    this.registration = undefined
   }
 
   /** Replace plugin registrations on restart while preserving manual commands. */
   async reloadPlugins(setup: () => Promise<void>) {
-    for (const [name, command] of this.children) {
-      if (this.pluginCommands.has(command))
-        this.children.delete(name)
-    }
-    const existing = new Set(this.children.values())
+    for (const dispose of this.pluginDisposers)
+      dispose()
+    const existing = new Set(this.catalog.list().map(entry => this.catalog.getDisposer(entry.name)))
     try {
       await setup()
     }
     finally {
-      this.pluginCommands = new Set([...this.children.values()].filter(command => !existing.has(command)))
+      const pluginDisposers = new Set<() => void>()
+      for (const entry of this.catalog.list()) {
+        const dispose = this.catalog.getDisposer(entry.name)
+        if (dispose && !existing.has(dispose))
+          pluginDisposers.add(dispose)
+      }
+      this.pluginDisposers = pluginDisposers
     }
   }
 
@@ -78,7 +109,7 @@ export class Command {
     const [name, ...args] = text.trim().split(/\s+/u)
     if (helpNames.has(name))
       return { matched: true, result: this.getHelp(args[0]) }
-    const command = this.children.get(name)
+    const command = this.catalog.resolve(name)
     if (!command?.callback)
       return { matched: false }
 
@@ -109,7 +140,7 @@ export class Command {
 
   /** Return true only when a command has consumed the incoming message. */
   async handleMessage(message: NapcatMessage, session?: MessageContext) {
-    const text = getCommandText(message, this.ctx.el.bot.name, this.children)
+    const text = getCommandText(message, this.ctx.el.bot.name, name => this.catalog.has(name))
     if (text === undefined)
       return false
     try {
