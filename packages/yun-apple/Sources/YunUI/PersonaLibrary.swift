@@ -17,6 +17,8 @@ private extension ToolbarItemPlacement {
     private(set) var response: PersonaResponse?
     private(set) var preview: PersonaPreview?
     private(set) var busy = false
+    private(set) var switchingCardID: String?
+    private(set) var feedbackCount = 0
     private(set) var errorKey: String?
     private(set) var noticeKey: String?
     @ObservationIgnored private let api: MobileAPI
@@ -35,9 +37,13 @@ private extension ToolbarItemPlacement {
     @discardableResult func perform(_ request: PersonaRequest) async -> Bool {
         guard !busy else { return false }
         busy = true
+        if request.operation == .use { switchingCardID = request.id }
         errorKey = nil
         noticeKey = nil
-        defer { busy = false }
+        defer {
+            busy = false
+            switchingCardID = nil
+        }
         do {
             let result = try await api.personas(request)
             try Task.checkCancellation()
@@ -45,6 +51,7 @@ private extension ToolbarItemPlacement {
             if let value = result.preview { preview = value }
             if request.operation == .use || request.operation == .disable { noticeKey = "persona.saved" }
             if request.operation == .import || request.operation == .update { noticeKey = "persona.imported" }
+            if request.operation != .list && request.operation != .preview { feedbackCount += 1 }
             return true
         } catch {
             guard !Task.isCancelled else { return false }
@@ -144,31 +151,58 @@ private struct PersonaLibraryView: View {
                         )
                     }
                     ForEach(library.cards) { card in
-                        NavigationLink {
-                            PersonaDetailView(model: model, cardID: card.id)
-                        } label: {
-                            HStack(spacing: 12) {
-                                PersonaAvatar(personaID: card.id)
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(card.metadata.name)
-                                    if let detail = card.metadata.description {
-                                        Text(detail).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                        let active = library.active?.id == card.id
+                        let latestEnabled = library.active?.id == card.id && library.active?.hash == card.hash
+                        HStack(spacing: 8) {
+                            NavigationLink {
+                                PersonaDetailView(model: model, cardID: card.id)
+                            } label: {
+                                HStack(spacing: 12) {
+                                    PersonaAvatar(personaID: card.id)
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(card.metadata.name).lineLimit(1)
+                                        if let detail = card.metadata.description {
+                                            Text(detail).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                                        }
+                                    }
+                                    Spacer(minLength: 0)
+                                    if active {
+                                        Image(systemName: "checkmark.circle.fill").foregroundStyle(.tint)
+                                            .accessibilityLabel(text["persona.enabled"])
                                     }
                                 }
-                                Spacer()
-                                if library.active?.id == card.id {
-                                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.tint)
-                                        .accessibilityLabel(text["persona.enabled"])
-                                }
-                            }
-                        }
-                        .disabled(model.busy)
-                        .accessibilityIdentifier("personaCard-" + card.id)
-                        .contextMenu {
-                            Button(text["persona.enableLatest"]) {
-                                Task { await model.perform(PersonaRequest(.use, id: card.id, revision: card.hash)) }
                             }
                             .disabled(model.busy)
+                            .accessibilityIdentifier("personaCard-" + card.id)
+                            #if os(macOS)
+                            .contextMenu {
+                                Button(text["persona.enableLatest"]) {
+                                    Task { await model.perform(PersonaRequest(.use, id: card.id, revision: card.hash)) }
+                                }
+                                .disabled(model.busy)
+                            }
+                            #endif
+                            #if os(iOS)
+                            if model.switchingCardID == card.id {
+                                ProgressView()
+                                    .controlSize(.small)
+                                    .frame(width: 44, height: 44)
+                                    .accessibilityLabel(text["persona.switching"])
+                            } else if !latestEnabled {
+                                Button {
+                                    Task { await model.perform(PersonaRequest(.use, id: card.id, revision: card.hash)) }
+                                } label: {
+                                    Text(text[active ? "persona.update" : "persona.switch"])
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                                .frame(minWidth: 44, minHeight: 44)
+                                .contentShape(Rectangle())
+                                .disabled(model.busy)
+                                .accessibilityLabel("\(text[active ? "persona.update" : "persona.switch"]) \(card.metadata.name)")
+                                .accessibilityIdentifier("personaSwitch-" + card.id)
+                            }
+                            #endif
                         }
                     }
                 }
@@ -198,6 +232,7 @@ private struct PersonaLibraryView: View {
             }
         }
         .refreshable { await model.perform(PersonaRequest(.list)) }
+        .sensoryFeedback(.success, trigger: model.feedbackCount)
         .task(id: scenePhase) {
             if scenePhase == .active { await model.perform(PersonaRequest(.list)) }
         }
