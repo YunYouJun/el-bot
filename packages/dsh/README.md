@@ -148,6 +148,14 @@ export function apply(ctx: CommandContext) {
 
 ## 定时群发
 
+### 主人私聊提醒
+
+主人在私聊或原生客户端中创建的 DSH 原生 `schedule` 提醒，与下文的定时群发使用不同的调度器。原生任务的 `lastDelivery` 仅证明提醒进入 DSH 会话并完成持久化，不是 QQ 发送回执。
+
+QQ 插件会在闲置 30 分钟后回收内存会话。`@el-bot/dsh/qq` 通过 `schedule/resolve-agent` 为当前绑定的主人私聊恢复 QQ 发送绑定，再交由原生调度器执行；恢复经过原有 QQ 身份准入，不复用过期的被动回复 ID。群聊、其他私聊和旧会话不获得此恢复能力。手动接管期间拒绝执行，绑定发生变化时明确失败。本轮 `runtime.json` 的 `ownerRemindersEnabled: true` 表示适配已安装，实际 QQ 发送仍受连接状态与平台权限约束。
+
+### 群发任务
+
 主人可以在「机器人」→「定时群发」（`#el-bot-schedule`，页面 `/el-bot/schedule/`）创建到点发送的任务。页面和 `/el-bot/schedule/api` 只接受通过 DSH 登录的主人 Cookie、Host 与 Origin 校验；任务不会注册为模型工具，群成员、群内提示注入和审批按钮都不能创建、修改或触发任务。每个实例最多 24 个任务，每个群最多 4 个。
 
 任务支持三种内容：

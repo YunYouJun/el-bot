@@ -3,6 +3,7 @@ import YunCore
 import YunUI
 
 @main struct YunIOSApp: App {
+    @UIApplicationDelegateAdaptor(ReminderNotificationDelegate.self) private var notifications
     @State private var preferences = AppPreferences()
     @State private var chat = ChatStore()
     @State private var yunleAccount = YunleAccountStore()

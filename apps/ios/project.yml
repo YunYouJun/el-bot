@@ -13,6 +13,11 @@ settings:
     MARKETING_VERSION: 0.1.0
     CURRENT_PROJECT_VERSION: '1'
     DEVELOPMENT_TEAM: ''
+  configs:
+    Debug:
+      APS_ENVIRONMENT: development
+    Release:
+      APS_ENVIRONMENT: production
 targets:
   Yun:
     type: application
@@ -35,6 +40,7 @@ targets:
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
         CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]: Config/Simulator.entitlements
         CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]: Config/Device.entitlements
+        PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: $(YUN_IOS_PROVISIONING_PROFILE)
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_FILE: Config/Info.plist
         INFOPLIST_KEY_CFBundleDisplayName: 小云 Bot

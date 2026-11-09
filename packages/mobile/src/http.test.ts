@@ -9,6 +9,7 @@ import { expect, it, vi } from 'vitest'
 import { DeviceStore } from './auth'
 import { signEnrollmentTicket } from './discovery'
 import { API_PATH, mobileRoutes } from './http'
+import { ReminderNotifications } from './notifications'
 
 const accountConfig = {
   cloudbaseEnvId: 'yunlefun-test',
@@ -56,6 +57,34 @@ function host(): MobileHost {
     status: vi.fn(async () => ({ name: 'Bot', appId: 'test', state: 'online' as const, checkedAt: new Date().toISOString() })),
   }
 }
+
+it('requires paired-device authorization to register private reminder tokens', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'yun-notification-http-'))
+  const devices = new DeviceStore(join(directory, 'devices.json'))
+  await devices.load()
+  const { code } = await devices.createPairing()
+  const paired = await devices.exchange(code, 'iPhone')
+  const notifications = new ReminderNotifications(join(directory, 'notifications.json'), devices, async row => ({ status: 'accepted', id: row.id }))
+  await notifications.load()
+  const listener = await listen(mobileRoutes(host(), devices, 'https://bot.example.test', undefined, undefined, undefined, undefined, undefined, undefined, undefined, notifications))
+  const registration = { token: 'ab'.repeat(32), environment: 'production' }
+  try {
+    const url = `${listener.url}/notifications`
+    expect((await fetch(url, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(registration) })).status).toBe(401)
+    const headers = { 'authorization': `Bearer ${paired.token}`, 'content-type': 'application/json' }
+    expect((await fetch(url, { method: 'PUT', headers: { ...headers, origin: 'https://attacker.test' }, body: JSON.stringify(registration) })).status).toBe(403)
+    expect((await fetch(url, { method: 'PUT', headers, body: JSON.stringify(registration) })).status).toBe(200)
+    const status = await (await fetch(url, { headers })).text()
+    expect(JSON.parse(status)).toEqual({ configured: true, registered: true })
+    expect(status).not.toContain(registration.token)
+    await devices.revoke(paired.device.id)
+    expect((await fetch(url, { headers })).status).toBe(401)
+  }
+  finally {
+    await listener.close()
+    await rm(directory, { recursive: true, force: true })
+  }
+})
 
 async function listen(handler: ReturnType<typeof mobileRoutes>) {
   const server = createServer(handler)

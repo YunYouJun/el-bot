@@ -11,6 +11,7 @@
 		11C50C58BF524D5B648941A3 /* MobileDSHWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ADFD09734D047F7C620B446 /* MobileDSHWebView.swift */; };
 		11EE1422404BA61D224700BB /* PhoneControlStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFC84945C49830C80D0EF80 /* PhoneControlStore.swift */; };
 		12DD0A6332E576F9CB3B98A6 /* YunUI in Frameworks */ = {isa = PBXBuildFile; productRef = 230A02706766BDB1F224CFCB /* YunUI */; };
+		18B74AE675F3014FE0758D10 /* ReminderNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D15968F3174ABB7729D7F6 /* ReminderNotifications.swift */; };
 		43806AD30DBBFC221E9B2B5C /* MobileRoot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D00932A9C7BECCAE2D100E4 /* MobileRoot.swift */; };
 		5269DEDAAB0676B0D74F113C /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 172ADD788D39A10E73B89A8E /* AppPreferences.swift */; };
 		531BD11193F02C8431C1DFA3 /* MobileDeviceToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C3A892E9A105326ADE7DFE7 /* MobileDeviceToolsView.swift */; };
@@ -33,6 +34,7 @@
 		8B7D9E905E61123B061AD75B /* MobileSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileSettings.swift; sourceTree = "<group>"; };
 		9BFC84945C49830C80D0EF80 /* PhoneControlStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneControlStore.swift; sourceTree = "<group>"; };
 		9D00932A9C7BECCAE2D100E4 /* MobileRoot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileRoot.swift; sourceTree = "<group>"; };
+		C3D15968F3174ABB7729D7F6 /* ReminderNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderNotifications.swift; sourceTree = "<group>"; };
 		DA884456BFDBE927B915AF9B /* MobilePersonasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobilePersonasView.swift; sourceTree = "<group>"; };
 		F1CDD738CD9ECC966E536F0F /* yun-apple */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "yun-apple"; path = "../../packages/yun-apple"; sourceTree = SOURCE_ROOT; };
 		F7FF153BE0FE47C5ABFBE9C3 /* Yun.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Yun.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -82,6 +84,7 @@
 				9D00932A9C7BECCAE2D100E4 /* MobileRoot.swift */,
 				8B7D9E905E61123B061AD75B /* MobileSettings.swift */,
 				9BFC84945C49830C80D0EF80 /* PhoneControlStore.swift */,
+				C3D15968F3174ABB7729D7F6 /* ReminderNotifications.swift */,
 				72A895CDFEDEF4AA73A98E2F /* YunIOSApp.swift */,
 			);
 			path = Sources;
@@ -188,6 +191,7 @@
 				43806AD30DBBFC221E9B2B5C /* MobileRoot.swift in Sources */,
 				CA951056FC91EAE52DE61DDD /* MobileSettings.swift in Sources */,
 				11EE1422404BA61D224700BB /* PhoneControlStore.swift in Sources */,
+				18B74AE675F3014FE0758D10 /* ReminderNotifications.swift in Sources */,
 				E3A88A63972B52A2092AE496 /* YunIOSApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -199,6 +203,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				APS_ENVIRONMENT = development;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -266,6 +271,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				APS_ENVIRONMENT = production;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -342,6 +348,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = fun.yunle.bot;
 				PRODUCT_NAME = Yun;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "$(YUN_IOS_PROVISIONING_PROFILE)";
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -369,6 +376,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = fun.yunle.bot;
 				PRODUCT_NAME = Yun;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "$(YUN_IOS_PROVISIONING_PROFILE)";
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;

@@ -13,11 +13,13 @@ import { isAbsolute, join } from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 import { adminSocket } from './admin'
+import { apnsSender } from './apns'
 import { DeviceStore } from './auth'
 import { createContextPolicyReader } from './context'
 import { sanitizeInstances } from './discovery'
 import { DshMobileHost } from './host'
 import { API_PATH, MobileError, mobileRoutes } from './http'
+import { ReminderNotifications } from './notifications'
 import { PhoneRelay } from './phone'
 import { QQChatAdapter } from './qq-chat'
 import { SessionLifecycle } from './session-lifecycle'
@@ -51,6 +53,32 @@ export function apply(ctx: MobileContext, settings: MobileSettings) {
     await mkdir(directory, { recursive: true, mode: 0o700 })
     const devices = new DeviceStore(join(directory, 'devices.json'))
     await devices.load()
+    const push = settings.push ?? (process.env.YUN_APNS_KEY_FILE
+      ? {
+          teamId: process.env.YUN_APNS_TEAM_ID ?? '',
+          keyId: process.env.YUN_APNS_KEY_ID ?? '',
+          keyFile: process.env.YUN_APNS_KEY_FILE,
+          topic: process.env.YUN_APNS_TOPIC ?? 'fun.yunle.bot',
+          ...process.env.YUN_APNS_SANDBOX_KEY_FILE || process.env.YUN_APNS_SANDBOX_KEY_ID
+            ? {
+                sandbox: { keyId: process.env.YUN_APNS_SANDBOX_KEY_ID ?? '', keyFile: process.env.YUN_APNS_SANDBOX_KEY_FILE ?? '' },
+              }
+            : {},
+        }
+      : undefined)
+    const notifications = new ReminderNotifications(join(directory, 'notifications.json'), devices, push ? await apnsSender(push) : undefined, origin.origin)
+    await notifications.load()
+    if (push && !ctx.on)
+      throw new Error('Reminder push requires host session events')
+    const stopNotifications = ctx.on?.('session/event', (session, event) => {
+      void notifications.event(session.header.id, event).catch(() => {
+        console.error('Reminder notification processing failed')
+      })
+    })
+    ctx.effect(async () => async () => {
+      stopNotifications?.()
+      await notifications.close()
+    })
     const require = createRequire(join(profile, 'package.json'))
     const sdk = createRequire(require.resolve('@deepseek-ai/dsh/package.json'))
     const helpers = await import(pathToFileURL(sdk.resolve('@deepseek-ai/dsh-llm')).href)
@@ -143,7 +171,7 @@ export function apply(ctx: MobileContext, settings: MobileSettings) {
         const code = error && typeof error === 'object' && 'code' in error && typeof error.code === 'string' && /^[\w/-]+$/.test(error.code) ? error.code : 'unknown'
         // Names and codes identify integration failures without logging prompts or credentials.
         console.error('Mobile request failed', error instanceof Error ? error.name : 'Error', code)
-      }, account && verify ? { config: account, verify } : undefined, discovery && verify ? { config: discovery, verify } : undefined, phone, () => ctx.get?.('elBotPersonas') as MobilePersonaService | undefined, qqChat, system) })
+      }, account && verify ? { config: account, verify } : undefined, discovery && verify ? { config: discovery, verify } : undefined, phone, () => ctx.get?.('elBotPersonas') as MobilePersonaService | undefined, qqChat, system, notifications) })
       if (gateway) {
         await new Promise<void>((resolve, reject) => {
           gateway.server.once('error', reject)

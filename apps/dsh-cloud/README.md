@@ -60,6 +60,20 @@ Web 恢复与 QQ 恢复同一会话时，持久化写锁可能先于 live agent 
 
 在已有云乐坊基础设施上，需要把部署配置和数据登记到 `/etc/yunlefun/workloads.json` 的文件备份清单。该应用没有独立数据库；不要把 DSH 登录 URL、Key、QQ 凭据或聊天记录写入公开验收文档。
 
+## 2026-11-09 主人提醒修复
+
+云端已部署 `releases/reminders-20261109`，保留 `el-bot/dsh-cloud:qq-roles-20261107` 镜像，只替换 DSH 集成与 mobile 包挂载。运维命令必须在原有十份 Compose 配置后追加 `compose.reminders.yaml`，否则重建容器会回到旧插件产物。
+
+本次将私有 profile 的 `el-bot-qq-security`／`@el-bot/dsh/qq-security`／`qqRuntimeSecurity` 改为 `el-bot-qq`／`@el-bot/dsh/qq`／`qqRuntime`，并停机将 `el-bot-security` 状态目录整体迁到 `el-bot-qq`。完整备份在 `releases/reminders-20261109/backup/before-cutover.tgz`，旧 Compose 路径清单在同目录 `baseline.json`；备份包含凭据与历史，必须保持私有。回退时先停机、另存新增数据，再恢复旧插件挂载和 profile 引用，并将状态目录改回旧名；不要用旧快照覆盖新增会话历史。
+
+上线已核对本轮容器健康、QQ ready、`ownerRemindersEnabled: true` 与安全标记。提供方凭据、设备配对、人物卡索引和 QQ 会话偏好的哈希与切换前一致。服务器内离线验收使用真实 QQ 出站路由器与闲置回收器，验证恢复前跳过、恢复后仅发送一次，并保留原有工具与身份限制；没有发送真实 QQ 测试消息或执行模型任务。
+
+随后已部署 `releases/apns-20261109/mobile`，为 `fun.yunle.bot` 配置独立的 Production、Sandbox Topic Specific APNs 密钥。两把密钥只保存在服务器 `secrets/apns/`，以只读文件挂载；父目录 `0700`、密钥 `0600`，容器 UID 1000 可读。原 `.env` 与切换前清单备份在该 release 的私有 `backup/` 下。运维命令还必须在上述配置后追加 `compose.apns.yaml`，保留两份密钥挂载及 mobile 包覆盖；不要将密钥内容写入 Compose 或公开文档。
+
+APNs 配置已加载，两种环境的 TLS／HTTP2 握手通过，切换后容器健康、QQ ready，原提供方凭据、设备配对与 QQ 会话偏好保持一致。`fun.yunle.bot` 已开启 Push Notifications，并生成包含沙盒推送权限的新开发描述文件；Debug `0.1.0 (4)` 已安装并启动，手机授权后成功注册一个沙盒令牌。北京时间 21:35:16 触发一条给主人私聊的一次性原生提醒，21:35:18 获得 APNs `accepted` 回执，用户确认 QQ 私聊和手机通知均已收到。原生任务只投递一次，已结束；没有新增周期任务。
+
+后续 Debug `0.1.0 (5)` 已覆盖安装，通知改用可关闭的持久化开关，设置页按账号、通用和机器人分组，通知与账号管理进入二级页面。签名构建、Swift 测试和 lint 通过。2026-11-10 通过 iPhone 镜像完成真机验收：账号二级页面可打开；关闭通知后云端注册数由 1 降至 0，回前台和终止进程后的冷启动均保持关闭，注册数仍为 0；重新开启后恢复为 1，最终让 App 回到后台。XCTest runner 初始化超时未运行用例，本次交互证据来自镜像操作与真实云端注册状态。没有上传 TestFlight，见[定时提醒通知](../../docs/development/ios-companion.md#定时提醒通知)。
+
 ## 入群防护与升级验收
 
 新迁移要求已有唯一私聊主人，并加载 `@el-bot/dsh/qq`；QQ 条目依赖 `qqRuntime`。群聊天不设白名单，机器人加入的群均可聊天，QQ 集成将官方 QQ 插件的群接入固定为 `open`。已有实例升级时，在私有 profile 添加 `el-bot-qq` 条目、指定主人 C2C OpenID，并为 QQ 条目补上依赖，见 [`@el-bot/dsh` 群聊防护](../../packages/dsh/README.md#群聊防护)。从旧模块升级时，先按 [QQ 集成迁移说明](../../packages/dsh/README.md#qq-集成)停机重命名状态目录，再更新产物与 profile 并启动。群内自称主人、群管理命令或审批按钮均不能授权；主人通过绑定私聊使用工具。

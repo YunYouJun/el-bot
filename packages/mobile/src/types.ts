@@ -158,6 +158,7 @@ export interface MobileHost {
 }
 
 export interface MobileContext {
+  on?: (name: 'session/event', listener: (session: { header: { id: string } }, event: import('./notifications').ReminderEvent) => void) => () => void
   tools: import('./phone').PhoneTools
   get?: (name: string) => unknown
   connection: { authenticatedUrl: (baseUrl: string) => string }
@@ -171,6 +172,7 @@ export interface MobileContext {
 }
 
 export interface MobileSettings {
+  push?: import('./apns').ApnsConfig
   phone?: { enabled: boolean }
   web?: { enabled: boolean, port?: number }
   profileDirectory?: string

@@ -1,0 +1,12 @@
+services:
+  dsh:
+    environment:
+      YUN_APNS_TEAM_ID: ${YUN_APNS_TEAM_ID:?Set the Apple Developer team ID}
+      YUN_APNS_KEY_ID: ${YUN_APNS_KEY_ID:?Set the APNs key ID}
+      YUN_APNS_KEY_FILE: /run/secrets/yun-apns.p8
+      YUN_APNS_TOPIC: fun.yunle.bot
+      YUN_APNS_SANDBOX_KEY_ID: ${YUN_APNS_SANDBOX_KEY_ID:?Set the sandbox APNs key ID}
+      YUN_APNS_SANDBOX_KEY_FILE: /run/secrets/yun-apns-sandbox.p8
+    volumes:
+      - ${YUN_APNS_KEY_FILE:?Set the private APNs p8 path}:/run/secrets/yun-apns.p8:ro
+      - ${YUN_APNS_SANDBOX_KEY_FILE:?Set the private sandbox APNs p8 path}:/run/secrets/yun-apns-sandbox.p8:ro

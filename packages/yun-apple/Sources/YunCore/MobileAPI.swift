@@ -69,6 +69,20 @@ public actor MobileAPI {
         try await request("GET", path: ["device"])
     }
 
+    public func reminderNotifications() async throws -> ReminderNotificationStatus {
+        try await request("GET", path: ["notifications"])
+    }
+
+    public func registerReminderNotifications(token: Data, environment: String) async throws -> ReminderNotificationStatus {
+        let registration = ReminderNotificationRegistration(token: token, environment: environment)
+        return try await request("PUT", path: ["notifications"], body: JSONEncoder().encode(registration))
+    }
+
+    @discardableResult
+    public func unregisterReminderNotifications() async throws -> ReminderNotificationStatus {
+        try await request("DELETE", path: ["notifications"])
+    }
+
     public func openPhoneChannel(requestId: String, apps: [PhoneApp]) async throws -> PhoneChannel {
         struct Body: Encodable { let requestId: String; let apps: [PhoneApp] }
         let value: PhoneChannel = try await request("POST", path: ["phone", "channel"], body: JSONEncoder().encode(Body(requestId: requestId, apps: apps)))

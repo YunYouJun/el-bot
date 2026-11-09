@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { AccountSyncConfig, VerifyIdentityProof } from './account'
 import type { DeviceStore } from './auth'
 import type { AccountDiscoveryConfig, AccountEnrollmentResult, AccountInstance } from './discovery'
+import type { ReminderNotifications } from './notifications'
 import type { MobilePersonaService } from './personas'
 import type { PhoneRelay } from './phone'
 import type { QQChatAdapter } from './qq-chat'
@@ -134,6 +135,7 @@ export function mobileRoutes(
   personas?: () => MobilePersonaService | undefined,
   qqChat?: QQChatAdapter,
   system?: { restart: (force: boolean, signal: AbortSignal) => Promise<void> },
+  notifications?: ReminderNotifications,
 ) {
   const deletions = new Map<string, { deviceId: string, sessionId: string, updatedAt: string, expiresAt: number }>()
   return async (req: IncomingMessage, res: ServerResponse) => {
@@ -223,6 +225,18 @@ export function mobileRoutes(
       const device = devices.authorize(req.headers.authorization)
       if (!device)
         throw new MobileError(401, 'unauthorized')
+      if (path.length === 1 && path[0] === 'notifications') {
+        if (!notifications)
+          throw new MobileError(503, 'notifications_not_configured')
+        if (req.method === 'GET')
+          json(res, 200, notifications.status(device.id))
+        else if (req.method === 'PUT')
+          json(res, 200, await notifications.register(device.id, await body(req)))
+        else if (req.method === 'DELETE')
+          json(res, 200, await notifications.unregister(device.id))
+        else throw new MobileError(405, 'method_not_allowed')
+        return
+      }
       if (path.length === 1 && path[0] === 'personas') {
         if (req.method !== 'GET' && req.method !== 'POST')
           throw new MobileError(405, 'method_not_allowed')

@@ -103,6 +103,7 @@ export interface QQManager extends ManagedQQ {
 }
 export interface AgentPayload { agent: object, turn: number, step: number }
 export interface QQEvents {
+  'schedule/resolve-agent': (sessionId: string, next: () => Promise<unknown>) => Promise<unknown>
   'system-prompt/assemble': (assembly: PromptAssembly, context: { agent?: object }, next: () => Promise<PromptAssembly>) => Promise<PromptAssembly>
   'agent/pre-step': (payload: AgentPayload, next: () => Promise<{ kind: string, [key: string]: unknown }>) => Promise<{ kind: string, [key: string]: unknown }>
   'agent/request': (payload: AgentPayload, next: () => Promise<{ maxTokens?: number, [key: string]: unknown }>) => Promise<{ maxTokens?: number, [key: string]: unknown }>

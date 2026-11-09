@@ -657,5 +657,22 @@
   "yunle.model.tokens_unavailable": "Token information is unavailable because the historical model details are missing or cannot be reconciled.",
   "yunle.model.summary_footer": "This is the complete summary for the selected period, not a transaction filter.",
   "yunle.model.unattributed_detail": "The historical model details for these tasks are missing or cannot be reconciled, so the amount is not assigned to a specific model. It is still part of the Xiaoyun totals.",
-  "yunle.summary.unattributed_tasks": "Unattributed tasks"
+  "yunle.summary.unattributed_tasks": "Unattributed tasks",
+  "notifications.title": "Reminder notifications",
+  "notifications.detail": "Receive scheduled reminders while the app is in the background. Tap a notification to open its conversation.",
+  "notifications.enable": "Enable reminder notifications",
+  "notifications.enabled": "Reminders enabled on this device",
+  "notifications.openSettings": "Allow notifications in Settings",
+  "notifications.notConfigured": "Cloud notifications are not configured yet",
+  "notifications.lastReceipt": "Latest push receipt",
+  "notifications.receipt.accepted": "Accepted by Apple",
+  "notifications.receipt.rejected": "Rejected by Apple",
+  "notifications.receipt.unknown": "Result unknown",
+  "notifications.error.server": "Could not register with the cloud. Check the connection and notification setup.",
+  "notifications.error.registration": "Could not register for notifications. Check notification permission and the installed app.",
+  "settings.accounts": "Accounts",
+  "settings.general": "General",
+  "settings.bot": "Bot",
+  "notifications.registering": "Connecting to notification service…",
+  "notifications.receipt.detail": "Apple acceptance confirms the push request was accepted; it does not confirm that your phone displayed the notification."
 }

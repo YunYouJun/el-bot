@@ -19,6 +19,7 @@ import { QQConversationMetadataStore } from './metadata'
 import { NativeQQChat } from './native-chat'
 import { QQPolicy } from './policy'
 import { ScheduleControl } from './schedule'
+import { ownerScheduleResolver } from './schedule-activation'
 import { scheduleRoutes } from './schedule-http'
 import { ScheduleError } from './schedule-types'
 import { QQStateStore } from './store'
@@ -33,6 +34,7 @@ export { manualRoutes } from './manual-http'
 export { manualRuntime } from './manual-runtime'
 export { GROUP_CHAT_PROMPT, MAX_OUTPUT_TOKENS, QQPolicy } from './policy'
 export { ScheduleControl } from './schedule'
+export { ownerScheduleResolver } from './schedule-activation'
 export { scheduleRoutes } from './schedule-http'
 export { QQStateStore } from './store'
 export { QQTranscript } from './transcript'
@@ -225,6 +227,7 @@ export async function apply(ctx: QQContext, settings: QQSettings) {
       ownerPinned: true,
       manualEnabled: true,
       scheduledEnabled: true,
+      ownerRemindersEnabled: true,
       commandsEnabled: true,
       commandMarkdown: settings.commandMarkdown !== false,
       commandCount: commands.all().length + DOWNSTREAM_COMMANDS.length,
@@ -242,14 +245,18 @@ export async function apply(ctx: QQContext, settings: QQSettings) {
   const unguard = ctx.tools.guard(policy.guard)
   ctx.effect(() => unguard, 'el-bot.qq-tools')
   let detach: (() => void) | undefined
+  let qqManager: import('./contracts').QQManager | undefined
   const stop = ctx.qqWorkspaceGrouping.watchManager((manager) => {
+    qqManager = manager
     groups.manager = manager
     detach = policy.attach(manager)
   })
   ctx.effect(() => () => {
+    qqManager = undefined
     stop()
     detach?.()
   }, 'el-bot.qq-admission')
+  ctx.on('schedule/resolve-agent', ownerScheduleResolver(() => qqManager, policy))
   ctx.on('system-prompt/assemble', async (_assembly, context, next) => policy.prompt(context.agent, await next()), { prepend: true })
   ctx.on('agent/pre-step', async (payload, next) => policy.preStep(payload) ?? await next(), { global: true, prepend: true })
   ctx.on('agent/request', async (payload, next) => policy.request(payload, await next()), { global: true, prepend: true })

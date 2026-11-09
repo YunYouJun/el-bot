@@ -7,6 +7,9 @@ struct MobileRoot: View {
     let chat: ChatStore
     let account: AccountSyncStore
     let yunleAccount: YunleAccountStore
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var notifications = ReminderNotifications.shared
+    @State private var reminderSession: SessionSummary?
     @State private var web = DSHWebController()
     @State private var guide: Guide?
     private enum Guide: String, Identifiable {
@@ -44,6 +47,25 @@ struct MobileRoot: View {
         }
         .environment(\.openModelSetupGuide, { guide = .modelSetup })
         .environment(\.openDSHManagement, { tab = .web })
+        .sheet(item: $reminderSession) { session in
+            if let client = chat.client {
+                NavigationStack {
+                    ConversationScreen(session: session, client: client)
+                        .toolbar { ToolbarItem(placement: .confirmationAction) {
+                            Button(preferences.strings["done"]) { reminderSession = nil }
+                        } }
+                }
+            }
+        }
+        .task(id: chat.device?.id) { await notifications.configure(chat.client) }
+        .task(id: scenePhase) {
+            if scenePhase == .active { await notifications.configure(chat.client) }
+        }
+        .task(id: notifications.openedSession) {
+            guard let id = notifications.openedSession, let client = chat.client else { return }
+            if let session = try? await client.sessionInformation(id), !Task.isCancelled { reminderSession = session }
+            notifications.openedSession = nil
+        }
         #if DEBUG
         .task {
             if ProcessInfo.processInfo.arguments.contains("--show-model-guide") { guide = .modelSetup }

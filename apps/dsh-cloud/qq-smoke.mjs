@@ -60,6 +60,52 @@ async function main() {
   await qqFiber.dispose()
   const preferences = join(directory, 'prefs.json')
   await writeFile(preferences, JSON.stringify({ sessionIds: { 'qqbot:123:group:group-a': 'group-test', 'qqbot:123:c2c:owner': 'owner-test' } }))
+  const qqRoot = dirname(require.resolve('@tencent-connect/dsh-qqbot/package.json'))
+  const { createOutboundHandler } = await import(pathToFileURL(join(qqRoot, 'lib/transport/outbound.js')).href)
+  const { IdleEvictor } = await import(pathToFileURL(join(qqRoot, 'lib/session/idle-evictor.js')).href)
+  const reminderRecord = {
+    sessionId: 'owner-test',
+    sessionKey: 'qqbot:123:c2c:owner',
+    scope: 'c2c',
+    peerId: 'owner',
+    agent: { status: 'idle' },
+    replyTarget: { scope: 'c2c', targetId: 'owner', msgId: '' },
+    lastActivity: Date.now() - 31 * 60_000,
+  }
+  const reminderBindings = new Map([['owner', reminderRecord]])
+  const reminderManager = {
+    findBySessionId: id => [...reminderBindings.values()].find(record => record.sessionId === id),
+    getOrCreate: async (scope, peer, sender, target) => {
+      assert.equal(scope, 'c2c')
+      assert.equal(peer, 'owner')
+      assert.equal(sender, 'owner')
+      assert.deepEqual(target, { scope: 'c2c', targetId: 'owner', msgId: '' })
+      reminderBindings.set('owner', reminderRecord)
+      return reminderRecord
+    },
+  }
+  const reminderSends = []
+  const reminderErrors = []
+  const reminderOutbound = createOutboundHandler(reminderManager, {
+    sendMarkdown: async (target, text) => {
+      reminderSends.push({ target, text })
+    },
+  }, { textChunkLimit: 1200, streaming: false }, { error: message => reminderErrors.push(message), debug: () => {} })
+  const reminderEvent = { type: 'assistant/message', data: { message: { content: [{ type: 'text', text: 'Offline scheduled reminder' }] } } }
+  const evictor = new IdleEvictor(reminderBindings, 30 * 60_000, key => reminderBindings.delete(key))
+  evictor.check()
+  evictor.dispose()
+  reminderOutbound.routeSessionEvent({ header: { id: 'owner-test' } }, reminderEvent)
+  assert.equal(reminderSends.length, 0)
+  const resolveReminder = qq.ownerScheduleResolver(() => reminderManager, policy, preferences)
+  const noHostFallback = async () => {
+    throw new Error('Must not restore without a QQ binding')
+  }
+  assert.equal(await resolveReminder('owner-test', noHostFallback), reminderRecord.agent)
+  reminderOutbound.routeSessionEvent({ header: { id: 'owner-test' } }, reminderEvent)
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal(reminderSends.length, 1)
+  assert.deepEqual(reminderErrors, [])
   const manual = manualRuntime({ sessionController: { list: async () => ({ items: [] }) } }, policy, directory, preferences)
   await manual.controller.initialize()
   const undo = protectGateway(QQBot.prototype, policy, undefined, manual.hooks)

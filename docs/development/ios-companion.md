@@ -4,6 +4,30 @@ macOS 14 / iOS 17 原生客户端通过 `packages/yun-apple` 共用模型、HTTP
 
 手机设备工具和跨 App 实验见[小云手机助手实施计划](./ios-device-assistant.md)。首版保留云端 DSH，原生 App 通过本机配对调用独立 iCTRL 运行器；设备工具页不向云端提供通用 RPC。
 
+## 定时提醒通知
+
+双通道提醒需要分别配置 QQ 的主人会话恢复与 iOS 的 APNs。DSH 原生任务显示已投递，仅表示提醒写入云端会话，不能用来判断 QQ 或手机通知已经送达。
+
+iOS 设置首页按账号、通用和机器人分组，账号管理与提醒通知进入二级页面，语言选择保留在首页。「设置 → 提醒通知」使用原生开关；首次开启请求系统通知权限，允许后将 APNs 设备令牌通过已配对的 HTTPS 接口注册到当前实例。关闭开关会注销当前设备的云端推送，并记住此实例的选择，回前台或重启不会自动重新开启。系统拒绝通知时提供系统设置入口。授权返回和普通刷新保留已有状态；等待 APNs 令牌与连接通知服务在后台完成，不插入临时进度行，避免开关切换时页面闪烁，连接失败仍显示错误提示。最近推送回执保留在通知详情中。
+
+手机退到后台后由 APNs 展示通知，不依赖前台轮询。点击通知重新验证当前实例和会话访问权限，再打开对应会话。App 不为提醒新增本地聊天缓存。
+
+部署前在 Apple Developer 为 `fun.yunle.bot` 开启 Push Notifications，重新生成包含 `aps-environment` 的签名描述文件，并分别创建 Production、Sandbox 两把 Topic Specific APNs P-256 密钥，各自只允许 `fun.yunle.bot`。App Store Connect API 密钥不能替代 APNs 认证密钥。Debug 使用 `development`／sandbox，Release 使用 `production`；新权限必须随重新签名的 App 安装后才能生效。
+
+云端使用 `packages/mobile/deploy/notifications.override.yaml`，配置 `YUN_APNS_TEAM_ID`、生产密钥的 `YUN_APNS_KEY_ID`／`YUN_APNS_KEY_FILE`，以及沙盒密钥的 `YUN_APNS_SANDBOX_KEY_ID`／`YUN_APNS_SANDBOX_KEY_FILE`。发送时按设备环境选择独立密钥与 JWT 缓存。`.p8` 只保存在服务器私有目录，以只读文件挂载且仅容器 UID 1000 可读，不写进镜像、profile 或 Git。没有配置 APNs 时接口返回 `configured: false`，App 显示尚未配置，不宣称推送已开启。
+
+`GET /el-bot/mobile/v1/notifications` 返回当前设备的配置、注册状态和最近回执；`PUT` 注册设备令牌与环境，`DELETE` 停用此设备通知。接口要求有效设备 Bearer，并沿用 Origin 校验。令牌和最近 24 小时、最多 500 条回执保存在 `<profile>/el-bot-mobile/notifications.json`（目录 `0700`、文件 `0600`）；状态接口不返回令牌，回执不保存通知正文。
+
+只观察宿主真实的 `source.kind: schedule` 事件，并在该轮结束后发送生成的提醒；普通聊天或伪造的提醒文本不会触发。每条提醒按会话、消息与设备持久去重，发送前先登记「结果未知」。超时、进程重启或丢失响应不会自动重发，避免重复通知。设备撤销或到期后停止推送；APNs 返回失效令牌时清除注册。回执区分「Apple 已接收」「Apple 已拒绝」「结果未知」，Apple 接收不等于用户已看到通知。
+
+验收需要新签名的真机 App、主人允许系统通知，以及云端 APNs 配置。离线测试和模拟器编译不代表完成真实 QQ／APNs 双通道送达。
+
+2026-11-09 真机双通道验收：`fun.yunle.bot` 推送权限和新开发描述文件已配置，生产、沙盒两把专用密钥部署到云端。iPhone 授权并注册沙盒令牌后，北京时间 21:35:16 的一次性原生提醒只投递一次，21:35:18 获得 APNs `accepted`；用户确认 QQ 私聊和手机通知均已收到。未新增周期任务，也未上传 TestFlight。
+
+2026-11-10 构建 5 真机验收：设置首页按账号、通用和机器人分组，账号与提醒通知进入二级页面。关闭通知后云端注册数从 1 降至 0；App 退后台再回来、终止进程后冷启动均保持关闭，注册数仍为 0。确认新进程与旧进程不同后，重新开启开关，云端恢复一个沙盒注册，最终让 App 回到后台。签名编译、Swift 测试及 lint 已通过；XCTest runner 初始化超时，交互验收改用 iPhone 镜像，结合真实云端注册记录和进程生命周期核对，不能将其表述为 XCTest 用例通过。
+
+2026-11-10 构建 6 移除通知连接期间临时插入的进度行。使用真实设置视图和离线状态替身在模拟器测量，关闭、连接中、开启三个状态的页脚位置保持一致，原有约 52 点位移消失。Debug `0.1.0 (6)` 已签名并覆盖安装到 iPhone 15 Pro，核对安装版本与新进程，`application-identifier` 和沙盒推送权限正确。578 项 TypeScript 测试、Swift 测试、全仓 lint、完整类型检查、Apple 文案一致性检查及 mobile／DSH 构建通过。手机使用中导致镜像无法连接，本次未复验真机开关交互。
+
 ## iOS 状态与手机能力
 
 状态页的「远程宿主机」展示宿主机整机 CPU 使用率、内存已用／总量、磁盘已用／总量和使用率；「远端运行环境」继续描述 Docker 容器与 API 进程，两组数据互不替代。宿主机采样每 15 秒一次，CPU 为约一秒内的忙碌时间占比；内存使用量为 `MemTotal - MemAvailable`，磁盘比例与 `df` 一致，保留块不计入普通用户可用容量。详情中可查看可用空间与采样时间。前台状态页每 15 秒刷新，超过 60 秒的快照或离线保留的数据标为「上次快照」，不将采集失败显示成零占用。
@@ -278,6 +302,8 @@ xcrun devicectl device install app --device "$YUN_IOS_DEVICE" \
   apps/ios/build/device/Build/Products/Debug-iphoneos/Yun.app
 xcrun devicectl device process launch --device "$YUN_IOS_DEVICE" fun.yunle.bot
 ```
+
+手动选择已有描述文件时，将上述构建参数改为 `CODE_SIGN_STYLE=Manual`，通过 `YUN_IOS_PROVISIONING_PROFILE="$YUN_IOS_PROFILE"` 传入本机描述文件名称。工程仅对 iPhoneOS App target 应用该设置；不要全局传入 `PROVISIONING_PROFILE_SPECIFIER`，否则 Swift Package 的资源 bundle 也会被要求使用 App 描述文件而导致构建失败。推送验收还需核对签名后的 `application-identifier` 和 `aps-environment`，分别与 App ID、Debug／Release 环境一致。
 
 真机单独配对，不复制模拟器或 Mac 的 Keychain。签名成功及 `devicectl` 报告启动后，还需在解锁的手机上核对界面、配对和会话；锁屏时的启动成功不能作为完整验收。
 
