@@ -39,6 +39,7 @@ interface ScheduleOptions {
   timezone: string
   now?: () => number
   intervalMs?: number
+  paused?: () => boolean
   llm?: ScheduleLlm
   summaryMaxTokens?: number
   summaryTimeoutMs?: number
@@ -269,6 +270,7 @@ export class ScheduleControl {
   private timer?: ReturnType<typeof setInterval>
   private tickRunning = false
   private running = new Set<string>()
+
   private previews = new Map<string, number>()
   private aborts = new Set<AbortController>()
   private broken?: Error
@@ -276,6 +278,8 @@ export class ScheduleControl {
   private readonly now: () => number
   private readonly timezone: string
   private readonly intervalMs: number
+
+  get active() { return this.tickRunning || this.running.size > 0 }
 
   constructor(
     readonly path: string,
@@ -529,7 +533,7 @@ export class ScheduleControl {
   }
 
   async tick() {
-    if (this.closed || this.broken || this.tickRunning)
+    if (this.closed || this.broken || this.tickRunning || this.options.paused?.())
       return
     this.tickRunning = true
     try {
@@ -599,6 +603,8 @@ export class ScheduleControl {
   }
 
   private async execute(task: ScheduleTask): Promise<ScheduleRun> {
+    if (this.options.paused?.())
+      throw new ScheduleError(503, 'unavailable')
     if (this.running.has(task.id))
       throw new ScheduleError(409, 'rate_limited')
     this.running.add(task.id)

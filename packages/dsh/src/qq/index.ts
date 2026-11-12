@@ -1,4 +1,5 @@
-import type { Gateway, QQContext, QQSettings } from './contracts'
+import type { Gateway, GroupImageMessage, QQContext, QQSettings } from './contracts'
+import type { DeploymentJobs } from './deployment'
 import { existsSync, mkdirSync, realpathSync, renameSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { homedir } from 'node:os'
@@ -9,7 +10,11 @@ import { DOWNSTREAM_COMMANDS, registerBuiltinQQCommands } from '../qq-commands/b
 import { QQCommandRegistry } from '../qq-commands/registry'
 import { QQCommandRouter } from '../qq-commands/router'
 import { profileDirectory } from '../service'
+import { QQDeployment, serveQQDeployment } from './deployment'
 import { protectGateway } from './gateway'
+import { DEFAULT_GROUP_IMAGE_CACHE, groupImageCacheOptions, QQGroupImageCache } from './group-image-cache'
+import { QQGroupImageCacheControl } from './group-image-cache-control'
+import { QQGroupImages } from './group-images'
 import { QQGroupDirectory } from './groups'
 import { QQMemberImpressionTool } from './impression-tool'
 import { QQMemberImpressions } from './impressions'
@@ -26,7 +31,7 @@ import { QQStateStore } from './store'
 import { QQTranscript } from './transcript'
 
 export * from '../qq-commands'
-export type { QQContext, QQEvents, QQManager, QQSettings } from './contracts'
+export type { QQContext, QQEvents, QQGroupImageCacheSettings, QQManager, QQSettings } from './contracts'
 export { protectGateway } from './gateway'
 export { QQMemberImpressions } from './impressions'
 export { ManualControl } from './manual'
@@ -65,6 +70,36 @@ export async function apply(ctx: QQContext, settings: QQSettings) {
   const groupDirectory = join(homedir(), '.dsh-qqbot/workspaces', settings.appId, 'groups')
   const policy = new QQPolicy(settings, new QQStateStore(join(directory, 'state.json')), groupDirectory)
   const commands = new QQCommandRegistry({ catalog: DOWNSTREAM_COMMANDS })
+  const metadata = new QQConversationMetadataStore(settings.appId, join(directory, 'conversations.json'), join(homedir(), '.dsh-qqbot/model-prefs.json'), (scope, peer) => policy.allowed(scope, peer))
+  let cacheOptions: ReturnType<typeof groupImageCacheOptions>
+  try {
+    cacheOptions = groupImageCacheOptions(settings.groupImageCache)
+  }
+  catch (error) {
+    ctx.logger?.warn?.(`QQ group image cache disabled: ${(error as Error).message}`)
+    cacheOptions = { ...DEFAULT_GROUP_IMAGE_CACHE, enabled: false }
+  }
+  const groupImageCache = new QQGroupImageCache(join(directory, 'group-image-cache'), cacheOptions)
+  const cacheControl = new QQGroupImageCacheControl(join(directory, 'group-image-cache-settings.json'), policy.appId, policy.owner, groupImageCache)
+  await cacheControl.load(() => ctx.logger?.warn?.('QQ group image cache overrides could not be loaded'))
+  const groupImages = new QQGroupImages(
+    join(directory, 'group-images.json'),
+    policy.appId,
+    policy.owner,
+    ctx,
+    Date.now,
+    async group => metadata.groupName(group) ?? (await metadata.groupProfile(group)).name,
+    groupImageCache,
+    cacheControl,
+  )
+  await groupImages.load()
+  ctx.effect(() => groupImageCache.start(() => ctx.logger?.warn?.('QQ group image cache cleanup failed')), 'el-bot.qq-group-image-cache')
+  policy.groupImages = groupImages
+  const disposeGroupImages = commands.command('group-images')
+    .description('在主人私聊管理群读图权限与缓存，查看私聊读图结果。')
+    .usage('list | probe | pending | allow 群ID 成员ID [group|private] | confirm 确认码 | revoke 群ID 成员ID | quote-others 群ID on|off | result | cache [show|set 参数 值]')
+    .action(args => groupImages.commandReply(args))
+    .dispose
   let restarting = false
   const builtinCommandDisposers = registerBuiltinQQCommands(commands, {
     restart: async (force, reply) => {
@@ -99,6 +134,7 @@ export async function apply(ctx: QQContext, settings: QQSettings) {
     },
   })
   ctx.effect(() => () => {
+    disposeGroupImages()
     for (const dispose of builtinCommandDisposers)
       dispose()
   }, 'el-bot.qq-commands')
@@ -110,7 +146,7 @@ export async function apply(ctx: QQContext, settings: QQSettings) {
     markdown: settings.commandMarkdown !== false,
   })
   policy.command = ctx => commandRouter.handle(ctx)
-  const metadata = new QQConversationMetadataStore(settings.appId, join(directory, 'conversations.json'), join(homedir(), '.dsh-qqbot/model-prefs.json'), (scope, peer) => policy.allowed(scope, peer))
+  policy.groupImageCommand = async (ctx, args) => commandRouter.sendReply(ctx, await groupImages.commandReply(args))
   await metadata.load()
   const groups = new QQGroupDirectory(settings.appId, join(directory, 'groups.json'), join(homedir(), '.dsh-qqbot/model-prefs.json'), policy, metadata)
   await groups.load()
@@ -121,6 +157,27 @@ export async function apply(ctx: QQContext, settings: QQSettings) {
   const loadModule = (path: string) => ctx.loader?.internal
     ? ctx.loader.internal.import(path, ctx.baseUrl ?? pathToFileURL(join(profile, 'cordis.yml')).href, {})
     : import(path)
+  if (groupImages.enabled) {
+    try {
+      const [messages, replyCache] = await Promise.all([
+        loadModule(pathToFileURL(pluginRequire.resolve('@deepseek-ai/dsh-llm')).href) as Promise<{
+          createUserMessage?: (input: GroupImageMessage) => unknown
+        }>,
+        loadModule(pathToFileURL(join(dirname(manifest), 'lib/transport/msgid-cache.js')).href) as Promise<{
+          cacheMsgId?: (scope: 'group', group: string, messageId: string) => void
+        }>,
+      ])
+      const { createUserMessage } = messages
+      const { cacheMsgId } = replyCache
+      if (typeof createUserMessage !== 'function' || typeof cacheMsgId !== 'function')
+        throw new TypeError('Missing DSH message factory or QQ passive reply cache')
+      policy.groupImageTransport = {
+        createMessage: createUserMessage,
+        rememberReply: (group, messageId) => cacheMsgId('group', group, messageId),
+      }
+    }
+    catch { ctx.logger?.warn?.('QQ group vision context is unavailable: DSH message factory or QQ passive reply cache not found') }
+  }
   const history = await loadModule(pathToFileURL(join(dirname(manifest), 'lib/features/history-store.js')).href) as {
     getHistoryStore: () => { clear: (key: string) => void }
     historyGroupKey: (appId: string, groupId: string) => string
@@ -136,14 +193,15 @@ export async function apply(ctx: QQContext, settings: QQSettings) {
   const impressions = new QQMemberImpressions(join(directory, 'member-impressions.json'))
   await impressions.load()
   ctx.effect(() => () => impressions.close(), 'el-bot.qq-member-impressions')
-  policy.captureInbound = message => transcript.inbound(message)
+  policy.captureInbound = (message, quoteKeys) => transcript.inbound(message, quoteKeys)
+  policy.lookupQuotedGroupImage = (...args) => transcript.quotedImage(...args)
   policy.afterSession = (record, anchor) => record.scope === 'group' ? transcript.bind(record.peerId, record.sessionId, anchor) : Promise.resolve()
   const manual = manualRuntime(ctx, policy, profile, undefined, async (target, text, handoff, send) => {
     const peer = target.targetId
     const current = await groups.currentSession(peer)
-    if (current)
+    if (current && !transcript.isArchived(current))
       await transcript.bind(peer, current)
-    return transcript.send(peer, text, handoff, send)
+    return transcript.send(peer, text, handoff, send, Boolean(target.msgId))
   })
   ctx.provide('qqNativeChat', new NativeQQChat(transcript, manual.controller, groups, policy, impressions))
   const impressionTool = new QQMemberImpressionTool(impressions, transcript, groups, policy)
@@ -160,6 +218,7 @@ export async function apply(ctx: QQContext, settings: QQSettings) {
   catch {
     throw new Error('QQ scheduled messages require a valid IANA timezone')
   }
+  let deployment: QQDeployment | undefined
   const schedule = new ScheduleControl(join(directory, 'scheduled.json'), {
     online: () => manual.controller.online,
     targets: () => manual.controller.targets(),
@@ -186,10 +245,31 @@ export async function apply(ctx: QQContext, settings: QQSettings) {
     },
   }, {
     timezone,
+    paused: () => deployment?.paused ?? false,
     llm: ctx.llm,
     ...(settings.summary?.maxTokens ? { summaryMaxTokens: settings.summary.maxTokens } : {}),
     ...(settings.summary?.timeoutMs ? { summaryTimeoutMs: settings.summary.timeoutMs } : {}),
   })
+  if (process.env.DSH_RESTART_SUPERVISED === '1' && process.platform !== 'win32') {
+    const active = new Set<object>()
+    ctx.on('agent/status', ({ agent, status }) => {
+      if (status === 'running')
+        active.add(agent)
+      else
+        active.delete(agent)
+    }, { global: true, prepend: true })
+    deployment = new QQDeployment(
+      ctx.sessionController,
+      () => active.size > 0 || schedule.active || manual.active(),
+      undefined,
+      Date.now,
+      () => ctx.get('jobs') as DeploymentJobs | undefined,
+    )
+    policy.deployment = deployment
+    mkdirSync(directory, { recursive: true, mode: 0o700 })
+    const close = await serveQQDeployment(join(directory, 'deploy.sock'), deployment)
+    ctx.effect(() => close, 'el-bot.qq-deployment')
+  }
   await schedule.initialize()
   ctx.effect(() => scheduleRoutes(ctx, schedule), 'el-bot.qq-schedule-http')
   ctx.effect(() => () => schedule.close(), 'el-bot.qq-schedule-control')
@@ -228,6 +308,8 @@ export async function apply(ctx: QQContext, settings: QQSettings) {
       manualEnabled: true,
       scheduledEnabled: true,
       ownerRemindersEnabled: true,
+      groupImagesEnabled: groupImages.enabled,
+      groupImageCache: { ...groupImageCache.settings, enabled: groupImages.caching },
       commandsEnabled: true,
       commandMarkdown: settings.commandMarkdown !== false,
       commandCount: commands.all().length + DOWNSTREAM_COMMANDS.length,
@@ -258,7 +340,7 @@ export async function apply(ctx: QQContext, settings: QQSettings) {
   }, 'el-bot.qq-admission')
   ctx.on('schedule/resolve-agent', ownerScheduleResolver(() => qqManager, policy))
   ctx.on('system-prompt/assemble', async (_assembly, context, next) => policy.prompt(context.agent, await next()), { prepend: true })
-  ctx.on('agent/pre-step', async (payload, next) => policy.preStep(payload) ?? await next(), { global: true, prepend: true })
+  ctx.on('agent/pre-step', async (payload, next) => (deployment?.frozen ? { kind: 'reject' } : policy.preStep(payload)) ?? await next(), { global: true, prepend: true })
   ctx.on('agent/request', async (payload, next) => policy.request(payload, await next()), { global: true, prepend: true })
   ctx.provide('qqRuntime', { mode: 'chat-only', groupMode: 'open' })
 }

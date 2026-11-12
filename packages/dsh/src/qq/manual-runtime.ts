@@ -58,7 +58,7 @@ export function manualRuntime(ctx: QQContext, policy: QQPolicy, profile: string,
     quota: target => policy.manualQuota(target.scope, target.peerId),
     reserveReply: (target, msgId) => policy.manualReply(target.scope, target.peerId, msgId),
     send: async (target, text, _mode, msgId) => {
-      if (!transport || !policy.allowed(target.scope, target.peerId) || !controller.paused(target.id))
+      if (policy.deployment?.paused || !transport || !policy.allowed(target.scope, target.peerId) || !controller.paused(target.id))
         throw new ManualError(503, 'unavailable')
       return capability.run(target.id, () => transport!({ scope: target.scope, targetId: target.peerId, msgId }, text))
     },
@@ -139,10 +139,11 @@ export function manualRuntime(ctx: QQContext, policy: QQPolicy, profile: string,
     },
   }
   return {
+    active: () => pending.size > 0 || streams.size > 0,
     controller,
     hooks,
     async sendProactive(target: Target, text: string) {
-      if (!transport || !policy.allowed(target.scope, target.targetId))
+      if (policy.deployment?.paused || !transport || !policy.allowed(target.scope, target.targetId))
         throw new ManualError(503, 'unavailable')
       const targetId = id(target)
       if (controller.paused(targetId))

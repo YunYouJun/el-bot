@@ -1,9 +1,13 @@
 import type { PromptAssembly } from '../contracts'
 import type { PeerRecord } from '../qq-workspaces/contracts'
-import type { AgentPayload, InboundContext, ProtectedAgent, QQManager, QQSettings, Target } from './contracts'
+import type { AgentPayload, Gateway, GroupImageMessage, InboundContext, Interaction, ProtectedAgent, QQManager, QQSettings, Target } from './contracts'
+import type { QQDeployment } from './deployment'
+import type { GroupImageGrantCard, ImageCandidate, ImageQuoteKeys, QQGroupImages, QuoteImageLookup } from './group-images'
 import { createHash } from 'node:crypto'
 import { resolve, sep } from 'node:path'
 import { parseQQCommand } from '../qq-commands/router'
+import { groupImageCacheIntent } from './group-image-cache-control'
+import { GROUP_VISION_TOKENS, groupImageButton, isQuote } from './group-images'
 import { ManualError } from './manual-types'
 import { QQStateStore } from './store'
 
@@ -26,6 +30,7 @@ export const digest = (...parts: string[]) => createHash('sha256').update(JSON.s
 export class QQPolicy {
   readonly appId: string
   readonly owner: string
+  private readonly commandMarkdown: boolean
   private manager?: QQManager
   private agents = new WeakMap<object, PeerRecord>()
   private installed = new WeakSet<object>()
@@ -36,13 +41,22 @@ export class QQPolicy {
   private maintenance = new Set<string>()
   private openQueues = new Map<string, Promise<unknown>>()
   private closed = false
-  captureInbound?: (message: InboundContext['message']) => Promise<void>
+  captureInbound?: (message: InboundContext['message'], imageQuoteKeys?: ImageQuoteKeys) => Promise<void>
+  lookupQuotedGroupImage?: QuoteImageLookup
   afterSession?: (record: PeerRecord, anchor?: string) => Promise<void>
   beforeSession?: (scope: 'c2c' | 'group', peer: string) => Promise<void>
   observeGroup?: (message: InboundContext['message']) => void
   observeMetadata?: (message: InboundContext['message']) => void
   /** Deterministic slash-command boundary installed before dsh-qqbot's own middleware. */
   command?: (ctx: InboundContext) => Promise<boolean>
+  groupImages?: QQGroupImages
+  deployment?: QQDeployment
+  groupImageCommand?: (ctx: InboundContext, args: string[]) => Promise<void>
+  groupImageTransport?: {
+    createMessage: (input: GroupImageMessage) => unknown
+    rememberReply: (group: string, messageId: string) => void
+  }
+
   manual?: {
     paused: (id: string) => boolean
     automaticAllowed: (id: string, msgId?: string) => boolean
@@ -56,6 +70,7 @@ export class QQPolicy {
     }
     this.appId = settings.appId
     this.owner = settings.ownerOpenId
+    this.commandMarkdown = settings.commandMarkdown !== false
   }
 
   private key(...parts: string[]) { return digest(this.appId, ...parts) }
@@ -97,6 +112,8 @@ export class QQPolicy {
     return this.exclusive(scope, peer, async () => {
       const key = `${scope}:${peer}`
       this.maintenance.add(key)
+      if (scope === 'group')
+        this.groupImages?.forgetRecent(peer)
       this.maintenanceEpoch.set(key, (this.maintenanceEpoch.get(key) ?? 0) + 1)
       try {
         return await operation()
@@ -189,7 +206,7 @@ export class QQPolicy {
 
   interaction(event: { id?: string, scene?: string, user_openid?: string, group_openid?: string, group_member_openid?: string }) {
     const id = this.targetId('c2c', this.owner)
-    if (this.closed || event.scene !== 'c2c' || event.user_openid !== this.owner
+    if (this.closed || this.deployment?.paused || event.scene !== 'c2c' || event.user_openid !== this.owner
       || event.group_openid || event.group_member_openid || this.manual?.paused(id)) {
       return false
     }
@@ -198,7 +215,49 @@ export class QQPolicy {
     return true
   }
 
-  readonly middleware = async (ctx: InboundContext, next: () => Promise<void>) => {
+  async groupImageInteraction(bot: Gateway, event: Interaction, button: NonNullable<ReturnType<typeof groupImageButton>>) {
+    if (!event.id)
+      return
+    if (this.deployment) {
+      return this.deployment.admit(() => this.resolveGroupImageInteraction(bot, event, button), () => {
+        void bot.acknowledgeInteraction(event.id, 3).catch(() => {})
+      })
+    }
+    await this.resolveGroupImageInteraction(bot, event, button)
+  }
+
+  private async resolveGroupImageInteraction(bot: Gateway, event: Interaction, button: NonNullable<ReturnType<typeof groupImageButton>>) {
+    const acknowledge = (code: number) => bot.acknowledgeInteraction(event.id, code).catch(() => {})
+    if (bot.appId !== this.appId || button === 'invalid' || event.guild_id || event.channel_id || !this.groupImages || !this.interaction(event)) {
+      await acknowledge(3)
+      return
+    }
+
+    const decision = await this.groupImages.button(button).catch(() => ({
+      accepted: false,
+      text: button.subject === 'cache' ? '群图缓存设置未更新，请稍后重试。' : '读图授权未保存，请稍后重试。',
+    }))
+    await acknowledge(decision.accepted ? 0 : 3)
+    // The ACK uses the raw ID, but QQ's message API expects the qualified event ID.
+    const eventId = `INTERACTION_CREATE:${event.id}`
+    try {
+      await bot.send({
+        target: { scope: 'c2c', targetId: this.owner, eventId },
+        content: decision.text,
+        msgType: 0,
+        extra: { event_id: eventId },
+      })
+    }
+    catch (error) {
+      this.groupImages.reportReceiptFailure(error)
+    }
+  }
+
+  readonly middleware = (ctx: InboundContext, next: () => Promise<void>) => this.deployment
+    ? this.deployment.admit(() => this.inbound(ctx, next), () => ctx.stop('qq:deployment'))
+    : this.inbound(ctx, next)
+
+  private async inbound(ctx: InboundContext, next: () => Promise<void>) {
     if (ctx.bot.appId !== this.appId || this.closed) {
       ctx.stop('qq:closed')
       return
@@ -218,7 +277,24 @@ export class QQPolicy {
       this.observeMetadata?.(msg)
       if (this.observe(ctx, 'c2c', this.owner, true))
         return
-      if (parseQQCommand(msg.content) && this.command) {
+      const cacheIntent = groupImageCacheIntent(msg.content)
+      const command = parseQQCommand(msg.content)
+      if ((cacheIntent || (command?.name === 'group-images' && command.args[0] === 'cache')) && (msg.senderIsBot || isQuote(msg))) {
+        ctx.stop('qq:invalid-cache-management')
+        return
+      }
+      const imageIntent = cacheIntent ?? this.groupImages?.ownerIntent(msg.content)
+      if (imageIntent && this.groupImages) {
+        if (await this.store.take([{ key: this.key('command', msg.messageId), limit: 1, duration: DAY }])) {
+          if (this.groupImageCommand)
+            await this.groupImageCommand(ctx, imageIntent)
+          else
+            await ctx.bot.sendText(target, await this.groupImages.command(imageIntent))
+        }
+        ctx.stop('qq:group-image-intent')
+        return
+      }
+      if (command && this.command) {
         if (!await this.store.take([{ key: this.key('command', msg.messageId), limit: 1, duration: DAY }])) {
           ctx.stop('qq:duplicate-command')
           return
@@ -243,30 +319,66 @@ export class QQPolicy {
     const group = msg.groupOpenid
     const receivedWhilePaused = this.manual?.paused(this.targetId('group', group)) ?? false
     const maintenanceEpoch = this.maintenanceEpoch.get(`group:${group}`)
-    await this.captureInbound?.(msg)
+    const images = this.groupImages
+    const ref = msg.refMsgIdx
+    const arrivalAge = this.now() - Date.parse(msg.timestamp ?? '')
+    const candidate = arrivalAge >= -MINUTE && arrivalAge < 4 * MINUTE ? images?.candidate(msg) : undefined
+    const original = !receivedWhilePaused && arrivalAge >= -MINUTE && arrivalAge < 4 * MINUTE
+      ? images?.originalForQuote(msg, candidate)
+      : undefined
+    if (original)
+      await this.captureInbound?.(msg, original.keys)
+    else
+      await this.captureInbound?.(msg)
     if (this.maintenance.has(`group:${group}`) || maintenanceEpoch !== this.maintenanceEpoch.get(`group:${group}`)) {
       ctx.stop('qq:maintenance')
       return
     }
     this.observeMetadata?.(msg)
-    const mentioned = msg.rawEventType === 'GROUP_AT_MESSAGE_CREATE' || msg.mentions?.some(item => item.is_you === true)
+    const mentioned = msg.rawEventType === 'GROUP_AT_MESSAGE_CREATE'
+      || (Array.isArray(msg.mentions) && msg.mentions.some(item => item?.is_you === true))
     if (this.observe(ctx, 'group', group, Boolean(mentioned), receivedWhilePaused))
       return
+    const age = this.now() - Date.parse(msg.timestamp ?? '')
+    const fresh = age >= -60_000 && age < 4 * MINUTE
+    const imageIntent = mentioned ? this.groupImages?.groupIntent(msg) : undefined
+    const cacheIntent = mentioned && groupImageCacheIntent(msg.content.replace(/<@[^>]+>/gu, ''))
+    const attached = fresh && !imageIntent && !cacheIntent && (mentioned || msg.rawEventType === 'GROUP_MESSAGE_CREATE')
+      ? candidate
+      : undefined
+    if (imageIntent && !fresh) {
+      ctx.stop('qq:expired-group-image-intent')
+      return
+    }
     // Bound context before the upstream history store or attachment downloader sees it.
     msg.attachments = []
     msg.msgElements = []
     msg.content = (msg.content ?? '').slice(0, mentioned ? MAX_INPUT : 512)
     this.namespaceQuote(ctx, 'group', group)
+    const imageActive = () => !this.closed && !this.paused('group', group)
+      && maintenanceEpoch === this.maintenanceEpoch.get(`group:${group}`)
+    if (images?.caching && fresh && original && !imageIntent && !cacheIntent && imageActive()
+      && await this.store.take([
+        { key: this.key('image-cache', group), limit: 12, duration: MINUTE },
+        { key: this.key('image-cache-global'), limit: 24, duration: MINUTE },
+      ]).catch(() => false)) {
+      images.prefetch(ctx, original, imageActive)
+    }
     if (!mentioned) {
       msg.content = msg.content.replace(/<@[^>]+>/g, '')
       const admitted = await this.store.take([
         { key: this.key('background', group), limit: 30, duration: MINUTE },
         { key: this.key('background-global'), limit: 60, duration: MINUTE },
       ])
-      if (admitted)
-        await next()
-      else
+      if (!admitted) {
         ctx.stop('qq:background-rate')
+        return
+      }
+      if (attached && !this.closed && maintenanceEpoch === this.maintenanceEpoch.get(`group:${group}`)
+        && !this.paused('group', group)) {
+        images?.remember(msg, attached)
+      }
+      await next()
       return
     }
     if (this.busy.has(group)) {
@@ -281,12 +393,48 @@ export class QQPolicy {
         { key: this.key('global'), limit: 40, duration: MINUTE },
         { key: this.key('group-day', group), limit: 200, duration: DAY },
         { key: this.key('global-day'), limit: 1000, duration: DAY },
-        { key: this.key('message', group, msg.messageId), limit: 1, duration: DAY },
+        // An AT-only delivery without a target must not consume a structured duplicate.
+        { key: this.key(imageIntent && !imageIntent.member && msg.senderId === this.owner ? 'image-target-missing' : 'message', group, msg.messageId), limit: 1, duration: DAY },
       ])) {
         ctx.stop('qq:rate')
         return
       }
       this.allowReply(target)
+      if (cacheIntent) {
+        await ctx.bot.sendText(target, '群图缓存仅主人私聊管理。')
+        ctx.stop('qq:private-cache-management')
+        return
+      }
+      if (imageIntent && this.groupImages) {
+        const notify = this.commandMarkdown && typeof ctx.bot.send === 'function'
+          ? async (card: GroupImageGrantCard) => ctx.bot.send({
+            target: { scope: 'c2c', targetId: this.owner },
+            msgType: 2,
+            markdown: { content: card.markdown },
+            keyboard: card.keyboard,
+          })
+          : undefined
+        await ctx.bot.sendText(target, await this.groupImages.requestGroupGrant(msg, imageIntent, notify))
+        ctx.stop('qq:group-image-intent')
+        return
+      }
+      if (this.groupImages?.capture(msg)) {
+        ctx.stop('qq:group-image-capture')
+        return
+      }
+      const image = fresh && imageActive()
+        ? images?.takeForQuestion(msg, attached)
+        ?? (ref && this.lookupQuotedGroupImage ? await images?.quoted(msg, ref, this.lookupQuotedGroupImage) : undefined)
+        : undefined
+      if (image && images && imageActive()) {
+        const receipt = image.mode === 'group'
+          ? await this.submitGroupImage(ctx, image, maintenanceEpoch)
+          : await images.describe(ctx, image.url, image)
+        if (receipt && !this.manual?.paused(this.targetId('group', group)))
+          await ctx.bot.sendText(target, receipt)
+        ctx.stop('qq:group-image')
+        return
+      }
       const cleaned = msg.content.replace(/<@[^>]+>\s*/g, '').trim()
       if (cleaned.startsWith('/')) {
         await ctx.bot.sendText(target, '群里只聊天哦。工具、管理和审批请主人到私聊操作。')
@@ -303,6 +451,56 @@ export class QQPolicy {
     ctx.message.msgIdx = `${prefix}:${ctx.message.msgIdx ?? ctx.message.messageId}`
     if (ctx.message.refMsgIdx)
       ctx.message.refMsgIdx = `${prefix}:${ctx.message.refMsgIdx}`
+  }
+
+  /** Admit a native image block to the same tool-free DSH session as ordinary group chat. */
+  private async submitGroupImage(ctx: InboundContext, image: ImageCandidate, maintenanceEpoch: number | undefined) {
+    const group = ctx.replyTarget.targetId
+    const member = ctx.message.senderId
+    const images = this.groupImages!
+    const transport = this.groupImageTransport
+    const manager = this.manager
+    const key = `group:${group}`
+    const active = () => !this.closed && !this.paused('group', group)
+      && !this.maintenance.has(key) && this.maintenanceEpoch.get(key) === maintenanceEpoch
+    if (!transport || !manager || !images.visionRoute())
+      return '群聊读图服务暂不可用。'
+    const prepared = await images.prepareImage(ctx, image)
+    if ('hint' in prepared)
+      return prepared.hint
+    try {
+      if (!active())
+        return
+      if (!images.allowsContext(group, member, image))
+        return '该成员的群内读图权限已撤销。'
+      const record = await manager.getOrCreate('group', group, member, { scope: 'group', targetId: group, msgId: ctx.message.messageId })
+      const agent = record.agent as PeerRecord['agent'] & { followup?: (message: unknown) => void }
+      if (typeof agent.followup !== 'function')
+        throw new Error('The host cannot accept image messages')
+      if (agent.status !== 'idle')
+        return '小云正在处理本群消息，请稍后再发图。'
+      await this.store.markVision(record.sessionId, this.key('group', group))
+      if (!active())
+        return
+      if (!images.allowsContext(group, member, image))
+        return '该成员的群内读图权限已撤销。'
+      if (agent.status !== 'idle')
+        return '小云正在处理本群消息，请稍后再发图。'
+      const name = ctx.message.senderName?.replace(/[\p{Cc}\p{Cf}[\]]/gu, ' ').trim().slice(0, 64) || member
+      const question = ctx.message.content.replace(/<@[^>]+>/gu, '').trim() || '请简短描述这张图。'
+      const message = transport.createMessage({
+        content: [{ type: 'image', attachment: prepared.attachment }, { type: 'text', text: `[${name} (${member})] ${question} (@you)` }],
+        source: { kind: 'user' },
+      })
+      // This native turn skips the vendor's message listener, which normally caches the passive reply ID.
+      transport.rememberReply(group, ctx.message.messageId)
+      agent.followup(message)
+      await agent.whenIdle()
+    }
+    catch {
+      if (active())
+        return '图片已收到，但没能交给群聊模型。请稍后再试。'
+    }
   }
 
   attach(manager: QQManager): () => void {
@@ -335,7 +533,7 @@ export class QQPolicy {
         let binding = await this.store.binding(record.sessionId)
         if (binding && binding.peer !== owner)
           throw new Error('QQ session belongs to another conversation')
-        if (scope === 'group' && (!binding || binding.turns >= MAX_SESSION_TURNS)) {
+        if (scope === 'group' && (!binding || binding.turns >= MAX_SESSION_TURNS || (binding.vision && !this.groupImages?.visionRoute()))) {
           if (record.agent.status !== 'idle')
             throw new Error('Group session must be idle before security rotation')
           const old = record.sessionId
@@ -438,6 +636,13 @@ export class QQPolicy {
       { key: this.key('model-global'), limit: 1000, duration: DAY },
     ], record.sessionId)) {
       throw new Error('Group model budget exhausted')
+    }
+    if (binding.vision) {
+      const route = this.groupImages?.visionRoute()
+      if (!route)
+        throw new Error('QQ group vision route is unavailable')
+      const { reasoningEffort: _effort, ...other } = config
+      return { ...other, ...route, maxTokens: GROUP_VISION_TOKENS }
     }
     return { ...config, maxTokens: Math.min(config.maxTokens ?? MAX_OUTPUT_TOKENS, MAX_OUTPUT_TOKENS) }
   }

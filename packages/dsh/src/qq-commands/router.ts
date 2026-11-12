@@ -149,7 +149,7 @@ export class QQCommandRouter {
     }
   }
 
-  private async sendReply(ctx: InboundContext, value: QQCommandReply) {
+  async sendReply(ctx: InboundContext, value: QQCommandReply) {
     if (typeof value === 'string') {
       await this.send(ctx, value)
       return
@@ -159,6 +159,25 @@ export class QQCommandRouter {
     if (!markdown) {
       if (value.text)
         await this.send(ctx, value.text)
+      return
+    }
+    if (value.keyboard) {
+      if (ctx.message.senderId !== this.options.owner || ctx.replyTarget.scope !== 'c2c'
+        || ctx.replyTarget.targetId !== this.options.owner || this.options.isPaused?.()) {
+        return
+      }
+      if (this.options.markdown !== false) {
+        try {
+          await ctx.bot.send({ target: ctx.replyTarget, msgType: 2, markdown: { content: markdown }, keyboard: value.keyboard })
+          return
+        }
+        catch (error) {
+          const code = (error as { bizCode?: unknown } | null)?.bizCode
+          const detail = Number.isSafeInteger(code) ? ` (code ${code})` : ''
+          this.options.onError?.('keyboard-fallback', new Error(`QQ rejected the private command card${detail}`))
+        }
+      }
+      await this.send(ctx, value.text ?? markdown)
       return
     }
     if (this.options.markdown !== false && this.markdownAvailable && typeof ctx.bot.sendMarkdown === 'function') {

@@ -4,7 +4,7 @@ import { mkdir, readFile, rename, stat, unlink, writeFile } from 'node:fs/promis
 import { dirname } from 'node:path'
 
 interface Counter { count: number, until: number }
-interface Binding { peer: string, turns: number }
+interface Binding { peer: string, turns: number, vision?: true }
 interface State { version: 1, counters: Record<string, Counter>, sessions: Record<string, Binding> }
 export interface Budget { key: string, limit: number, duration: number }
 const MAX_BYTES = 2 * 1024 * 1024
@@ -34,7 +34,7 @@ export class QQStateStore {
         || Object.entries(data.counters).some(([key, value]) => !/^[a-f0-9]{64}$/.test(key) || !value
           || !Number.isSafeInteger(value.count) || value.count < 0 || !Number.isSafeInteger(value.until) || value.until < 0)
         || Object.entries(data.sessions).some(([id, value]) => !id || !value || !/^[a-f0-9]{64}$/.test(value.peer)
-          || !Number.isSafeInteger(value.turns) || value.turns < 0)) {
+          || !Number.isSafeInteger(value.turns) || value.turns < 0 || (value.vision !== undefined && value.vision !== true))) {
         throw new Error('Invalid security journal')
       }
       return data
@@ -72,6 +72,19 @@ export class QQStateStore {
       if (Object.keys(data.sessions).length > MAX_ENTRIES)
         throw new Error('QQ security session journal is full')
       await this.save(data)
+    })
+  }
+
+  async markVision(id: string, peer: string) {
+    await this.serial(async () => {
+      const data = await this.load()
+      const binding = data.sessions[id]
+      if (!binding || binding.peer !== peer)
+        throw new Error('QQ vision session was not admitted')
+      if (!binding.vision) {
+        binding.vision = true
+        await this.save(data)
+      }
     })
   }
 

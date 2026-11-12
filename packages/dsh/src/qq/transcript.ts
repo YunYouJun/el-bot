@@ -1,5 +1,6 @@
 import type { TransportAttachment } from './attachments'
 import type { Inbound } from './contracts'
+import type { ImageQuoteKeys } from './group-images'
 import { Buffer } from 'node:buffer'
 import { createHash, randomUUID } from 'node:crypto'
 import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
@@ -28,10 +29,12 @@ export interface TranscriptMember {
   lastMessageAt: string
   messageCount: number
 }
-interface Document { startedAt: string, next: number, messages: TransportMessage[] }
+interface StoredTransportMessage extends TransportMessage { imageQuoteKey?: string, ownerImageQuoteKey?: string }
+interface Document { startedAt: string, next: number, messages: StoredTransportMessage[] }
 interface Index { version: 1, current: Record<string, string>, sessions: Record<string, string> }
 const key = (value: string) => createHash('sha256').update(value).digest('hex')
 const empty = (): Document => ({ startedAt: new Date().toISOString(), next: 1, messages: [] })
+const validQuoteKey = (value: unknown): value is string => typeof value === 'string' && /^[a-f0-9]{64}$/u.test(value)
 const object = (value: unknown): value is Record<string, unknown> => Boolean(value && typeof value === 'object' && !Array.isArray(value))
 function memberRole(value: unknown): TransportMessage['senderRole'] {
   return value === 'owner' || value === 'admin' || value === 'member' ? value : undefined
@@ -42,6 +45,7 @@ export class QQTranscript {
   private index: Index = { version: 1, current: Object.create(null), sessions: Object.create(null) }
   private tail: Promise<unknown> = Promise.resolve()
   private documents = new Map<string, Document>()
+  private unboundSends = new Map<string, string>()
   isArchived: (id: string) => boolean = () => false
 
   constructor(private readonly directory: string, private readonly allowed: (peer: string) => boolean) {}
@@ -101,12 +105,16 @@ export class QQTranscript {
       this.index.current[peer] = id
       this.index.sessions[id] = peer
       await this.write('index.json', this.index)
+      for (const entry of pending.messages) {
+        if (this.unboundSends.get(entry.id) === pendingKey)
+          this.unboundSends.set(entry.id, id)
+      }
       this.documents.delete(pendingKey)
       await rm(this.file(pendingKey), { force: true })
     })
   }
 
-  inbound(message: Inbound) {
+  inbound(message: Inbound, quoteKeys?: ImageQuoteKeys) {
     const peer = message.groupOpenid
     if (!peer || message.kind !== 'group' || !this.allowed(peer) || !message.messageId)
       return Promise.resolve()
@@ -121,6 +129,9 @@ export class QQTranscript {
       text: String(message.content ?? '').slice(0, 4000),
       kind: attachments?.length ? 'attachment' : 'text',
       attachments,
+      ...(quoteKeys && attachments?.some(a => a.kind === 'image' && a.url)
+        ? { imageQuoteKey: quoteKeys.own, ownerImageQuoteKey: quoteKeys.others }
+        : {}),
       createdAt: Number.isFinite(Date.parse(message.timestamp ?? '')) ? new Date(message.timestamp!).toISOString() : new Date().toISOString(),
       senderId: message.senderId.slice(0, 128),
       senderName: message.senderName?.slice(0, 160),
@@ -138,30 +149,35 @@ export class QQTranscript {
     })
   }
 
-  async send<T>(peer: string, text: string, manual: boolean, operation: () => Promise<T>): Promise<T> {
+  async send<T>(peer: string, text: string, manual: boolean, operation: () => Promise<T>, passive = false): Promise<T> {
     const entryId = randomUUID()
+    const pendingKey = `pending:${peer}`
     const id = await this.serial(async () => {
-      const id = this.index.current[peer]
-      if (!this.allowed(peer) || !id || this.isArchived(id))
+      const current = this.index.current[peer]
+      const id = current && !this.isArchived(current) ? current : passive && !manual ? pendingKey : undefined
+      if (!this.allowed(peer) || !id)
         throw new Error('QQ transcript has no active binding')
       const document = await this.document(id)
       this.append(document, { id: entryId, direction: 'outgoing', text: text.slice(0, 16000), kind: 'text', manual, status: 'pending', createdAt: new Date().toISOString() })
       await this.save(id, document)
+      if (id === pendingKey)
+        this.unboundSends.set(entryId, id)
       return id
     })
     try {
       const response = await operation()
       const messageId = object(response) && typeof response.id === 'string' ? response.id.slice(0, 512) : undefined
-      await this.finish(id, entryId, messageId ? 'sent' : 'unknown', messageId)
+      await this.finish(peer, id, entryId, messageId ? 'sent' : 'unknown', messageId)
       return response
     }
     catch (error) {
       const value = object(error) ? error : {}
       const definitive = typeof value.bizCode === 'number' || typeof value.bizCode === 'string'
         || (typeof value.httpStatus === 'number' && value.httpStatus >= 400 && value.httpStatus < 500)
-      await this.finish(id, entryId, definitive ? 'failed' : 'unknown')
+      await this.finish(peer, id, entryId, definitive ? 'failed' : 'unknown')
       throw error
     }
+    finally { this.unboundSends.delete(entryId) }
   }
 
   /** Incoming text in one window, aggregated across rotated sessions for this peer. */
@@ -239,13 +255,50 @@ export class QQTranscript {
     })
   }
 
+  /** Resolve an exact image from the same group under the requester's active permission. */
+  quotedImage(peer: string, member: string, keys: ImageQuoteKeys, since: number, until: number) {
+    return this.serial(async () => {
+      if (!this.allowed(peer) || !Number.isFinite(since) || !Number.isFinite(until) || since > until)
+        return
+      const recentSessions = Object.entries(this.index.sessions)
+        .filter(([id, value]) => value === peer && !this.isArchived(id))
+        .map(([id]) => id)
+        .slice(-8)
+      const current = this.index.current[peer]
+      const ids = new Set([`pending:${peer}`, ...(current && !this.isArchived(current) ? [current] : []), ...recentSessions])
+      let found: { messageId?: string, url: string } | undefined
+      for (const id of ids) {
+        const document = await this.document(id)
+        for (const row of document.messages) {
+          if (row.direction !== 'incoming' || !row.senderId)
+            continue
+          const matches = row.senderId === member
+            ? keys.own && row.imageQuoteKey === keys.own
+            : keys.others && row.ownerImageQuoteKey === keys.others
+          if (!matches)
+            continue
+          const at = Date.parse(row.createdAt)
+          if (at < since || at > until)
+            continue
+          const url = row.attachments?.find(attachment => attachment.kind === 'image' && attachment.url)?.url
+          if (!url)
+            continue
+          if (found && (found.messageId !== row.messageId || found.url !== url))
+            return
+          found = { messageId: row.messageId, url }
+        }
+      }
+      return found?.url
+    })
+  }
+
   page(id: string, before?: number) {
     return this.serial(async () => {
       if (!this.peer(id))
         throw new Error('QQ transcript is unavailable')
       const document = await this.document(id)
       const rows = document.messages.filter(row => before === undefined || row.seq < before)
-      const messages = rows.slice(-80)
+      const messages = rows.slice(-80).map(({ imageQuoteKey: _key, ownerImageQuoteKey: _ownerKey, ...row }) => row)
       return { messages, cursor: messages[0]?.seq ?? document.next, hasMore: rows.length > messages.length, captureStartedAt: document.startedAt }
     })
   }
@@ -267,9 +320,10 @@ export class QQTranscript {
 
   async close() { await this.tail }
 
-  private finish(id: string, entryId: string, status: TransportMessage['status'], messageId?: string) {
+  private finish(peer: string, initialId: string, entryId: string, status: TransportMessage['status'], messageId?: string) {
     return this.serial(async () => {
-      if (!this.peer(id))
+      const id = this.unboundSends.get(entryId) ?? initialId
+      if (id === `pending:${peer}` ? !this.allowed(peer) : this.peer(id) !== peer)
         return
       const document = await this.document(id)
       const row = document.messages.find(row => row.id === entryId)
@@ -281,7 +335,7 @@ export class QQTranscript {
     })
   }
 
-  private append(document: Document, entry: Omit<TransportMessage, 'seq'>) {
+  private append(document: Document, entry: Omit<StoredTransportMessage, 'seq'>) {
     if (!document.messages.some(row => row.id === entry.id))
       document.messages.push({ ...entry, seq: document.next++ })
     document.messages = document.messages.slice(-1000)
@@ -318,6 +372,8 @@ export class QQTranscript {
           status: row.status,
           messageId: row.messageId,
           attachments: storedAttachments(row.attachments),
+          ...(validQuoteKey(row.imageQuoteKey) ? { imageQuoteKey: row.imageQuoteKey } : {}),
+          ...(validQuoteKey(row.ownerImageQuoteKey) ? { ownerImageQuoteKey: row.ownerImageQuoteKey } : {}),
         })),
       }
       for (const row of document.messages) {

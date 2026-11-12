@@ -1,12 +1,22 @@
 import type { ManagedQQ, PromptAssembly } from '../contracts'
 import type { PeerRecord } from '../qq-workspaces/contracts'
 
+export interface QQGroupImageCacheSettings {
+  enabled?: boolean
+  ttlHours?: number
+  maxImageMiB?: number
+  maxMiB?: number
+  maxEntries?: number
+  cleanupMinutes?: number
+}
+
 export interface QQSettings {
   appId: string
   ownerOpenId: string
   profileDirectory?: string
   timezone?: string
   commandMarkdown?: boolean
+  groupImageCache?: QQGroupImageCacheSettings
   summary?: {
     provider?: string
     model?: string
@@ -17,6 +27,15 @@ export interface QQSettings {
 }
 
 export interface Target { scope: string, targetId: string, msgId?: string, eventId?: string }
+export interface GroupMention {
+  scope?: 'all' | 'single'
+  id?: string
+  member_openid?: string
+  username?: string
+  nickname?: string
+  bot?: boolean
+  is_you?: boolean
+}
 export interface Inbound {
   kind: string
   senderId: string
@@ -28,9 +47,10 @@ export interface Inbound {
   senderIsBot?: boolean
   raw?: unknown
   rawEventType?: string
-  mentions?: { is_you?: boolean }[]
+  mentions?: GroupMention[]
   msgIdx?: string
   refMsgIdx?: string
+  msgType?: number
   msgElements?: unknown[]
   attachments?: unknown[]
 }
@@ -48,6 +68,21 @@ export interface Interaction {
   user_openid?: string
   group_openid?: string
   group_member_openid?: string
+  guild_id?: string
+  channel_id?: string
+  data?: { resolved?: { button_id?: unknown, button_data?: unknown } }
+}
+
+export interface QQInlineKeyboard {
+  content: {
+    rows: {
+      buttons: {
+        id: string
+        render_data: { label: string, visited_label: string, style: 0 | 1 }
+        action: { type: 1, permission: { type: 2 }, data: string }
+      }[]
+    }[]
+  }
 }
 export type InteractionHandler = (ctx: unknown, event: Interaction) => unknown
 export interface Gateway {
@@ -102,7 +137,12 @@ export interface QQManager extends ManagedQQ {
   }
 }
 export interface AgentPayload { agent: object, turn: number, step: number }
+export interface GroupImageMessage {
+  content: ({ type: 'text', text: string } | { type: 'image', attachment: unknown })[]
+  source: { kind: 'user' }
+}
 export interface QQEvents {
+  'agent/status': (payload: { agent: object, status: 'idle' | 'running' }) => void
   'schedule/resolve-agent': (sessionId: string, next: () => Promise<unknown>) => Promise<unknown>
   'system-prompt/assemble': (assembly: PromptAssembly, context: { agent?: object }, next: () => Promise<PromptAssembly>) => Promise<PromptAssembly>
   'agent/pre-step': (payload: AgentPayload, next: () => Promise<{ kind: string, [key: string]: unknown }>) => Promise<{ kind: string, [key: string]: unknown }>
@@ -126,6 +166,6 @@ export interface QQContext {
   webServer: import('../contracts').PersonaContext['webServer']
   connection: import('../contracts').PersonaContext['connection']
   sessionController: {
-    list: (request: object, signal: AbortSignal) => Promise<{ items: { sessionId: string, running?: boolean, projections?: { values: Record<string, unknown> } }[] }>
+    list: (request: object, signal: AbortSignal) => Promise<{ total?: number, items: { sessionId: string, running?: boolean, projections?: { values: Record<string, unknown> } }[] }>
   }
 }

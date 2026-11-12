@@ -1,16 +1,19 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import { existsSync } from 'node:fs'
-import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, stat, symlink, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import process from 'node:process'
+import { setTimeout } from 'node:timers/promises'
 import { pathToFileURL } from 'node:url'
 
 async function main() {
   // Run inside the deployment image. No transport is started, no credentials are read,
   // no model requests are made, and all outbound SDK methods terminate in local stubs.
-  const require = createRequire('/opt/dsh-runtime/node_modules/@deepseek-ai/dsh/package.json')
+  const runtimeModules = join(process.env.DSH_SMOKE_RUNTIME ?? '/opt/dsh-runtime', 'node_modules')
+  const require = createRequire(join(runtimeModules, '@deepseek-ai/dsh/package.json'))
   const load = async (name) => {
     let entry
     try {
@@ -44,20 +47,343 @@ async function main() {
   }
   const consumer = ctx.plugin({ name: 'qq-offline-consumer', inject: ['tools'], apply() {} })
   await consumer.await()
-  ctx.provide('qqWorkspaceGrouping', { watchManager: () => () => {} })
+  const visionMessages = []
+  let visionRecord
+  let visionOutbound
+  let visionSend = Promise.resolve()
+  let visionSession = 0
+  const visionManager = {
+    config: { appId: '124', access: { c2cMode: 'allowlist', c2cAllow: ['owner'] } },
+    sessionKey: (scope, peer) => `qqbot:124:${scope}:${peer}`,
+    findByAgent: agent => visionRecord?.agent === agent ? visionRecord : undefined,
+    findBySessionId: id => visionRecord?.sessionId === id ? visionRecord : undefined,
+    remove: async () => { visionRecord = undefined },
+    async getOrCreate(scope, peerId, _senderId, replyTarget) {
+      if (!visionRecord) {
+        const sessionId = `vision-${++visionSession}`
+        const agent = {
+          status: 'idle',
+          session: { header: { id: sessionId } },
+          followup: (message) => {
+            visionMessages.push({ sessionId, message })
+            visionOutbound?.routeSessionEvent(agent.session, {
+              type: 'assistant/message',
+              data: { message: { content: [{ type: 'text', text: message.content.some(x => x.type === 'image') ? '图中有一只猫。' : '它是橙色的。' }] } },
+            })
+          },
+          whenIdle: () => visionSend.catch(() => {}),
+        }
+        agent.ctx = createScope(consumer.ctx, agent).ctx
+        visionRecord = { sessionKey: this.sessionKey(scope, peerId), sessionId, scope, peerId, agent }
+      }
+      visionRecord.replyTarget = replyTarget
+      return visionRecord
+    },
+  }
+  ctx.provide('qqWorkspaceGrouping', { watchManager: (listener) => {
+    listener(visionManager)
+    return () => {}
+  } })
   ctx.provide('loader', { internal: { import: specifier => import(specifier) } })
   ctx.provide('webServer', { register: () => () => {} })
   ctx.provide('connection', { requestRejection: () => 401 })
   ctx.provide('sessionController', { list: async () => ({ items: [] }) })
   ctx.provide('llm', { async* stream() {} })
+  const imageRef = { attachmentId: 'offline-attachment' }
+  ctx.provide('attachments', { saveImage: async ({ mediaType }) => {
+    assert.equal(mediaType, 'image/jpeg')
+    return imageRef
+  } })
   const isolatedProfile = join(directory, 'profile')
-  await mkdir(isolatedProfile, { recursive: true, mode: 0o700 })
+  await mkdir(join(isolatedProfile, 'el-bot-qq'), { recursive: true, mode: 0o700 })
   await writeFile(join(isolatedProfile, 'package.json'), '{}\n')
-  await symlink('/opt/dsh-runtime/node_modules', join(isolatedProfile, 'node_modules'))
-  const qqFiber = ctx.plugin(qq, { appId: '124', ownerOpenId: 'owner', profileDirectory: isolatedProfile })
-  await qqFiber.await()
-  assert.equal(ctx.get('qqRuntime')?.mode, 'chat-only')
-  await qqFiber.dispose()
+  await writeFile(join(isolatedProfile, 'el-bot-qq/conversations.json'), JSON.stringify({
+    'qqbot:124:group:vision-group': { name: '读图*测试*群' },
+  }))
+  await writeFile(join(isolatedProfile, 'el-bot-qq/group-images.json'), JSON.stringify({
+    version: 1,
+    appId: '124',
+    owner: 'owner',
+    provider: 'vision',
+    model: 'image',
+    grants: [],
+  }))
+  await symlink(runtimeModules, join(isolatedProfile, 'node_modules'))
+  const qqFiber = ctx.plugin(qq, {
+    appId: '124',
+    ownerOpenId: 'owner',
+    profileDirectory: isolatedProfile,
+    groupImageCache: { maxEntries: 2 },
+  })
+  const fetch = globalThis.fetch
+  try {
+    await qqFiber.await()
+    assert.equal(ctx.get('qqRuntime')?.mode, 'chat-only')
+    const qqRoot = dirname(require.resolve('@tencent-connect/dsh-qqbot/package.json'))
+    const { handleInbound } = await import(pathToFileURL(join(qqRoot, 'lib/transport/inbound.js')).href)
+    const { createOutboundHandler } = await import(pathToFileURL(join(qqRoot, 'lib/transport/outbound.js')).href)
+    const { cacheMsgId, getCachedReplyIds } = await import(pathToFileURL(join(qqRoot, 'lib/transport/msgid-cache.js')).href)
+    const { ReplyLimiter } = await import(pathToFileURL(join(qqRoot, 'lib/transport/reply-limiter.js')).href)
+    const { resolveReplyTarget, sendResolvedMarkdown } = await import(pathToFileURL(join(qqRoot, 'lib/transport/reply-target.js')).href)
+    const visionBot = new QQBot({ appId: '124', appSecret: 'offline-fixture', transport: 'websocket' })
+    const visionReplies = []
+    const acknowledgements = []
+    let upstreamInteractions = 0
+    let proactiveAllowed = false
+    let keyboardAllowed = true
+    visionBot.messageApi.sendRaw = async (scope, targetId, _creds, body) => {
+      if (body?.keyboard && (!keyboardAllowed || (!body.msg_id && !proactiveAllowed)))
+        throw new Error('QQ rejected the card')
+      if (body?.event_id)
+        assert.match(body.event_id, /^INTERACTION_CREATE:/)
+      visionReplies.push({ scope, targetId, body })
+      return { id: 'offline-vision-reply' }
+    }
+    visionBot.messageApi.sendMessage = (scope, targetId, content, creds, opts) => visionBot.messageApi.sendRaw(scope, targetId, creds, { content, msg_id: opts?.msgId, keyboard: opts?.inlineKeyboard })
+    visionBot.acknowledgeInteraction = async (id, code) => {
+      acknowledgements.push([id, code])
+    }
+    visionBot.use(mentionGate())
+    visionBot.on('interaction', () => {
+      upstreamInteractions++
+    })
+    const outboundErrors = []
+    const limiter = new ReplyLimiter({ limit: 4 })
+    visionOutbound = createOutboundHandler(visionManager, {
+      sendMarkdown: (target, content, options) => {
+        return visionSend = sendResolvedMarkdown(visionBot, resolveReplyTarget(target, limiter, true), content, options)
+      },
+    }, { textChunkLimit: 1200, streaming: false }, { error: message => outboundErrors.push(message), debug: () => {} })
+    visionBot.on('message', (inbound) => {
+      const { scope, targetId, msgId } = inbound.replyTarget
+      cacheMsgId(scope, targetId, msgId)
+      return handleInbound(inbound, visionManager, { appId: '124' }, { info() {}, warn() {}, error() {} })
+    })
+    const deliver = (kind, senderId, messageId, content, extra = {}) => visionBot.handleInboundMessage({
+      kind,
+      senderId,
+      messageId,
+      content,
+      groupOpenid: kind === 'group' ? 'vision-group' : undefined,
+      rawEventType: kind === 'group' ? 'GROUP_AT_MESSAGE_CREATE' : 'C2C_MESSAGE_CREATE',
+      timestamp: new Date().toISOString(),
+      ...extra,
+    })
+    const request = (id, target) => deliver('group', 'owner', id, `<@${target}> 给他开读图`, { mentions: [{ member_openid: target }] })
+    const buttons = () => visionReplies.findLast(r => r.body?.keyboard)?.body.keyboard.content.rows[0].buttons
+    const grantFile = join(isolatedProfile, 'el-bot-qq/group-images.json')
+    const grants = async () => JSON.parse(await readFile(grantFile, 'utf8')).grants
+    const click = (id, button, identity = {}) => visionBot.emit('interaction', {}, {
+      id,
+      scene: 'c2c',
+      user_openid: 'owner',
+      data: { resolved: { button_id: button.id, button_data: button.action.data } },
+      ...identity,
+    })
+
+    await request('rejected-push', 'first-friend')
+    assert.match(JSON.stringify(visionReplies.at(-1)), /\/group-images pending/)
+    keyboardAllowed = false
+    await deliver('c2c', 'owner', 'plain-fallback', '/group-images pending')
+    assert.match(JSON.stringify(visionReplies.at(-1)), /\/group-images confirm [a-f0-9]{16}/)
+    keyboardAllowed = true
+    await deliver('c2c', 'owner', 'pending-vision', '/group-images pending')
+    const [firstConfirm, firstCancel] = buttons()
+    assert.equal(visionReplies.at(-1).body.msg_id, 'pending-vision')
+    await click('cancel-vision', firstCancel)
+    assert.match(visionReplies.at(-1).body.content, /已取消/)
+    assert.deepEqual(await grants(), [])
+
+    proactiveAllowed = true
+    await request('request-vision', 'friend')
+    const [, card, receipt] = visionReplies.slice(-3)
+    assert.equal(card.scope, 'c2c')
+    assert.equal(card.targetId, 'owner')
+    assert.equal(card.body.msg_id, undefined)
+    assert.equal(card.body.event_id, undefined)
+    assert.match(card.body.markdown.content, /后续追问在本群可见/)
+    assert.ok(card.body.markdown.content.includes('**群聊**：读图\\*测试\\*群'))
+    assert.match(card.body.markdown.content, /^> 群 ID 尾号：-group · 成员 ID：friend$/m)
+    assert.match(card.body.markdown.content, /^> 发起后 10 分钟内有效。$/m)
+    assert.equal(receipt.scope, 'group')
+    assert.match(receipt.body.content, /已把读图确认卡发到主人私聊/)
+    assert.doesNotMatch(JSON.stringify(receipt), /confirm|keyboard/)
+    const [confirm] = buttons()
+    assert.equal(confirm.render_data.visited_label, '已提交')
+    await click('stale-confirm', firstConfirm)
+    await click('wrong-user', confirm, { user_openid: 'friend' })
+    await click('group-click', confirm, { scene: 'group', group_openid: 'vision-group' })
+    assert.deepEqual(await grants(), [])
+    assert.deepEqual(acknowledgements.slice(-2), [['wrong-user', 3], ['group-click', 3]])
+    assert.equal(upstreamInteractions, 0)
+    await visionBot.emit('interaction', {}, { id: 'vendor-approval', scene: 'c2c', user_openid: 'owner' })
+    assert.equal(upstreamInteractions, 1)
+    await click('real-confirm', confirm)
+    assert.deepEqual(acknowledgements.at(-1), ['real-confirm', 0])
+    assert.equal(visionReplies.at(-1).body.event_id, 'INTERACTION_CREATE:real-confirm')
+    assert.match(visionReplies.at(-1).body.content, /已同意群聊读图授权/)
+    assert.match(visionReplies.at(-1).body.content, /读图\*测试\*群/)
+    assert.equal(visionReplies.at(-1).scope, 'c2c')
+    assert.equal(visionReplies.at(-1).targetId, 'owner')
+    await click('replay-confirm', confirm)
+    assert.match(visionReplies.at(-1).body.content, /无效/)
+    const [{ quoteRevision, ...grant }] = await grants()
+    assert.match(quoteRevision, /^[a-f0-9]{32}$/u)
+    assert.deepEqual(grant, { group: 'vision-group', member: 'friend', mode: 'group' })
+    assert.equal((await grants()).length, 1)
+    const downloaded = []
+    const expired = new Set()
+    const firstURL = 'https://multimedia.nt.qq.com.cn/offline-image'
+    const secondURL = 'https://gchat.qpic.cn/offline-image-second'
+    const visitorURL = 'https://gchat.qpic.cn/ungranted-sender'
+    const cacheDir = join(isolatedProfile, 'el-bot-qq/group-image-cache')
+    const cachedPath = url => join(cacheDir, `${createHash('sha256').update(JSON.stringify(['124', 'vision-group', url])).digest('hex')}.img`)
+    const awaitCached = async (url) => {
+      const path = cachedPath(url)
+      for (let attempt = 0; attempt < 100 && !existsSync(path); attempt++)
+        await setTimeout(10)
+      assert.deepEqual([...await readFile(path)], [255, 216, 255, 217])
+    }
+    // Stand in for the official token endpoint without sending any network request.
+    visionBot.api.getToken = async () => 'offline-token'
+    globalThis.fetch = async (url) => {
+      downloaded.push(String(url))
+      if (expired.has(String(url)))
+        return Response.json({ retcode: -5503007, retmsg: 'download url has expired' }, { status: 400 })
+      return new Response(Uint8Array.of(255, 216, 255, 217))
+    }
+    const picture = url => ({ attachments: [{ url, content_type: 'image/jpeg' }] })
+    const backgroundPicture = (idx, data = picture(firstURL)) => ({ rawEventType: 'GROUP_MESSAGE_CREATE', raw: data, msgIdx: idx })
+    const modelTurnsBeforePhoto = visionMessages.length
+    await deliver('group', 'friend', 'authorized-image', '', backgroundPicture('REFIDX_image-first'))
+    await awaitCached(firstURL)
+    assert.deepEqual(downloaded, [firstURL])
+    assert.equal(visionMessages.length, modelTurnsBeforePhoto, 'Caching alone must not send bytes to the model')
+    expired.add(firstURL)
+    assert.deepEqual(getCachedReplyIds('group', 'vision-group'), [], 'Cold group has no downstream QQ reply target')
+    await deliver('group', 'friend', 'ask-about-image', '图里是什么？')
+    assert.deepEqual(outboundErrors, [], 'The first vision answer must not be dropped without a passive reply target')
+    const assertGroupReply = (msgId, content) => {
+      const reply = visionReplies.at(-1)
+      assert.deepEqual([reply.scope, reply.targetId, reply.body.msg_id, reply.body.content], ['group', 'vision-group', msgId, content])
+    }
+    assertGroupReply('ask-about-image', '图中有一只猫。')
+    await deliver('group', 'other', 'image-followup', '那是什么颜色？')
+    assertGroupReply('image-followup', '它是橙色的。')
+    assert.equal(downloaded.length, 1)
+    assert.deepEqual(visionMessages.at(-2).message.content[0], { type: 'image', attachment: imageRef })
+    assert.equal(visionMessages.at(-2).sessionId, visionMessages.at(-1).sessionId)
+    assert.match(visionMessages.at(-1).message.content[0].text, /那是什么颜色/)
+    assert.ok(Object.isFrozen(visionMessages.at(-2).message))
+    const deniedURL = 'https://gchat.qpic.cn/denied-image'
+    await deliver('group', 'other', 'no-image-access', '没授权的图', { raw: picture(deniedURL) })
+    assert.equal(downloaded.length, 1)
+    const second = picture(secondURL)
+    await deliver('group', 'friend', 'second-image', '', backgroundPicture('REFIDX_image-second', second))
+    await awaitCached(secondURL)
+    await deliver('group', 'other', 'no-borrowed-image', '刚才那张图是什么？')
+    assert.equal(downloaded.length, 2)
+    await deliver('group', 'friend', 'quote-first-image', '引用的图是什么？', { msgType: 103, refMsgIdx: 'REFIDX_image-first' })
+    assertGroupReply('quote-first-image', '图中有一只猫。')
+    await deliver('group', 'friend', 'ask-about-second-image', '第二张图是什么？')
+    assert.deepEqual(downloaded, [firstURL, secondURL])
+    assert.deepEqual(outboundErrors, [])
+    assertGroupReply('ask-about-second-image', '图中有一只猫。')
+
+    await deliver('c2c', 'owner', 'grant-owner', '/group-images allow vision-group owner')
+    await click('confirm-owner', buttons()[0])
+    const memberPicture = picture(visitorURL)
+    const oldVisitorURL = 'https://gchat.qpic.cn/old-visitor-photo'
+    await deliver('group', 'visitor', 'photo-before-quote-scope', '', backgroundPicture('REFIDX_old_visitor', picture(oldVisitorURL)))
+    await deliver('c2c', 'owner', 'enable-owner-quotes', '/group-images quote-others vision-group on')
+    assert.match(visionReplies.at(-1).body.markdown.content, /引用他人图片授权/)
+    assert.match(visionReplies.at(-1).body.markdown.content, /包括未获读图授权/)
+    assert.ok(!(await grants()).find(g => g.member === 'owner').quoteOthersRevision)
+    const [confirmOthers] = buttons()
+    await click('friend-cannot-confirm-others', confirmOthers, { user_openid: 'friend' })
+    assert.ok(!(await grants()).find(g => g.member === 'owner').quoteOthersRevision)
+    await click('owner-confirms-others', confirmOthers)
+    assert.match((await grants()).find(g => g.member === 'owner').quoteOthersRevision, /^[a-f0-9]{32}$/u)
+    const beforeVisitorPhoto = visionMessages.length
+    await deliver('group', 'visitor', 'photo-after-quote-scope', '', backgroundPicture('REFIDX_visitor', memberPicture))
+    await awaitCached(visitorURL)
+    assert.equal(existsSync(cachedPath(firstURL)), false, 'The configured entry limit evicts the oldest photo')
+    assert.equal(existsSync(cachedPath(secondURL)), true)
+    assert.equal(visionMessages.length, beforeVisitorPhoto)
+    expired.add(visitorURL)
+    const imageTurns = () => visionMessages.filter(({ message }) => message.content.some(part => part.type === 'image')).length
+    const previousImages = imageTurns()
+    const quoteVisitor = { msgType: 103, refMsgIdx: 'REFIDX_visitor' }
+    await deliver('group', 'friend', 'friend-cannot-quote-visitor', '引用的图是什么？', quoteVisitor)
+    await deliver('group', 'visitor', 'visitor-cannot-trigger', '引用的图是什么？', quoteVisitor)
+    await deliver('group', 'owner', 'owner-cannot-quote-before-enable', '这张图是什么？', { msgType: 103, refMsgIdx: 'REFIDX_old_visitor' })
+    assert.deepEqual(downloaded, [firstURL, secondURL, visitorURL])
+    assert.equal(imageTurns(), previousImages)
+    await deliver('group', 'owner', 'owner-quotes-visitor', '这张图是什么？', quoteVisitor)
+    assert.equal(imageTurns(), previousImages + 1)
+    assert.deepEqual(downloaded, [firstURL, secondURL, visitorURL])
+    assertGroupReply('owner-quotes-visitor', '图中有一只猫。')
+    assert.deepEqual(outboundErrors, [])
+
+    await deliver('c2c', 'owner', 'disable-owner-quotes', '/group-images quote-others vision-group off')
+    const ownerGrant = (await grants()).find(g => g.member === 'owner')
+    assert.equal(ownerGrant.mode, 'group')
+    assert.equal(ownerGrant.quoteOthersRevision, undefined)
+    await stat(cachedPath(visitorURL))
+    await deliver('group', 'owner', 'owner-cannot-quote-after-disable', '这张图是什么？', quoteVisitor)
+    assert.equal(imageTurns(), previousImages + 1, 'A cached file must never bypass revoked quote permission')
+    assert.equal(existsSync(cachedPath(deniedURL)), false)
+    assert.equal(existsSync(cachedPath(oldVisitorURL)), false)
+
+    const overridesFile = join(isolatedProfile, 'el-bot-qq/group-image-cache-settings.json')
+    const overrides = async () => JSON.parse(await readFile(overridesFile, 'utf8')).overrides
+    const beforePrivateDenials = visionReplies.length
+    await deliver('c2c', 'visitor', 'visitor-cannot-read-cache-settings', '查看群图缓存')
+    await deliver('c2c', 'owner', 'quoted-cache-command', '把群图缓存改成 48 小时', { msgType: 103, refMsgIdx: 'quote' })
+    assert.equal(visionReplies.length, beforePrivateDenials)
+    await deliver('group', 'visitor', 'no-group-cache-settings', '查看群图缓存', { groupOpenid: 'settings-test-group' })
+    const groupDenial = visionReplies.at(-1)
+    const replyTarget = [groupDenial.scope, groupDenial.targetId, groupDenial.body.msg_id]
+    assert.deepEqual(replyTarget, ['group', 'settings-test-group', 'no-group-cache-settings'])
+    assert.equal(groupDenial.body.content, '群图缓存仅主人私聊管理。')
+    await deliver('c2c', 'owner', 'cache-settings-before', '查看群图缓存')
+    assert.match(visionReplies.at(-1).body.content, /时长：24 小时/)
+    await deliver('c2c', 'owner', 'request-cache-retention', '把群图缓存改成 48 小时')
+    const changeCard = visionReplies.at(-1)
+    assert.equal(changeCard.scope, 'c2c')
+    assert.equal(changeCard.targetId, 'owner')
+    assert.match(changeCard.body.markdown.content, /24 小时 → 48 小时/)
+    const [cacheConfirm] = buttons()
+    assert.equal(cacheConfirm.render_data.label, '同意修改')
+    assert.equal(existsSync(overridesFile), false)
+    await click('visitor-cannot-confirm-cache', cacheConfirm, { user_openid: 'visitor' })
+    await click('group-cannot-confirm-cache', cacheConfirm, { scene: 'group', group_openid: 'vision-group' })
+    assert.equal(existsSync(overridesFile), false)
+    assert.deepEqual(acknowledgements.slice(-2), [['visitor-cannot-confirm-cache', 3], ['group-cannot-confirm-cache', 3]])
+    await click('owner-confirms-cache', cacheConfirm)
+    assert.deepEqual(acknowledgements.at(-1), ['owner-confirms-cache', 0])
+    assert.equal(visionReplies.at(-1).body.event_id, 'INTERACTION_CREATE:owner-confirms-cache')
+    assert.match(visionReplies.at(-1).body.content, /已生效.*48 小时/)
+    assert.deepEqual(await overrides(), { ttlHours: 48 })
+    await click('cache-card-replay', cacheConfirm)
+    assert.deepEqual(acknowledgements.at(-1), ['cache-card-replay', 3])
+    await deliver('c2c', 'owner', 'cache-settings-after', '查看群图缓存')
+    assert.match(visionReplies.at(-1).body.content, /时长：48 小时/)
+    assert.match(visionReplies.at(-1).body.content, /张数上限：2 张/)
+
+    await deliver('c2c', 'owner', 'request-cache-shrink', '/group-images cache set maxEntries 1')
+    assert.match(visionReplies.at(-1).body.markdown.content, /旧缓存会自动清理/)
+    await click('owner-confirms-cache-shrink', buttons()[0])
+    assert.deepEqual(await overrides(), { ttlHours: 48, maxEntries: 1 })
+    for (let attempt = 0; attempt < 100 && existsSync(cachedPath(secondURL)); attempt++)
+      await setTimeout(10)
+    assert.equal(existsSync(cachedPath(secondURL)), false, 'Tightening the limit prunes the live cache without restarting')
+    assert.equal(existsSync(cachedPath(visitorURL)), true)
+  }
+  finally {
+    globalThis.fetch = fetch
+    await qqFiber.dispose()
+  }
   const preferences = join(directory, 'prefs.json')
   await writeFile(preferences, JSON.stringify({ sessionIds: { 'qqbot:123:group:group-a': 'group-test', 'qqbot:123:c2c:owner': 'owner-test' } }))
   const qqRoot = dirname(require.resolve('@tencent-connect/dsh-qqbot/package.json'))
@@ -109,7 +435,7 @@ async function main() {
   const manual = manualRuntime({ sessionController: { list: async () => ({ items: [] }) } }, policy, directory, preferences)
   await manual.controller.initialize()
   const undo = protectGateway(QQBot.prototype, policy, undefined, manual.hooks)
-  const report = { sdk: false, quotes: false, commands: false, tools: false, monotonicGuard: false, owner: false, offline: true }
+  const report = { sdk: false, quotes: false, commands: false, tools: false, monotonicGuard: false, owner: false, groupVisionContext: true, offline: true }
   try {
     ctx.tools.guard(policy.guard)
     ctx.on('tools/pre-execute', async () => ({ kind: 'allow' }))

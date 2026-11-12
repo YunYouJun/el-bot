@@ -1,5 +1,6 @@
 import type { Gateway, InteractionHandler, Middleware } from './contracts'
 import type { QQPolicy } from './policy'
+import { groupImageButton } from './group-images'
 
 /** Install before the official plugin registers middleware or starts a transport. */
 export function protectGateway(prototype: Gateway, policy: QQPolicy, onBound?: (bot: Gateway) => void, manual?: {
@@ -27,6 +28,7 @@ export function protectGateway(prototype: Gateway, policy: QQPolicy, onBound?: (
       throw new Error('QQ SDK does not expose the required security boundaries')
   }
   const admitted = new WeakSet<Gateway>()
+  const handledButtons = new WeakSet<object>()
   const handlers = new WeakMap<InteractionHandler, InteractionHandler>()
   const matches = (bot: Gateway) => bot.appId === policy.appId
   prototype.use = function (...middleware: Middleware[]) {
@@ -55,6 +57,14 @@ export function protectGateway(prototype: Gateway, policy: QQPolicy, onBound?: (
     if (!matches(this) || event !== 'interaction')
       return original.on.call(this, event, handler)
     const wrapped: InteractionHandler = async (ctx, interaction) => {
+      const button = groupImageButton(interaction)
+      if (button) {
+        if (!handledButtons.has(interaction)) {
+          handledButtons.add(interaction)
+          await policy.groupImageInteraction(this, interaction, button)
+        }
+        return
+      }
       if (!policy.interaction(interaction)) {
         await this.acknowledgeInteraction(interaction.id, 3).catch(() => {})
         return

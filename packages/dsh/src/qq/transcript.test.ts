@@ -58,6 +58,25 @@ it('shows sending before a receipt and preserves unknown and failed outcomes wit
   expect((await store.page('session-live')).messages.map(row => row.status)).toEqual(['sent', 'unknown', 'unknown', 'failed'])
 })
 
+it('records a passive receipt before any group session and completes it after binding', async () => {
+  const { store } = await fixture()
+  await store.inbound(inbound())
+  let finish: (value: { id: string }) => void = () => {}
+  const network = new Promise<{ id: string }>((resolve) => {
+    finish = resolve
+  })
+  const send = vi.fn(() => network)
+  await expect(store.send('group-a', 'proactive', false, send)).rejects.toThrow('no active binding')
+  expect(send).not.toHaveBeenCalled()
+  const receipt = store.send('group-a', '请回私聊确认', false, send, true)
+  await vi.waitFor(() => expect(send).toHaveBeenCalledOnce())
+  await store.bind('group-a', 'session-live')
+  expect((await store.page('session-live')).messages.at(-1)?.status).toBe('pending')
+  finish({ id: 'qq-reply' })
+  await receipt
+  expect((await store.page('session-live')).messages.at(-1)).toMatchObject({ status: 'sent', messageId: 'qq-reply' })
+})
+
 it('preserves bounded display attachments across middleware mutation and restarts without arbitrary URLs or payload fields', async () => {
   const { store, directory } = await fixture()
   const attachments = [

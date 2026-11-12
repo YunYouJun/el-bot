@@ -1,4 +1,4 @@
-import type { Inbound, Target } from '../qq/contracts'
+import type { Inbound, QQInlineKeyboard, Target } from '../qq/contracts'
 import { CommandCatalog } from '@el-bot/commands'
 
 export type QQCommandScope = 'c2c' | 'group' | 'all'
@@ -6,6 +6,7 @@ export type QQCommandPermission = 'owner' | 'group-admin' | 'everyone'
 
 export interface QQCommandMarkdownReply {
   readonly markdown: string
+  readonly keyboard?: QQInlineKeyboard
   /** Plain fallback used when QQ rejects Markdown or the client cannot render it. */
   readonly text?: string
 }

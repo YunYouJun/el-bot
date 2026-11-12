@@ -35,6 +35,14 @@
         timezone: Asia/Shanghai
         # Set false to force plain-text command replies.
         commandMarkdown: true
+        # Optional image cache overrides. All values shown are defaults.
+        # groupImageCache:
+        #   enabled: true
+        #   ttlHours: 24
+        #   maxImageMiB: 4
+        #   maxMiB: 128
+        #   maxEntries: 512
+        #   cleanupMinutes: 5
         # Optional fallback when a group has no selected model.
         # summary:
         #   provider: deepseek-api
