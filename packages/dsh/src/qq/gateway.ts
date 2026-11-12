@@ -1,5 +1,6 @@
 import type { Gateway, InteractionHandler, Middleware } from './contracts'
 import type { QQPolicy } from './policy'
+import { createButton } from './create'
 import { groupImageButton } from './group-images'
 
 /** Install before the official plugin registers middleware or starts a transport. */
@@ -57,11 +58,11 @@ export function protectGateway(prototype: Gateway, policy: QQPolicy, onBound?: (
     if (!matches(this) || event !== 'interaction')
       return original.on.call(this, event, handler)
     const wrapped: InteractionHandler = async (ctx, interaction) => {
-      const button = groupImageButton(interaction)
+      const button = createButton(interaction) ?? groupImageButton(interaction)
       if (button) {
         if (!handledButtons.has(interaction)) {
           handledButtons.add(interaction)
-          await policy.groupImageInteraction(this, interaction, button)
+          await policy.ownerCardInteraction(this, interaction, button)
         }
         return
       }

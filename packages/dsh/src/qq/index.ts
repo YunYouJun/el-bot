@@ -10,11 +10,12 @@ import { DOWNSTREAM_COMMANDS, registerBuiltinQQCommands } from '../qq-commands/b
 import { QQCommandRegistry } from '../qq-commands/registry'
 import { QQCommandRouter } from '../qq-commands/router'
 import { profileDirectory } from '../service'
+import { QQCreate } from './create'
 import { QQDeployment, serveQQDeployment } from './deployment'
 import { protectGateway } from './gateway'
 import { DEFAULT_GROUP_IMAGE_CACHE, groupImageCacheOptions, QQGroupImageCache } from './group-image-cache'
 import { QQGroupImageCacheControl } from './group-image-cache-control'
-import { QQGroupImages } from './group-images'
+import { isQuote, QQGroupImages } from './group-images'
 import { QQGroupDirectory } from './groups'
 import { QQMemberImpressionTool } from './impression-tool'
 import { QQMemberImpressions } from './impressions'
@@ -133,7 +134,16 @@ export async function apply(ctx: QQContext, settings: QQSettings) {
       setTimeout(exit as (code: number) => void, 750, 0)
     },
   })
+  const creator = new QQCreate(join(directory, 'shortcuts.json'), policy.appId, policy.owner, commands, cacheControl)
+  await creator.load(() => ctx.logger?.warn?.('QQ owner shortcuts could not be loaded'))
+  policy.creator = creator
+  const disposeCreate = commands.command('create')
+    .description('在主人私聊起草快捷指令和群图缓存设置，确认后生效。')
+    .usage('create [status|list|exit|remove 指令]')
+    .action((args, { message }) => message.senderIsBot || isQuote(message) ? '请直接发送 /create。' : creator.command(args))
+    .dispose
   ctx.effect(() => () => {
+    disposeCreate()
     disposeGroupImages()
     for (const dispose of builtinCommandDisposers)
       dispose()
@@ -144,9 +154,11 @@ export async function apply(ctx: QQContext, settings: QQSettings) {
     isPaused: () => policy.paused('c2c', policy.owner),
     onError: (command, error) => ctx.logger?.error?.(`QQ command /${command} failed: ${error instanceof Error ? error.message : 'unknown error'}`),
     markdown: settings.commandMarkdown !== false,
+    shortcut: name => creator.shortcut(name),
   })
   policy.command = ctx => commandRouter.handle(ctx)
   policy.groupImageCommand = async (ctx, args) => commandRouter.sendReply(ctx, await groupImages.commandReply(args))
+  policy.createReply = async (ctx, args) => commandRouter.sendReply(ctx, await creator.command(args))
   await metadata.load()
   const groups = new QQGroupDirectory(settings.appId, join(directory, 'groups.json'), join(homedir(), '.dsh-qqbot/model-prefs.json'), policy, metadata)
   await groups.load()

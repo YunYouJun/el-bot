@@ -169,6 +169,7 @@ export default defineConfig({
         { text: "工作区与发布", link: "/development/monorepo" },
         { text: "平台插件", link: "/development/platform-plugins" },
         { text: "用户指令系统", link: "/development/user-commands" },
+        { text: "小云的 QQ 创造模式", link: "/development/qq-create" },
         { text: "QQ 遥控 AI 程序", link: "/development/codex-remote" },
         { text: "选择 Codex / CodeBuddy / dsh", link: "/codex/agents" },
         { text: "Markdown 图片渲染", link: "/development/card-renderer" },

@@ -15,6 +15,8 @@ export interface QQCommandRouterOptions {
   readonly onError?: (command: string, error: unknown) => void
   readonly maxReplyLength?: number
   readonly markdown?: boolean
+  /** Owner-defined read-only shortcuts; registered and delegated commands always win. */
+  readonly shortcut?: (name: string) => RegisteredQQCommand | undefined
 }
 
 const MAX_REPLY = 1600
@@ -78,9 +80,10 @@ export class QQCommandRouter {
       return true
     }
 
-    const command = this.registry.resolve(name)
+    const delegated = this.registry.isCatalogName(name)
+    const command = this.registry.resolve(name) ?? (!delegated && name === parsed.name ? this.options.shortcut?.(name) : undefined)
     if (!command) {
-      if (this.registry.isCatalogName(name))
+      if (delegated)
         return false
       await this.send(ctx, `未找到指令 /${name}。发送 /help 查看可用指令。`)
       stop('unknown')

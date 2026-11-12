@@ -29,7 +29,7 @@ const phrases: Record<string, NumberField> = {
   张数上限: 'maxEntries',
   清理间隔: 'cleanupMinutes',
 }
-interface Pending { code: string, until: number, field: Field, before: number | boolean, after: number | boolean }
+interface Pending { code: string, until: number, field: Field, before: number | boolean, after: number | boolean, active?: () => boolean }
 
 function format(field: Field, value: number | boolean) {
   return field === 'enabled' ? (value ? '开启' : '关闭') : `${value} ${units[field]}`
@@ -94,8 +94,8 @@ export class QQGroupImageCacheControl {
     }
   }
 
-  command(args: string[]): Promise<QQCommandReply> {
-    return this.serial(() => this.handle(args))
+  command(args: string[], active?: () => boolean): Promise<QQCommandReply> {
+    return this.serial(() => this.handle(args, active))
   }
 
   button(action: Action, code: string) {
@@ -108,7 +108,7 @@ export class QQGroupImageCacheControl {
     return next
   }
 
-  private async handle([action = 'show', ...args]: string[]): Promise<QQCommandReply> {
+  private async handle([action = 'show', ...args]: string[], active?: () => boolean): Promise<QQCommandReply> {
     if (action === 'show' && !args.length) {
       const settings = this.cache.settings
       const details = (Object.keys(labels) as Field[]).map(field => `${labels[field]}：${format(field, settings[field])}`)
@@ -139,7 +139,7 @@ export class QQGroupImageCacheControl {
       return `${labels[field]}已经是${format(field, before)}，无需修改。`
     }
     const code = randomBytes(8).toString('hex')
-    this.pending = { code, until: this.now() + CONFIRM_MINUTES * 60_000, field, before, after }
+    this.pending = { code, until: this.now() + CONFIRM_MINUTES * 60_000, field, before, after, active }
     const change = `${labels[field]}：${format(field, before)} → ${format(field, after)}`
     const shrink = field !== 'cleanupMinutes' && typeof before === 'number' && typeof after === 'number' && after < before
     const note = shrink ? '确认后立即应用新限制，超出的旧缓存会自动清理。' : '确认后立即生效，无需重启。'
@@ -157,7 +157,7 @@ export class QQGroupImageCacheControl {
 
   private async decide(action: Action, code: string) {
     const pending = this.pending
-    if (!pending || pending.code !== code || pending.until <= this.now())
+    if (!pending || pending.code !== code || pending.until <= this.now() || pending.active?.() === false)
       return { accepted: false, text: '这条缓存设置申请无效、已过期或已经处理。' }
     if (action === 'cancel') {
       this.pending = undefined

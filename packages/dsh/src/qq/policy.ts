@@ -1,6 +1,7 @@
 import type { PromptAssembly } from '../contracts'
 import type { PeerRecord } from '../qq-workspaces/contracts'
 import type { AgentPayload, Gateway, GroupImageMessage, InboundContext, Interaction, ProtectedAgent, QQManager, QQSettings, Target } from './contracts'
+import type { createButton, QQCreate } from './create'
 import type { QQDeployment } from './deployment'
 import type { GroupImageGrantCard, ImageCandidate, ImageQuoteKeys, QQGroupImages, QuoteImageLookup } from './group-images'
 import { createHash } from 'node:crypto'
@@ -23,6 +24,7 @@ const DAY = 24 * 60 * MINUTE
 const MAX_INPUT = 2000
 export const MAX_OUTPUT_TOKENS = 512
 const MAX_SESSION_TURNS = 12
+type OwnerCardButton = NonNullable<ReturnType<typeof groupImageButton> | ReturnType<typeof createButton>>
 
 export const digest = (...parts: string[]) => createHash('sha256').update(JSON.stringify(parts)).digest('hex')
 
@@ -52,6 +54,8 @@ export class QQPolicy {
   groupImages?: QQGroupImages
   deployment?: QQDeployment
   groupImageCommand?: (ctx: InboundContext, args: string[]) => Promise<void>
+  creator?: QQCreate
+  createReply?: (ctx: InboundContext, args: string[]) => Promise<void>
   groupImageTransport?: {
     createMessage: (input: GroupImageMessage) => unknown
     rememberReply: (group: string, messageId: string) => void
@@ -215,28 +219,30 @@ export class QQPolicy {
     return true
   }
 
-  async groupImageInteraction(bot: Gateway, event: Interaction, button: NonNullable<ReturnType<typeof groupImageButton>>) {
+  async ownerCardInteraction(bot: Gateway, event: Interaction, button: OwnerCardButton) {
     if (!event.id)
       return
     if (this.deployment) {
-      return this.deployment.admit(() => this.resolveGroupImageInteraction(bot, event, button), () => {
+      return this.deployment.admit(() => this.resolveOwnerCardInteraction(bot, event, button), () => {
         void bot.acknowledgeInteraction(event.id, 3).catch(() => {})
       })
     }
-    await this.resolveGroupImageInteraction(bot, event, button)
+    await this.resolveOwnerCardInteraction(bot, event, button)
   }
 
-  private async resolveGroupImageInteraction(bot: Gateway, event: Interaction, button: NonNullable<ReturnType<typeof groupImageButton>>) {
+  private async resolveOwnerCardInteraction(bot: Gateway, event: Interaction, button: OwnerCardButton) {
     const acknowledge = (code: number) => bot.acknowledgeInteraction(event.id, code).catch(() => {})
-    if (bot.appId !== this.appId || button === 'invalid' || event.guild_id || event.channel_id || !this.groupImages || !this.interaction(event)) {
+    if (bot.appId !== this.appId || button === 'invalid' || event.guild_id || event.channel_id || !this.interaction(event)) {
       await acknowledge(3)
       return
     }
 
-    const decision = await this.groupImages.button(button).catch(() => ({
+    const operation = button.subject === 'create' ? this.creator?.button(button.action, button.code) : this.groupImages?.button(button)
+    const failure = {
       accepted: false,
-      text: button.subject === 'cache' ? '群图缓存设置未更新，请稍后重试。' : '读图授权未保存，请稍后重试。',
-    }))
+      text: button.subject ? '草稿未保存，请稍后重试。' : '读图授权未保存，请稍后重试。',
+    }
+    const decision = operation ? await operation.catch(() => failure) : failure
     await acknowledge(decision.accepted ? 0 : 3)
     // The ACK uses the raw ID, but QQ's message API expects the qualified event ID.
     const eventId = `INTERACTION_CREATE:${event.id}`
@@ -249,7 +255,7 @@ export class QQPolicy {
       })
     }
     catch (error) {
-      this.groupImages.reportReceiptFailure(error)
+      this.groupImages?.reportReceiptFailure(error)
     }
   }
 
@@ -279,11 +285,19 @@ export class QQPolicy {
         return
       const cacheIntent = groupImageCacheIntent(msg.content)
       const command = parseQQCommand(msg.content)
-      if ((cacheIntent || (command?.name === 'group-images' && command.args[0] === 'cache')) && (msg.senderIsBot || isQuote(msg))) {
+      const grantIntent = this.groupImages?.ownerIntent(msg.content)
+      const draft = !command && !grantIntent && (!cacheIntent || cacheIntent[1] === 'set') ? this.creator?.natural(msg.content) : undefined
+      if ((draft || cacheIntent || (command?.name === 'group-images' && command.args[0] === 'cache')) && (msg.senderIsBot || isQuote(msg))) {
         ctx.stop('qq:invalid-cache-management')
         return
       }
-      const imageIntent = cacheIntent ?? this.groupImages?.ownerIntent(msg.content)
+      if (draft && this.createReply) {
+        if (await this.store.take([{ key: this.key('command', msg.messageId), limit: 1, duration: DAY }]))
+          await this.createReply(ctx, draft)
+        ctx.stop('qq:create')
+        return
+      }
+      const imageIntent = cacheIntent ?? grantIntent
       if (imageIntent && this.groupImages) {
         if (await this.store.take([{ key: this.key('command', msg.messageId), limit: 1, duration: DAY }])) {
           if (this.groupImageCommand)

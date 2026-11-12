@@ -33,6 +33,14 @@ features:
       height: 24
       wrap: true
     details: 每个项目独立续聊；需要升级权限时，在 QQ 查看并逐次确认。
+  - title: QQ 私聊创造模式
+    icon:
+      src: /icons/cli.svg
+      width: 24
+      height: 24
+      wrap: true
+    details: 主人用 /create 创建快捷指令、固定回复或群图缓存设置草稿，核对卡片后即时生效。
+    link: /development/qq-create
   - title: 小云原生客户端
     icon:
       src: /icons/devices.svg
