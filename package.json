@@ -25,6 +25,7 @@
     "el-bot-web": "https://github.com/ElpsyCN/el-bot-web"
   },
   "scripts": {
+    "dsh:deploy": "node apps/dsh-cloud/deploy.mjs",
     "mygo:dev": "go -C apps/el-bot-mygo-prototype tool mygo dev",
     "mygo:build": "go -C apps/el-bot-mygo-prototype tool mygo build",
     "mygo:check": "go -C apps/el-bot-mygo-prototype run . --check",

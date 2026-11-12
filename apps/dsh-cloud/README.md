@@ -46,6 +46,26 @@ docker compose ps
 
 验收需要同时检查界面选择和会话日志中实际请求的 `provider`／`model`。仅看模型按钮或回复内容不能证明已切换成功。还应重启后复查偏好和历史。云机必须能够通过 HTTPS 访问 `https://api.openai.com/v1`；连接超时、DNS 或地区访问问题需要先解决，已保存 Key 不代表真实调用已通过。网络未就绪时保留可用的原模型。
 
+## SSH 发布
+
+在含 `packages/dsh` 的工作树根目录运行（本机需要 pnpm、Python 3 和 OpenSSH）：
+
+```sh
+pnpm dsh:deploy
+pnpm dsh:deploy status
+pnpm dsh:deploy rollback
+```
+
+默认使用本机 SSH 别名 `el-bot-dsh-deploy`，其他环境可指定 `DSH_DEPLOY_HOST`。公钥通过可信的云终端安装；先从该终端读取 SSH 主机指纹并与网络端比对，再把它写进专用 `known_hosts`。部署密钥限制为服务端固定命令，禁止远程 Shell、转发和终端分配。私钥和主机配置留在本机，不进入 Git。
+
+命令从当前工作树构建完整的 `@el-bot/dsh` 包，按 SHA-256 保存到独立的云端发布目录。服务端用现有镜像、无网络和无聊天数据挂载验证这份产物。发布复用当前容器记录的 Compose 文件，附加最后一份 `deploy/compose.release.json`，只切换代码挂载并加上部署控制挂载。聊天历史、QQ 授权、账号配置、APNs 密钥和其他插件挂载沿用原路径；不要用旧数据快照做应用回滚。
+
+切换前通过容器内私有 Unix socket 检查活跃会话、会话的后台任务、正在处理的 QQ 请求和群发任务。忙碌时返回 `busy`（退出码 75），旧版继续运行；任务结束后可重试。无法确认空闲时同样不切换。候选容器通过本轮 QQ 连接和 Web 健康检查后才恢复正常接收；失败会重新启动上一个健康版本。服务器上的短时 systemd 任务负责完成切换或回滚，本机 SSH 断开后也可用 `status` 查看结果。
+
+发布成功，或重新发布同一版本并通过健康检查后，会清理受管发布目录中不再使用的代码包，只保留当前版、上一版和首次部署的基线。忙碌、健康检查失败或自动回滚时不清理。输出的 `cleanup.removed` 列出已清理的摘要；清理失败会给出提示，健康的新版本继续运行。独立挂载的数据、配置、QQ 授权，以及接入此发布器以前的人工备份都不在清理范围内。
+
+首次接入由服务器管理员安装仓库的 `deploy-host.py` 到 `/usr/local/libexec/el-bot-dsh-deploy.py`，安装 `deploy-ssh.sh` 到 `/usr/local/sbin/el-bot-dsh-ssh`，两者归 root 所有。先执行服务端的 `--init` 记录现有 Compose 基线，再为专用公钥配置 `restrict,command="/usr/local/sbin/el-bot-dsh-ssh"`。对于不含部署 socket 的旧版，先 `pnpm dsh:deploy --stage` 上传候选包，再由管理员执行 `--bootstrap <发布摘要>`，私聊小云发送一次不带 `force` 的 `/restart`。等 `status` 显示 `gate: ready` 后，日常发布只走 SSH。更新基础镜像、容器依赖或部署脚本时，由管理员在单独的维护窗口处理。
+
 ## 运维与恢复
 
 个人云机部署位置为 `/srv/yunlefun/el-bot-dsh`，容器名 `el-bot-dsh`。服务器的固定公网出口需要加入 QQ 开放平台白名单。检查 `home/.dsh-qqbot/workspace-grouping-status.json`、`cloud-cutover.json` 和容器健康状态，再通过真实私聊与群聊验证收发。
